@@ -1,0 +1,37 @@
+{
+  "transcripcion": "El puré ni lo quiso, lo corrió para el costado, no le gusta esa textura. Los bastones de queso se comió la mitad, agarró uno solo y lo fue mordiendo despacito. Sí, eran de queso. Comimos todos juntos y estuvo tranquilo.",
+  "respuestas": [
+    {
+      "itemIdTmp": "i1",
+      "cuanto": "aparto",
+      "motivo": "textura",
+      "confianza": 0.92,
+      "cita": "El puré ni lo quiso, lo corrió para el costado, no le gusta esa textura."
+    },
+    {
+      "itemIdTmp": "i3",
+      "cuanto": "mitad",
+      "porcion": "chica",
+      "confianza": 0.85,
+      "cita": "Los bastones de queso se comió la mitad"
+    }
+  ],
+  "respuestasPreguntas": [
+    {
+      "preguntaId": "q1",
+      "respuesta": "Sí, de queso"
+    },
+    {
+      "preguntaId": "q2",
+      "respuesta": "Sí"
+    }
+  ],
+  "conducta": [
+    "tranquilo"
+  ],
+  "comentario": "Apartó el puré por la textura y comió la mitad de los bastones de queso. Comida tranquila, en familia.",
+  "sinMencion": [
+    "i2"
+  ],
+  "ms": 2100
+}

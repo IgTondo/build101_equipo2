@@ -1,0 +1,27 @@
+# Tests y chequeo de tipos en cada push (§4.1, C1). Corre en los runners de Tenki:
+# definir la variable del repo RUNNER con la etiqueta del runner de Tenki (Settings → Variables).
+# Si no está definida, cae a ubuntu-latest.
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

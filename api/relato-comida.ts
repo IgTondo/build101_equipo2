@@ -1,0 +1,8 @@
+// POST /api/relato-comida { RelatoComidaReq } → RelatoComida
+// Dueño: pista A (A7, PLAN.md §7). Stub de C1: devuelve fixtures/relato-comida.json con x-nibble-stub: 1.
+import { manejar, permitir, responderStub } from '../server/http.js'
+
+export default manejar(async (req, res) => {
+  if (!permitir(req, res, 'POST')) return
+  await responderStub(res, 'relato-comida')
+})

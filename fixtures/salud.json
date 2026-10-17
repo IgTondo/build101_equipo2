@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "servicios": {
+    "mongo": {
+      "ok": true,
+      "ms": 38
+    },
+    "neo4j": {
+      "ok": true,
+      "ms": 112
+    },
+    "claude": {
+      "ok": true,
+      "ms": 640
+    },
+    "transcripcion": {
+      "ok": true,
+      "ms": 410
+    },
+    "imagen": {
+      "ok": true,
+      "ms": 950
+    }
+  },
+  "motorGrafo": "neo4j",
+  "stub": true
+}

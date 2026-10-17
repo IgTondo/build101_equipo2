@@ -1,0 +1,51 @@
+{
+  "name": "nibble",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c green,blue \"tsx watch --clear-screen=false scripts/dev-api.ts\" \"vite\"",
+    "dev:api": "tsx watch --clear-screen=false scripts/dev-api.ts",
+    "dev:web": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.app.json && tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "fixtures": "tsx scripts/generar-fixtures.ts",
+    "sinteticos": "node scripts/generar-sinteticos.mjs",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
+    "@google/genai": "^2.30.0",
+    "csv-parse": "^7.0.3",
+    "groq-sdk": "^1.6.0",
+    "mongodb": "^7.7.0",
+    "neo4j-driver": "^6.2.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-force-graph-2d": "^1.29.2",
+    "react-router-dom": "^7.18.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vercel/node": "^24.0.3",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^10.0.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vercel": "^64.5.0",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
+  }
+}

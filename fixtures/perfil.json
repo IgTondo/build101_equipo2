@@ -1,0 +1,206 @@
+{
+  "ninoId": "tomas",
+  "datos": {
+    "nombre": "Tomás",
+    "edad": 6,
+    "sexo": "masculino",
+    "pesoKg": 21,
+    "tallaCm": 116,
+    "alergias": [
+      "huevo"
+    ],
+    "alertas": [],
+    "dieta": "ninguna"
+  },
+  "reglas": [
+    {
+      "texto": "No come nada mezclado",
+      "condiciones": [
+        {
+          "tipo": "presentacion",
+          "valor": "mezclado"
+        }
+      ],
+      "efecto": "rechaza"
+    }
+  ],
+  "patrones": [
+    {
+      "texto": "Lo crocante servido separado lo acepta",
+      "resultado": "acepta",
+      "apoyo": 41,
+      "confianza": 0.84,
+      "fuente": "aprendido"
+    },
+    {
+      "texto": "Lo blando lo rechaza, aunque sea un alimento que acepta en otra textura",
+      "resultado": "rechaza",
+      "apoyo": 6,
+      "confianza": 0.97,
+      "fuente": "aprendido"
+    },
+    {
+      "texto": "Lo jugoso lo rechaza: la hamburguesa no, la milanesa sí",
+      "resultado": "rechaza",
+      "apoyo": 3,
+      "confianza": 0.95,
+      "fuente": "aprendido"
+    },
+    {
+      "texto": "Lo mezclado lo rechaza",
+      "resultado": "rechaza",
+      "apoyo": 3,
+      "confianza": 0.97,
+      "fuente": "aprendido"
+    },
+    {
+      "texto": "Lo que viene con salsa lo rechaza, aunque sea su milanesa",
+      "resultado": "rechaza",
+      "apoyo": 3,
+      "confianza": 0.98,
+      "fuente": "aprendido"
+    },
+    {
+      "texto": "Las texturas mixtas suelen rechazarse",
+      "resultado": "rechaza",
+      "apoyo": 3,
+      "confianza": 0.4,
+      "fuente": "investigacion"
+    }
+  ],
+  "preparaciones": [
+    {
+      "id": "tostadas",
+      "nombre": "Tostadas de pan blanco",
+      "estado": "acepta",
+      "puntaje": 1,
+      "veces": 14
+    },
+    {
+      "id": "papas_fritas_baston",
+      "nombre": "Papas fritas en bastones",
+      "estado": "acepta",
+      "puntaje": 0.99,
+      "veces": 8
+    },
+    {
+      "id": "milanesa_carne_horno",
+      "nombre": "Milanesa de carne al horno (rebozada sin huevo)",
+      "estado": "acepta",
+      "puntaje": 0.93,
+      "veces": 6
+    },
+    {
+      "id": "leche_chocolatada",
+      "nombre": "Leche chocolatada",
+      "estado": "acepta",
+      "puntaje": 0.91,
+      "veces": 14
+    },
+    {
+      "id": "galletitas_agua",
+      "nombre": "Galletitas de agua",
+      "estado": "acepta",
+      "puntaje": 0.9,
+      "veces": 2
+    },
+    {
+      "id": "papas_horno_baston",
+      "nombre": "Papas al horno en bastones, crocantes",
+      "estado": "acepta",
+      "puntaje": 0.76,
+      "veces": 2
+    },
+    {
+      "id": "manzana_bastones",
+      "nombre": "Manzana pelada en bastones",
+      "estado": "en_proceso",
+      "puntaje": 0.54,
+      "veces": 2
+    },
+    {
+      "id": "bastones_queso_horno",
+      "nombre": "Bastones de queso horneados",
+      "estado": "en_proceso",
+      "puntaje": 0.44,
+      "veces": 5
+    },
+    {
+      "id": "papas_horno_cubos",
+      "nombre": "Papas al horno en cubos, blandas",
+      "estado": "en_proceso",
+      "puntaje": 0.37,
+      "veces": 1
+    },
+    {
+      "id": "brocoli_hervido",
+      "nombre": "Brócoli hervido",
+      "estado": "en_proceso",
+      "puntaje": 0.37,
+      "veces": 1
+    },
+    {
+      "id": "lentejas_guisadas",
+      "nombre": "Lentejas guisadas",
+      "estado": "en_proceso",
+      "puntaje": 0.37,
+      "veces": 1
+    },
+    {
+      "id": "milanesa_napolitana",
+      "nombre": "Milanesa a la napolitana (sin huevo)",
+      "estado": "en_proceso",
+      "puntaje": 0.35,
+      "veces": 1
+    },
+    {
+      "id": "pollo_plancha",
+      "nombre": "Pollo a la plancha",
+      "estado": "en_proceso",
+      "puntaje": 0.35,
+      "veces": 1
+    },
+    {
+      "id": "papa_hervida",
+      "nombre": "Papa hervida en trozos",
+      "estado": "en_proceso",
+      "puntaje": 0.35,
+      "veces": 1
+    },
+    {
+      "id": "bastones_zanahoria_horno",
+      "nombre": "Bastones de zanahoria horneados",
+      "estado": "en_proceso",
+      "puntaje": 0.3,
+      "veces": 2
+    },
+    {
+      "id": "hamburguesa_casera",
+      "nombre": "Hamburguesa casera a la plancha",
+      "estado": "en_proceso",
+      "puntaje": 0.29,
+      "veces": 2
+    },
+    {
+      "id": "fideos_con_salsa",
+      "nombre": "Fideos con salsa de tomate",
+      "estado": "en_proceso",
+      "puntaje": 0.26,
+      "veces": 2
+    },
+    {
+      "id": "pure_papa",
+      "nombre": "Puré de papa",
+      "estado": "en_proceso",
+      "puntaje": 0.07,
+      "veces": 1
+    },
+    {
+      "id": "arroz_con_pollo",
+      "nombre": "Arroz con pollo",
+      "estado": "en_proceso",
+      "puntaje": 0.06,
+      "veces": 2
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "acepta": [
+    {
+      "nombre": "Papas fritas en bastones",
+      "preparacionId": "papas_fritas_baston",
+      "atributos": {
+        "textura": "crocante",
+        "forma": "baston",
+        "color": "amarillo",
+        "sabor": "salado",
+        "temperatura": "caliente",
+        "presentacion": "separado",
+        "grupo": "cereal_almidon",
+        "coccion": "frito"
+      }
+    },
+    {
+      "nombre": "Milanesa de carne al horno (rebozada sin huevo)",
+      "preparacionId": "milanesa_carne_horno",
+      "atributos": {
+        "textura": "crocante",
+        "forma": "plano",
+        "color": "marron",
+        "sabor": "salado",
+        "temperatura": "caliente",
+        "presentacion": "separado",
+        "grupo": "proteina",
+        "coccion": "horno"
+      }
+    },
+    {
+      "nombre": "Tostadas de pan blanco",
+      "preparacionId": "tostadas",
+      "atributos": {
+        "textura": "crocante",
+        "forma": "plano",
+        "color": "beige",
+        "sabor": "neutro",
+        "temperatura": "tibio",
+        "presentacion": "separado",
+        "grupo": "cereal_almidon",
+        "coccion": "horno"
+      }
+    },
+    {
+      "nombre": "Galletitas de agua",
+      "preparacionId": "galletitas_agua",
+      "atributos": {
+        "textura": "crocante",
+        "forma": "plano",
+        "color": "beige",
+        "sabor": "salado",
+        "temperatura": "frio",
+        "presentacion": "separado",
+        "grupo": "cereal_almidon",
+        "coccion": "listo"
+      }
+    },
+    {
+      "nombre": "Leche chocolatada",
+      "preparacionId": "leche_chocolatada",
+      "atributos": {
+        "textura": "cremoso",
+        "forma": "entero",
+        "color": "marron",
+        "sabor": "dulce",
+        "temperatura": "frio",
+        "presentacion": "separado",
+        "grupo": "lacteo",
+        "coccion": "listo"
+      }
+    }
+  ],
+  "rechaza": [
+    {
+      "nombre": "Puré de papa",
+      "preparacionId": "pure_papa",
+      "motivo": "textura"
+    },
+    {
+      "nombre": "Arroz con pollo",
+      "preparacionId": "arroz_con_pollo",
+      "motivo": "mezcla"
+    }
+  ],
+  "reglas": [
+    {
+      "texto": "No come nada mezclado",
+      "condiciones": [
+        {
+          "tipo": "presentacion",
+          "valor": "mezclado"
+        }
+      ],
+      "efecto": "rechaza"
+    }
+  ]
+}

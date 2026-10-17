@@ -1,0 +1,292 @@
+// Contratos de Nibble (PLAN.md §5). Los leen todas las pistas; los crea C.
+// Congelados desde el CP0: solo cambios aditivos (campos opcionales nuevos) y avisando en el grupo.
+// Lo agregado en C1 lleva `// C1`: ErrorApi, tipos de los endpoints que en §5 eran solo comentarios
+// y `preparacionId` opcional en /api/receta.
+
+// ---------- Vocabulario cerrado ----------
+export const TEXTURA = ['crocante', 'blando', 'cremoso', 'masticable', 'jugoso', 'mixto'] as const
+export const FORMA = ['baston', 'redondo', 'plano', 'trozos', 'pure', 'granos', 'entero'] as const
+export const COLOR = ['blanco', 'beige', 'amarillo', 'naranja', 'rojo', 'verde', 'marron', 'mixto'] as const
+export const SABOR = ['salado', 'dulce', 'acido', 'neutro'] as const
+export const TEMPERATURA = ['frio', 'tibio', 'caliente'] as const
+export const PRESENTACION = ['separado', 'mezclado', 'con_salsa'] as const
+export const COCCION = ['frito', 'horno', 'hervido', 'plancha', 'crudo', 'listo'] as const // v4 · 'listo' = se come como viene (yogur, pan, galletitas)
+export const GRUPO = ['cereal_almidon', 'proteina', 'verdura', 'fruta', 'lacteo', 'otro'] as const
+export const DISTRIBUCION = ['separados', 'tocandose', 'mezclados'] as const
+export const PLATO = ['hondo', 'playo', 'con_divisiones', 'otro'] as const
+export const MOMENTO = ['desayuno', 'almuerzo', 'merienda', 'cena', 'colacion'] as const
+export const NUTRIENTE = ['energia_kcal', 'proteina_g', 'calcio_mg', 'vitamina_d_ug', 'hierro_mg', 'fibra_g', 'omega3_g', 'b12_ug', 'vitamina_c_mg'] as const // v2: + vitamina_c_mg
+export const ALERGENO = ['leche', 'huevo', 'gluten', 'mani', 'frutos_secos', 'soja', 'pescado', 'mariscos', 'sesamo'] as const
+export const CUANTO = ['todo', 'mitad', 'poco', 'probo', 'toco', 'nada', 'aparto'] as const // v2: + aparto · es la escalera de exposición (tabla abajo)
+export const PORCION = ['chica', 'mediana', 'grande'] as const
+export const CONDUCTA = ['tranquilo', 'se_levanto', 'angustia', 'pidio_otra_cosa', 'arcadas', 'atragantamiento'] as const // v2
+export const MOTIVO = ['textura', 'sabor_olor', 'mezcla', 'marca', 'forma', 'color', 'temperatura', 'se_tocaban', 'cantidad', 'otro'] as const // v2 · perfil y relato
+export const CAMBIO = ['fortificar', 'coccion', 'forma', 'sabor', 'ingrediente', 'temperatura', 'textura'] as const // v2 · de menor a mayor dificultad · v4: + coccion (nuggets fritos → al horno)
+export const DIETA = ['ninguna', 'sin_gluten_caseina', 'otra'] as const // v2
+
+type De<T extends readonly string[]> = T[number]
+export type Textura = De<typeof TEXTURA>
+export type Forma = De<typeof FORMA>
+export type Color = De<typeof COLOR>
+export type Sabor = De<typeof SABOR>
+export type Temperatura = De<typeof TEMPERATURA>
+export type Presentacion = De<typeof PRESENTACION>
+export type Coccion = De<typeof COCCION>     // v4
+export type Grupo = De<typeof GRUPO>
+export type Distribucion = De<typeof DISTRIBUCION>
+export type Plato = De<typeof PLATO>
+export type Momento = De<typeof MOMENTO>
+export type Nutriente = De<typeof NUTRIENTE>
+export type Alergeno = De<typeof ALERGENO>
+export type Cuanto = De<typeof CUANTO>
+export type Porcion = De<typeof PORCION>
+export type Conducta = De<typeof CONDUCTA>   // v2
+export type Motivo = De<typeof MOTIVO>       // v2
+export type Cambio = De<typeof CAMBIO>       // v2
+export type Dieta = De<typeof DIETA>         // v2
+export type Nutrientes = Record<Nutriente, number>
+
+export interface Atributos {
+  textura: Textura; forma: Forma; color: Color; sabor: Sabor
+  temperatura: Temperatura; presentacion: Presentacion; grupo: Grupo
+  coccion?: Coccion                      // v4 · opcional para no romper el contrato; la visión lo devuelve siempre
+}
+export type Caja = [number, number, number, number] // [ymin, xmin, ymax, xmax] de 0 a 1000 (si con Claude salen corridas, la UI muestra solo las etiquetas)
+
+// ---------- Datos ----------
+export interface Alimento {              // data/alimentos.json (curado) · colección alimentos_fdc en Mongo (completa)
+  id: string; nombre: string; alias: string[]; fdcId: number | null; grupo: Grupo
+  por100g: Nutrientes; alergenos: Alergeno[]; porcionMedianaG: number
+  fuente: 'USDA' | 'TCAU' | 'equipo'     // v2 · se muestra al usuario
+  dataset?: 'foundation' | 'sr_legacy' | 'fndds'           // v3
+  porciones?: { descripcion: string; gramos: number }[]    // v3 · pesos reales por unidad ("1 nugget = 16 g"), de FNDDS o SR Legacy
+}
+export interface PreparacionCatalogo {   // data/preparaciones.json · catálogo semilla curado
+  id: string; nombre: string; atributos: Atributos
+  ingredientes: { alimentoId: string; gramos: number }[]   // por porción; el de más gramos es el ingrediente principal
+  fortificadaDe?: string                 // v2 · id de la preparación de la que es versión fortificada (yogur → yogur con vitamina D)
+}
+
+// ---------- POST /api/analizar-comida (A) ----------
+export interface AnalizarComidaReq { ninoId: string; imagenBase64: string; mime: 'image/jpeg'; comentario?: string }
+export interface ItemDetectado {
+  idTmp: string
+  preparacion: string                    // "papas fritas en bastones"
+  preparacionId: string | null           // si coincide con una conocida del chico o del catálogo
+  ingredientes: { alimentoId: string; gramosEst: number }[]
+  conteo?: { cantidad: number; unidad: string }   // v3 · "6 nuggets": si la unidad está en `porciones`, el código usa ese peso real
+  porcion: Porcion
+  atributos: Atributos
+  caja: Caja | null
+  confianza: number                      // de 0 a 1
+}
+export interface Pregunta {
+  id: string; texto: string; opciones: string[]
+  itemIdTmp?: string; caja?: Caja; origen: 'duda' | 'regla' | 'contexto'
+}
+export interface AnalisisComida {
+  analisisId: string
+  sinComida: boolean
+  items: ItemDetectado[]
+  distribucion: { estado: Distribucion; cantidadItems: number; plato: Plato }
+  preguntas: Pregunta[]                  // máx. 3, de la IA. El "¿cómo le fue?" por ítem lo arma la UI.
+  modelo: string; ms: number
+}
+
+// ---------- POST /api/relato-comida (A) · v2 ----------
+export interface RelatoComidaReq {
+  ninoId: string
+  analisis: AnalisisComida               // para conocer los ítems (idTmp) y las preguntas
+  audioBase64?: string; mime?: string    // 'audio/mp4' (iPhone) o 'audio/webm' (Android)
+  texto?: string                         // plan B: dictado del teclado o texto escrito
+}
+export interface RelatoComida {
+  transcripcion: string
+  respuestas: { itemIdTmp: string; cuanto: Cuanto; porcion?: Porcion; motivo?: Motivo; confianza: number
+    cita?: string                        // v4 · el fragmento textual de la transcripción que la justifica; sin cita, el ítem va a sinMencion
+  }[]
+  respuestasPreguntas: { preguntaId: string; respuesta: string }[]
+  conducta: Conducta[]
+  comentario: string                     // una línea neutra para el registro
+  sinMencion: string[]                   // idTmp de los ítems de los que no dijo nada: la UI los deja sin marcar
+  ms: number
+}
+// POST /api/transcribir (A) · v2 · { audioBase64, mime, pista?: string } → { texto, ms } · lo usa el perfil inicial
+export interface TranscribirReq { audioBase64: string; mime: string; pista?: string }   // C1
+export interface TranscribirRes { texto: string; ms: number }                           // C1
+
+// ---------- POST /api/registrar-comida (B) ----------
+export interface RegistrarComidaReq {
+  ninoId: string
+  dia: string                            // 'YYYY-MM-DD' en hora de Uruguay; lo calcula el cliente (Vercel corre en UTC)
+  fechaISO: string                       // permite cargar historial con fecha pasada (se declara)
+  momento: Momento
+  thumbBase64?: string
+  comentario?: string
+  analisis: AnalisisComida               // ya corregido por el padre (ítems borrados o renombrados)
+  respuestas: { itemIdTmp: string; cuanto: Cuanto; porcion: Porcion; motivo?: Motivo; cita?: string }[]  // v2: + motivo · v4: + cita (se guarda en el bronze)
+  respuestasPreguntas: { preguntaId: string; respuesta: string }[]
+  conducta: Conducta[]                   // v2
+  relato?: { transcripcion: string; fuente: 'voz' | 'texto' }   // v2
+}
+export interface Rango { valor: Nutrientes; min: Nutrientes; max: Nutrientes }
+export interface Aprendizaje {
+  tipo: 'aceptacion' | 'exposicion' | 'patron_nuevo' | 'patron_reforzado' | 'patron_borrado' | 'contradiccion'
+  texto: string
+}
+export interface Alerta {                // v2 · reglas en server/nutricion/alertas.ts (§10.4)
+  tipo: 'repertorio_chico' | 'repertorio_baja' | 'grupo_ausente' | 'sin_vitamina_c' | 'arcadas' | 'atragantamiento' | 'dieta_eliminacion' | 'declarada'
+  texto: string
+}
+export interface RegistrarComidaRes {
+  comidaId: string; nutrientesComida: Rango; dia: CoberturaDia; aprendi: Aprendizaje[]
+  alertas: Alerta[]                      // v2 · las que disparó esta comida
+}
+
+// ---------- GET /api/nutricion · GET /api/progreso (B) ----------
+export interface ComidaResumen {
+  id: string; fechaISO: string; momento: Momento; thumbBase64?: string
+  items: { nombre: string; cuanto: Cuanto }[]
+  conducta?: Conducta[]                  // v2
+}
+export interface CoberturaDia {
+  dia: string; consumido: Rango; objetivo: Nutrientes
+  cobertura: Nutrientes                  // consumido / objetivo (puede pasar de 1)
+  faltan: Nutriente[]                    // de menor a mayor cobertura, sin energía
+  comidas: ComidaResumen[]
+}
+export interface PatronVista {
+  texto: string; resultado: 'acepta' | 'rechaza'; apoyo: number; confianza: number
+  fuente: 'aprendido' | 'investigacion'
+}
+export interface Progreso {
+  dias: CoberturaDia[]
+  semana: { cobertura: Nutrientes; faltan: Nutriente[]; energiaPromedioKcal: number } // v2: + energía; faltan en el orden de prioridad de §1
+  aceptadas: number; enProceso: number; patrones: PatronVista[]
+  frase: string                                              // v2 · "Esta semana cubrió 5 de 8…" (plantilla)
+  semanas: { desde: string; cobertura: Nutrientes }[]        // v2 · evolución, últimas 4
+  repertorioTendencia: number                                // v2 · aceptadas ahora − hace 7 días
+  grupos: { grupo: Grupo; diasSinComer: number | null }[]    // v2 · null = nunca registrado
+  exposiciones: { preparacionId: string; nombre: string; veces: number; mejorPaso: Cuanto; ultimaISO: string }[] // v2
+  alertas: Alerta[]                                          // v2
+  proximoPaso?: Candidato                                    // v2 · el mejor candidato del grafo, sin LLM, para la tarjeta del tablero
+  sugerencias?: Sugerencia[]                                 // v4 · siempre en el orden segura, un_paso, mas_nutritiva (§8); proximoPaso = la de un_paso
+}
+export interface Sugerencia {            // v4 · las tres opciones del tablero: explotar, explorar de a un cambio, priorizar lo que falta
+  tipo: 'segura' | 'un_paso' | 'mas_nutritiva'
+  preparacionId: string; nombre: string
+  probAcepta: number                     // de 0 a 1: la aceptación (segura) o el puntaje del candidato llevado a 0–1
+  aporte: Partial<Nutrientes>            // por porción
+  porQue: string                         // plantilla, sin LLM: "La come 8 de cada 8 veces" · "Se parece a sus papas fritas: cambia solo el ingrediente"
+  candidato?: Candidato                  // en un_paso y mas_nutritiva; abre la receta
+}
+
+// ---------- Perfil ----------
+export interface DatosBasicos {
+  nombre: string; edad: number; sexo: 'masculino' | 'femenino'; pesoKg?: number; tallaCm?: number
+  alergias: Alergeno[]                   // a mano, nunca por IA
+  alertas: ('bajo_peso' | 'arcadas_vomitos' | 'menos_15_alimentos')[]
+  dieta: Dieta                           // v2
+  suplementos?: string                   // v2 · solo registro; la app nunca sugiere suplementos
+}
+export interface Regla {
+  texto: string
+  condiciones: { tipo: keyof Atributos | 'distribucion' | 'plato'; valor: string }[]
+  efecto: 'rechaza' | 'requiere'
+}
+// POST /api/perfil-inicial (A) · la pantalla transcribe primero con /api/transcribir y deja editar el texto
+export interface PerfilInicialReq { datos: DatosBasicos; texto: string; fotoIndicacionBase64?: string }
+export interface PerfilBorrador {
+  acepta: { nombre: string; preparacionId: string | null; marca?: string; atributos: Partial<Atributos> }[]
+  rechaza: { nombre: string; preparacionId: string | null; motivo: Motivo }[]   // v2: el motivo usa MOTIVO
+  reglas: Regla[]
+  objetivosNutricionista?: Partial<Nutrientes>
+}
+// POST /api/perfil (B) { datos, borrador } → { ninoId }
+// GET  /api/perfil?ninoId (B) → Perfil
+export interface CrearPerfilReq { datos: DatosBasicos; borrador: PerfilBorrador }       // C1
+export interface CrearPerfilRes { ninoId: string }                                      // C1
+export interface Perfil {
+  ninoId: string; datos: DatosBasicos; reglas: Regla[]; patrones: PatronVista[]
+  preparaciones: { id: string; nombre: string; estado: 'acepta' | 'en_proceso' | 'rechaza'; puntaje: number; veces: number }[]
+}
+
+// ---------- GraphRAG y receta ----------
+export interface Candidato {
+  preparacionId: string; nombre: string; puntaje: number
+  camino: { desde: string; aceptacion: string; atributos: string[] } // "papas fritas", "8/8", ["forma=baston", "textura=crocante"]
+  desdeId: string                        // v2 · el alimento seguro del que parte
+  cambio: Cambio                         // v2 · lo único que cambia
+  seMantiene: string[]                   // v2 · ["forma=baston", "textura=crocante", "sabor=salado", "temperatura=caliente"]
+  patrones: string[]
+  aportePorcion: Partial<Nutrientes>
+}
+export interface Evidencia {             // armarEvidencia(ninoId, nutriente?) en server/grafo/evidencia.ts (B)
+  nutriente: Nutriente; coberturaSemana: number; faltaHoy: number
+  candidatos: Candidato[]; reglas: string[]; alergias: Alergeno[]
+  texto: string                          // ~20 líneas: lo ÚNICO que ve el LLM
+}
+// POST /api/receta (A) { ninoId, nutriente?, preparacionId? } → Receta · ?motor=base|grafo (§4.3)
+export interface RecetaReq {             // C1
+  ninoId: string
+  nutriente?: Nutriente                  // por defecto, el primero de semana.faltan
+  preparacionId?: string                 // C1 · el candidato elegido en una tarjeta de sugerencia (Candidato.preparacionId); si no viene, el mejor de armarEvidencia()
+}
+export interface Receta {
+  nombre: string; preparacionBaseId: string           // el candidato del catálogo sobre el que se escribe la receta
+  desde: { preparacionId: string; nombre: string }   // v2 · su alimento seguro (el punto de partida de la cadena)
+  cambio: Cambio; seMantiene: string[]               // v2
+  ingredientes: { alimentoId: string; nombre: string; gramos: number }[]
+  pasos: string[]; porQue: string
+  presentacion: string                   // separado, porción mínima, al lado de su alimento seguro
+  comoOfrecer: string                    // v2 · sin presión; repetir igual de 8 a 15 veces
+  transparencia: string | null           // v2 · si un ingrediente va adentro, se dice y se ofrece también a la vista
+  aporte: Nutrientes                     // recalculado con la tabla, nunca el del LLM
+  coberturaDeLoQueFalta: number
+  validacion: { ok: boolean; problemas: string[]; reintentos: number }
+  evidencia: Evidencia
+}
+// POST /api/imagen-plato (A) { receta, reglas } → { imagenBase64, mime, ilustrativa: true }
+// GET  /api/resumen?ninoId (C) → { texto, progreso: Progreso, generadoISO }
+export interface ImagenPlatoReq { receta: Receta; reglas: Regla[] }                     // C1
+export interface ImagenPlatoRes { imagenBase64: string; mime: string; ilustrativa: true } // C1
+export interface ResumenRes { texto: string; progreso: Progreso; generadoISO: string }   // C1
+
+// ---------- Motores (§4.3) · C1 ----------
+export const MOTOR = ['grafo', 'base'] as const                                         // C1 · ?motor= en /api/progreso y /api/receta
+export type Motor = De<typeof MOTOR>
+
+// ---------- GET /api/salud (B) · C1 ----------
+export interface EstadoServicio { ok: boolean; ms?: number; error?: string }
+export interface SaludRes {
+  ok: boolean                            // todos los servicios responden
+  servicios: Partial<Record<'mongo' | 'neo4j' | 'claude' | 'transcripcion' | 'imagen', EstadoServicio>>
+  motorGrafo: 'neo4j' | 'mongo'
+  stub?: boolean
+}
+
+// ---------- Errores (todos los endpoints) · C1 ----------
+// Cualquier respuesta que no sea 2xx lleva este cuerpo. `mensaje` es para mostrarle al padre, en tono calmo;
+// `detalle` es para depurar (nunca se muestra). Los stubs mandan además el header `x-nibble-stub: 1`.
+export const CODIGO_ERROR = [
+  'entrada_invalida',      // 400 · falta un campo o no pasa la validación (Zod)
+  'metodo_no_permitido',   // 405
+  'no_encontrado',         // 404 · ninoId o recurso inexistente
+  'muy_grande',            // 413 · body > 4,5 MB (foto o audio)
+  'sin_comida',            // 422 · la foto no tiene comida
+  'audio_no_entendido',    // 422 · la transcripción vino vacía o no se entendió
+  'sin_candidatos',        // 422 · armarEvidencia() no encontró candidatos a un cambio
+  'limite_proveedor',      // 429 · se acabó el cupo de Claude, Groq o Workers AI
+  'timeout',               // 504 · el modelo no respondió a tiempo
+  'proveedor_caido',       // 502 · error del proveedor de IA o de la base
+  'interno',               // 500
+] as const
+export type CodigoError = De<typeof CODIGO_ERROR>
+export interface ErrorApi {
+  error: {
+    codigo: CodigoError
+    mensaje: string                      // "No pudimos leer la foto. ¿Probás de nuevo?"
+    reintentable: boolean                // la UI muestra "Reintentar" solo si es true
+    detalle?: unknown
+  }
+}

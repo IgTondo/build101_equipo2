@@ -1,0 +1,155 @@
+{
+  "nombre": "Bastones de queso al horno, crocantes como sus papas",
+  "preparacionBaseId": "bastones_queso_horno",
+  "desde": {
+    "preparacionId": "papas_horno_baston",
+    "nombre": "Papas al horno en bastones, crocantes"
+  },
+  "cambio": "ingrediente",
+  "seMantiene": [
+    "forma=baston",
+    "textura=crocante",
+    "sabor=salado",
+    "temperatura=caliente",
+    "coccion=horno"
+  ],
+  "ingredientes": [
+    {
+      "alimentoId": "queso_muzzarella",
+      "gramos": 40,
+      "nombre": "Queso muzzarella"
+    },
+    {
+      "alimentoId": "pan_rallado",
+      "gramos": 10,
+      "nombre": "Pan rallado"
+    },
+    {
+      "alimentoId": "leche",
+      "gramos": 10,
+      "nombre": "Leche"
+    },
+    {
+      "alimentoId": "aceite_girasol",
+      "gramos": 2,
+      "nombre": "Aceite de girasol"
+    }
+  ],
+  "pasos": [
+    "Prendé el horno a 200 °C y poné papel de horno en una placa.",
+    "Cortá la muzzarella en bastones del mismo largo y grosor que sus papas en bastones (unos 8 cm por 1 cm).",
+    "Pasá cada bastón por un poco de leche y después por el pan rallado, apretando para que se pegue. No lleva huevo.",
+    "Ponelos en la placa separados entre sí y pincelalos apenas con el aceite.",
+    "Congelalos 15 minutos para que el queso no se derrita antes de dorarse.",
+    "Horneá de 8 a 10 minutos, hasta que estén dorados y crocantes por fuera. Dejalos entibiar 2 minutos antes de servir."
+  ],
+  "porQue": "Parte de sus papas al horno en bastones, que comió 2 de 2 veces: mantiene la forma de bastón, lo crocante, lo salado, lo caliente y el horno, y cambia solo el ingrediente. Lo crocante servido separado lo acepta, y los bastones de queso ya los vio 5 veces (la última comió la mitad). Una porción aporta 223 mg de calcio, lo que más le falta esta semana.",
+  "presentacion": "En su plato playo de siempre: sus papas al horno a la izquierda y 2 bastones de queso a la derecha, separados y sin tocarse. La mayor parte del plato es lo que ya come.",
+  "comoOfrecer": "Ofrecelo sin pedirle que lo coma; que esté en el plato ya es un avance. Si lo toca, lo huele o lo deja, también cuenta. Servilo igual, con la misma forma y al lado de sus papas, de 8 a 15 veces antes de cambiar algo.",
+  "transparencia": null,
+  "aporte": {
+    "energia_kcal": 183,
+    "proteina_g": 10.4,
+    "calcio_mg": 223,
+    "vitamina_d_ug": 0.17,
+    "hierro_mg": 0.6,
+    "fibra_g": 0.5,
+    "omega3_g": 0.06,
+    "b12_ug": 0.97,
+    "vitamina_c_mg": 0
+  },
+  "coberturaDeLoQueFalta": 0.44,
+  "validacion": {
+    "ok": true,
+    "problemas": [],
+    "reintentos": 0
+  },
+  "evidencia": {
+    "nutriente": "calcio_mg",
+    "coberturaSemana": 0.4,
+    "faltaHoy": 507,
+    "candidatos": [
+      {
+        "preparacionId": "bastones_queso_horno",
+        "nombre": "Bastones de queso horneados",
+        "puntaje": 0.62,
+        "camino": {
+          "desde": "Papas al horno en bastones, crocantes",
+          "aceptacion": "2/2",
+          "atributos": [
+            "forma=baston",
+            "textura=crocante",
+            "sabor=salado",
+            "temperatura=caliente",
+            "coccion=horno"
+          ]
+        },
+        "desdeId": "papas_horno_baston",
+        "cambio": "ingrediente",
+        "seMantiene": [
+          "forma=baston",
+          "textura=crocante",
+          "sabor=salado",
+          "temperatura=caliente",
+          "coccion=horno"
+        ],
+        "patrones": [
+          "Lo crocante servido separado lo acepta"
+        ],
+        "aportePorcion": {
+          "energia_kcal": 160,
+          "proteina_g": 10.1,
+          "calcio_mg": 212,
+          "vitamina_d_ug": 0.16,
+          "hierro_mg": 0.6,
+          "fibra_g": 0.5,
+          "omega3_g": 0.05,
+          "b12_ug": 0.92,
+          "vitamina_c_mg": 0
+        }
+      },
+      {
+        "preparacionId": "yogur_vainilla",
+        "nombre": "Yogur de vainilla",
+        "puntaje": 0.41,
+        "camino": {
+          "desde": "Leche chocolatada",
+          "aceptacion": "14/14",
+          "atributos": [
+            "textura=cremoso",
+            "sabor=dulce",
+            "temperatura=frio",
+            "presentacion=separado"
+          ]
+        },
+        "desdeId": "leche_chocolatada",
+        "cambio": "forma",
+        "seMantiene": [
+          "textura=cremoso",
+          "sabor=dulce",
+          "temperatura=frio",
+          "presentacion=separado"
+        ],
+        "patrones": [],
+        "aportePorcion": {
+          "energia_kcal": 128,
+          "proteina_g": 5.3,
+          "calcio_mg": 180,
+          "vitamina_d_ug": 0.15,
+          "hierro_mg": 0.2,
+          "fibra_g": 0,
+          "omega3_g": 0.05,
+          "b12_ug": 0.6,
+          "vitamina_c_mg": 0.8
+        }
+      }
+    ],
+    "reglas": [
+      "No come nada mezclado"
+    ],
+    "alergias": [
+      "huevo"
+    ],
+    "texto": "Chico: Tomás, 6 años. Alergias: huevo. Dieta: ninguna.\nNutriente a cubrir: calcio. Cobertura de la semana: 40%. Falta hoy: 507 mg.\nOtros que faltan esta semana: vitamina D (9%), fibra (22%), omega-3 (19%).\nReglas que contó la familia:\n- No come nada mezclado (rechaza)\nPatrones aprendidos de sus comidas:\n- Lo crocante servido separado lo acepta (41 observaciones, confianza 0,84)\n- Lo blando lo rechaza, aunque sea un alimento que acepta en otra textura (6 observaciones, confianza 0,97)\n- Lo jugoso lo rechaza: la hamburguesa no, la milanesa sí (3 observaciones, confianza 0,95)\n- Lo mezclado lo rechaza (3 observaciones, confianza 0,97)\n- Lo que viene con salsa lo rechaza, aunque sea su milanesa (3 observaciones, confianza 0,98)\nAlimentos seguros (en acepta):\n- Papas fritas en bastones 8/8; Milanesa de carne al horno (rebozada sin huevo) 6/6; Tostadas de pan blanco 14/14; Galletitas de agua 2/2; Leche chocolatada 14/14; Papas al horno en bastones, crocantes 2/2\nCandidatos a un solo cambio de algo que acepta:\n1. Bastones de queso horneados · parte de: Papas al horno en bastones, crocantes (2/2) · cambia: ingrediente · se mantiene: forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno · aporta 212 mg de calcio por porción · puntaje 0,62\n2. Yogur de vainilla · parte de: Leche chocolatada (14/14) · cambia: forma · se mantiene: textura=cremoso, sabor=dulce, temperatura=frio, presentacion=separado · aporta 180 mg de calcio por porción · puntaje 0,41\nReglas de la receta:\n- Porción chica, servida separada y al lado de su alimento seguro; que no se toquen.\n- Un solo cambio respecto del alimento de partida; todo lo demás igual.\n- Sin huevo (alergia): el rebozado va sin huevo.\n- Nada escondido: si un ingrediente va adentro, se dice y se ofrece también a la vista.\n- Usá solo los ingredientes de los candidatos y los alimentos seguros."
+  }
+}

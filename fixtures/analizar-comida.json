@@ -1,0 +1,151 @@
+{
+  "analisisId": "an-tomas-2026-10-16-almuerzo",
+  "sinComida": false,
+  "items": [
+    {
+      "idTmp": "i1",
+      "preparacion": "puré de papa",
+      "preparacionId": "pure_papa",
+      "ingredientes": [
+        {
+          "alimentoId": "papa",
+          "gramosEst": 130
+        },
+        {
+          "alimentoId": "leche",
+          "gramosEst": 30
+        },
+        {
+          "alimentoId": "manteca",
+          "gramosEst": 5
+        }
+      ],
+      "porcion": "mediana",
+      "atributos": {
+        "textura": "cremoso",
+        "forma": "pure",
+        "color": "amarillo",
+        "sabor": "salado",
+        "temperatura": "caliente",
+        "presentacion": "separado",
+        "grupo": "cereal_almidon",
+        "coccion": "hervido"
+      },
+      "caja": [
+        180,
+        90,
+        520,
+        420
+      ],
+      "confianza": 0.9
+    },
+    {
+      "idTmp": "i2",
+      "preparacion": "milanesa de carne al horno (rebozada sin huevo)",
+      "preparacionId": "milanesa_carne_horno",
+      "ingredientes": [
+        {
+          "alimentoId": "carne_vacuna",
+          "gramosEst": 90
+        },
+        {
+          "alimentoId": "pan_rallado",
+          "gramosEst": 20
+        },
+        {
+          "alimentoId": "aceite_girasol",
+          "gramosEst": 5
+        }
+      ],
+      "porcion": "mediana",
+      "atributos": {
+        "textura": "crocante",
+        "forma": "plano",
+        "color": "marron",
+        "sabor": "salado",
+        "temperatura": "caliente",
+        "presentacion": "separado",
+        "grupo": "proteina",
+        "coccion": "horno"
+      },
+      "caja": [
+        420,
+        380,
+        820,
+        900
+      ],
+      "confianza": 0.93
+    },
+    {
+      "idTmp": "i3",
+      "preparacion": "bastones de queso horneados",
+      "preparacionId": "bastones_queso_horno",
+      "ingredientes": [
+        {
+          "alimentoId": "queso_muzzarella",
+          "gramosEst": 24
+        },
+        {
+          "alimentoId": "pan_rallado",
+          "gramosEst": 6
+        }
+      ],
+      "porcion": "chica",
+      "atributos": {
+        "textura": "crocante",
+        "forma": "baston",
+        "color": "amarillo",
+        "sabor": "salado",
+        "temperatura": "caliente",
+        "presentacion": "separado",
+        "grupo": "lacteo",
+        "coccion": "horno"
+      },
+      "caja": [
+        150,
+        560,
+        420,
+        880
+      ],
+      "confianza": 0.71,
+      "conteo": {
+        "cantidad": 2,
+        "unidad": "bastón"
+      }
+    }
+  ],
+  "distribucion": {
+    "estado": "separados",
+    "cantidadItems": 3,
+    "plato": "playo"
+  },
+  "preguntas": [
+    {
+      "id": "q1",
+      "texto": "¿Los bastones de la derecha son de queso?",
+      "opciones": [
+        "Sí, de queso",
+        "No, son de otra cosa"
+      ],
+      "itemIdTmp": "i3",
+      "caja": [
+        150,
+        560,
+        420,
+        880
+      ],
+      "origen": "duda"
+    },
+    {
+      "id": "q2",
+      "texto": "¿Comió en la mesa con el resto de la familia?",
+      "opciones": [
+        "Sí",
+        "No"
+      ],
+      "origen": "contexto"
+    }
+  ],
+  "modelo": "claude-haiku-5-5",
+  "ms": 3400
+}

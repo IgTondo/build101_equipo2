@@ -1,0 +1,17 @@
+{
+  // api/, server/, scripts/ y tests corren en Node (Vercel) como ESM. Vercel compila las funciones con este archivo;
+  // el front usa tsconfig.app.json. Como son ESM: los imports relativos
+  // llevan extensión .js aunque el archivo sea .ts (import { x } from '../server/http.js').
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2023"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noUnusedLocals": true
+  },
+  "include": ["api", "server", "shared", "scripts/**/*.ts", "test", "vite.config.ts"]
+}
