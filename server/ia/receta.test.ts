@@ -8,7 +8,7 @@ import {
 import { calcularAporte } from '../validacion/receta.js'
 import { fijarAlimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
-import { coberturaDeLoQueFalta, esquemaRecetaReq, generarReceta, type DepsReceta } from './receta.js'
+import { coberturaDeLoQueFalta, esquemaRecetaReq, generarReceta, type DepsReceta, type IntentoReceta } from './receta.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
 const llm = vi.mocked(generarJSON)
@@ -202,6 +202,17 @@ describe('generarReceta', () => {
     const e = await errorDe(pedir({ ahora: () => t }))
     expect(e.codigo).toBe('timeout')
     expect(llm).toHaveBeenCalledTimes(1)
+  })
+
+  it('alIntentar recibe cada salida del LLM con sus problemas por tipo, antes de cualquier reintento', async () => {
+    responde(conHuevo, SALIDA_QUESO)
+    const intentos: IntentoReceta[] = []
+    await pedir({ alIntentar: (i) => intentos.push(i) })
+    expect(intentos.map((i) => [i.llamada, i.preparacionId, i.reintento])).toEqual([[1, 'bastones_queso_horno', false], [2, 'bastones_queso_horno', true]])
+    expect(intentos[0].salida).toBe(conHuevo)
+    expect(intentos[0].problemas.alergias).toEqual([expect.stringContaining('«Huevo» tiene huevo')])
+    expect(intentos[0].problemas.lenguaje).toEqual([])
+    expect(Object.values(intentos[1].problemas).flat()).toEqual([])
   })
 
   it('los errores del modelo (ErrorIA) suben tal cual: manejar() los convierte', async () => {

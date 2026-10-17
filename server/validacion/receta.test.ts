@@ -3,7 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { Regla } from '../../shared/contratos.js'
 import { fijarAlimentos } from '../ia/catalogo.js'
 import { ALIMENTOS, CANDIDATO_PAPAS, CANDIDATO_QUESO, CANDIDATO_YOGUR, PERFIL_TOMAS, prep, recetaDelFixture, recetaQueso } from './ejemplos.js'
-import { calcularAporte, cambiosEntre, validarCandidato, validarReceta, type ContextoValidacion } from './receta.js'
+import { calcularAporte, cambiosEntre, problemasPorTipo, validarCandidato, validarReceta, type ContextoValidacion } from './receta.js'
 
 beforeAll(() => fijarAlimentos(ALIMENTOS))
 afterAll(() => fijarAlimentos(null))
@@ -290,6 +290,22 @@ describe('validarReceta: ingredientes y gramos', () => {
   it('el ingrediente principal tiene que ser el de la preparación base', () => {
     const r = recetaQueso({ ingredientes: [{ alimentoId: 'queso_muzzarella', nombre: '', gramos: 20 }, { alimentoId: 'pan_rallado', nombre: '', gramos: 30 }] })
     expect(problemas(r, ctxQueso())).toEqual([expect.stringContaining('tiene que ser «Queso muzzarella»')])
+  })
+})
+
+describe('problemasPorTipo (el desglose de la eval de recetas)', () => {
+  it('separa alergias, cambio, lenguaje y el resto, y validarReceta los devuelve en ese orden', () => {
+    const r = recetaQueso({
+      cambio: 'forma', comoOfrecer: 'Si come todo, mejor.',
+      ingredientes: [...recetaQueso().ingredientes, { alimentoId: 'huevo', nombre: '', gramos: 3 }],
+    })
+    const p = problemasPorTipo(r, ctxQueso())
+    expect(p.cambio).toEqual([expect.stringContaining('El cambio declarado es la forma')])
+    expect(p.alergias).toEqual([expect.stringContaining('«Huevo» tiene huevo')])
+    expect(p.ingredientes).toEqual([expect.stringContaining('3 g está fuera de lo razonable')])
+    expect(p.lenguaje).toEqual([expect.stringContaining('«Si come»')])
+    expect([p.reglas, p.mezclas, p.textos, p.aporte]).toEqual([[], [], [], []])
+    expect(validarReceta(r, ctxQueso()).problemas).toEqual([...p.cambio, ...p.alergias, ...p.ingredientes, ...p.lenguaje])
   })
 })
 

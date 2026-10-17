@@ -14,7 +14,9 @@ import {
   type PreparacionCatalogo, type Presentacion, type Receta, type RecetaReq,
 } from '../../shared/contratos.js'
 import { ErrorNibble } from '../http.js'
-import { calcularAporte, validarCandidato, validarReceta, type ContextoValidacion } from '../validacion/receta.js'
+import {
+  calcularAporte, problemasPorTipo, validarCandidato, validarReceta, type ContextoValidacion, type ProblemasPorTipo,
+} from '../validacion/receta.js'
 import { alimentoPorId, alimentos, esGenerico } from './catalogo.js'
 import { generarJSON } from './modelo.js'
 import { esquemaSalidaReceta, promptReceta, SISTEMA_RECETA, type SalidaReceta } from './prompts/receta.js'
@@ -32,6 +34,16 @@ export interface DepsReceta {
   perfil: (ninoId: string) => Promise<Perfil>          // B · el de GET /api/perfil: alergias, reglas con condiciones y lo que acepta
   preparacion?: (id: string) => PreparacionCatalogo | undefined  // por defecto, preparacionCatalogo()
   ahora?: () => number                                 // reloj, para los tests del tope de tiempo
+  alIntentar?: (intento: IntentoReceta) => void        // cada salida del LLM con sus problemas, para la eval de recetas (A12)
+}
+
+export interface IntentoReceta {
+  llamada: number                // 1, 2…: el orden de la llamada al LLM en este pedido
+  preparacionId: string          // el candidato
+  reintento: boolean             // la segunda salida para el mismo candidato, con los problemas de la primera
+  salida: SalidaReceta           // lo que devolvió el modelo, tal cual
+  problemas: ProblemasPorTipo    // los de esa salida, por tipo; todos vacíos = pasó
+  ms: number                     // lo que tardó la llamada
 }
 
 // ---------- Catálogo de preparaciones ----------
@@ -162,6 +174,7 @@ export async function generarReceta(req: RecetaReq, deps: DepsReceta): Promise<R
         registrar({ ninoId: req.ninoId, resultado: 'sin_tiempo', llamadas, descartes, ms: ahora() - t0 }, true)
         throw new ErrorNibble('timeout', 'Tardamos demasiado en armar una receta segura. ¿Probás de nuevo?', { descartes })
       }
+      const desdeLlamada = ahora()
       const { datos } = await generarJSON({
         tarea: 'receta',
         sistema: SISTEMA_RECETA,
@@ -171,6 +184,10 @@ export async function generarReceta(req: RecetaReq, deps: DepsReceta): Promise<R
       llamadas++
       const receta = completar(datos, candidato, evidencia)
       const v = validarReceta(receta, ctx)
+      deps.alIntentar?.({
+        llamada: llamadas, preparacionId: candidato.preparacionId, reintento: intento > 0, salida: datos,
+        problemas: problemasPorTipo(receta, ctx), ms: ahora() - desdeLlamada,
+      })
       if (v.ok) {
         registrar({ ninoId: req.ninoId, nutriente: evidencia.nutriente, preparacionBaseId: receta.preparacionBaseId, llamadas, descartes: descartes.length, ms: ahora() - t0 })
         // reintentos = llamadas al LLM − 1: los reintentos con problemas más los cambios de candidato (el costo extra).

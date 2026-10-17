@@ -42,6 +42,16 @@ const NOMBRE_ALERGENO: Record<Alergeno, string> = {
 const redondear = (x: number) => Math.round(x * 100) / 100
 const nombreAlimento = (id: string | undefined) => (id ? alimentoPorId(id)?.nombre ?? id : 'ninguno')
 
+// ---------- Tipos de problema ----------
+// Para el desglose de la eval de recetas (A12: alergias, un solo cambio y lenguaje). El orden es el de los problemas
+// que devuelve validarReceta().
+export const TIPOS_PROBLEMA = ['cambio', 'reglas', 'mezclas', 'alergias', 'ingredientes', 'textos', 'lenguaje', 'aporte'] as const
+export type TipoProblema = (typeof TIPOS_PROBLEMA)[number]
+export type ProblemasPorTipo = Record<TipoProblema, string[]>
+
+const sinProblemas = (): ProblemasPorTipo => ({ cambio: [], reglas: [], mezclas: [], alergias: [], ingredientes: [], textos: [], lenguaje: [], aporte: [] })
+export const aplanar = (p: ProblemasPorTipo): string[] => TIPOS_PROBLEMA.flatMap((t) => p[t])
+
 // ---------- La cadena ----------
 // Criterio de cadena.ts (PLAN.md §8): cuentan textura, forma, sabor, temperatura, cocción (v4) e ingrediente principal
 // (el de más gramos). El color no cuenta: cambia con el ingrediente y no distinguió a los chicos con TEA (Hubbard 2014).
@@ -81,9 +91,9 @@ function describir(d: Diferencia): string {
 const ATRIBUTOS: (keyof Atributos)[] = ['textura', 'forma', 'color', 'sabor', 'temperatura', 'presentacion', 'grupo', 'coccion']
 const esAtributo = (x: string): x is keyof Atributos => (ATRIBUTOS as string[]).includes(x)
 
-function problemasDeLaCadena(ctx: ContextoValidacion, cambio: Cambio, seMantiene: string[]): string[] {
+function problemasDeLaCadena(ctx: ContextoValidacion, cambio: Cambio, seMantiene: string[], todos: ProblemasPorTipo) {
   const { desde, base } = ctx
-  const p: string[] = []
+  const p = todos.cambio
   const difs = cambiosEntre(desde, base)
   if (difs.length === 0) {
     p.push(`«${base.nombre}» no cambia nada respecto de «${desde.nombre}»: tiene que cambiar exactamente una cosa.`)
@@ -106,9 +116,8 @@ function problemasDeLaCadena(ctx: ContextoValidacion, cambio: Cambio, seMantiene
 
   const pres = base.atributos.presentacion
   if (pres !== 'separado' && !(ctx.presentacionesAceptadas ?? []).includes(pres)) {
-    p.push(`«${base.nombre}» se sirve ${pres === 'con_salsa' ? 'con salsa' : 'mezclado'} y todavía no acepta nada así: tiene que ir separado.`)
+    todos.mezclas.push(`«${base.nombre}» se sirve ${pres === 'con_salsa' ? 'con salsa' : 'mezclado'} y todavía no acepta nada así: tiene que ir separado.`)
   }
-  return p
 }
 
 // ---------- Las reglas del perfil ----------
@@ -138,9 +147,12 @@ function problemasDeReglas(reglas: Regla[], valores: Valores): string[] {
 }
 
 // ---------- Los ingredientes ----------
-function problemasDeIngredientes(r: Receta, ctx: ContextoValidacion): string[] {
-  if (r.ingredientes.length === 0) return ['La receta no tiene ingredientes.']
-  const p: string[] = []
+function problemasDeIngredientes(r: Receta, ctx: ContextoValidacion, todos: ProblemasPorTipo) {
+  const p = todos.ingredientes
+  if (r.ingredientes.length === 0) {
+    p.push('La receta no tiene ingredientes.')
+    return
+  }
   for (const { alimentoId, gramos } of r.ingredientes) {
     if (esGenerico(alimentoId)) {
       p.push(`«${alimentoId}» es un genérico: no se sabe qué alérgenos ni qué nutrientes tiene. Usá un alimento concreto de la lista.`)
@@ -156,15 +168,15 @@ function problemasDeIngredientes(r: Receta, ctx: ContextoValidacion): string[] {
     }
     const choca = a.alergenos.filter((x) => ctx.alergias.includes(x))
     if (choca.length) {
-      p.push(`«${a.nombre}» tiene ${choca.map((x) => NOMBRE_ALERGENO[x]).join(' y ')}, y tiene alergia declarada a eso: sacalo o reemplazalo por otro ingrediente de la lista.`)
+      todos.alergias.push(`«${a.nombre}» tiene ${choca.map((x) => NOMBRE_ALERGENO[x]).join(' y ')}, y tiene alergia declarada a eso: sacalo o reemplazalo por otro ingrediente de la lista.`)
     }
   }
+  // Otro ingrediente principal es otra preparación: más de un cambio respecto de su alimento seguro.
   const esperado = ingredientePrincipal(ctx.base.ingredientes)
   const principal = ingredientePrincipal(r.ingredientes)
   if (esperado && principal !== esperado) {
-    p.push(`El ingrediente principal (el de más gramos) tiene que ser «${nombreAlimento(esperado)}», el de «${ctx.base.nombre}»; en la receta es «${nombreAlimento(principal)}».`)
+    todos.cambio.push(`El ingrediente principal (el de más gramos) tiene que ser «${nombreAlimento(esperado)}», el de «${ctx.base.nombre}»; en la receta es «${nombreAlimento(principal)}».`)
   }
-  return p
 }
 
 // ---------- El texto ----------
@@ -301,18 +313,17 @@ const PALABRAS_ALERGENO: Record<Alergeno, RegExp> = {
   sesamo: /\b(sesamo|ajonjoli|tahin\w*)\b/,
 }
 
-function problemasDelTexto(r: Receta, ctx: ContextoValidacion): string[] {
-  const p: string[] = []
+function problemasDelTexto(r: Receta, ctx: ContextoValidacion, p: ProblemasPorTipo) {
   const todos = campos(r)
-  for (const { campo, texto } of todos) if (!texto.trim()) p.push(`Falta ${campo}.`)
-  if (r.pasos.length === 0) p.push('Faltan los pasos.')
+  for (const { campo, texto } of todos) if (!texto.trim()) p.textos.push(`Falta ${campo}.`)
+  if (r.pasos.length === 0) p.textos.push('Faltan los pasos.')
 
   const delPlato = todos.filter(({ campo }) => campo !== 'el porqué' && campo !== 'cómo ofrecerlo')
   for (const { patron, presentacion, que } of MEZCLAS) {
     if ((ctx.presentacionesAceptadas ?? []).includes(presentacion)) continue
     for (const { campo, texto } of delPlato) {
       const frase = buscar(texto, patron, true)
-      if (frase) p.push(`En ${campo} aparece «${frase}» (${que}): todavía no acepta mezclas, rellenos ni salsa por encima. Las salsas van aparte, para mojar.`)
+      if (frase) p.mezclas.push(`En ${campo} aparece «${frase}» (${que}): todavía no acepta mezclas, rellenos ni salsa por encima. Las salsas van aparte, para mojar.`)
     }
   }
 
@@ -320,17 +331,16 @@ function problemasDelTexto(r: Receta, ctx: ContextoValidacion): string[] {
   for (const alergeno of ctx.alergias) {
     for (const { campo, texto } of conIngredientes) {
       const frase = buscar(texto, PALABRAS_ALERGENO[alergeno], true)
-      if (frase) p.push(`En ${campo} aparece «${frase}» y tiene alergia declarada a ${NOMBRE_ALERGENO[alergeno]}: sacalo de la receta (si hace falta, reemplazalo y decí con qué).`)
+      if (frase) p.alergias.push(`En ${campo} aparece «${frase}» y tiene alergia declarada a ${NOMBRE_ALERGENO[alergeno]}: sacalo de la receta (si hace falta, reemplazalo y decí con qué).`)
     }
   }
 
   for (const { campo, texto } of todos) {
     for (const { patron, motivo } of PROHIBIDAS) {
       const frase = buscar(texto, patron, false)
-      if (frase) p.push(`En ${campo} aparece «${frase}»: ${motivo}. Reescribilo sin esa expresión, ni siquiera para negarla.`)
+      if (frase) p.lenguaje.push(`En ${campo} aparece «${frase}»: ${motivo}. Reescribilo sin esa expresión, ni siquiera para negarla.`)
     }
   }
-  return p
 }
 
 // ---------- El aporte ----------
@@ -374,26 +384,32 @@ function problemasDeIds(r: Receta, ctx: ContextoValidacion): string[] {
 }
 
 /**
- * Lo que depende solo del candidato (la cadena, la presentación de la base y las reglas): si falla, ningún reintento del
- * LLM lo arregla, así que generarReceta() pasa directo al siguiente candidato sin gastar una llamada.
+ * Lo que depende solo del candidato (la cadena, la presentación de la base, las reglas y el alérgeno del ingrediente
+ * principal): si falla, ningún reintento del LLM lo arregla, así que generarReceta() pasa directo al siguiente candidato
+ * sin gastar una llamada.
  */
 export function validarCandidato(ctx: ContextoValidacion, candidato: Pick<Candidato, 'cambio' | 'seMantiene'>): ResultadoValidacion {
-  const problemas = [
-    ...problemasDeLaCadena(ctx, candidato.cambio, candidato.seMantiene),
-    ...problemasDeReglas(ctx.reglas, valoresDeLaBase(ctx.base)),
-    ...problemasDelPrincipal(ctx),
-  ]
+  const p = sinProblemas()
+  problemasDeLaCadena(ctx, candidato.cambio, candidato.seMantiene, p)
+  p.reglas.push(...problemasDeReglas(ctx.reglas, valoresDeLaBase(ctx.base)))
+  p.alergias.push(...problemasDelPrincipal(ctx))
+  const problemas = aplanar(p)
   return { ok: problemas.length === 0, problemas }
 }
 
+/** Los problemas de la receta, por tipo. validarReceta() los devuelve en una sola lista, en el orden de TIPOS_PROBLEMA. */
+export function problemasPorTipo(receta: Receta, ctx: ContextoValidacion): ProblemasPorTipo {
+  const p = sinProblemas()
+  p.cambio.push(...problemasDeIds(receta, ctx))
+  problemasDeLaCadena(ctx, receta.cambio, receta.seMantiene, p)
+  p.reglas.push(...problemasDeReglas(ctx.reglas, { ...valoresDeLaBase(ctx.base), plato: platoDelTexto(receta.presentacion) }))
+  problemasDeIngredientes(receta, ctx, p)
+  problemasDelTexto(receta, ctx, p)
+  p.aporte.push(...problemasDelAporte(receta))
+  return p
+}
+
 export function validarReceta(receta: Receta, ctx: ContextoValidacion): ResultadoValidacion {
-  const problemas = [
-    ...problemasDeIds(receta, ctx),
-    ...problemasDeLaCadena(ctx, receta.cambio, receta.seMantiene),
-    ...problemasDeReglas(ctx.reglas, { ...valoresDeLaBase(ctx.base), plato: platoDelTexto(receta.presentacion) }),
-    ...problemasDeIngredientes(receta, ctx),
-    ...problemasDelTexto(receta, ctx),
-    ...problemasDelAporte(receta),
-  ]
+  const problemas = aplanar(problemasPorTipo(receta, ctx))
   return { ok: problemas.length === 0, problemas }
 }
