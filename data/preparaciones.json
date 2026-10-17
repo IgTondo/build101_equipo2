@@ -1,0 +1,1371 @@
+[
+  {
+    "id": "arroz_con_leche",
+    "nombre": "Arroz con leche",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "granos",
+      "color": "blanco",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "mezclado",
+      "grupo": "lacteo",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "arroz",
+        "gramos": 30
+      },
+      {
+        "alimentoId": "leche",
+        "gramos": 150
+      },
+      {
+        "alimentoId": "azucar",
+        "gramos": 10
+      }
+    ]
+  },
+  {
+    "id": "arroz_con_pollo",
+    "nombre": "Arroz con pollo",
+    "atributos": {
+      "textura": "mixto",
+      "forma": "granos",
+      "color": "mixto",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "mezclado",
+      "grupo": "cereal_almidon",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "arroz",
+        "gramos": 80
+      },
+      {
+        "alimentoId": "pollo",
+        "gramos": 50
+      }
+    ]
+  },
+  {
+    "id": "arvejas_enteras",
+    "nombre": "Arvejas enteras",
+    "atributos": {
+      "textura": "blando",
+      "forma": "granos",
+      "color": "verde",
+      "sabor": "neutro",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "verdura",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "arvejas",
+        "gramos": 50
+      }
+    ]
+  },
+  {
+    "id": "avena_con_leche",
+    "nombre": "Avena con leche, fría",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "granos",
+      "color": "beige",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "mezclado",
+      "grupo": "lacteo",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "leche",
+        "gramos": 150
+      },
+      {
+        "alimentoId": "avena",
+        "gramos": 40
+      },
+      {
+        "alimentoId": "azucar",
+        "gramos": 5
+      }
+    ]
+  },
+  {
+    "id": "banana_pisada",
+    "nombre": "Banana pisada",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "amarillo",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "fruta",
+      "coccion": "crudo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "banana",
+        "gramos": 80
+      }
+    ]
+  },
+  {
+    "id": "bastones_boniato_fritos",
+    "nombre": "Bastones de boniato fritos",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "baston",
+      "color": "naranja",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "boniato",
+        "gramos": 120
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 10
+      }
+    ]
+  },
+  {
+    "id": "bastones_morron_fritos",
+    "nombre": "Bastones de morrón rojo rebozados y fritos (sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "baston",
+      "color": "beige",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "verdura",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "morron",
+        "gramos": 50
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 10
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 8
+      }
+    ]
+  },
+  {
+    "id": "bastones_queso_fritos",
+    "nombre": "Bastones de queso rebozados y fritos (sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "baston",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "lacteo",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "queso_muzzarella",
+        "gramos": 40
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 10
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 8
+      }
+    ]
+  },
+  {
+    "id": "bastones_queso_horno",
+    "nombre": "Bastones de queso horneados",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "baston",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "lacteo",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "queso_muzzarella",
+        "gramos": 40
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 10
+      }
+    ]
+  },
+  {
+    "id": "bastones_zanahoria_horno",
+    "nombre": "Bastones de zanahoria horneados",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "baston",
+      "color": "naranja",
+      "sabor": "dulce",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "verdura",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "zanahoria",
+        "gramos": 60
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 3
+      }
+    ]
+  },
+  {
+    "id": "brocoli_hervido",
+    "nombre": "Brócoli hervido",
+    "atributos": {
+      "textura": "blando",
+      "forma": "trozos",
+      "color": "verde",
+      "sabor": "neutro",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "verdura",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "brocoli",
+        "gramos": 50
+      }
+    ]
+  },
+  {
+    "id": "chauchas_hervidas",
+    "nombre": "Chauchas hervidas",
+    "atributos": {
+      "textura": "blando",
+      "forma": "baston",
+      "color": "verde",
+      "sabor": "neutro",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "verdura",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "chauchas",
+        "gramos": 50
+      }
+    ]
+  },
+  {
+    "id": "copos_maiz",
+    "nombre": "Copos de maíz (cereal de desayuno, como vienen)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "amarillo",
+      "sabor": "neutro",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "cereal_fortificado",
+        "gramos": 30
+      }
+    ]
+  },
+  {
+    "id": "croquetas_atun_fritas",
+    "nombre": "Croquetas de atún y papa, fritas (sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "redondo",
+      "color": "beige",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "atun",
+        "gramos": 50
+      },
+      {
+        "alimentoId": "papa",
+        "gramos": 40
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 15
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 8
+      }
+    ]
+  },
+  {
+    "id": "fideos_con_salsa",
+    "nombre": "Fideos con salsa de tomate",
+    "atributos": {
+      "textura": "blando",
+      "forma": "trozos",
+      "color": "rojo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "con_salsa",
+      "grupo": "cereal_almidon",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "fideos",
+        "gramos": 80
+      },
+      {
+        "alimentoId": "salsa_tomate",
+        "gramos": 40
+      }
+    ]
+  },
+  {
+    "id": "fideos_manteca_queso",
+    "nombre": "Fideos con manteca y queso rallado",
+    "atributos": {
+      "textura": "blando",
+      "forma": "trozos",
+      "color": "beige",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "mezclado",
+      "grupo": "cereal_almidon",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "fideos",
+        "gramos": 90
+      },
+      {
+        "alimentoId": "manteca",
+        "gramos": 5
+      },
+      {
+        "alimentoId": "queso_rallado",
+        "gramos": 10
+      }
+    ]
+  },
+  {
+    "id": "frutilla_pisada",
+    "nombre": "Frutillas pisadas",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "rojo",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "fruta",
+      "coccion": "crudo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "frutilla",
+        "gramos": 80
+      }
+    ]
+  },
+  {
+    "id": "galletitas_agua",
+    "nombre": "Galletitas de agua",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "beige",
+      "sabor": "salado",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "galletitas_agua",
+        "gramos": 25
+      }
+    ]
+  },
+  {
+    "id": "galletitas_integrales",
+    "nombre": "Galletitas integrales del mismo formato que las de agua",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "marron",
+      "sabor": "salado",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "galletitas_integrales",
+        "gramos": 40
+      }
+    ]
+  },
+  {
+    "id": "hamburguesa_casera",
+    "nombre": "Hamburguesa casera a la plancha",
+    "atributos": {
+      "textura": "jugoso",
+      "forma": "redondo",
+      "color": "marron",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "plancha"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "carne_picada",
+        "gramos": 100
+      }
+    ]
+  },
+  {
+    "id": "jugo_naranja_colado",
+    "nombre": "Jugo de naranja natural, colado y sin pulpa",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "entero",
+      "color": "naranja",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "fruta",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "jugo_naranja",
+        "gramos": 200
+      }
+    ]
+  },
+  {
+    "id": "leche_chocolatada",
+    "nombre": "Leche chocolatada",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "entero",
+      "color": "marron",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "lacteo",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "leche",
+        "gramos": 200
+      },
+      {
+        "alimentoId": "cacao_azucarado",
+        "gramos": 15
+      }
+    ]
+  },
+  {
+    "id": "leche_chocolatada_fortificada",
+    "nombre": "Leche chocolatada hecha con leche fortificada con vitamina D",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "entero",
+      "color": "marron",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "lacteo",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "leche_vitamina_d",
+        "gramos": 200
+      },
+      {
+        "alimentoId": "cacao_azucarado",
+        "gramos": 15
+      }
+    ],
+    "fortificadaDe": "leche_chocolatada"
+  },
+  {
+    "id": "lentejas_guisadas",
+    "nombre": "Lentejas guisadas",
+    "atributos": {
+      "textura": "blando",
+      "forma": "granos",
+      "color": "marron",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "mezclado",
+      "grupo": "proteina",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "lentejas",
+        "gramos": 80
+      },
+      {
+        "alimentoId": "zanahoria",
+        "gramos": 20
+      }
+    ]
+  },
+  {
+    "id": "licuado_banana_leche",
+    "nombre": "Licuado de banana con leche",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "entero",
+      "color": "amarillo",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "lacteo",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "leche",
+        "gramos": 150
+      },
+      {
+        "alimentoId": "banana",
+        "gramos": 60
+      }
+    ]
+  },
+  {
+    "id": "licuado_frutilla_leche",
+    "nombre": "Licuado de frutilla con leche, colado",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "entero",
+      "color": "rojo",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "lacteo",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "leche",
+        "gramos": 150
+      },
+      {
+        "alimentoId": "frutilla",
+        "gramos": 60
+      }
+    ]
+  },
+  {
+    "id": "manzana_bastones",
+    "nombre": "Manzana pelada en bastones",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "baston",
+      "color": "blanco",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "fruta",
+      "coccion": "crudo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "manzana",
+        "gramos": 60
+      }
+    ]
+  },
+  {
+    "id": "milanesa_carne_canola",
+    "nombre": "Milanesa de carne al horno pincelada con aceite de canola (sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "marron",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "carne_vacuna",
+        "gramos": 90
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 20
+      },
+      {
+        "alimentoId": "aceite_canola",
+        "gramos": 5
+      }
+    ],
+    "fortificadaDe": "milanesa_carne_horno"
+  },
+  {
+    "id": "milanesa_carne_con_huevo",
+    "nombre": "Milanesa de carne al horno rebozada con huevo (la clásica)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "marron",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "carne_vacuna",
+        "gramos": 90
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 20
+      },
+      {
+        "alimentoId": "huevo",
+        "gramos": 15
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 5
+      }
+    ]
+  },
+  {
+    "id": "milanesa_carne_horno",
+    "nombre": "Milanesa de carne al horno (rebozada sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "marron",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "carne_vacuna",
+        "gramos": 90
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 20
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 5
+      }
+    ]
+  },
+  {
+    "id": "milanesa_lentejas_horno",
+    "nombre": "Milanesa de lentejas al horno (sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "marron",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "lentejas",
+        "gramos": 80
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 20
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 5
+      }
+    ]
+  },
+  {
+    "id": "milanesa_merluza_horno",
+    "nombre": "Milanesa de merluza al horno (rebozada sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "beige",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "merluza",
+        "gramos": 90
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 20
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 5
+      }
+    ]
+  },
+  {
+    "id": "milanesa_napolitana",
+    "nombre": "Milanesa a la napolitana (sin huevo)",
+    "atributos": {
+      "textura": "mixto",
+      "forma": "plano",
+      "color": "mixto",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "con_salsa",
+      "grupo": "proteina",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "carne_vacuna",
+        "gramos": 90
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 20
+      },
+      {
+        "alimentoId": "salsa_tomate",
+        "gramos": 30
+      },
+      {
+        "alimentoId": "queso_muzzarella",
+        "gramos": 30
+      }
+    ]
+  },
+  {
+    "id": "nuggets_merluza_fritos",
+    "nombre": "Nuggets de merluza con el mismo apanado, fritos (sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "redondo",
+      "color": "beige",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "merluza",
+        "gramos": 70
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 15
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 8
+      }
+    ]
+  },
+  {
+    "id": "nuggets_pollo_caseros",
+    "nombre": "Nuggets caseros de pollo con el mismo apanado, fritos (sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "redondo",
+      "color": "beige",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "pollo",
+        "gramos": 70
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 15
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 8
+      }
+    ]
+  },
+  {
+    "id": "nuggets_pollo_fritos",
+    "nombre": "Nuggets de pollo comprados, fritos",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "redondo",
+      "color": "beige",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "nuggets_pollo",
+        "gramos": 96
+      }
+    ]
+  },
+  {
+    "id": "nuggets_pollo_horno",
+    "nombre": "Nuggets de pollo comprados, al horno",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "redondo",
+      "color": "beige",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "nuggets_pollo",
+        "gramos": 96
+      }
+    ]
+  },
+  {
+    "id": "palitos_merluza_fritos",
+    "nombre": "Palitos de merluza rebozados y fritos (sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "baston",
+      "color": "beige",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "merluza",
+        "gramos": 60
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 15
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 8
+      }
+    ]
+  },
+  {
+    "id": "papa_hervida",
+    "nombre": "Papa hervida en trozos",
+    "atributos": {
+      "textura": "blando",
+      "forma": "trozos",
+      "color": "blanco",
+      "sabor": "neutro",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "papa",
+        "gramos": 120
+      }
+    ]
+  },
+  {
+    "id": "papas_fritas_baston",
+    "nombre": "Papas fritas en bastones",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "baston",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "papa",
+        "gramos": 120
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 10
+      }
+    ]
+  },
+  {
+    "id": "papas_fritas_canola",
+    "nombre": "Papas fritas en bastones, fritas en aceite de canola",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "baston",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "papa",
+        "gramos": 120
+      },
+      {
+        "alimentoId": "aceite_canola",
+        "gramos": 10
+      }
+    ],
+    "fortificadaDe": "papas_fritas_baston"
+  },
+  {
+    "id": "papas_horno_baston",
+    "nombre": "Papas al horno en bastones, crocantes",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "baston",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "papa",
+        "gramos": 120
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 5
+      }
+    ]
+  },
+  {
+    "id": "papas_horno_cubos",
+    "nombre": "Papas al horno en cubos, blandas",
+    "atributos": {
+      "textura": "blando",
+      "forma": "trozos",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "papa",
+        "gramos": 120
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 5
+      }
+    ]
+  },
+  {
+    "id": "pizza_muzzarella",
+    "nombre": "Pizza de muzzarella sin salsa, masa fina y crocante",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "prepizza",
+        "gramos": 70
+      },
+      {
+        "alimentoId": "queso_muzzarella",
+        "gramos": 40
+      }
+    ]
+  },
+  {
+    "id": "pollo_desmenuzado",
+    "nombre": "Pollo hervido desmenuzado",
+    "atributos": {
+      "textura": "blando",
+      "forma": "trozos",
+      "color": "blanco",
+      "sabor": "neutro",
+      "temperatura": "tibio",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "pollo",
+        "gramos": 70
+      }
+    ]
+  },
+  {
+    "id": "pollo_plancha",
+    "nombre": "Pollo a la plancha",
+    "atributos": {
+      "textura": "jugoso",
+      "forma": "plano",
+      "color": "blanco",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "plancha"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "pollo",
+        "gramos": 90
+      }
+    ]
+  },
+  {
+    "id": "pure_arvejas",
+    "nombre": "Arvejas en puré",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "verde",
+      "sabor": "neutro",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "verdura",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "arvejas",
+        "gramos": 60
+      },
+      {
+        "alimentoId": "manteca",
+        "gramos": 3
+      }
+    ]
+  },
+  {
+    "id": "pure_lentejas",
+    "nombre": "Puré de lentejas",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "marron",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "lentejas",
+        "gramos": 80
+      },
+      {
+        "alimentoId": "manteca",
+        "gramos": 3
+      }
+    ]
+  },
+  {
+    "id": "pure_papa",
+    "nombre": "Puré de papa",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "papa",
+        "gramos": 130
+      },
+      {
+        "alimentoId": "leche",
+        "gramos": 30
+      },
+      {
+        "alimentoId": "manteca",
+        "gramos": 5
+      }
+    ]
+  },
+  {
+    "id": "pure_papa_queso",
+    "nombre": "Puré de papa con queso rallado",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "papa",
+        "gramos": 130
+      },
+      {
+        "alimentoId": "leche",
+        "gramos": 30
+      },
+      {
+        "alimentoId": "manteca",
+        "gramos": 5
+      },
+      {
+        "alimentoId": "queso_rallado",
+        "gramos": 20
+      }
+    ],
+    "fortificadaDe": "pure_papa"
+  },
+  {
+    "id": "pure_zapallo",
+    "nombre": "Puré de zapallo",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "naranja",
+      "sabor": "dulce",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "verdura",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "zapallo",
+        "gramos": 100
+      }
+    ]
+  },
+  {
+    "id": "tostadas",
+    "nombre": "Tostadas de pan blanco",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "beige",
+      "sabor": "neutro",
+      "temperatura": "tibio",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "pan_blanco",
+        "gramos": 40
+      }
+    ]
+  },
+  {
+    "id": "tostadas_pan_integral",
+    "nombre": "Tostadas de pan integral",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "marron",
+      "sabor": "neutro",
+      "temperatura": "tibio",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "pan_integral",
+        "gramos": 60
+      }
+    ]
+  },
+  {
+    "id": "tostadas_queso",
+    "nombre": "Tostadas con queso gratinado, bien doradas",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "tibio",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "pan_blanco",
+        "gramos": 40
+      },
+      {
+        "alimentoId": "queso_muzzarella",
+        "gramos": 30
+      }
+    ]
+  },
+  {
+    "id": "yogur_bebible",
+    "nombre": "Yogur bebible de vainilla",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "entero",
+      "color": "blanco",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "lacteo",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "yogur",
+        "gramos": 180
+      }
+    ]
+  },
+  {
+    "id": "yogur_vainilla",
+    "nombre": "Yogur de vainilla",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "blanco",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "lacteo",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "yogur",
+        "gramos": 150
+      }
+    ]
+  },
+  {
+    "id": "yogur_vainilla_fortificado",
+    "nombre": "Yogur de vainilla fortificado con vitamina D",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "blanco",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "lacteo",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "yogur_vitamina_d",
+        "gramos": 150
+      }
+    ],
+    "fortificadaDe": "yogur_vainilla"
+  }
+]

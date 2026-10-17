@@ -1,0 +1,41 @@
+{
+  "_fuente": "PLAN.md §10.2 y el research del proyecto. Patrones de partida (fuente 'investigacion', confianza baja): los datos de cada chico los confirman o los borran. El color no se carga: solo si el padre lo declara como regla.",
+  "patrones": [
+    {
+      "condiciones": [{ "tipo": "textura", "valor": "mixto" }],
+      "resultado": "rechaza",
+      "confianza": 0.4,
+      "evidencia": "La textura es el motivo de rechazo dominante: 77% contra 36% en chicos sin autismo (Hubbard 2014)"
+    },
+    {
+      "condiciones": [{ "tipo": "presentacion", "valor": "mezclado" }],
+      "resultado": "rechaza",
+      "confianza": 0.4,
+      "evidencia": "Rechazo de mezclas: 45% contra 26% (Hubbard 2014)"
+    },
+    {
+      "condiciones": [{ "tipo": "presentacion", "valor": "con_salsa" }],
+      "resultado": "rechaza",
+      "confianza": 0.35,
+      "evidencia": "Misma evidencia que las mezclas; por defecto, las salsas van aparte"
+    },
+    {
+      "condiciones": [{ "tipo": "textura", "valor": "crocante" }],
+      "resultado": "acepta",
+      "confianza": 0.3,
+      "evidencia": "Lo crocante es la preferencia más citada"
+    },
+    {
+      "condiciones": [{ "tipo": "sabor", "valor": "neutro" }, { "tipo": "color", "valor": "beige" }],
+      "resultado": "acepta",
+      "confianza": 0.3,
+      "evidencia": "Más del 90% prefiere textura uniforme, sabor suave y color neutro"
+    },
+    {
+      "condiciones": [{ "tipo": "distribucion", "valor": "tocandose" }],
+      "resultado": "rechaza",
+      "confianza": 0.15,
+      "evidencia": "Lo reportan los padres, pero no distinguió a los chicos con TEA de los demás (Hubbard 2014): se pregunta en el perfil"
+    }
+  ]
+}

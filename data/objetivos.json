@@ -1,0 +1,21 @@
+{
+  "_fuente": "PLAN.md §10.1. Calcio, hierro y fibra: Recomendaciones de ingesta de energía y nutrientes para la población uruguaya (MSP, 2020), que coinciden con las DRI del IOM. Proteína, vitamina D, omega-3 (como ALA), B12 y vitamina C: DRI del IOM (fichas del NIH ODS). La energía se muestra, pero no tiene meta. Si el chico tiene nutricionista, su indicación reemplaza esta tabla.",
+  "fuentes": {
+    "proteina_g": "IOM, RDA",
+    "calcio_mg": "MSP 2020",
+    "vitamina_d_ug": "IOM, RDA",
+    "hierro_mg": "MSP 2020",
+    "fibra_g": "MSP 2020",
+    "omega3_g": "IOM, AI (como ALA)",
+    "b12_ug": "IOM, RDA",
+    "vitamina_c_mg": "IOM, RDA"
+  },
+  "rangos": [
+    { "desde": 1, "hasta": 3, "sexo": null, "objetivo": { "proteina_g": 13, "calcio_mg": 700, "vitamina_d_ug": 15, "hierro_mg": 7, "fibra_g": 19, "omega3_g": 0.7, "b12_ug": 0.9, "vitamina_c_mg": 15 } },
+    { "desde": 4, "hasta": 8, "sexo": null, "objetivo": { "proteina_g": 19, "calcio_mg": 1000, "vitamina_d_ug": 15, "hierro_mg": 10, "fibra_g": 25, "omega3_g": 0.9, "b12_ug": 1.2, "vitamina_c_mg": 25 } },
+    { "desde": 9, "hasta": 13, "sexo": "masculino", "objetivo": { "proteina_g": 34, "calcio_mg": 1300, "vitamina_d_ug": 15, "hierro_mg": 8, "fibra_g": 31, "omega3_g": 1.2, "b12_ug": 1.8, "vitamina_c_mg": 45 } },
+    { "desde": 9, "hasta": 13, "sexo": "femenino", "objetivo": { "proteina_g": 34, "calcio_mg": 1300, "vitamina_d_ug": 15, "hierro_mg": 8, "fibra_g": 26, "omega3_g": 1.0, "b12_ug": 1.8, "vitamina_c_mg": 45 } },
+    { "desde": 14, "hasta": 18, "sexo": "masculino", "objetivo": { "proteina_g": 52, "calcio_mg": 1300, "vitamina_d_ug": 15, "hierro_mg": 11, "fibra_g": 38, "omega3_g": 1.6, "b12_ug": 2.4, "vitamina_c_mg": 75 } },
+    { "desde": 14, "hasta": 18, "sexo": "femenino", "objetivo": { "proteina_g": 46, "calcio_mg": 1300, "vitamina_d_ug": 15, "hierro_mg": 15, "fibra_g": 26, "omega3_g": 1.1, "b12_ug": 2.4, "vitamina_c_mg": 65 } }
+  ]
+}
