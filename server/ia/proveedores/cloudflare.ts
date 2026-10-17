@@ -1,7 +1,7 @@
 // Workers AI por REST (PLAN.md §4.1): FLUX.1 schnell (imagen.ts) y Whisper de respaldo (voz.ts).
 // Variables: CLOUDFLARE_ACCOUNT_ID y CLOUDFLARE_API_TOKEN (con permiso de Workers AI).
 import { ErrorIA } from '../errores.js'
-import { descripcion } from './comun.js'
+import { descripcion, porPedido, TIMEOUT_MS, type Vence } from './comun.js'
 
 const API = 'https://api.cloudflare.com/client/v4'
 
@@ -41,15 +41,16 @@ function errorHttp(status: number, json: Respuesta<unknown> | null, que: string)
   return new ErrorIA('proveedor', `${que}: HTTP ${status} ${mensaje}`.trim())
 }
 
-/** POST /accounts/{cuenta}/ai/run/{modelo}. Devuelve `result`. */
-export async function correrWorkersAI<T>(modelo: string, cuerpo: unknown): Promise<T> {
+/** POST /accounts/{cuenta}/ai/run/{modelo}. Devuelve `result`. Con `vence` (limiteMs), el timeout es lo que queda. */
+export async function correrWorkersAI<T>(modelo: string, cuerpo: unknown, vence?: Vence): Promise<T> {
   const c = credencialesCloudflare()
   if (!c) throw new ErrorIA('sin_clave', 'faltan CLOUDFLARE_ACCOUNT_ID y CLOUDFLARE_API_TOKEN')
   const que = `Workers AI (${modelo})`
+  const timeoutMs = porPedido(vence)?.timeout ?? TIMEOUT_MS // sin reintentos: alcanza con acotar el timeout
   const { res, json } = await pedir<T>(`${API}/accounts/${c.cuenta}/ai/run/${modelo}`, c.token, {
     method: 'POST',
     body: JSON.stringify(cuerpo),
-  }, 25_000, que)
+  }, timeoutMs, que)
   if (!res.ok || !json?.success || json.result === undefined) throw errorHttp(res.status, json, que)
   return json.result
 }

@@ -95,4 +95,17 @@ describe('generarImagen con FLUX.1 schnell', () => {
     expect((await errorDe(generarImagen({ prompt: 'a'.repeat(2049) }))).motivo).toBe('entrada_invalida')
     expect(fetchFalso).not.toHaveBeenCalled()
   })
+
+  it('con limiteMs, el timeout del fetch es min(25 s, limiteMs); agotado → timeout sin llamar', async () => {
+    const timeout = vi.spyOn(AbortSignal, 'timeout')
+    cloudflareResponde({ success: true, result: { image: '/9j/' } })
+    cloudflareResponde({ success: true, result: { image: '/9j/' } })
+    await generarImagen({ prompt: PROMPT })
+    expect(timeout).toHaveBeenLastCalledWith(25_000)
+    await generarImagen({ prompt: PROMPT, limiteMs: 10_000 })
+    expect(timeout.mock.lastCall?.[0]).toBeLessThanOrEqual(10_000)
+    expect((await errorDe(generarImagen({ prompt: PROMPT, limiteMs: 0 }))).motivo).toBe('timeout')
+    expect(fetchFalso).toHaveBeenCalledTimes(2)
+    timeout.mockRestore()
+  })
 })

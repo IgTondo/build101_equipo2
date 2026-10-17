@@ -6,12 +6,14 @@
 import { toFile } from 'groq-sdk'
 import { ErrorIA } from './errores.js'
 import { correrWorkersAI, credencialesCloudflare } from './proveedores/cloudflare.js'
+import { MIN_REINTENTO_MS, porPedido, quedanMs, vencimiento, type Vence } from './proveedores/comun.js'
 import { clienteGroq, errorGroq, tieneClaveGroq } from './proveedores/groq.js'
 
 export interface OpcionesTranscribir {
   audioBase64: string
   mime: string           // 'audio/mp4' (iPhone) o 'audio/webm' (Android)
   pista?: string
+  limiteMs?: number      // presupuesto total, respaldo incluido (como en generarJSON)
 }
 
 export interface Transcripcion {
@@ -67,7 +69,7 @@ function formato(mime: string): { mime: string; ext: string } {
   return { mime: base, ext }
 }
 
-async function conGroq(audio: Buffer, f: { mime: string; ext: string }, pista?: string) {
+async function conGroq(audio: Buffer, f: { mime: string; ext: string }, pista: string | undefined, vence: Vence) {
   try {
     const r = await clienteGroq().audio.transcriptions.create({
       file: await toFile(audio, `nota.${f.ext}`, { type: f.mime }),
@@ -75,34 +77,35 @@ async function conGroq(audio: Buffer, f: { mime: string; ext: string }, pista?: 
       language: 'es',
       ...(pista ? { prompt: pista } : {}),
       response_format: 'json',
-    })
+    }, porPedido(vence))
     return { texto: r.text, modelo: MODELO_GROQ }
   } catch (e) {
     throw errorGroq(e)
   }
 }
 
-async function conCloudflare(audioBase64: string, pista?: string) {
+async function conCloudflare(audioBase64: string, pista: string | undefined, vence: Vence) {
   const r = await correrWorkersAI<{ text?: string }>(MODELO_CLOUDFLARE, {
     audio: audioBase64,
     task: 'transcribe',
     language: 'es',
     ...(pista ? { initial_prompt: pista } : {}),
-  })
+  }, vence)
   return { texto: r.text ?? '', modelo: MODELO_CLOUDFLARE }
 }
 
-async function conRespaldo(audio: Buffer, audioBase64: string, f: { mime: string; ext: string }, pista?: string) {
+async function conRespaldo(audio: Buffer, audioBase64: string, f: { mime: string; ext: string }, pista: string | undefined, vence: Vence) {
   const hayCloudflare = credencialesCloudflare() !== null
   if (!tieneClaveGroq()) {
     if (!hayCloudflare) throw new ErrorIA('sin_clave', 'faltan GROQ_API_KEY y las credenciales de Cloudflare')
-    return conCloudflare(audioBase64, pista)
+    return conCloudflare(audioBase64, pista, vence)
   }
   try {
-    return await conGroq(audio, f, pista)
+    return await conGroq(audio, f, pista, vence)
   } catch (e) {
     if (!hayCloudflare || !(e instanceof ErrorIA) || (e.motivo !== 'limite' && e.motivo !== 'proveedor')) throw e
-    return conCloudflare(audioBase64, pista)
+    if (quedanMs(vence) < MIN_REINTENTO_MS) throw e // con limiteMs: sin tiempo para el respaldo
+    return conCloudflare(audioBase64, pista, vence)
   }
 }
 
@@ -112,7 +115,7 @@ export async function transcribir(opciones: OpcionesTranscribir): Promise<Transc
   const audio = Buffer.from(opciones.audioBase64, 'base64')
   if (audio.length === 0) throw new ErrorIA('audio_vacio', 'el audio vino vacío')
   const pista = opciones.pista?.trim().slice(0, MAX_PISTA) || undefined
-  const r = await conRespaldo(audio, opciones.audioBase64, f, pista)
+  const r = await conRespaldo(audio, opciones.audioBase64, f, pista, vencimiento(opciones.limiteMs))
   const crudo = r.texto.trim()
   const texto = sinFrasesInventadas(crudo)
   if (!normalizar(texto)) {
