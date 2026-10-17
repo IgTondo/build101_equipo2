@@ -1,5 +1,9 @@
-// Errores de la capa de IA (PLAN.md §7, A4). Los handlers de api/ los traducen a ErrorApi con estadoHttp().
-export type CodigoErrorIA =
+// Errores de la capa de IA (PLAN.md §7, A4). ErrorIA es un ErrorNibble: manejar() (server/http.ts) lo convierte
+// solo en un ErrorApi. `motivo` distingue la causa para logs y tests; el mensaje es para el padre.
+import type { CodigoError } from '../../shared/contratos.js'
+import { ErrorNibble } from '../http.js'
+
+export type MotivoErrorIA =
   | 'entrada_invalida'   // el pedido no cumple el contrato
   | 'sin_clave'          // falta la key del proveedor en el entorno
   | 'timeout'            // el proveedor no respondió a tiempo (25 s por llamada)
@@ -9,33 +13,35 @@ export type CodigoErrorIA =
   | 'proveedor'          // cualquier otro error del proveedor
   | 'no_implementado'
 
-export class ErrorIA extends Error {
-  readonly codigo: CodigoErrorIA
-  readonly detalle?: unknown
+const CODIGO: Record<MotivoErrorIA, CodigoError> = {
+  entrada_invalida: 'entrada_invalida',
+  sin_clave: 'proveedor_caido',
+  timeout: 'timeout',
+  limite: 'limite_proveedor',
+  json_invalido: 'proveedor_caido',
+  rechazo: 'proveedor_caido',
+  proveedor: 'proveedor_caido',
+  no_implementado: 'interno',
+}
 
-  constructor(codigo: CodigoErrorIA, mensaje: string, opciones?: { causa?: unknown; detalle?: unknown }) {
-    super(mensaje, { cause: opciones?.causa })
+const MENSAJE: Record<MotivoErrorIA, string> = {
+  entrada_invalida: 'Faltan datos o no tienen el formato esperado.',
+  sin_clave: 'El servicio de IA todavía no está configurado.',
+  timeout: 'La IA tardó demasiado en responder. ¿Probás de nuevo?',
+  limite: 'Hay muchos pedidos a la vez. Esperá unos segundos y probá de nuevo.',
+  json_invalido: 'La IA respondió algo que no pudimos leer. ¿Probás de nuevo?',
+  rechazo: 'La IA no pudo responder este pedido.',
+  proveedor: 'El servicio de IA no está respondiendo. ¿Probás de nuevo?',
+  no_implementado: 'Esta parte todavía no está lista.',
+}
+
+export class ErrorIA extends ErrorNibble {
+  readonly motivo: MotivoErrorIA
+
+  constructor(motivo: MotivoErrorIA, detalle: string, opciones?: { causa?: unknown; mensaje?: string }) {
+    super(CODIGO[motivo], opciones?.mensaje ?? MENSAJE[motivo], { motivo, detalle })
     this.name = 'ErrorIA'
-    this.codigo = codigo
-    this.detalle = opciones?.detalle
+    this.motivo = motivo
+    if (opciones?.causa !== undefined) this.cause = opciones.causa
   }
-}
-
-const ESTADO: Record<CodigoErrorIA, number> = {
-  entrada_invalida: 400,
-  sin_clave: 503,
-  timeout: 504,
-  limite: 429,
-  json_invalido: 502,
-  rechazo: 422,
-  proveedor: 502,
-  no_implementado: 501,
-}
-
-export function estadoHttp(codigo: CodigoErrorIA): number {
-  return ESTADO[codigo]
-}
-
-export function esErrorIA(e: unknown): e is ErrorIA {
-  return e instanceof ErrorIA
 }
