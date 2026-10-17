@@ -2,7 +2,7 @@
 // La energía va como dato, sin meta (§1). Las alertas derivan al profesional, sin alarmar.
 import { Link, useLocation } from 'react-router-dom'
 import type { Rango, RegistrarComidaRes } from '../../../shared/contratos'
-import { NOMBRE_NUTRIENTE, NUTRIENTES_CON_META } from '../../lib/vocabulario'
+import { NOMBRE_NUTRIENTE, NUTRIENTES_CON_META, textoParaPadres } from '../../lib/vocabulario'
 import { rangoLegible } from './modelo'
 
 function Nutrientes({ rango }: { rango: Rango }) {
@@ -49,7 +49,7 @@ export function Resultado({ res, alOtra }: { res: RegistrarComidaRes; alOtra: ()
         <section className="nb-tarjeta" aria-labelledby="rg-aprendi">
           <h2 id="rg-aprendi">Qué aprendí</h2>
           <ul className="rg-aprendi">
-            {res.aprendi.map((a, i) => <li key={`${a.tipo}-${i}`}>{a.texto}</li>)}
+            {res.aprendi.map((a, i) => <li key={`${a.tipo}-${i}`}>{textoParaPadres(a.texto)}</li>)}
           </ul>
         </section>
       )}

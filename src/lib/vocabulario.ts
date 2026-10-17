@@ -74,3 +74,11 @@ export function formatoNutriente(n: Nutriente, valor: number): string {
   return `${valor.toLocaleString('es-UY', { maximumFractionDigits: DECIMALES[n] })} ${UNIDAD[n]}`
 }
 export const porcentaje = (x: number) => `${Math.round(x * 100)}%`
+
+/**
+ * Hacia el padre nunca se dice "rechaza" (§9): los textos de patrones y de "qué aprendí" que arma B
+ * ("Lo hervido lo rechaza (8 de 8)", "Las verduras las rechaza") pasan a "todavía no lo acepta".
+ */
+export function textoParaPadres(texto: string): string {
+  return texto.replace(/\b(lo|la|los|las) rechaza\b/gi, (_, pronombre: string) => `todavía no ${pronombre.toLowerCase()} acepta`)
+}

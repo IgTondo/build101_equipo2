@@ -2,7 +2,7 @@
 import { useId } from 'react'
 import type { CoberturaDia, PatronVista } from '../../../shared/contratos'
 import { diaUruguay } from '../../lib/nino'
-import { ESCALON, NOMBRE_MOMENTO } from '../../lib/vocabulario'
+import { ESCALON, NOMBRE_MOMENTO, textoParaPadres } from '../../lib/vocabulario'
 import { etiquetaDia, mayuscula, nivelConfianza, ordenarPatrones, srcMiniatura, ultimasComidas } from './calculos'
 
 export function Aprendimos({ patrones }: { patrones: PatronVista[] }) {
@@ -16,7 +16,7 @@ export function Aprendimos({ patrones }: { patrones: PatronVista[] }) {
         <ul className="tb-patrones">
           {ordenarPatrones(patrones).map((p) => (
             <li key={p.texto}>
-              <p className="tb-patron-texto">{p.texto}</p>
+              <p className="tb-patron-texto">{textoParaPadres(p.texto)}</p>
               <p className="tb-patron-meta nb-suave">
                 <span className="nb-chip">{p.fuente === 'aprendido' ? 'De sus comidas' : 'De la investigación'}</span>
                 <span>

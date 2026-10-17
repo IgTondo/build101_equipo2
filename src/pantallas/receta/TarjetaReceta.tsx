@@ -1,6 +1,6 @@
 // La receta de food chaining: de qué parte, qué cambia, por qué, qué aporta, cómo se hace, cómo servirla y cómo ofrecerla.
 import type { Receta, Regla } from '../../../shared/contratos'
-import { NOMBRE_CAMBIO, formatoNutriente, porcentaje } from '../../lib/vocabulario'
+import { NOMBRE_CAMBIO, formatoNutriente, porcentaje, textoParaPadres } from '../../lib/vocabulario'
 import { ImagenPlato } from './ImagenPlato'
 import { aceptacionLegible, alergenoEnFrase, listaLegible, nutrienteEnFrase } from './legible'
 
@@ -35,7 +35,7 @@ export function TarjetaReceta({ receta, reglas }: { receta: Receta; reglas: Regl
         )}
         {candidato && candidato.patrones.length > 0 && (
           <ul className="rc-patrones">
-            {candidato.patrones.map((p) => <li key={p}>{p}</li>)}
+            {candidato.patrones.map((p) => <li key={p}>{textoParaPadres(p)}</li>)}
           </ul>
         )}
       </section>
