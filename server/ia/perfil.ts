@@ -20,6 +20,15 @@ import {
 import { normalizar } from './relato.js'
 
 // ---------- Entrada ----------
+const MAX_FOTO = 4_500_000 // el body entero no puede pasar de 4,5 MB en Vercel
+
+// La foto de la indicación, como en api/analizar-comida.ts: sin el prefijo data: ni saltos de línea (la API de Claude
+// no los acepta), base64 limpio y JPEG. Vacía = no vino.
+const fotoIndicacion = z.preprocess(
+  (v) => (typeof v === 'string' ? v.replace(/^data:[^,]*,/, '').replace(/\s+/g, '') || undefined : v),
+  z.string().max(MAX_FOTO).regex(/^[A-Za-z0-9+/]+={0,2}$/, 'No es base64').startsWith('/9j/', 'No es un JPEG').optional(),
+)
+
 export const esquemaPerfilInicialReq = z.object({
   datos: z.object({
     nombre: z.string().min(1),
@@ -33,7 +42,7 @@ export const esquemaPerfilInicialReq = z.object({
     suplementos: z.string().optional(),
   }),
   texto: z.string(),
-  fotoIndicacionBase64: z.string().optional(),
+  fotoIndicacionBase64: fotoIndicacion,
 })
 
 // ---------- Salida del modelo ----------

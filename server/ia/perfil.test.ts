@@ -393,6 +393,36 @@ describe('api/perfil-inicial', () => {
     expect(b.reglas[0].condiciones).toEqual([{ tipo: 'presentacion', valor: 'mezclado' }])
   })
 
+  it('la foto llega limpia al modelo: sin el prefijo data: ni saltos de línea', async () => {
+    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    mockJSON.mockImplementation(async (o) => ({
+      datos: o.partes.some((p) => p.tipo === 'imagen') ? { objetivos: [objetivo({ nutriente: 'fibra_g', valor: 20, unidad: 'g' })] } : salida(),
+      modelo: 'claude-haiku-5-5', ms: 1, reintentos: 0,
+    }))
+    const r = await llamar(perfilInicialHandler, { datos: DATOS, texto: RELATO, fotoIndicacionBase64: 'data:image/jpeg;base64,/9j/4AAQ\nSkZJ Rg==' })
+    expect(r.statusCode).toBe(200)
+    expect((r.body as PerfilBorrador).objetivosNutricionista).toEqual({ fibra_g: 20 })
+    const partes = mockJSON.mock.calls.flatMap(([o]) => o.partes)
+    expect(partes).toContainEqual({ tipo: 'imagen', base64: '/9j/4AAQSkZJRg==', mime: 'image/jpeg' })
+  })
+
+  it('una foto vacía es como si no viniera', async () => {
+    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    conLLM(salida())
+    const r = await llamar(perfilInicialHandler, { datos: DATOS, texto: RELATO, fotoIndicacionBase64: '  ' })
+    expect(r.statusCode).toBe(200)
+    expect(mockJSON).toHaveBeenCalledTimes(1)
+  })
+
+  it('400 si la foto no es base64, no es un JPEG o pasa de 4,5 MB, sin llamar al modelo', async () => {
+    for (const foto of ['/9j/no*es*base64', 'iVBORw0KGgoAAAANSUhEUg==', `/9j/${'A'.repeat(4_500_000)}`, 1234]) {
+      const r = await llamar(perfilInicialHandler, { datos: DATOS, texto: RELATO, fotoIndicacionBase64: foto })
+      expect(r.statusCode).toBe(400)
+      expect((r.body as ErrorApi).error.codigo).toBe('entrada_invalida')
+    }
+    expect(mockJSON).not.toHaveBeenCalled()
+  })
+
   it('405 con otro método', async () => {
     const r = await llamar(perfilInicialHandler, {}, 'GET')
     expect(r.statusCode).toBe(405)
