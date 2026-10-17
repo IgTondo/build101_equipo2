@@ -1,0 +1,1364 @@
+[
+  {
+    "id": "arroz",
+    "nombre": "Arroz",
+    "alias": [
+      "arroz blanco",
+      "rice"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": []
+  },
+  {
+    "id": "fideos",
+    "nombre": "Fideos",
+    "alias": [
+      "pasta",
+      "tallarines",
+      "spaghetti",
+      "espaguetis",
+      "macarrones",
+      "tirabuzones",
+      "moñitas",
+      "mostacholes"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten"
+    ]
+  },
+  {
+    "id": "fideos_huevo",
+    "nombre": "Fideos al huevo",
+    "alias": [
+      "pasta al huevo",
+      "tallarines al huevo",
+      "egg noodles",
+      "pasta fresca"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "huevo"
+    ]
+  },
+  {
+    "id": "noquis",
+    "nombre": "Ñoquis",
+    "alias": [
+      "ñoqui",
+      "noquis de papa",
+      "gnocchi"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "huevo",
+      "leche"
+    ]
+  },
+  {
+    "id": "pan_blanco",
+    "nombre": "Pan blanco",
+    "alias": [
+      "pan",
+      "pan flauta",
+      "pan de molde",
+      "baguette",
+      "felipe",
+      "pan francés",
+      "marraqueta",
+      "tostada",
+      "white bread"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "pan_integral",
+    "nombre": "Pan integral",
+    "alias": [
+      "pan de salvado",
+      "pan negro",
+      "pan de harina integral",
+      "whole wheat bread"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "soja",
+      "sesamo"
+    ]
+  },
+  {
+    "id": "pan_rallado",
+    "nombre": "Pan rallado",
+    "alias": [
+      "pan molido",
+      "rebozador",
+      "breadcrumbs",
+      "panko"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "galletitas_agua",
+    "nombre": "Galletitas al agua",
+    "alias": [
+      "galletas de agua",
+      "galletas saladas",
+      "crackers",
+      "cracker",
+      "galletitas saladas"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "galletitas_integrales",
+    "nombre": "Galletitas integrales",
+    "alias": [
+      "galletas integrales",
+      "crackers integrales",
+      "galletitas de salvado",
+      "whole wheat crackers"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "galletitas_dulces",
+    "nombre": "Galletitas dulces",
+    "alias": [
+      "galletas dulces",
+      "galletitas maría",
+      "galletas maría",
+      "vainillas",
+      "cookies",
+      "galletas"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "huevo",
+      "soja"
+    ]
+  },
+  {
+    "id": "galletitas_avena",
+    "nombre": "Galletitas de avena",
+    "alias": [
+      "galletas de avena",
+      "oatmeal cookies"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "huevo",
+      "soja"
+    ]
+  },
+  {
+    "id": "grisines",
+    "nombre": "Grisines",
+    "alias": [
+      "palitos de pan",
+      "grissini",
+      "breadsticks"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "sesamo"
+    ]
+  },
+  {
+    "id": "avena",
+    "nombre": "Avena",
+    "alias": [
+      "copos de avena",
+      "avena arrollada",
+      "avena instantánea",
+      "oats",
+      "oatmeal",
+      "porridge"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten"
+    ]
+  },
+  {
+    "id": "cereal_fortificado",
+    "nombre": "Cereal de desayuno fortificado",
+    "alias": [
+      "cereal",
+      "cereales",
+      "copos de maíz",
+      "corn flakes",
+      "cornflakes",
+      "hojuelas de maíz",
+      "cereal de desayuno"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "harina_trigo",
+    "nombre": "Harina de trigo",
+    "alias": [
+      "harina",
+      "harina 000",
+      "harina 0000",
+      "flour"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten"
+    ]
+  },
+  {
+    "id": "polenta",
+    "nombre": "Polenta",
+    "alias": [
+      "harina de maíz",
+      "sémola de maíz",
+      "cornmeal",
+      "grits"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": []
+  },
+  {
+    "id": "papa",
+    "nombre": "Papa",
+    "alias": [
+      "papas",
+      "patata",
+      "patatas",
+      "potato"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": []
+  },
+  {
+    "id": "boniato",
+    "nombre": "Boniato",
+    "alias": [
+      "batata",
+      "camote",
+      "moniato",
+      "sweet potato"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": []
+  },
+  {
+    "id": "choclo",
+    "nombre": "Choclo",
+    "alias": [
+      "maíz dulce",
+      "maíz",
+      "elote",
+      "jojoto",
+      "mazorca",
+      "sweet corn",
+      "corn"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": []
+  },
+  {
+    "id": "prepizza",
+    "nombre": "Prepizza",
+    "alias": [
+      "masa de pizza",
+      "base de pizza",
+      "pizza crust"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "medialuna",
+    "nombre": "Medialuna",
+    "alias": [
+      "medialunas",
+      "croissant",
+      "cuernito",
+      "bizcocho",
+      "bizcochos"
+    ],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "huevo",
+      "soja"
+    ]
+  },
+  {
+    "id": "carne_vacuna",
+    "nombre": "Carne vacuna",
+    "alias": [
+      "carne",
+      "carne de vaca",
+      "carne roja",
+      "bife",
+      "nalga",
+      "peceto",
+      "res",
+      "beef",
+      "steak"
+    ],
+    "grupo": "proteina",
+    "alergenos": []
+  },
+  {
+    "id": "carne_picada",
+    "nombre": "Carne picada",
+    "alias": [
+      "carne molida",
+      "picada",
+      "molida",
+      "ground beef"
+    ],
+    "grupo": "proteina",
+    "alergenos": []
+  },
+  {
+    "id": "pollo",
+    "nombre": "Pollo",
+    "alias": [
+      "pechuga",
+      "pechuga de pollo",
+      "suprema",
+      "muslo",
+      "chicken"
+    ],
+    "grupo": "proteina",
+    "alergenos": []
+  },
+  {
+    "id": "nuggets_pollo",
+    "nombre": "Nuggets de pollo",
+    "alias": [
+      "nuggets",
+      "patitas de pollo",
+      "formitas de pollo",
+      "bocaditos de pollo",
+      "chicken nuggets"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "gluten",
+      "huevo",
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "hamburguesa_comercial",
+    "nombre": "Hamburguesa comercial",
+    "alias": [
+      "hamburguesa congelada",
+      "medallón de carne",
+      "hamburguesa de paquete",
+      "burger",
+      "patty"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "gluten",
+      "huevo",
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "carne_cerdo",
+    "nombre": "Carne de cerdo",
+    "alias": [
+      "cerdo",
+      "bondiola",
+      "chuleta",
+      "lomo de cerdo",
+      "pork"
+    ],
+    "grupo": "proteina",
+    "alergenos": []
+  },
+  {
+    "id": "salchicha",
+    "nombre": "Salchicha",
+    "alias": [
+      "salchichas",
+      "pancho",
+      "frankfurt",
+      "viena",
+      "hot dog",
+      "wiener"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "jamon",
+    "nombre": "Jamón cocido",
+    "alias": [
+      "jamón",
+      "jamón york",
+      "fiambre",
+      "ham"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "chorizo",
+    "nombre": "Chorizo",
+    "alias": [
+      "chorizo parrillero",
+      "longaniza",
+      "sausage"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "huevo",
+    "nombre": "Huevo",
+    "alias": [
+      "huevos",
+      "huevo duro",
+      "huevo revuelto",
+      "huevo frito",
+      "egg",
+      "eggs"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "huevo"
+    ]
+  },
+  {
+    "id": "huevo_enriquecido",
+    "nombre": "Huevo enriquecido (omega-3 y vitamina D)",
+    "alias": [
+      "huevo omega 3",
+      "huevo con vitamina d",
+      "huevos enriquecidos"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "huevo"
+    ]
+  },
+  {
+    "id": "merluza",
+    "nombre": "Merluza",
+    "alias": [
+      "pescado",
+      "pescado blanco",
+      "filet de merluza",
+      "filete de pescado",
+      "hake",
+      "fish"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "pescado"
+    ]
+  },
+  {
+    "id": "palitos_pescado",
+    "nombre": "Palitos de pescado",
+    "alias": [
+      "palitos de merluza",
+      "bastones de pescado",
+      "formitas de pescado",
+      "medallones de merluza",
+      "fish sticks"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "pescado",
+      "gluten",
+      "huevo",
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "atun",
+    "nombre": "Atún",
+    "alias": [
+      "atún en lata",
+      "atún al natural",
+      "tuna"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "pescado"
+    ]
+  },
+  {
+    "id": "salmon",
+    "nombre": "Salmón",
+    "alias": [
+      "salmón rosado",
+      "salmon"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "pescado"
+    ]
+  },
+  {
+    "id": "lentejas",
+    "nombre": "Lentejas",
+    "alias": [
+      "lenteja",
+      "lentils"
+    ],
+    "grupo": "proteina",
+    "alergenos": []
+  },
+  {
+    "id": "garbanzos",
+    "nombre": "Garbanzos",
+    "alias": [
+      "garbanzo",
+      "chickpeas",
+      "hummus"
+    ],
+    "grupo": "proteina",
+    "alergenos": []
+  },
+  {
+    "id": "porotos",
+    "nombre": "Porotos",
+    "alias": [
+      "poroto",
+      "frijoles",
+      "frejoles",
+      "alubias",
+      "judías secas",
+      "porotos negros",
+      "porotos manteca",
+      "beans"
+    ],
+    "grupo": "proteina",
+    "alergenos": []
+  },
+  {
+    "id": "pasta_mani",
+    "nombre": "Pasta de maní",
+    "alias": [
+      "manteca de maní",
+      "mantequilla de maní",
+      "crema de cacahuete",
+      "peanut butter"
+    ],
+    "grupo": "proteina",
+    "alergenos": [
+      "mani"
+    ]
+  },
+  {
+    "id": "zanahoria",
+    "nombre": "Zanahoria",
+    "alias": [
+      "zanahorias",
+      "carrot"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "zapallo",
+    "nombre": "Zapallo",
+    "alias": [
+      "calabaza",
+      "zapallo cabutiá",
+      "zapallo kabutiá",
+      "zapallo anco",
+      "auyama",
+      "ahuyama",
+      "pumpkin",
+      "squash"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "zapallito",
+    "nombre": "Zapallito",
+    "alias": [
+      "zucchini",
+      "calabacín",
+      "calabacita",
+      "zapallito de tronco",
+      "zapallito redondo",
+      "courgette"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "brocoli",
+    "nombre": "Brócoli",
+    "alias": [
+      "brocoli",
+      "brécol",
+      "broccoli"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "chauchas",
+    "nombre": "Chauchas",
+    "alias": [
+      "chaucha",
+      "judías verdes",
+      "ejotes",
+      "vainitas",
+      "porotos verdes",
+      "green beans"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "arvejas",
+    "nombre": "Arvejas",
+    "alias": [
+      "arvejitas",
+      "guisantes",
+      "chícharos",
+      "petit pois",
+      "peas"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "tomate",
+    "nombre": "Tomate",
+    "alias": [
+      "tomates",
+      "jitomate",
+      "tomato"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "salsa_tomate",
+    "nombre": "Salsa de tomate",
+    "alias": [
+      "tuco",
+      "pomarola",
+      "salsa pomarola",
+      "passata",
+      "salsa de tomates",
+      "tomato sauce"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "lechuga",
+    "nombre": "Lechuga",
+    "alias": [
+      "ensalada verde",
+      "lettuce"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "espinaca",
+    "nombre": "Espinaca",
+    "alias": [
+      "espinacas",
+      "spinach"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "acelga",
+    "nombre": "Acelga",
+    "alias": [
+      "acelgas",
+      "chard"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "cebolla",
+    "nombre": "Cebolla",
+    "alias": [
+      "cebollas",
+      "onion"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "morron",
+    "nombre": "Morrón",
+    "alias": [
+      "morrón",
+      "pimiento",
+      "pimentón",
+      "ají dulce",
+      "bell pepper"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "pepino",
+    "nombre": "Pepino",
+    "alias": [
+      "pepinos",
+      "cucumber"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "coliflor",
+    "nombre": "Coliflor",
+    "alias": [
+      "cauliflower"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "remolacha",
+    "nombre": "Remolacha",
+    "alias": [
+      "betabel",
+      "beterraga",
+      "beet",
+      "beetroot"
+    ],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "banana",
+    "nombre": "Banana",
+    "alias": [
+      "bananas",
+      "plátano",
+      "banano",
+      "cambur",
+      "guineo"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "manzana",
+    "nombre": "Manzana",
+    "alias": [
+      "manzanas",
+      "manzana roja",
+      "manzana verde",
+      "apple"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "pera",
+    "nombre": "Pera",
+    "alias": [
+      "peras",
+      "pear"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "naranja",
+    "nombre": "Naranja",
+    "alias": [
+      "naranjas",
+      "orange"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "jugo_naranja",
+    "nombre": "Jugo de naranja",
+    "alias": [
+      "jugo de naranja exprimido",
+      "zumo de naranja",
+      "orange juice"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "mandarina",
+    "nombre": "Mandarina",
+    "alias": [
+      "mandarinas",
+      "tangerina",
+      "clementina",
+      "tangerine"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "frutilla",
+    "nombre": "Frutilla",
+    "alias": [
+      "frutillas",
+      "fresa",
+      "fresas",
+      "strawberry"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "kiwi",
+    "nombre": "Kiwi",
+    "alias": [
+      "kiwis",
+      "kiwifruit"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "durazno",
+    "nombre": "Durazno",
+    "alias": [
+      "duraznos",
+      "melocotón",
+      "peach"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "uva",
+    "nombre": "Uva",
+    "alias": [
+      "uvas",
+      "grapes"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "sandia",
+    "nombre": "Sandía",
+    "alias": [
+      "sandía",
+      "patilla",
+      "watermelon"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "melon",
+    "nombre": "Melón",
+    "alias": [
+      "melón",
+      "cantaloupe"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "anana",
+    "nombre": "Ananá",
+    "alias": [
+      "ananá",
+      "piña",
+      "pineapple"
+    ],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "leche",
+    "nombre": "Leche",
+    "alias": [
+      "leche entera",
+      "leche de vaca",
+      "milk"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "leche_vitamina_d",
+    "nombre": "Leche fortificada con vitamina D",
+    "alias": [
+      "leche con vitamina d",
+      "leche fortificada",
+      "leche enriquecida"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "yogur",
+    "nombre": "Yogur",
+    "alias": [
+      "yogurt",
+      "yoghurt",
+      "yogur natural",
+      "yogur de vainilla"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "yogur_vitamina_d",
+    "nombre": "Yogur fortificado con vitamina D",
+    "alias": [
+      "yogur con vitamina d",
+      "yogur fortificado"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "yogur_bebible",
+    "nombre": "Yogur bebible",
+    "alias": [
+      "yogur líquido",
+      "bebida láctea",
+      "drinkable yogurt"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "queso_dambo",
+    "nombre": "Queso dambo",
+    "alias": [
+      "dambo",
+      "danbo",
+      "queso danbo",
+      "queso de máquina",
+      "queso tybo",
+      "queso en fetas"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "queso_muzzarella",
+    "nombre": "Queso muzzarella",
+    "alias": [
+      "muzzarella",
+      "mozzarella",
+      "muzarela",
+      "mozarela"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "queso_rallado",
+    "nombre": "Queso rallado",
+    "alias": [
+      "parmesano",
+      "queso parmesano",
+      "sardo",
+      "reggianito",
+      "grated cheese"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "queso_crema",
+    "nombre": "Queso crema",
+    "alias": [
+      "queso untable",
+      "philadelphia",
+      "cream cheese"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "ricota",
+    "nombre": "Ricota",
+    "alias": [
+      "requesón",
+      "ricotta"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "helado",
+    "nombre": "Helado de crema",
+    "alias": [
+      "helado",
+      "ice cream"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche",
+      "huevo",
+      "soja"
+    ]
+  },
+  {
+    "id": "postre_lacteo",
+    "nombre": "Postre lácteo",
+    "alias": [
+      "postrecito",
+      "flan",
+      "natilla",
+      "pudín",
+      "budín de vainilla",
+      "pudding"
+    ],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche",
+      "huevo"
+    ]
+  },
+  {
+    "id": "aceite_girasol",
+    "nombre": "Aceite de girasol",
+    "alias": [
+      "aceite",
+      "sunflower oil"
+    ],
+    "grupo": "otro",
+    "alergenos": []
+  },
+  {
+    "id": "aceite_canola",
+    "nombre": "Aceite de canola",
+    "alias": [
+      "aceite de colza",
+      "canola oil"
+    ],
+    "grupo": "otro",
+    "alergenos": []
+  },
+  {
+    "id": "aceite_oliva",
+    "nombre": "Aceite de oliva",
+    "alias": [
+      "olive oil"
+    ],
+    "grupo": "otro",
+    "alergenos": []
+  },
+  {
+    "id": "manteca",
+    "nombre": "Manteca",
+    "alias": [
+      "mantequilla",
+      "butter"
+    ],
+    "grupo": "otro",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "azucar",
+    "nombre": "Azúcar",
+    "alias": [
+      "azúcar blanca",
+      "sugar"
+    ],
+    "grupo": "otro",
+    "alergenos": []
+  },
+  {
+    "id": "cacao_azucarado",
+    "nombre": "Cacao en polvo azucarado",
+    "alias": [
+      "cacao",
+      "cocoa",
+      "chocolatada en polvo",
+      "nesquik",
+      "toddy",
+      "cola cao"
+    ],
+    "grupo": "otro",
+    "alergenos": [
+      "leche",
+      "soja",
+      "gluten"
+    ]
+  },
+  {
+    "id": "dulce_de_leche",
+    "nombre": "Dulce de leche",
+    "alias": [
+      "dulce de leche repostero",
+      "cajeta",
+      "arequipe",
+      "manjar",
+      "manjar blanco"
+    ],
+    "grupo": "otro",
+    "alergenos": [
+      "leche"
+    ]
+  },
+  {
+    "id": "alfajor",
+    "nombre": "Alfajor",
+    "alias": [
+      "alfajores",
+      "alfajor de maicena",
+      "alfajor de chocolate"
+    ],
+    "grupo": "otro",
+    "alergenos": [
+      "gluten",
+      "leche",
+      "huevo",
+      "soja"
+    ]
+  },
+  {
+    "id": "mermelada",
+    "nombre": "Mermelada",
+    "alias": [
+      "dulce de fruta",
+      "jalea",
+      "confitura",
+      "jam"
+    ],
+    "grupo": "otro",
+    "alergenos": []
+  },
+  {
+    "id": "mayonesa",
+    "nombre": "Mayonesa",
+    "alias": [
+      "mayo",
+      "mayonnaise"
+    ],
+    "grupo": "otro",
+    "alergenos": [
+      "huevo"
+    ]
+  },
+  {
+    "id": "ketchup",
+    "nombre": "Kétchup",
+    "alias": [
+      "ketchup",
+      "catsup"
+    ],
+    "grupo": "otro",
+    "alergenos": []
+  },
+  {
+    "id": "papas_chips",
+    "nombre": "Papas chips",
+    "alias": [
+      "papas fritas de paquete",
+      "chips",
+      "papitas",
+      "potato chips"
+    ],
+    "grupo": "otro",
+    "alergenos": [
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "chocolate",
+    "nombre": "Chocolate",
+    "alias": [
+      "chocolate con leche",
+      "tableta de chocolate",
+      "bombón",
+      "chocolatín"
+    ],
+    "grupo": "otro",
+    "alergenos": [
+      "leche",
+      "soja",
+      "frutos_secos",
+      "mani"
+    ]
+  },
+  {
+    "id": "miel",
+    "nombre": "Miel",
+    "alias": [
+      "miel de abeja",
+      "honey"
+    ],
+    "grupo": "otro",
+    "alergenos": []
+  },
+  {
+    "id": "bizcochuelo",
+    "nombre": "Bizcochuelo",
+    "alias": [
+      "torta",
+      "budín",
+      "queque",
+      "sponge cake",
+      "cake"
+    ],
+    "grupo": "otro",
+    "alergenos": [
+      "gluten",
+      "huevo",
+      "leche",
+      "soja"
+    ]
+  },
+  {
+    "id": "otro_cereal_almidon",
+    "nombre": "Otro cereal, pan o almidón",
+    "alias": [],
+    "grupo": "cereal_almidon",
+    "alergenos": [
+      "leche",
+      "huevo",
+      "gluten",
+      "soja",
+      "sesamo"
+    ]
+  },
+  {
+    "id": "otro_proteina",
+    "nombre": "Otra carne, pescado, huevo o legumbre",
+    "alias": [],
+    "grupo": "proteina",
+    "alergenos": [
+      "leche",
+      "huevo",
+      "gluten",
+      "mani",
+      "soja",
+      "pescado",
+      "mariscos"
+    ]
+  },
+  {
+    "id": "otro_verdura",
+    "nombre": "Otra verdura",
+    "alias": [],
+    "grupo": "verdura",
+    "alergenos": []
+  },
+  {
+    "id": "otro_fruta",
+    "nombre": "Otra fruta",
+    "alias": [],
+    "grupo": "fruta",
+    "alergenos": []
+  },
+  {
+    "id": "otro_lacteo",
+    "nombre": "Otro lácteo",
+    "alias": [],
+    "grupo": "lacteo",
+    "alergenos": [
+      "leche",
+      "huevo",
+      "soja"
+    ]
+  },
+  {
+    "id": "otro_otro",
+    "nombre": "Otro alimento",
+    "alias": [],
+    "grupo": "otro",
+    "alergenos": [
+      "leche",
+      "huevo",
+      "gluten",
+      "mani",
+      "frutos_secos",
+      "soja"
+    ]
+  }
+]
