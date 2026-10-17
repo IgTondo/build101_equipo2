@@ -1,6 +1,170 @@
-import { Pendiente } from '../Pendiente'
+// C7 · Receta con food chaining (PLAN.md §9). Ruta: /receta?nino=&nutriente=&preparacionId=&motor=
+// Sin preparacionId: el padre elige el nutriente (por defecto, el primero de semana.faltan) y pide la receta.
+// Con preparacionId (viene de una tarjeta de sugerencia del tablero): la receta se pide sola.
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { MOTOR, NUTRIENTE } from '../../../shared/contratos'
+import type { Motor, Nutriente, Receta as RecetaT, Regla } from '../../../shared/contratos'
+import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
+import { api, type ErrorDeApi } from '../../lib/api'
+import { useNino } from '../../lib/nino'
+import { aErrorDeApi, useApi } from '../../lib/useApi'
+import { nutrienteEnFrase } from './legible'
+import { SelectorNutriente } from './SelectorNutriente'
+import { TarjetaReceta } from './TarjetaReceta'
+import './receta.css'
 
-// Receta: la reemplaza la tarea C7.
+type Pedido =
+  | { tipo: 'eligiendo' }
+  | { tipo: 'pidiendo'; etapa: number }
+  | { tipo: 'ok'; receta: RecetaT }
+  | { tipo: 'error'; error: ErrorDeApi; preparacionId?: string }
+
+/** Cuándo avanza el texto de progreso mientras se espera la receta (ms desde que se pidió). */
+const ETAPAS_MS = [2500, 6500]
+const SIN_REGLAS: Regla[] = []
+
+const esNutriente = (x: string | null): x is Nutriente => x !== null && x !== 'energia_kcal' && (NUTRIENTE as readonly string[]).includes(x)
+const esMotor = (x: string | null): x is Motor => x !== null && (MOTOR as readonly string[]).includes(x)
+
 export function Receta() {
-  return <Pendiente titulo="Receta" tarea="C7" />
+  const ninoId = useNino()
+  const { search } = useLocation()
+  const [params, setParams] = useSearchParams()
+  const nutrienteUrl = params.get('nutriente')
+  const motorUrl = params.get('motor')
+  const motor = esMotor(motorUrl) ? motorUrl : undefined
+  const preparacionInicial = useRef(params.get('preparacionId') ?? undefined)
+
+  const progreso = useApi((s) => api.progreso(ninoId, 7, motor, s), [ninoId, motor])
+  const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
+  const nombre = perfil.tipo === 'ok' ? perfil.datos.datos.nombre : null
+  const reglas = perfil.tipo === 'ok' ? perfil.datos.reglas : perfil.tipo === 'error' ? SIN_REGLAS : null
+
+  const [elegido, setElegido] = useState<Nutriente | undefined>(esNutriente(nutrienteUrl) ? nutrienteUrl : undefined)
+  const nutriente = elegido ?? (progreso.tipo === 'ok' ? progreso.datos.semana.faltan.find((n) => n !== 'energia_kcal') : undefined)
+
+  const [pedido, setPedido] = useState<Pedido>(() => (preparacionInicial.current ? { tipo: 'pidiendo', etapa: 0 } : { tipo: 'eligiendo' }))
+  const control = useRef<AbortController | null>(null)
+  const relojes = useRef<number[]>([])
+  const mostradas = useRef(new Set<string>())
+
+  function cancelar() {
+    control.current?.abort()
+    relojes.current.forEach((r) => window.clearTimeout(r))
+    relojes.current = []
+  }
+
+  function pedir(preparacionId: string | undefined, para: Nutriente | undefined = nutriente) {
+    cancelar()
+    const c = new AbortController()
+    control.current = c
+    setPedido({ tipo: 'pidiendo', etapa: 0 })
+    const mios = ETAPAS_MS.map((ms, i) => window.setTimeout(() => {
+      setPedido((p) => (p.tipo === 'pidiendo' ? { tipo: 'pidiendo', etapa: i + 1 } : p))
+    }, ms))
+    relojes.current = mios
+    api.receta({ ninoId, nutriente: para, preparacionId }, motor, c.signal)
+      .then((receta) => {
+        if (c.signal.aborted) return
+        mostradas.current.add(receta.preparacionBaseId)
+        setElegido(receta.evidencia.nutriente)
+        setPedido({ tipo: 'ok', receta })
+        window.scrollTo({ top: 0 })
+      })
+      .catch((e: unknown) => { if (!c.signal.aborted) setPedido({ tipo: 'error', error: aErrorDeApi(e), preparacionId }) })
+      .finally(() => mios.forEach((r) => window.clearTimeout(r)))
+  }
+
+  // Si vino de una tarjeta de sugerencia, se pide sola (con el nutriente de la URL o el que elija el servidor).
+  useEffect(() => {
+    if (preparacionInicial.current) pedir(preparacionInicial.current, esNutriente(nutrienteUrl) ? nutrienteUrl : undefined)
+    return cancelar
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function sacarPreparacionDeLaUrl() {
+    if (!params.has('preparacionId')) return
+    setParams((p) => { p.delete('preparacionId'); return p }, { replace: true })
+  }
+
+  /** Otra opción: el siguiente candidato de la evidencia que todavía no vio; si no queda ninguno, el mejor del servidor. */
+  function otraOpcion(receta: RecetaT) {
+    sacarPreparacionDeLaUrl()
+    const siguiente = receta.evidencia.candidatos.find((c) => !mostradas.current.has(c.preparacionId))
+    pedir(siguiente?.preparacionId, receta.evidencia.nutriente)
+  }
+
+  function elegirOtroNutriente() {
+    cancelar()
+    sacarPreparacionDeLaUrl()
+    mostradas.current.clear()
+    setPedido({ tipo: 'eligiendo' })
+  }
+
+  const alTablero = <Link className="nb-boton nb-boton-secundario" to={{ pathname: '/tablero', search }}>Volver al tablero</Link>
+
+  if (pedido.tipo === 'pidiendo') {
+    const etapas = [nombre ? `Buscando en el grafo de ${nombre}…` : 'Buscando en su grafo…', 'Escribiendo la receta…', 'Validando alergias…']
+    return (
+      <section className="nb-tarjeta rc-progreso" aria-labelledby="rc-progreso-titulo">
+        <h1 id="rc-progreso-titulo">Preparando una receta</h1>
+        <Cargando texto={etapas[pedido.etapa]} />
+        <ol className="rc-etapas" aria-hidden="true">
+          {etapas.map((t, i) => (
+            <li key={t} data-estado={i < pedido.etapa ? 'hecha' : i === pedido.etapa ? 'actual' : 'pendiente'}>{t.replace('…', '')}</li>
+          ))}
+        </ol>
+      </section>
+    )
+  }
+
+  if (pedido.tipo === 'ok') {
+    return (
+      <>
+        <TarjetaReceta receta={pedido.receta} reglas={reglas} />
+        <div className="rc-acciones">
+          <button type="button" className="nb-boton" onClick={() => otraOpcion(pedido.receta)}>Otra opción</button>
+          <button type="button" className="nb-boton nb-boton-secundario" onClick={elegirOtroNutriente}>Elegir otro nutriente</button>
+          {alTablero}
+        </div>
+      </>
+    )
+  }
+
+  if (pedido.tipo === 'error' && pedido.error.codigo === 'sin_candidatos') {
+    return (
+      <>
+        <Vacio titulo={`Todavía no encontramos un paso chico para ${nutriente ? nutrienteEnFrase(nutriente) : 'lo que le falta'}`}>
+          <p className="nb-suave">Registrá algunas comidas más: con cada una aprendemos qué le gusta y aparecen nuevas ideas.</p>
+          <Link className="nb-boton" to={{ pathname: '/registrar', search }}>Registrar una comida</Link>
+        </Vacio>
+        <div className="rc-acciones">
+          <button type="button" className="nb-boton nb-boton-secundario" onClick={elegirOtroNutriente}>Elegir otro nutriente</button>
+          {alTablero}
+        </div>
+      </>
+    )
+  }
+
+  // Eligiendo (o error reintentable): el selector de nutriente y el botón para pedir.
+  const sinNutrienteTodavia = !elegido && progreso.tipo === 'cargando'
+  return (
+    <>
+      <section className="nb-tarjeta rc-elegir" aria-labelledby="rc-elegir-titulo">
+        <h1 id="rc-elegir-titulo">Una receta para dar un pasito</h1>
+        <p className="nb-suave">Parte de algo que {nombre ?? 'ya'} come y cambia una sola cosa.</p>
+        {sinNutrienteTodavia
+          ? <Cargando texto="Mirando qué le falta esta semana…" />
+          : <SelectorNutriente semana={progreso.tipo === 'ok' ? progreso.datos.semana : null} valor={nutriente} onCambiar={setElegido} />}
+        <button type="button" className="nb-boton" disabled={sinNutrienteTodavia} onClick={() => pedir(undefined)}>
+          Pedir receta
+        </button>
+      </section>
+      {pedido.tipo === 'error' && (
+        <ErrorConReintento error={pedido.error} reintentar={() => pedir(pedido.preparacionId)} />
+      )}
+      <div className="rc-acciones">{alTablero}</div>
+    </>
+  )
 }

@@ -1,0 +1,134 @@
+/* C7 · Receta. Mobile first; usa los tokens de brand/tokens/nibble.css. Prefijo rc-. */
+.rc-oculto {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- Elegir el nutriente ---------- */
+.rc-elegir { display: flex; flex-direction: column; gap: 12px; }
+.rc-elegir h1, .rc-progreso h1, .rc-titulo { text-wrap: balance; }
+.rc-elegir > p { margin: 0; text-wrap: pretty; }
+.rc-elegir .nb-boton:disabled { opacity: 0.55; cursor: default; }
+
+.rc-selector { border: 0; margin: 0; padding: 0; min-width: 0; }
+.rc-selector legend { font: 800 1.1rem var(--nb-font-titulos); padding: 0; margin-bottom: 8px; }
+.rc-selector-grupo { font-size: 0.85rem; color: var(--nb-texto-suave); margin: 8px 0 6px; font-weight: 700; }
+.rc-opciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.rc-opcion {
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 0 14px;
+  border: 1px solid var(--nb-borde); border-radius: var(--nb-radio-pastilla);
+  background: var(--nb-superficie); color: var(--nb-texto); cursor: pointer;
+  transition-property: background-color, border-color, color; transition-duration: 150ms; transition-timing-function: ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+.rc-opcion input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.rc-opcion-pct { font-size: 0.85rem; color: var(--nb-texto-suave); }
+.rc-opcion:has(input:checked) { background: var(--nb-primario); border-color: var(--nb-primario); color: var(--nb-sobre-primario); font-weight: 700; }
+.rc-opcion:has(input:checked) .rc-opcion-pct { color: var(--nb-sobre-primario); }
+.rc-opcion:has(input:focus-visible) { outline: 3px solid var(--nb-marca); outline-offset: 2px; }
+.rc-nota { font-size: 0.85rem; color: var(--nb-texto-suave); margin: 10px 0 0; text-wrap: pretty; }
+
+/* ---------- Progreso por etapas ---------- */
+.rc-progreso { display: flex; flex-direction: column; gap: 12px; }
+.rc-etapas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.rc-etapas li { display: flex; align-items: center; gap: 10px; color: var(--nb-texto-suave); transition: color 200ms ease-out; }
+.rc-etapas li::before {
+  content: ''; flex: none; width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--nb-borde); background: var(--nb-superficie);
+  transition-property: background-color, border-color; transition-duration: 200ms;
+}
+.rc-etapas li[data-estado='actual'] { color: var(--nb-texto); font-weight: 700; }
+.rc-etapas li[data-estado='actual']::before { border-color: var(--nb-marca); }
+.rc-etapas li[data-estado='hecha']::before { background: var(--nb-marca); border-color: var(--nb-marca); }
+
+/* ---------- La tarjeta ---------- */
+.rc-tarjeta { display: flex; flex-direction: column; gap: 20px; padding: 0 0 16px; overflow: hidden; }
+.rc-tarjeta > :not(.rc-cadena) { margin-inline: 16px; }
+.rc-titulo { margin: 0; }
+
+.rc-cadena {
+  margin: 0; padding: 14px 16px;
+  background: var(--nb-superficie-suave); border-bottom: 1px solid var(--nb-borde);
+  display: flex; flex-direction: column; gap: 4px; font-size: 0.95rem;
+}
+/* En el celular, una fila por dato; en pantallas anchas, en una línea: "Parte de: … · Cambia: … · Se mantiene: …". */
+@media (min-width: 480px) {
+  .rc-cadena { flex-direction: row; flex-wrap: wrap; column-gap: 6px; }
+  .rc-cadena > div + div::before { content: '·'; margin-right: 6px; color: var(--nb-texto-suave); }
+}
+.rc-cadena dt { display: inline; color: var(--nb-texto-suave); }
+.rc-cadena dt::after { content: ':'; margin-right: 4px; }
+.rc-cadena dd { display: inline; margin: 0; font-weight: 700; }
+
+.rc-seccion h2 { font-size: 1.1rem; margin-bottom: 6px; }
+.rc-seccion p { text-wrap: pretty; }
+.rc-seccion p:last-child { margin-bottom: 0; }
+.rc-h2-nota { font: 400 0.85rem var(--nb-font-texto); color: var(--nb-texto-suave); }
+
+.rc-camino {
+  font-size: 0.92rem; padding: 10px 12px; border-radius: var(--nb-radio-chico);
+  background: var(--nb-superficie-suave);
+}
+.rc-camino-rotulo { font-weight: 700; }
+.rc-patrones { margin: 8px 0 0; padding-left: 20px; font-size: 0.92rem; color: var(--nb-texto-suave); }
+
+.rc-aporte { margin-bottom: 8px; }
+.rc-aporte-valor { font: 800 1.5rem var(--nb-font-titulos); color: var(--nb-primario); }
+.rc-barra { height: 8px; border-radius: var(--nb-radio-pastilla); background: var(--nb-superficie-suave); overflow: hidden; margin-bottom: 8px; }
+.rc-barra span { display: block; height: 100%; border-radius: inherit; background: var(--nb-marca); }
+
+.rc-ingredientes { list-style: none; margin: 0; padding: 0; }
+.rc-ingredientes li {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 8px 0; border-bottom: 1px solid var(--nb-borde);
+}
+.rc-ingredientes li:last-child { border-bottom: 0; }
+.rc-ingredientes li span:last-child { color: var(--nb-texto-suave); white-space: nowrap; }
+
+.rc-pasos { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+.rc-pasos li { padding-left: 4px; text-wrap: pretty; }
+.rc-pasos li::marker { font-weight: 700; color: var(--nb-primario); }
+
+.rc-figura { margin: 12px 0 0; }
+.rc-imagen-marco {
+  position: relative; aspect-ratio: 1 / 1; border-radius: var(--nb-radio-chico); overflow: hidden;
+  background: var(--nb-superficie-suave);
+}
+.rc-imagen-marco img {
+  width: 100%; height: 100%; object-fit: cover; opacity: 0;
+  outline: 1px solid rgba(0, 0, 0, 0.08); outline-offset: -1px;
+  transition: opacity 250ms ease-out;
+}
+.rc-imagen-marco[data-lista='true'] img { opacity: 1; }
+.rc-esqueleto {
+  position: absolute; inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.65) 50%, transparent 70%) var(--nb-superficie-suave);
+  background-size: 200% 100%; animation: rc-brillo 1.4s infinite linear;
+}
+@keyframes rc-brillo { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+.rc-figura figcaption { font-size: 0.85rem; color: var(--nb-texto-suave); margin-top: 6px; }
+.rc-imagen-error { margin-top: 12px; padding: 12px; border-radius: var(--nb-radio-chico); background: var(--nb-superficie-suave); }
+.rc-imagen-error p { margin-bottom: 8px; }
+.rc-boton-chico { min-height: 44px; display: inline-flex; }
+
+.rc-ofrecer {
+  padding: 14px 16px; border-radius: var(--nb-radio-chico);
+  background: var(--nb-superficie-suave); border-left: 4px solid var(--nb-marca);
+}
+.rc-ofrecer p { font-size: 1.05rem; }
+
+.rc-validada { font-size: 0.85rem; color: var(--nb-texto-suave); margin-bottom: 0; }
+.rc-problemas { font-size: 0.92rem; padding: 12px; border-radius: var(--nb-radio-chico); border: 1px solid var(--nb-borde); }
+.rc-problemas ul { margin: 0; padding-left: 20px; }
+
+/* ---------- Acciones ---------- */
+.rc-acciones { display: flex; flex-direction: column; gap: 8px; }
+.rc-acciones .nb-boton { transition: transform 120ms ease-out, background-color 150ms ease-out; }
+.rc-acciones .nb-boton:active { transform: scale(0.98); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-esqueleto { animation: none; }
+  .rc-acciones .nb-boton:active { transform: none; }
+  .rc-imagen-marco img, .rc-etapas li, .rc-etapas li::before { transition: none; }
+}
