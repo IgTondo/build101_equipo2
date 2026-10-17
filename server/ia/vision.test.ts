@@ -1,10 +1,12 @@
-// A2, A5 y A6: el schema y el prompt de visión y el post-proceso con salidas del modelo armadas a mano.
+// A2, A5 y A6: el schema y el prompt de visión, el post-proceso con salidas del modelo armadas a mano y el handler.
 // Sin red: generarJSON está mockeado y el catálogo de alimentos y el semilla son chicos.
+import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import {
-  NUTRIENTE, type Alimento, type Grupo, type Nutrientes, type Regla,
+  NUTRIENTE, type AnalisisComida, type Alimento, type ErrorApi, type Grupo, type Nutrientes, type Regla,
 } from '../../shared/contratos.js'
+import { HEADER_STUB } from '../http.js'
 import { fijarAlimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
 import { schemaVision, sistemaVision, textoVision, type ItemSalida, type SalidaVision } from './prompts/vision.js'
@@ -12,6 +14,7 @@ import {
   aCaja, analizarComida, CONTEXTO_VACIO, contextoVision, fijarFuenteContexto, fijarSemilla, postprocesar,
   type ContextoVision,
 } from './vision.js'
+import handler from '../../api/analizar-comida.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
 const generar = vi.mocked(generarJSON)
@@ -352,5 +355,65 @@ describe('vision.ts: contextoVision (enganche con B)', () => {
     expect(await pendiente).toEqual(CONTEXTO_VACIO)
     aviso.mockRestore()
     vi.useRealTimers()
+  })
+})
+
+describe('api/analizar-comida', () => {
+  function resFalsa() {
+    const r = { statusCode: 0, headers: {} as Record<string, string>, body: undefined as unknown, headersSent: false }
+    const res = {
+      status(c: number) { r.statusCode = c; return res },
+      json(b: unknown) { r.body = b; r.headersSent = true; return res },
+      setHeader(k: string, v: string) { r.headers[k.toLowerCase()] = v; return res },
+      get headersSent() { return r.headersSent },
+    }
+    return { r, res: res as unknown as VercelResponse }
+  }
+
+  async function llamar(body: unknown, method = 'POST') {
+    const { r, res } = resFalsa()
+    await handler({ method, query: {}, body } as unknown as VercelRequest, res)
+    return r
+  }
+
+  it('body inválido → 400 entrada_invalida sin llamar al modelo', async () => {
+    for (const body of [
+      {},
+      { ninoId: 'tomas', imagenBase64: '', mime: 'image/jpeg' },
+      { ninoId: ' ', imagenBase64: JPEG, mime: 'image/jpeg' },
+      { ninoId: 'tomas', imagenBase64: JPEG, mime: 'image/png' },
+      { ninoId: 'tomas', imagenBase64: 'iVBORw0KGgoAAAANSUhEUg==', mime: 'image/jpeg' },  // un PNG con mime de JPEG
+      { ninoId: 'tomas', imagenBase64: '/9j/no es base64!', mime: 'image/jpeg' },
+      { ninoId: 'tomas', imagenBase64: `/9j/${'A'.repeat(4_500_000)}`, mime: 'image/jpeg' },
+    ]) {
+      const r = await llamar(body)
+      expect(r.statusCode, JSON.stringify(body).slice(0, 80)).toBe(400)
+      expect((r.body as ErrorApi).error.codigo).toBe('entrada_invalida')
+    }
+    expect(generar).not.toHaveBeenCalled()
+  })
+
+  it('otro método → 405', async () => {
+    expect((await llamar({}, 'GET')).statusCode).toBe(405)
+  })
+
+  it('OK → 200 con el AnalisisComida y sin el header del stub', async () => {
+    responde(salida())
+    const r = await llamar({ ninoId: 'tomas', imagenBase64: `data:image/jpeg;base64,${JPEG.slice(0, 20)}\n${JPEG.slice(20)}`, mime: 'image/jpeg' })
+    expect(r.statusCode).toBe(200)
+    expect(r.headers[HEADER_STUB]).toBeUndefined()
+    const a = r.body as AnalisisComida
+    expect(a.items).toHaveLength(2)
+    expect(a.modelo).toBe('claude-haiku-5-5')
+    expect(generar.mock.calls[0][0].partes[0]).toEqual({ tipo: 'imagen', base64: JPEG, mime: 'image/jpeg' }) // sin prefijo ni saltos
+  })
+
+  it('usa el contexto del enganche', async () => {
+    fijarFuenteContexto(async () => CONTEXTO)
+    responde(salida({ distribucion: { estado: 'tocandose', plato: 'playo' } }))
+    const a = (await llamar({ ninoId: 'tomas', imagenBase64: JPEG, mime: 'image/jpeg' })).body as AnalisisComida
+    expect(a.preguntas[0].origen).toBe('regla')
+    const texto = generar.mock.calls[0][0].partes[1]
+    expect(texto.tipo === 'texto' && texto.texto).toContain('nuggets_caseros')
   })
 })
