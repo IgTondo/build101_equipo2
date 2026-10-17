@@ -140,12 +140,12 @@ describe('generarReceta', () => {
     expect(r.comoOfrecer).toBe(SALIDA_QUESO.comoOfrecer)
   })
 
-  it('las alergias del perfil cuentan aunque la evidencia no las traiga', async () => {
+  it('las alergias del perfil cuentan aunque la evidencia no las traiga (el queso se saltea sin llamar al LLM)', async () => {
     const conLeche: Perfil = { ...PERFIL_TOMAS, datos: { ...PERFIL_TOMAS.datos, alergias: ['huevo', 'leche'] } }
-    responde(SALIDA_QUESO, SALIDA_QUESO, SALIDA_PAPAS)
+    responde(SALIDA_PAPAS)
     const r = await pedir({ perfil: async () => conLeche })
+    expect(llm).toHaveBeenCalledTimes(1)
     expect(r.preparacionBaseId).toBe('papas_horno_baston')
-    expect(promptDe(1)).toContain('«Queso muzzarella» tiene leche')
   })
 
   it('preparacionId pedido: la receta se arma sobre ese candidato', async () => {

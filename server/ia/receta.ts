@@ -173,6 +173,7 @@ export async function generarReceta(req: RecetaReq, deps: DepsReceta): Promise<R
       const v = validarReceta(receta, ctx)
       if (v.ok) {
         registrar({ ninoId: req.ninoId, nutriente: evidencia.nutriente, preparacionBaseId: receta.preparacionBaseId, llamadas, descartes: descartes.length, ms: ahora() - t0 })
+        // reintentos = llamadas al LLM − 1: los reintentos con problemas más los cambios de candidato (el costo extra).
         return { ...receta, validacion: { ok: true, problemas: [], reintentos: llamadas - 1 } }
       }
       anterior = { salida: datos, problemas: v.problemas }

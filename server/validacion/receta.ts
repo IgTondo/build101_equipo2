@@ -188,22 +188,23 @@ function normalizar(texto: string): TextoNormal {
   return { t, origen }
 }
 
-const NEGACION = /\b(sin|no|ni|nada de|nunca|en lugar de|en vez de|evit\w*|reemplaz\w*|sustitu\w*)\b/
+// Una negación cuenta solo si está pegada a lo que niega: "sin huevo", "ni leche", "en lugar de huevo", "no lleva huevo",
+// "no le pongas salsa por encima", "reemplazá el huevo". Más lejos ("sin sal y pasalo por huevo") no niega nada.
+const NEGACION_PEGADA = new RegExp(
+  '(\\b(sin|ni|nada de|en lugar de|en vez de|libre de)( (usar|agregar|agregarle|poner|ponerle))?' +
+  '|\\bno (le |les )?(lleva|llevan|lleve|tiene|tienen|va|van|usa|usan|usamos|uses|usar|agrega|agregues|agregar|pon|pongas|poner|incluye|incluyas)( nada de)?' +
+  '|\\b(reemplaz|sustitu|cambi)\\w*) (el |la |los |las |un |una )?$',
+)
 
 /**
  * La primera aparición de `patron` (escrito sin tildes ni mayúsculas) en el texto, tal como está escrita, o null.
- * `negable`: se saltean las que tienen una negación antes en la misma frase ("sin salsa por encima", "no lleva huevo").
+ * `negable`: se saltean las que vienen justo después de una negación pegada (NEGACION_PEGADA).
  */
 function buscar(texto: string, patron: RegExp, negable: boolean): string | null {
   const { t, origen } = normalizar(texto)
   for (const m of t.matchAll(new RegExp(patron.source, 'g'))) {
     const ini = m.index
-    if (negable) {
-      let desde = Math.max(0, ini - 30)
-      while (desde > 0 && /[a-z0-9]/.test(t[desde - 1])) desde--
-      const frase = t.slice(desde, ini).split(/[.,;:!?()]/).at(-1) ?? ''
-      if (NEGACION.test(frase)) continue
-    }
+    if (negable && NEGACION_PEGADA.test(t.slice(Math.max(0, ini - 40), ini))) continue
     return texto.slice(origen[ini], origen[ini + m[0].length - 1] + 1)
   }
   return null
@@ -229,19 +230,24 @@ const SUPLEMENTO = 'sugiere suplementos o dosis, y eso lo decide su pediatra o n
 const DIETA = 'sugiere una dieta de eliminación'
 const JUICIO = 'juzga al chico o a un alimento'
 const SACAR = 'sugiere sacarle un alimento seguro'
-const COCINA = '(dorar|cocinar|hornear|derretir|gratinar|enfriar|entibiar|hervir|cocer|tostar|secar|freir|calentar|descongelar|hacer)(se)?'
+// "terminar" es presión si es de comer ("que termine el plato", "que termine de comer"), no si es de cocinar
+// ("hasta que termine de dorarse", "tienen que terminar de hornearse").
+const NO_DE_COCINA = '(?! de (?!(comer|probar|tragar|masticar)\\b)\\w+)'
 
 // El lenguaje prohibido (research, "Implicancias de diseño" 6, 8, 9 y 12), sin tildes ni mayúsculas. Vale aunque esté
 // negado ("nada escondido" también se rechaza): el prompt lo pide así y es más simple que adivinar la intención.
 const PROHIBIDAS: { patron: RegExp; motivo: string }[] = [
-  { patron: new RegExp(`\\bque (se )?(lo |la |los |las )?terminen?\\b(?! de ${COCINA}\\b)`), motivo: PRESION },
+  { patron: new RegExp(`\\bque (se )?(lo |la |los |las )?terminen?\\b${NO_DE_COCINA}`), motivo: PRESION },
   { patron: /\btermin\w* (todo|el plato|la comida|la porcion|lo que)\b/, motivo: PRESION },
   { patron: /\bplato limpio\b/, motivo: PRESION },
   { patron: /\bprobadit\w*/, motivo: PRESION },
   { patron: /\b(un|una) (bocado|bocadito|poquito|mordisco|mordisquito|cucharada|cucharadita) mas\b/, motivo: PRESION },
   { patron: /\baunque sea (un|una) (bocado|bocadito|poquito|mordisco|cucharada|cucharadita)\b/, motivo: PRESION },
-  { patron: /\b(tiene|tenes|tienen|tendria|tendrias|hay) que (comer|probar|terminar|tragar)\w*/, motivo: PRESION },
-  { patron: /\bdeb(e|es|en|eria|erias|erian) (comer|probar|terminar)\w*/, motivo: PRESION },
+  // En tercera persona, que es el chico ("tiene que comer"); "hay que probar si está tibio" es para quien cocina.
+  { patron: /\b(tiene|tienen|tendria|tendrian) que (comer|probar|tragar)\w*/, motivo: PRESION },
+  { patron: new RegExp(`\\b(tiene|tienen|tendria|tendrian) que terminar\\w*${NO_DE_COCINA}`), motivo: PRESION },
+  { patron: /\bdeb(e|en|eria|erian) (comer|probar|tragar)\w*/, motivo: PRESION },
+  { patron: new RegExp(`\\bdeb(e|en|eria|erian) terminar\\w*${NO_DE_COCINA}`), motivo: PRESION },
   { patron: /\boblig\w*/, motivo: PRESION },
   { patron: /\b(forz(ar|arlo|arla|arlos|ado|ada|ando|alo|ala)|fuerce(s|n)?)\b/, motivo: PRESION },
   { patron: /\bpremi(o|os|ar|arlo|arla|alo|ala|a|as|e|es)\b/, motivo: PREMIO },
@@ -252,7 +258,9 @@ const PROHIBIDAS: { patron: RegExp; motivo: string }[] = [
   { patron: /\bcamufl\w*/, motivo: ESCONDER },
   { patron: /\bocult\w*/, motivo: ESCONDER },
   { patron: /\b(que no|sin que) (se )?(de|den) cuenta\b/, motivo: ESCONDER },
-  { patron: /\b(que no|sin que) (se )?(lo |la )?(note|noten|entere|enteren|vea|vean|descubra|descubran)\b/, motivo: ESCONDER },
+  { patron: /\b(que no|sin que) (se )?(entere|enteren)\b/, motivo: ESCONDER },
+  // Con el pronombre, que es el alimento: "sin que lo note"; "hasta que no se vea el líquido" es de cocina.
+  { patron: /\b(que no|sin que) (se )?(lo|la|los|las) (note|noten|vea|vean|descubra|descubran)\b/, motivo: ESCONDER },
   { patron: /\bsuplement\w*/, motivo: SUPLEMENTO },
   { patron: /\bmultivitamin\w*/, motivo: SUPLEMENTO },
   { patron: /\bdosis\b/, motivo: SUPLEMENTO },
@@ -268,7 +276,7 @@ const PROHIBIDAS: { patron: RegExp; motivo: string }[] = [
 
 // Mezclas por texto (nombre, pasos, presentación y transparencia), salvo que ya acepte esa presentación.
 const MEZCLAS: { patron: RegExp; presentacion: Presentacion; que: string }[] = [
-  { patron: /\b(guis(o|os|ito|itos|ado|ada|ados|adas)|estofad\w*|cazuela\w*)\b/, presentacion: 'mezclado', que: 'un guiso' },
+  { patron: /\b(guis(o|os|ito|itos|ado|ada|ados|adas)|estofad\w*)\b/, presentacion: 'mezclado', que: 'un guiso' },
   { patron: /\brellen\w*/, presentacion: 'mezclado', que: 'un relleno' },
   {
     patron: /\bsalsa (\w+ ){0,3}(por )?encima\b|\bpor encima (\w+ ){0,2}salsa\b|\b(cubr\w*|banad\w*|banal\w*|bana|banar|napad\w*|napa|napar) (en|con) (\w+ ){0,3}salsa\b/,
@@ -280,7 +288,7 @@ const MEZCLAS: { patron: RegExp; presentacion: Presentacion; que: string }[] = [
 // Alérgenos nombrados en el nombre, los pasos o la transparencia (un rebozado con huevo que no está en la lista).
 // Solo palabras inequívocas: la lista de ingredientes ya se mira contra data/alimentos.json.
 const PALABRAS_ALERGENO: Record<Alergeno, RegExp> = {
-  huevo: /\b(huevos?|claras?|yemas?|mayonesa|merengue)\b/,
+  huevo: /\b(huevos?|claras? (de huevo|batidas?|a punto)|yemas?(?! de (los|sus) dedos)|mayonesa|merengue)\b/,
   leche: /\b(leche(?! de (almendras?|soja|arroz|avena|coco))|quesos?|manteca|yogur\w*|muzzarella|mozzarella|ricota|crema de leche)\b/,
   gluten: /\b(trigo|pan rallado|harina (de trigo|comun|0+)|fideos(?! de (arroz|maiz))|cebada|centeno|pan (blanco|lactal|integral|de molde))\b/,
   mani: /\b(mani|manies|cacahuates?)\b/,
@@ -347,6 +355,14 @@ function problemasDelAporte(r: Receta): string[] {
   return [`El aporte no coincide con la tabla de alimentos (${detalle}). Lo calcula el código, no el modelo.`]
 }
 
+// El ingrediente principal no se puede reemplazar (validarReceta lo exige): si tiene un alérgeno, el candidato no sirve.
+function problemasDelPrincipal(ctx: ContextoValidacion): string[] {
+  const principal = ingredientePrincipal(ctx.base.ingredientes)
+  const choca = (principal ? alimentoPorId(principal)?.alergenos ?? [] : []).filter((x) => ctx.alergias.includes(x))
+  if (choca.length === 0) return []
+  return [`El ingrediente principal de «${ctx.base.nombre}» (${nombreAlimento(principal)}) tiene ${choca.map((x) => NOMBRE_ALERGENO[x]).join(' y ')}, y tiene alergia declarada a eso.`]
+}
+
 // ---------- Entradas ----------
 function problemasDeIds(r: Receta, ctx: ContextoValidacion): string[] {
   const p: string[] = []
@@ -363,6 +379,7 @@ export function validarCandidato(ctx: ContextoValidacion, candidato: Pick<Candid
   const problemas = [
     ...problemasDeLaCadena(ctx, candidato.cambio, candidato.seMantiene),
     ...problemasDeReglas(ctx.reglas, valoresDeLaBase(ctx.base)),
+    ...problemasDelPrincipal(ctx),
   ]
   return { ok: problemas.length === 0, problemas }
 }

@@ -138,8 +138,26 @@ describe('validarReceta: alergias (según data/alimentos.json)', () => {
     expect(p).toEqual([expect.stringContaining('En el paso 7 aparece «huevo» y tiene alergia declarada a huevo')])
   })
 
-  it('"No lleva huevo" o "en lugar de huevo" no cuentan', () => {
-    expect(validarReceta(conPaso('Pasalos por leche en lugar de huevo. No lleva huevo.'), ctxQueso()).ok).toBe(true)
+  it('"No lleva huevo", "en lugar de huevo", "sin huevo" o "reemplazá el huevo" no cuentan', () => {
+    expect(validarReceta(conPaso('Pasalos por leche en lugar de huevo. No lleva huevo. Va sin huevo; reemplazá el huevo por leche.'), ctxQueso()).ok).toBe(true)
+  })
+
+  it.each([
+    'Cocinalo sin parar y agregá huevo batido.',
+    'Sin sal y pasalo por huevo.',
+    'No dejes de pasarlo por huevo batido.',
+    'No olvides el huevo.',
+  ])('una negación lejana no niega el alérgeno: %s', (paso) => {
+    expect(problemas(conPaso(paso), ctxQueso()).some((x) => x.includes('alergia declarada a huevo'))).toBe(true)
+  })
+
+  it('"las yemas de los dedos" no es huevo', () => {
+    expect(validarReceta(conPaso('Apretá el pan rallado con las yemas de los dedos.'), ctxQueso()).ok).toBe(true)
+  })
+
+  it('un candidato cuyo ingrediente principal tiene un alérgeno no pasa (no se puede reemplazar)', () => {
+    expect(validarCandidato(ctxQueso({ alergias: ['leche'] }), CANDIDATO_QUESO).problemas)
+      .toContain('El ingrediente principal de «Bastones de queso horneados» (Queso muzzarella) tiene leche, y tiene alergia declarada a eso.')
   })
 })
 
@@ -200,8 +218,12 @@ describe('validarReceta: presentación separada y sin mezclas', () => {
     expect(problemas(conPaso(paso), ctxQueso()).some((x) => x.includes('todavía no acepta mezclas'))).toBe(true)
   })
 
-  it('"guisantes" no es un guiso', () => {
-    expect(validarReceta(conPaso('Si tenés, sumá unos guisantes al costado.'), ctxQueso()).ok).toBe(true)
+  it('"guisantes" y "cazuela" no son un guiso', () => {
+    expect(validarReceta(conPaso('Calentá el aceite en una cazuela; si tenés, sumá unos guisantes al costado.'), ctxQueso()).ok).toBe(true)
+  })
+
+  it('una negación lejana no niega la mezcla', () => {
+    expect(problemas(conPaso('Sin apuro, terminá con salsa por encima.'), ctxQueso()).some((x) => x.includes('todavía no acepta mezclas'))).toBe(true)
   })
 
   it('"sin salsa por encima" y "las salsas van aparte" pasan', () => {
@@ -264,6 +286,7 @@ describe('validarReceta: lenguaje', () => {
   it.each([
     ['que termine', 'Esperá a que termine el plato.'],
     ['que se lo termine', 'Lo importante es que se lo termine.'],
+    ['que termine de comer', 'Esperá a que termine de comer.'],
     ['una probadita más', 'Pedile UNA PROBADITA MÁS.'],
     ['un bocado más', 'Si puede, un bocado más.'],
     ['premio', 'Si lo prueba, dale un premio.'],
@@ -314,6 +337,10 @@ describe('validarReceta: lenguaje', () => {
     'Ofrecelo sin pedirle que lo coma; que esté en el plato ya es un avance.',
     'Servilo igual de 8 a 15 veces antes de cambiar algo.',
     'Agregá un poco más de queso si se desarma.',
+    'Horneá hasta que termine de ablandarse.',
+    'Los bastones tienen que terminar de dorarse en el horno.',
+    'Hay que probar que estén tibios antes de servir.',
+    'Cociná hasta que no se vea el líquido.',
   ])('frase permitida: %s', (texto) => {
     expect(validarReceta(conTexto('comoOfrecer', texto), ctxQueso()).ok).toBe(true)
   })
