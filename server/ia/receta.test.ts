@@ -215,6 +215,17 @@ describe('generarReceta', () => {
     expect(Object.values(intentos[1].problemas).flat()).toEqual([])
   })
 
+  it('cada llamada lleva el presupuesto que queda hasta los 55 s (limiteMs)', async () => {
+    let t = 1_000
+    llm.mockImplementationOnce(async () => {
+      t = 21_000
+      return { datos: conEscondido, modelo: 'claude-sonnet-5-5', ms: 20_000, reintentos: 0 }
+    })
+    responde(SALIDA_QUESO)
+    await pedir({ ahora: () => t })
+    expect(llm.mock.calls.map((c) => c[0].limiteMs)).toEqual([55_000, 35_000])
+  })
+
   it('los errores del modelo (ErrorIA) suben tal cual: manejar() los convierte', async () => {
     llm.mockRejectedValueOnce(new ErrorNibble('limite_proveedor', 'Hay muchos pedidos a la vez.'))
     expect((await errorDe(pedir())).codigo).toBe('limite_proveedor')

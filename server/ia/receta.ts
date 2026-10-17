@@ -3,7 +3,8 @@
 // con los problemas → si sigue mal, el siguiente candidato → sin más, ErrorNibble('sin_candidatos').
 // El LLM escribe los textos y elige los gramos; el código completa el resto: la cadena (preparacionBaseId, desde, cambio,
 // seMantiene), el aporte con la tabla, la cobertura de lo que falta, la validación y la evidencia.
-// La función corta a los 60 s (vercel.json) y cada llamada puede tardar 25 s: pasados 30 s no se arranca otra.
+// La función corta a los 60 s (vercel.json): todo el pedido tiene CORTE_MS, cada llamada lleva lo que queda (limiteMs) y,
+// como una llamada puede tardar 25 s, pasados TOPE_NUEVA_LLAMADA_MS no se arranca otra.
 // api/receta.ts: esquemaRecetaReq.parse(req.body) → generarReceta(pedido, { armarEvidencia, perfil }) → 200.
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -21,6 +22,7 @@ import { alimentoPorId, alimentos, esGenerico } from './catalogo.js'
 import { generarJSON } from './modelo.js'
 import { esquemaSalidaReceta, promptReceta, SISTEMA_RECETA, type SalidaReceta } from './prompts/receta.js'
 
+export const CORTE_MS = 55_000
 export const TOPE_NUEVA_LLAMADA_MS = 30_000
 
 export const esquemaRecetaReq = z.object({
@@ -180,6 +182,7 @@ export async function generarReceta(req: RecetaReq, deps: DepsReceta): Promise<R
         sistema: SISTEMA_RECETA,
         partes: [{ tipo: 'texto', texto: promptReceta({ evidencia, candidato, base, ingredientes, alergias, anterior }) }],
         schema,
+        limiteMs: CORTE_MS - (desdeLlamada - t0),
       })
       llamadas++
       const receta = completar(datos, candidato, evidencia)
