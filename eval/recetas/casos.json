@@ -1,0 +1,1933 @@
+{
+  "_nota": "Sintético (PLAN.md §11.3, A12): lo genera scripts/eval/casos-recetas.ts. Tomás y Lucía: evidenciaDe() de B sobre data/sinteticos/. Bruno: perfil inventado, evidencia armada con el criterio de cadena.ts y preparaciones puente; su cobertura es de ejemplo. No editar a mano.",
+  "hoy": "2026-10-16",
+  "perfiles": [
+    {
+      "ninoId": "tomas",
+      "datos": {
+        "nombre": "Tomás",
+        "edad": 6,
+        "sexo": "masculino",
+        "pesoKg": 21,
+        "tallaCm": 116,
+        "alergias": [
+          "huevo"
+        ],
+        "alertas": [],
+        "dieta": "ninguna"
+      },
+      "reglas": [
+        {
+          "texto": "No come nada mezclado",
+          "condiciones": [
+            {
+              "tipo": "presentacion",
+              "valor": "mezclado"
+            }
+          ],
+          "efecto": "rechaza"
+        }
+      ],
+      "patrones": [
+        {
+          "texto": "Lo crocante lo acepta (26 de 31)",
+          "resultado": "acepta",
+          "apoyo": 31,
+          "confianza": 0.54,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo crocante entre los cereales, panes y papas lo acepta (16 de 16)",
+          "resultado": "acepta",
+          "apoyo": 16,
+          "confianza": 0.84,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Los cereales, panes y papas servido separado los acepta (16 de 19)",
+          "resultado": "acepta",
+          "apoyo": 19,
+          "confianza": 0.6,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo crocante en forma plana lo acepta (12 de 12)",
+          "resultado": "acepta",
+          "apoyo": 12,
+          "confianza": 0.76,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo servido separado en forma plana lo acepta (12 de 13)",
+          "resultado": "acepta",
+          "apoyo": 13,
+          "confianza": 0.65,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo plano lo acepta (12 de 14)",
+          "resultado": "acepta",
+          "apoyo": 14,
+          "confianza": 0.55,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo hervido lo rechaza (8 de 8)",
+          "resultado": "rechaza",
+          "apoyo": 8,
+          "confianza": 0.69,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo blando lo rechaza (6 de 6)",
+          "resultado": "rechaza",
+          "apoyo": 6,
+          "confianza": 0.62,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo que viene con salsa lo rechaza (3 de 3)",
+          "resultado": "rechaza",
+          "apoyo": 3,
+          "confianza": 0.48,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo de textura mixta lo rechaza (3 de 3)",
+          "resultado": "rechaza",
+          "apoyo": 3,
+          "confianza": 0.48,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo jugoso lo rechaza (3 de 3)",
+          "resultado": "rechaza",
+          "apoyo": 3,
+          "confianza": 0.45,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Las verduras las rechaza (3 de 3)",
+          "resultado": "rechaza",
+          "apoyo": 3,
+          "confianza": 0.42,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo mezclado lo rechaza (3 de 3)",
+          "resultado": "rechaza",
+          "apoyo": 3,
+          "confianza": 0.47,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo beige y de sabor neutro lo acepta (4 de 4)",
+          "resultado": "acepta",
+          "apoyo": 4,
+          "confianza": 0.57,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo que se sirve cuando los alimentos se tocan lo rechaza (según la investigación)",
+          "resultado": "rechaza",
+          "apoyo": 0,
+          "confianza": 0.15,
+          "fuente": "investigacion"
+        }
+      ],
+      "preparaciones": [
+        {
+          "id": "papas_fritas_baston",
+          "nombre": "Papas fritas en bastones",
+          "estado": "acepta",
+          "puntaje": 0.99,
+          "veces": 8
+        },
+        {
+          "id": "tostadas",
+          "nombre": "Tostadas de pan blanco",
+          "estado": "acepta",
+          "puntaje": 0.95,
+          "veces": 4
+        },
+        {
+          "id": "milanesa_carne_horno",
+          "nombre": "Milanesa de carne al horno (rebozada sin huevo)",
+          "estado": "acepta",
+          "puntaje": 0.93,
+          "veces": 6
+        },
+        {
+          "id": "galletitas_agua",
+          "nombre": "Galletitas de agua",
+          "estado": "acepta",
+          "puntaje": 0.9,
+          "veces": 2
+        },
+        {
+          "id": "leche_chocolatada",
+          "nombre": "Leche chocolatada",
+          "estado": "acepta",
+          "puntaje": 0.86,
+          "veces": 4
+        },
+        {
+          "id": "papas_horno_baston",
+          "nombre": "Papas al horno en bastones, crocantes",
+          "estado": "acepta",
+          "puntaje": 0.76,
+          "veces": 2
+        },
+        {
+          "id": "manzana_bastones",
+          "nombre": "Manzana pelada en bastones",
+          "estado": "en_proceso",
+          "puntaje": 0.54,
+          "veces": 2
+        },
+        {
+          "id": "bastones_queso_horno",
+          "nombre": "Bastones de queso horneados",
+          "estado": "en_proceso",
+          "puntaje": 0.44,
+          "veces": 5
+        },
+        {
+          "id": "papas_horno_cubos",
+          "nombre": "Papas al horno en cubos, blandas",
+          "estado": "en_proceso",
+          "puntaje": 0.37,
+          "veces": 1
+        },
+        {
+          "id": "brocoli_hervido",
+          "nombre": "Brócoli hervido",
+          "estado": "en_proceso",
+          "puntaje": 0.37,
+          "veces": 1
+        },
+        {
+          "id": "lentejas_guisadas",
+          "nombre": "Lentejas guisadas",
+          "estado": "en_proceso",
+          "puntaje": 0.37,
+          "veces": 1
+        },
+        {
+          "id": "milanesa_napolitana",
+          "nombre": "Milanesa a la napolitana (sin huevo)",
+          "estado": "en_proceso",
+          "puntaje": 0.35,
+          "veces": 1
+        },
+        {
+          "id": "pollo_plancha",
+          "nombre": "Pollo a la plancha",
+          "estado": "en_proceso",
+          "puntaje": 0.35,
+          "veces": 1
+        },
+        {
+          "id": "papa_hervida",
+          "nombre": "Papa hervida en trozos",
+          "estado": "en_proceso",
+          "puntaje": 0.35,
+          "veces": 1
+        },
+        {
+          "id": "bastones_zanahoria_horno",
+          "nombre": "Bastones de zanahoria horneados",
+          "estado": "en_proceso",
+          "puntaje": 0.3,
+          "veces": 2
+        },
+        {
+          "id": "hamburguesa_casera",
+          "nombre": "Hamburguesa casera a la plancha",
+          "estado": "en_proceso",
+          "puntaje": 0.29,
+          "veces": 2
+        },
+        {
+          "id": "fideos_con_salsa",
+          "nombre": "Fideos con salsa de tomate",
+          "estado": "en_proceso",
+          "puntaje": 0.26,
+          "veces": 2
+        },
+        {
+          "id": "pure_papa",
+          "nombre": "Puré de papa",
+          "estado": "en_proceso",
+          "puntaje": 0.07,
+          "veces": 1
+        },
+        {
+          "id": "arroz_con_pollo",
+          "nombre": "Arroz con pollo",
+          "estado": "en_proceso",
+          "puntaje": 0.06,
+          "veces": 2
+        }
+      ]
+    },
+    {
+      "ninoId": "lucia",
+      "datos": {
+        "nombre": "Lucía",
+        "edad": 10,
+        "sexo": "femenino",
+        "pesoKg": 31,
+        "tallaCm": 138,
+        "alergias": [],
+        "alertas": [],
+        "dieta": "ninguna"
+      },
+      "reglas": [
+        {
+          "texto": "No come nada verde",
+          "condiciones": [
+            {
+              "tipo": "color",
+              "valor": "verde"
+            }
+          ],
+          "efecto": "rechaza"
+        }
+      ],
+      "patrones": [
+        {
+          "texto": "Lo cremoso lo acepta (22 de 25)",
+          "resultado": "acepta",
+          "apoyo": 25,
+          "confianza": 0.59,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Los cereales, panes y papas hervido los acepta (15 de 15)",
+          "resultado": "acepta",
+          "apoyo": 15,
+          "confianza": 0.8,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo caliente entre los cereales, panes y papas lo acepta (15 de 16)",
+          "resultado": "acepta",
+          "apoyo": 16,
+          "confianza": 0.71,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Los cereales, panes y papas los acepta (15 de 17)",
+          "resultado": "acepta",
+          "apoyo": 17,
+          "confianza": 0.64,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo salado hervido lo acepta (15 de 18)",
+          "resultado": "acepta",
+          "apoyo": 18,
+          "confianza": 0.59,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo salado y caliente lo acepta (15 de 19)",
+          "resultado": "acepta",
+          "apoyo": 19,
+          "confianza": 0.52,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo blando y verde lo rechaza (4 de 4)",
+          "resultado": "rechaza",
+          "apoyo": 4,
+          "confianza": 0.57,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo blando en granos lo rechaza (3 de 4)",
+          "resultado": "rechaza",
+          "apoyo": 4,
+          "confianza": 0.43,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo que viene en bastones lo rechaza (3 de 3)",
+          "resultado": "rechaza",
+          "apoyo": 3,
+          "confianza": 0.48,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo crocante lo rechaza (3 de 3)",
+          "resultado": "rechaza",
+          "apoyo": 3,
+          "confianza": 0.43,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo naranja en plato hondo lo rechaza (2 de 4)",
+          "resultado": "rechaza",
+          "apoyo": 4,
+          "confianza": 0.31,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo cremoso y amarillo lo acepta (11 de 11)",
+          "resultado": "acepta",
+          "apoyo": 11,
+          "confianza": 0.7,
+          "fuente": "aprendido"
+        },
+        {
+          "texto": "Lo de textura mixta lo rechaza (según la investigación)",
+          "resultado": "rechaza",
+          "apoyo": 0,
+          "confianza": 0.4,
+          "fuente": "investigacion"
+        },
+        {
+          "texto": "Lo que viene con salsa lo rechaza (según la investigación)",
+          "resultado": "rechaza",
+          "apoyo": 0,
+          "confianza": 0.35,
+          "fuente": "investigacion"
+        },
+        {
+          "texto": "Lo beige y de sabor neutro lo acepta (según la investigación)",
+          "resultado": "acepta",
+          "apoyo": 0,
+          "confianza": 0.3,
+          "fuente": "investigacion"
+        },
+        {
+          "texto": "Lo que se sirve cuando los alimentos se tocan lo rechaza (según la investigación)",
+          "resultado": "rechaza",
+          "apoyo": 0,
+          "confianza": 0.15,
+          "fuente": "investigacion"
+        }
+      ],
+      "preparaciones": [
+        {
+          "id": "fideos_manteca_queso",
+          "nombre": "Fideos con manteca y queso rallado",
+          "estado": "acepta",
+          "puntaje": 0.98,
+          "veces": 7
+        },
+        {
+          "id": "pure_papa",
+          "nombre": "Puré de papa",
+          "estado": "acepta",
+          "puntaje": 0.97,
+          "veces": 8
+        },
+        {
+          "id": "yogur_vainilla",
+          "nombre": "Yogur de vainilla",
+          "estado": "acepta",
+          "puntaje": 0.93,
+          "veces": 3
+        },
+        {
+          "id": "arroz_con_leche",
+          "nombre": "Arroz con leche",
+          "estado": "acepta",
+          "puntaje": 0.93,
+          "veces": 3
+        },
+        {
+          "id": "banana_pisada",
+          "nombre": "Banana pisada",
+          "estado": "acepta",
+          "puntaje": 0.89,
+          "veces": 3
+        },
+        {
+          "id": "pure_arvejas",
+          "nombre": "Arvejas en puré",
+          "estado": "acepta",
+          "puntaje": 0.78,
+          "veces": 3
+        },
+        {
+          "id": "pollo_desmenuzado",
+          "nombre": "Pollo hervido desmenuzado",
+          "estado": "acepta",
+          "puntaje": 0.62,
+          "veces": 5
+        },
+        {
+          "id": "pure_zapallo",
+          "nombre": "Puré de zapallo",
+          "estado": "en_proceso",
+          "puntaje": 0.44,
+          "veces": 5
+        },
+        {
+          "id": "galletitas_agua",
+          "nombre": "Galletitas de agua",
+          "estado": "en_proceso",
+          "puntaje": 0.4,
+          "veces": 1
+        },
+        {
+          "id": "bastones_zanahoria_horno",
+          "nombre": "Bastones de zanahoria horneados",
+          "estado": "en_proceso",
+          "puntaje": 0.37,
+          "veces": 1
+        },
+        {
+          "id": "arvejas_enteras",
+          "nombre": "Arvejas enteras",
+          "estado": "en_proceso",
+          "puntaje": 0.35,
+          "veces": 1
+        },
+        {
+          "id": "chauchas_hervidas",
+          "nombre": "Chauchas hervidas",
+          "estado": "en_proceso",
+          "puntaje": 0.35,
+          "veces": 1
+        },
+        {
+          "id": "lentejas_guisadas",
+          "nombre": "Lentejas guisadas",
+          "estado": "en_proceso",
+          "puntaje": 0.3,
+          "veces": 3
+        },
+        {
+          "id": "papas_fritas_baston",
+          "nombre": "Papas fritas en bastones",
+          "estado": "en_proceso",
+          "puntaje": 0.07,
+          "veces": 1
+        },
+        {
+          "id": "brocoli_hervido",
+          "nombre": "Brócoli hervido",
+          "estado": "en_proceso",
+          "puntaje": 0.05,
+          "veces": 2
+        }
+      ]
+    },
+    {
+      "ninoId": "bruno",
+      "datos": {
+        "nombre": "Bruno",
+        "edad": 8,
+        "sexo": "masculino",
+        "alergias": [
+          "leche",
+          "gluten"
+        ],
+        "alertas": [],
+        "dieta": "ninguna"
+      },
+      "reglas": [
+        {
+          "texto": "No come nada con salsa",
+          "condiciones": [
+            {
+              "tipo": "presentacion",
+              "valor": "con_salsa"
+            }
+          ],
+          "efecto": "rechaza"
+        }
+      ],
+      "patrones": [
+        {
+          "texto": "Lo de textura mixta lo rechaza (según la investigación)",
+          "resultado": "rechaza",
+          "apoyo": 0,
+          "confianza": 0.4,
+          "fuente": "investigacion"
+        },
+        {
+          "texto": "Lo mezclado lo rechaza (según la investigación)",
+          "resultado": "rechaza",
+          "apoyo": 0,
+          "confianza": 0.4,
+          "fuente": "investigacion"
+        },
+        {
+          "texto": "Lo que viene con salsa lo rechaza (según la investigación)",
+          "resultado": "rechaza",
+          "apoyo": 0,
+          "confianza": 0.35,
+          "fuente": "investigacion"
+        },
+        {
+          "texto": "Lo crocante lo acepta (según la investigación)",
+          "resultado": "acepta",
+          "apoyo": 0,
+          "confianza": 0.3,
+          "fuente": "investigacion"
+        },
+        {
+          "texto": "Lo beige y de sabor neutro lo acepta (según la investigación)",
+          "resultado": "acepta",
+          "apoyo": 0,
+          "confianza": 0.3,
+          "fuente": "investigacion"
+        },
+        {
+          "texto": "Lo que se sirve cuando los alimentos se tocan lo rechaza (según la investigación)",
+          "resultado": "rechaza",
+          "apoyo": 0,
+          "confianza": 0.15,
+          "fuente": "investigacion"
+        }
+      ],
+      "preparaciones": [
+        {
+          "id": "papas_fritas_baston",
+          "nombre": "Papas fritas en bastones",
+          "estado": "acepta",
+          "puntaje": 0.8,
+          "veces": 0
+        },
+        {
+          "id": "banana_pisada",
+          "nombre": "Banana pisada",
+          "estado": "acepta",
+          "puntaje": 0.8,
+          "veces": 0
+        },
+        {
+          "id": "pollo_plancha",
+          "nombre": "Pollo a la plancha",
+          "estado": "acepta",
+          "puntaje": 0.8,
+          "veces": 0
+        },
+        {
+          "id": "manzana_bastones",
+          "nombre": "Manzana pelada en bastones",
+          "estado": "acepta",
+          "puntaje": 0.8,
+          "veces": 0
+        },
+        {
+          "id": "papas_horno_cubos",
+          "nombre": "Papas al horno en cubos, blandas",
+          "estado": "acepta",
+          "puntaje": 0.8,
+          "veces": 0
+        },
+        {
+          "id": "papas_horno_baston",
+          "nombre": "Papas al horno en bastones, crocantes",
+          "estado": "acepta",
+          "puntaje": 0.8,
+          "veces": 0
+        }
+      ]
+    }
+  ],
+  "preparaciones": [
+    {
+      "id": "bastones_garbanzo_horno",
+      "nombre": "Bastones de garbanzo al horno (tipo fainá)",
+      "atributos": {
+        "textura": "crocante",
+        "forma": "baston",
+        "color": "amarillo",
+        "sabor": "salado",
+        "temperatura": "caliente",
+        "presentacion": "separado",
+        "grupo": "proteina",
+        "coccion": "horno"
+      },
+      "ingredientes": [
+        {
+          "alimentoId": "garbanzos",
+          "gramos": 80
+        },
+        {
+          "alimentoId": "aceite_girasol",
+          "gramos": 5
+        }
+      ]
+    },
+    {
+      "id": "bastones_boniato_horno",
+      "nombre": "Bastones de boniato al horno",
+      "atributos": {
+        "textura": "crocante",
+        "forma": "baston",
+        "color": "naranja",
+        "sabor": "salado",
+        "temperatura": "caliente",
+        "presentacion": "separado",
+        "grupo": "cereal_almidon",
+        "coccion": "horno"
+      },
+      "ingredientes": [
+        {
+          "alimentoId": "boniato",
+          "gramos": 120
+        },
+        {
+          "alimentoId": "aceite_girasol",
+          "gramos": 5
+        }
+      ]
+    },
+    {
+      "id": "brocoli_horno_trozos",
+      "nombre": "Brócoli al horno en trozos",
+      "atributos": {
+        "textura": "blando",
+        "forma": "trozos",
+        "color": "verde",
+        "sabor": "salado",
+        "temperatura": "caliente",
+        "presentacion": "separado",
+        "grupo": "verdura",
+        "coccion": "horno"
+      },
+      "ingredientes": [
+        {
+          "alimentoId": "brocoli",
+          "gramos": 60
+        },
+        {
+          "alimentoId": "aceite_girasol",
+          "gramos": 5
+        }
+      ]
+    },
+    {
+      "id": "bife_plancha",
+      "nombre": "Bife de carne a la plancha",
+      "atributos": {
+        "textura": "jugoso",
+        "forma": "plano",
+        "color": "marron",
+        "sabor": "salado",
+        "temperatura": "caliente",
+        "presentacion": "separado",
+        "grupo": "proteina",
+        "coccion": "plancha"
+      },
+      "ingredientes": [
+        {
+          "alimentoId": "carne_vacuna",
+          "gramos": 90
+        }
+      ]
+    },
+    {
+      "id": "salmon_plancha",
+      "nombre": "Salmón a la plancha",
+      "atributos": {
+        "textura": "jugoso",
+        "forma": "plano",
+        "color": "rojo",
+        "sabor": "salado",
+        "temperatura": "caliente",
+        "presentacion": "separado",
+        "grupo": "proteina",
+        "coccion": "plancha"
+      },
+      "ingredientes": [
+        {
+          "alimentoId": "salmon",
+          "gramos": 90
+        }
+      ]
+    }
+  ],
+  "casos": [
+    {
+      "id": "tomas-calcio_mg",
+      "ninoId": "tomas",
+      "nutriente": "calcio_mg",
+      "fuente": "evidenciaDe",
+      "evidencia": {
+        "nutriente": "calcio_mg",
+        "coberturaSemana": 0.149,
+        "faltaHoy": 717,
+        "candidatos": [
+          {
+            "preparacionId": "bastones_queso_horno",
+            "nombre": "Bastones de queso horneados",
+            "puntaje": 0.175,
+            "camino": {
+              "desde": "Papas al horno en bastones, crocantes",
+              "aceptacion": "2/2",
+              "atributos": [
+                "forma=baston",
+                "textura=crocante"
+              ]
+            },
+            "desdeId": "papas_horno_baston",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=baston",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=horno"
+            ],
+            "patrones": [
+              "Lo crocante lo acepta (26 de 31)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 158,
+              "proteina_g": 10.8,
+              "calcio_mg": 296,
+              "vitamina_d_ug": 0.16,
+              "hierro_mg": 0.56,
+              "fibra_g": 0.5,
+              "omega3_g": 0.06,
+              "b12_ug": 0.7,
+              "vitamina_c_mg": 0
+            }
+          },
+          {
+            "preparacionId": "tostadas_queso",
+            "nombre": "Tostadas con queso gratinado, bien doradas",
+            "puntaje": 0.493,
+            "camino": {
+              "desde": "Tostadas de pan blanco",
+              "aceptacion": "4/4",
+              "atributos": [
+                "forma=plano",
+                "textura=crocante"
+              ]
+            },
+            "desdeId": "tostadas",
+            "cambio": "sabor",
+            "seMantiene": [
+              "forma=plano",
+              "textura=crocante",
+              "temperatura=tibio",
+              "coccion=horno"
+            ],
+            "patrones": [
+              "Lo crocante lo acepta (26 de 31)",
+              "Lo crocante entre los cereales, panes y papas lo acepta (16 de 16)",
+              "Los cereales, panes y papas servido separado los acepta (16 de 19)",
+              "Lo crocante en forma plana lo acepta (12 de 12)",
+              "Lo servido separado en forma plana lo acepta (12 de 13)",
+              "Lo plano lo acepta (12 de 14)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 198,
+              "proteina_g": 11.4,
+              "calcio_mg": 229,
+              "vitamina_d_ug": 0.12,
+              "hierro_mg": 1.62,
+              "fibra_g": 0.9,
+              "omega3_g": 0.05,
+              "b12_ug": 0.5,
+              "vitamina_c_mg": 0
+            }
+          },
+          {
+            "preparacionId": "pizza_muzzarella",
+            "nombre": "Pizza de muzzarella sin salsa, masa fina y crocante",
+            "puntaje": 0.413,
+            "camino": {
+              "desde": "Milanesa de carne al horno (rebozada sin huevo)",
+              "aceptacion": "6/6",
+              "atributos": [
+                "forma=plano",
+                "textura=crocante"
+              ]
+            },
+            "desdeId": "milanesa_carne_horno",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=plano",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=horno"
+            ],
+            "patrones": [
+              "Lo crocante lo acepta (26 de 31)",
+              "Lo crocante entre los cereales, panes y papas lo acepta (16 de 16)",
+              "Los cereales, panes y papas servido separado los acepta (16 de 19)",
+              "Lo crocante en forma plana lo acepta (12 de 12)",
+              "Lo servido separado en forma plana lo acepta (12 de 13)",
+              "Lo plano lo acepta (12 de 14)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 293,
+              "proteina_g": 15.6,
+              "calcio_mg": 302,
+              "vitamina_d_ug": 0.16,
+              "hierro_mg": 2.29,
+              "fibra_g": 1.3,
+              "omega3_g": 0.09,
+              "b12_ug": 0.66,
+              "vitamina_c_mg": 0
+            }
+          }
+        ],
+        "reglas": [
+          "No come nada mezclado",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [
+          "huevo"
+        ],
+        "texto": "Chico: Tomás, 6 años. Alergias: huevo.\nLe falta: calcio (esta semana cubre 15%; hoy le faltan 717 mg).\nReglas de la familia: No come nada mezclado.\nPatrones: Lo crocante lo acepta (26 de 31) · Lo crocante entre los cereales, panes y papas lo acepta (16 de 16) · Los cereales, panes y papas servido separado los acepta (16 de 19) · Lo crocante en forma plana lo acepta (12 de 12).\nCandidato 1: Bastones de queso horneados (puntaje 0,17)\n  Camino: Papas al horno en bastones, crocantes (comió 2/2) ─forma=baston, textura=crocante─▶ Bastones de queso horneados\n  Cambia solo: el ingrediente. Se mantiene: forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno\n  Patrones que aplican: Lo crocante lo acepta (26 de 31)\n  Aporta: ~296,0 mg de calcio por porción (30% de lo que necesita por día)\nCandidato 2: Tostadas con queso gratinado, bien doradas (puntaje 0,49)\n  Camino: Tostadas de pan blanco (comió 4/4) ─forma=plano, textura=crocante─▶ Tostadas con queso gratinado, bien doradas\n  Cambia solo: el sabor. Se mantiene: forma=plano, textura=crocante, temperatura=tibio, coccion=horno\n  Patrones que aplican: Lo crocante lo acepta (26 de 31) · Lo crocante entre los cereales, panes y papas lo acepta (16 de 16) · Los cereales, panes y papas servido separado los acepta (16 de 19) · Lo crocante en forma plana lo acepta (12 de 12) · Lo servido separado en forma plana lo acepta (12 de 13) · Lo plano lo acepta (12 de 14)\n  Aporta: ~229,0 mg de calcio por porción (23% de lo que necesita por día)\nCandidato 3: Pizza de muzzarella sin salsa, masa fina y crocante (puntaje 0,41)\n  Camino: Milanesa de carne al horno (rebozada sin huevo) (comió 6/6) ─forma=plano, textura=crocante─▶ Pizza de muzzarella sin salsa, masa fina y crocante\n  Cambia solo: el ingrediente. Se mantiene: forma=plano, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno\n  Patrones que aplican: Lo crocante lo acepta (26 de 31) · Lo crocante entre los cereales, panes y papas lo acepta (16 de 16) · Los cereales, panes y papas servido separado los acepta (16 de 19) · Lo crocante en forma plana lo acepta (12 de 12) · Lo servido separado en forma plana lo acepta (12 de 13) · Lo plano lo acepta (12 de 14)\n  Aporta: ~302,0 mg de calcio por porción (30% de lo que necesita por día)\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    },
+    {
+      "id": "tomas-hierro_mg",
+      "ninoId": "tomas",
+      "nutriente": "hierro_mg",
+      "fuente": "evidenciaDe",
+      "evidencia": {
+        "nutriente": "hierro_mg",
+        "coberturaSemana": 0.309,
+        "faltaHoy": 4.8,
+        "candidatos": [
+          {
+            "preparacionId": "tostadas_queso",
+            "nombre": "Tostadas con queso gratinado, bien doradas",
+            "puntaje": 0.493,
+            "camino": {
+              "desde": "Tostadas de pan blanco",
+              "aceptacion": "4/4",
+              "atributos": [
+                "forma=plano",
+                "textura=crocante"
+              ]
+            },
+            "desdeId": "tostadas",
+            "cambio": "sabor",
+            "seMantiene": [
+              "forma=plano",
+              "textura=crocante",
+              "temperatura=tibio",
+              "coccion=horno"
+            ],
+            "patrones": [
+              "Lo crocante lo acepta (26 de 31)",
+              "Lo crocante entre los cereales, panes y papas lo acepta (16 de 16)",
+              "Los cereales, panes y papas servido separado los acepta (16 de 19)",
+              "Lo crocante en forma plana lo acepta (12 de 12)",
+              "Lo servido separado en forma plana lo acepta (12 de 13)",
+              "Lo plano lo acepta (12 de 14)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 198,
+              "proteina_g": 11.4,
+              "calcio_mg": 229,
+              "vitamina_d_ug": 0.12,
+              "hierro_mg": 1.62,
+              "fibra_g": 0.9,
+              "omega3_g": 0.05,
+              "b12_ug": 0.5,
+              "vitamina_c_mg": 0
+            }
+          },
+          {
+            "preparacionId": "pizza_muzzarella",
+            "nombre": "Pizza de muzzarella sin salsa, masa fina y crocante",
+            "puntaje": 0.413,
+            "camino": {
+              "desde": "Milanesa de carne al horno (rebozada sin huevo)",
+              "aceptacion": "6/6",
+              "atributos": [
+                "forma=plano",
+                "textura=crocante"
+              ]
+            },
+            "desdeId": "milanesa_carne_horno",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=plano",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=horno"
+            ],
+            "patrones": [
+              "Lo crocante lo acepta (26 de 31)",
+              "Lo crocante entre los cereales, panes y papas lo acepta (16 de 16)",
+              "Los cereales, panes y papas servido separado los acepta (16 de 19)",
+              "Lo crocante en forma plana lo acepta (12 de 12)",
+              "Lo servido separado en forma plana lo acepta (12 de 13)",
+              "Lo plano lo acepta (12 de 14)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 293,
+              "proteina_g": 15.6,
+              "calcio_mg": 302,
+              "vitamina_d_ug": 0.16,
+              "hierro_mg": 2.29,
+              "fibra_g": 1.3,
+              "omega3_g": 0.09,
+              "b12_ug": 0.66,
+              "vitamina_c_mg": 0
+            }
+          },
+          {
+            "preparacionId": "milanesa_lentejas_horno",
+            "nombre": "Milanesa de lentejas al horno (sin huevo)",
+            "puntaje": 0.374,
+            "camino": {
+              "desde": "Milanesa de carne al horno (rebozada sin huevo)",
+              "aceptacion": "6/6",
+              "atributos": [
+                "forma=plano",
+                "textura=crocante"
+              ]
+            },
+            "desdeId": "milanesa_carne_horno",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=plano",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=horno"
+            ],
+            "patrones": [
+              "Lo crocante lo acepta (26 de 31)",
+              "Lo crocante en forma plana lo acepta (12 de 12)",
+              "Lo servido separado en forma plana lo acepta (12 de 13)",
+              "Lo plano lo acepta (12 de 14)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 216,
+              "proteina_g": 9.8,
+              "calcio_mg": 52,
+              "vitamina_d_ug": 0,
+              "hierro_mg": 3.61,
+              "fibra_g": 7.2,
+              "omega3_g": 0.08,
+              "b12_ug": 0.07,
+              "vitamina_c_mg": 1.1
+            }
+          }
+        ],
+        "reglas": [
+          "No come nada mezclado",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [
+          "huevo"
+        ],
+        "texto": "Chico: Tomás, 6 años. Alergias: huevo.\nLe falta: hierro (esta semana cubre 31%; hoy le faltan 5 mg).\nReglas de la familia: No come nada mezclado.\nPatrones: Lo crocante lo acepta (26 de 31) · Lo crocante entre los cereales, panes y papas lo acepta (16 de 16) · Los cereales, panes y papas servido separado los acepta (16 de 19) · Lo crocante en forma plana lo acepta (12 de 12).\nCandidato 1: Tostadas con queso gratinado, bien doradas (puntaje 0,49)\n  Camino: Tostadas de pan blanco (comió 4/4) ─forma=plano, textura=crocante─▶ Tostadas con queso gratinado, bien doradas\n  Cambia solo: el sabor. Se mantiene: forma=plano, textura=crocante, temperatura=tibio, coccion=horno\n  Patrones que aplican: Lo crocante lo acepta (26 de 31) · Lo crocante entre los cereales, panes y papas lo acepta (16 de 16) · Los cereales, panes y papas servido separado los acepta (16 de 19) · Lo crocante en forma plana lo acepta (12 de 12) · Lo servido separado en forma plana lo acepta (12 de 13) · Lo plano lo acepta (12 de 14)\n  Aporta: ~1,6 mg de hierro por porción (16% de lo que necesita por día)\nCandidato 2: Pizza de muzzarella sin salsa, masa fina y crocante (puntaje 0,41)\n  Camino: Milanesa de carne al horno (rebozada sin huevo) (comió 6/6) ─forma=plano, textura=crocante─▶ Pizza de muzzarella sin salsa, masa fina y crocante\n  Cambia solo: el ingrediente. Se mantiene: forma=plano, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno\n  Patrones que aplican: Lo crocante lo acepta (26 de 31) · Lo crocante entre los cereales, panes y papas lo acepta (16 de 16) · Los cereales, panes y papas servido separado los acepta (16 de 19) · Lo crocante en forma plana lo acepta (12 de 12) · Lo servido separado en forma plana lo acepta (12 de 13) · Lo plano lo acepta (12 de 14)\n  Aporta: ~2,3 mg de hierro por porción (23% de lo que necesita por día)\nCandidato 3: Milanesa de lentejas al horno (sin huevo) (puntaje 0,37)\n  Camino: Milanesa de carne al horno (rebozada sin huevo) (comió 6/6) ─forma=plano, textura=crocante─▶ Milanesa de lentejas al horno (sin huevo)\n  Cambia solo: el ingrediente. Se mantiene: forma=plano, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno\n  Patrones que aplican: Lo crocante lo acepta (26 de 31) · Lo crocante en forma plana lo acepta (12 de 12) · Lo servido separado en forma plana lo acepta (12 de 13) · Lo plano lo acepta (12 de 14)\n  Aporta: ~3,6 mg de hierro por porción (36% de lo que necesita por día)\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    },
+    {
+      "id": "tomas-vitamina_d_ug",
+      "ninoId": "tomas",
+      "nutriente": "vitamina_d_ug",
+      "fuente": "evidenciaDe",
+      "evidencia": {
+        "nutriente": "vitamina_d_ug",
+        "coberturaSemana": 0.008,
+        "faltaHoy": 14.8,
+        "candidatos": [
+          {
+            "preparacionId": "leche_chocolatada_fortificada",
+            "nombre": "Leche chocolatada hecha con leche fortificada con vitamina D",
+            "puntaje": 0.321,
+            "camino": {
+              "desde": "Leche chocolatada",
+              "aceptacion": "4/4",
+              "atributos": [
+                "forma=entero",
+                "textura=cremoso"
+              ]
+            },
+            "desdeId": "leche_chocolatada",
+            "cambio": "fortificar",
+            "seMantiene": [
+              "forma=entero",
+              "textura=cremoso",
+              "sabor=dulce",
+              "temperatura=frio",
+              "coccion=listo"
+            ],
+            "patrones": [],
+            "aportePorcion": {
+              "energia_kcal": 182,
+              "proteina_g": 7.3,
+              "calcio_mg": 246,
+              "vitamina_d_ug": 2.6,
+              "hierro_mg": 0.24,
+              "fibra_g": 0.6,
+              "omega3_g": 0.15,
+              "b12_ug": 0.95,
+              "vitamina_c_mg": 0
+            }
+          }
+        ],
+        "reglas": [
+          "No come nada mezclado",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [
+          "huevo"
+        ],
+        "texto": "Chico: Tomás, 6 años. Alergias: huevo.\nLe falta: vitamina D (esta semana cubre 1%; hoy le faltan 15 µg).\nReglas de la familia: No come nada mezclado.\nPatrones: Lo crocante lo acepta (26 de 31) · Lo crocante entre los cereales, panes y papas lo acepta (16 de 16) · Los cereales, panes y papas servido separado los acepta (16 de 19) · Lo crocante en forma plana lo acepta (12 de 12).\nCandidato 1: Leche chocolatada hecha con leche fortificada con vitamina D (puntaje 0,32)\n  Camino: Leche chocolatada (comió 4/4) ─forma=entero, textura=cremoso─▶ Leche chocolatada hecha con leche fortificada con vitamina D\n  Cambia solo: es la versión fortificada. Se mantiene: forma=entero, textura=cremoso, sabor=dulce, temperatura=frio, coccion=listo\n  Aporta: ~2,6 µg de vitamina D por porción (17% de lo que necesita por día)\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    },
+    {
+      "id": "tomas-fibra_g",
+      "ninoId": "tomas",
+      "nutriente": "fibra_g",
+      "fuente": "evidenciaDe",
+      "evidencia": {
+        "nutriente": "fibra_g",
+        "coberturaSemana": 0.121,
+        "faltaHoy": 22.8,
+        "candidatos": [
+          {
+            "preparacionId": "tostadas_pan_integral",
+            "nombre": "Tostadas de pan integral",
+            "puntaje": 0.45,
+            "camino": {
+              "desde": "Tostadas de pan blanco",
+              "aceptacion": "4/4",
+              "atributos": [
+                "forma=plano",
+                "textura=crocante"
+              ]
+            },
+            "desdeId": "tostadas",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=plano",
+              "textura=crocante",
+              "sabor=neutro",
+              "temperatura=tibio",
+              "coccion=horno"
+            ],
+            "patrones": [
+              "Lo crocante lo acepta (26 de 31)",
+              "Lo crocante entre los cereales, panes y papas lo acepta (16 de 16)",
+              "Los cereales, panes y papas servido separado los acepta (16 de 19)",
+              "Lo crocante en forma plana lo acepta (12 de 12)",
+              "Lo servido separado en forma plana lo acepta (12 de 13)",
+              "Lo plano lo acepta (12 de 14)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 160,
+              "proteina_g": 6.2,
+              "calcio_mg": 31,
+              "vitamina_d_ug": 0.12,
+              "hierro_mg": 1.43,
+              "fibra_g": 4.1,
+              "omega3_g": 0.04,
+              "b12_ug": 0.04,
+              "vitamina_c_mg": 0
+            }
+          },
+          {
+            "preparacionId": "galletitas_integrales",
+            "nombre": "Galletitas integrales del mismo formato que las de agua",
+            "puntaje": 0.437,
+            "camino": {
+              "desde": "Galletitas de agua",
+              "aceptacion": "2/2",
+              "atributos": [
+                "forma=plano",
+                "textura=crocante"
+              ]
+            },
+            "desdeId": "galletitas_agua",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=plano",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=frio",
+              "coccion=listo"
+            ],
+            "patrones": [
+              "Lo crocante lo acepta (26 de 31)",
+              "Lo crocante entre los cereales, panes y papas lo acepta (16 de 16)",
+              "Los cereales, panes y papas servido separado los acepta (16 de 19)",
+              "Lo crocante en forma plana lo acepta (12 de 12)",
+              "Lo servido separado en forma plana lo acepta (12 de 13)",
+              "Lo plano lo acepta (12 de 14)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 171,
+              "proteina_g": 4.2,
+              "calcio_mg": 14,
+              "vitamina_d_ug": 0,
+              "hierro_mg": 1.34,
+              "fibra_g": 4.1,
+              "omega3_g": 0.33,
+              "b12_ug": 0,
+              "vitamina_c_mg": 0
+            }
+          },
+          {
+            "preparacionId": "milanesa_lentejas_horno",
+            "nombre": "Milanesa de lentejas al horno (sin huevo)",
+            "puntaje": 0.374,
+            "camino": {
+              "desde": "Milanesa de carne al horno (rebozada sin huevo)",
+              "aceptacion": "6/6",
+              "atributos": [
+                "forma=plano",
+                "textura=crocante"
+              ]
+            },
+            "desdeId": "milanesa_carne_horno",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=plano",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=horno"
+            ],
+            "patrones": [
+              "Lo crocante lo acepta (26 de 31)",
+              "Lo crocante en forma plana lo acepta (12 de 12)",
+              "Lo servido separado en forma plana lo acepta (12 de 13)",
+              "Lo plano lo acepta (12 de 14)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 216,
+              "proteina_g": 9.8,
+              "calcio_mg": 52,
+              "vitamina_d_ug": 0,
+              "hierro_mg": 3.61,
+              "fibra_g": 7.2,
+              "omega3_g": 0.08,
+              "b12_ug": 0.07,
+              "vitamina_c_mg": 1.1
+            }
+          }
+        ],
+        "reglas": [
+          "No come nada mezclado",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [
+          "huevo"
+        ],
+        "texto": "Chico: Tomás, 6 años. Alergias: huevo.\nLe falta: fibra (esta semana cubre 12%; hoy le faltan 23 g).\nReglas de la familia: No come nada mezclado.\nPatrones: Lo crocante lo acepta (26 de 31) · Lo crocante entre los cereales, panes y papas lo acepta (16 de 16) · Los cereales, panes y papas servido separado los acepta (16 de 19) · Lo crocante en forma plana lo acepta (12 de 12).\nCandidato 1: Tostadas de pan integral (puntaje 0,45)\n  Camino: Tostadas de pan blanco (comió 4/4) ─forma=plano, textura=crocante─▶ Tostadas de pan integral\n  Cambia solo: el ingrediente. Se mantiene: forma=plano, textura=crocante, sabor=neutro, temperatura=tibio, coccion=horno\n  Patrones que aplican: Lo crocante lo acepta (26 de 31) · Lo crocante entre los cereales, panes y papas lo acepta (16 de 16) · Los cereales, panes y papas servido separado los acepta (16 de 19) · Lo crocante en forma plana lo acepta (12 de 12) · Lo servido separado en forma plana lo acepta (12 de 13) · Lo plano lo acepta (12 de 14)\n  Aporta: ~4,1 g de fibra por porción (16% de lo que necesita por día)\nCandidato 2: Galletitas integrales del mismo formato que las de agua (puntaje 0,44)\n  Camino: Galletitas de agua (comió 2/2) ─forma=plano, textura=crocante─▶ Galletitas integrales del mismo formato que las de agua\n  Cambia solo: el ingrediente. Se mantiene: forma=plano, textura=crocante, sabor=salado, temperatura=frio, coccion=listo\n  Patrones que aplican: Lo crocante lo acepta (26 de 31) · Lo crocante entre los cereales, panes y papas lo acepta (16 de 16) · Los cereales, panes y papas servido separado los acepta (16 de 19) · Lo crocante en forma plana lo acepta (12 de 12) · Lo servido separado en forma plana lo acepta (12 de 13) · Lo plano lo acepta (12 de 14)\n  Aporta: ~4,1 g de fibra por porción (16% de lo que necesita por día)\nCandidato 3: Milanesa de lentejas al horno (sin huevo) (puntaje 0,37)\n  Camino: Milanesa de carne al horno (rebozada sin huevo) (comió 6/6) ─forma=plano, textura=crocante─▶ Milanesa de lentejas al horno (sin huevo)\n  Cambia solo: el ingrediente. Se mantiene: forma=plano, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno\n  Patrones que aplican: Lo crocante lo acepta (26 de 31) · Lo crocante en forma plana lo acepta (12 de 12) · Lo servido separado en forma plana lo acepta (12 de 13) · Lo plano lo acepta (12 de 14)\n  Aporta: ~7,2 g de fibra por porción (29% de lo que necesita por día)\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    },
+    {
+      "id": "lucia-calcio_mg",
+      "ninoId": "lucia",
+      "nutriente": "calcio_mg",
+      "fuente": "evidenciaDe",
+      "evidencia": {
+        "nutriente": "calcio_mg",
+        "coberturaSemana": 0.175,
+        "faltaHoy": 1073,
+        "candidatos": [
+          {
+            "preparacionId": "pure_papa_queso",
+            "nombre": "Puré de papa con queso rallado",
+            "puntaje": 0.526,
+            "camino": {
+              "desde": "Puré de papa",
+              "aceptacion": "8/8",
+              "atributos": [
+                "forma=pure",
+                "textura=cremoso"
+              ]
+            },
+            "desdeId": "pure_papa",
+            "cambio": "fortificar",
+            "seMantiene": [
+              "forma=pure",
+              "textura=cremoso",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=hervido"
+            ],
+            "patrones": [
+              "Lo cremoso lo acepta (22 de 25)",
+              "Los cereales, panes y papas hervido los acepta (15 de 15)",
+              "Lo caliente entre los cereales, panes y papas lo acepta (15 de 16)",
+              "Los cereales, panes y papas los acepta (15 de 17)",
+              "Lo salado hervido lo acepta (15 de 18)",
+              "Lo salado y caliente lo acepta (15 de 19)",
+              "Lo cremoso y amarillo lo acepta (11 de 11)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 259,
+              "proteina_g": 9.5,
+              "calcio_mg": 225,
+              "vitamina_d_ug": 0.09,
+              "hierro_mg": 0.53,
+              "fibra_g": 2,
+              "omega3_g": 0.1,
+              "b12_ug": 0.41,
+              "vitamina_c_mg": 16.5
+            }
+          },
+          {
+            "preparacionId": "yogur_bebible",
+            "nombre": "Yogur bebible de vainilla",
+            "puntaje": 0.464,
+            "camino": {
+              "desde": "Yogur de vainilla",
+              "aceptacion": "3/3",
+              "atributos": [
+                "textura=cremoso"
+              ]
+            },
+            "desdeId": "yogur_vainilla",
+            "cambio": "forma",
+            "seMantiene": [
+              "textura=cremoso",
+              "sabor=dulce",
+              "temperatura=frio",
+              "coccion=listo"
+            ],
+            "patrones": [
+              "Lo cremoso lo acepta (22 de 25)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 153,
+              "proteina_g": 8.9,
+              "calcio_mg": 308,
+              "vitamina_d_ug": 0,
+              "hierro_mg": 0.13,
+              "fibra_g": 0,
+              "omega3_g": 0.02,
+              "b12_ug": 0.95,
+              "vitamina_c_mg": 1.4
+            }
+          }
+        ],
+        "reglas": [
+          "No come nada verde",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [],
+        "texto": "Chico: Lucía, 10 años. Alergias: ninguna.\nLe falta: calcio (esta semana cubre 17%; hoy le faltan 1073 mg).\nReglas de la familia: No come nada verde.\nPatrones: Lo cremoso lo acepta (22 de 25) · Los cereales, panes y papas hervido los acepta (15 de 15) · Lo caliente entre los cereales, panes y papas lo acepta (15 de 16) · Los cereales, panes y papas los acepta (15 de 17).\nCandidato 1: Puré de papa con queso rallado (puntaje 0,53)\n  Camino: Puré de papa (comió 8/8) ─forma=pure, textura=cremoso─▶ Puré de papa con queso rallado\n  Cambia solo: es la versión fortificada. Se mantiene: forma=pure, textura=cremoso, sabor=salado, temperatura=caliente, coccion=hervido\n  Patrones que aplican: Lo cremoso lo acepta (22 de 25) · Los cereales, panes y papas hervido los acepta (15 de 15) · Lo caliente entre los cereales, panes y papas lo acepta (15 de 16) · Los cereales, panes y papas los acepta (15 de 17) · Lo salado hervido lo acepta (15 de 18) · Lo salado y caliente lo acepta (15 de 19) · Lo cremoso y amarillo lo acepta (11 de 11)\n  Aporta: ~225,0 mg de calcio por porción (17% de lo que necesita por día)\nCandidato 2: Yogur bebible de vainilla (puntaje 0,46)\n  Camino: Yogur de vainilla (comió 3/3) ─textura=cremoso─▶ Yogur bebible de vainilla\n  Cambia solo: la forma. Se mantiene: textura=cremoso, sabor=dulce, temperatura=frio, coccion=listo\n  Patrones que aplican: Lo cremoso lo acepta (22 de 25)\n  Aporta: ~308,0 mg de calcio por porción (24% de lo que necesita por día)\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    },
+    {
+      "id": "lucia-hierro_mg",
+      "ninoId": "lucia",
+      "nutriente": "hierro_mg",
+      "fuente": "evidenciaDe",
+      "evidencia": {
+        "nutriente": "hierro_mg",
+        "coberturaSemana": 0.201,
+        "faltaHoy": 6.7,
+        "candidatos": [
+          {
+            "preparacionId": "avena_con_leche",
+            "nombre": "Avena con leche, fría",
+            "puntaje": 0.354,
+            "camino": {
+              "desde": "Arroz con leche",
+              "aceptacion": "3/3",
+              "atributos": [
+                "forma=granos",
+                "textura=cremoso"
+              ]
+            },
+            "desdeId": "arroz_con_leche",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=granos",
+              "textura=cremoso",
+              "sabor=dulce",
+              "temperatura=frio",
+              "coccion=hervido"
+            ],
+            "patrones": [
+              "Lo cremoso lo acepta (22 de 25)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 263,
+              "proteina_g": 10,
+              "calcio_mg": 190,
+              "vitamina_d_ug": 0.15,
+              "hierro_mg": 1.75,
+              "fibra_g": 4,
+              "omega3_g": 0.15,
+              "b12_ug": 0.68,
+              "vitamina_c_mg": 0
+            }
+          },
+          {
+            "preparacionId": "pure_lentejas",
+            "nombre": "Puré de lentejas",
+            "puntaje": 0.231,
+            "camino": {
+              "desde": "Puré de papa",
+              "aceptacion": "8/8",
+              "atributos": [
+                "forma=pure",
+                "textura=cremoso"
+              ]
+            },
+            "desdeId": "pure_papa",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=pure",
+              "textura=cremoso",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=hervido"
+            ],
+            "patrones": [
+              "Lo cremoso lo acepta (22 de 25)",
+              "Lo salado hervido lo acepta (15 de 18)",
+              "Lo salado y caliente lo acepta (15 de 19)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 114,
+              "proteina_g": 7.2,
+              "calcio_mg": 16,
+              "vitamina_d_ug": 0.01,
+              "hierro_mg": 2.65,
+              "fibra_g": 6.3,
+              "omega3_g": 0.04,
+              "b12_ug": 0,
+              "vitamina_c_mg": 1.1
+            }
+          }
+        ],
+        "reglas": [
+          "No come nada verde",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [],
+        "texto": "Chico: Lucía, 10 años. Alergias: ninguna.\nLe falta: hierro (esta semana cubre 20%; hoy le faltan 7 mg).\nReglas de la familia: No come nada verde.\nPatrones: Lo cremoso lo acepta (22 de 25) · Los cereales, panes y papas hervido los acepta (15 de 15) · Lo caliente entre los cereales, panes y papas lo acepta (15 de 16) · Los cereales, panes y papas los acepta (15 de 17).\nCandidato 1: Avena con leche, fría (puntaje 0,35)\n  Camino: Arroz con leche (comió 3/3) ─forma=granos, textura=cremoso─▶ Avena con leche, fría\n  Cambia solo: el ingrediente. Se mantiene: forma=granos, textura=cremoso, sabor=dulce, temperatura=frio, coccion=hervido\n  Patrones que aplican: Lo cremoso lo acepta (22 de 25)\n  Aporta: ~1,8 mg de hierro por porción (22% de lo que necesita por día)\nCandidato 2: Puré de lentejas (puntaje 0,23)\n  Camino: Puré de papa (comió 8/8) ─forma=pure, textura=cremoso─▶ Puré de lentejas\n  Cambia solo: el ingrediente. Se mantiene: forma=pure, textura=cremoso, sabor=salado, temperatura=caliente, coccion=hervido\n  Patrones que aplican: Lo cremoso lo acepta (22 de 25) · Lo salado hervido lo acepta (15 de 18) · Lo salado y caliente lo acepta (15 de 19)\n  Aporta: ~2,6 mg de hierro por porción (33% de lo que necesita por día)\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    },
+    {
+      "id": "lucia-vitamina_d_ug",
+      "ninoId": "lucia",
+      "nutriente": "vitamina_d_ug",
+      "fuente": "evidenciaDe",
+      "evidencia": {
+        "nutriente": "vitamina_d_ug",
+        "coberturaSemana": 0.007,
+        "faltaHoy": 14.8,
+        "candidatos": [],
+        "reglas": [
+          "No come nada verde",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [],
+        "texto": "Chico: Lucía, 10 años. Alergias: ninguna.\nLe falta: vitamina D (esta semana cubre 1%; hoy le faltan 15 µg).\nReglas de la familia: No come nada verde.\nPatrones: Lo cremoso lo acepta (22 de 25) · Los cereales, panes y papas hervido los acepta (15 de 15) · Lo caliente entre los cereales, panes y papas lo acepta (15 de 16) · Los cereales, panes y papas los acepta (15 de 17).\nNo hay candidatos a un solo cambio para este nutriente con su catálogo actual.\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    },
+    {
+      "id": "lucia-fibra_g",
+      "ninoId": "lucia",
+      "nutriente": "fibra_g",
+      "fuente": "evidenciaDe",
+      "evidencia": {
+        "nutriente": "fibra_g",
+        "coberturaSemana": 0.134,
+        "faltaHoy": 22.4,
+        "candidatos": [
+          {
+            "preparacionId": "avena_con_leche",
+            "nombre": "Avena con leche, fría",
+            "puntaje": 0.354,
+            "camino": {
+              "desde": "Arroz con leche",
+              "aceptacion": "3/3",
+              "atributos": [
+                "forma=granos",
+                "textura=cremoso"
+              ]
+            },
+            "desdeId": "arroz_con_leche",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=granos",
+              "textura=cremoso",
+              "sabor=dulce",
+              "temperatura=frio",
+              "coccion=hervido"
+            ],
+            "patrones": [
+              "Lo cremoso lo acepta (22 de 25)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 263,
+              "proteina_g": 10,
+              "calcio_mg": 190,
+              "vitamina_d_ug": 0.15,
+              "hierro_mg": 1.75,
+              "fibra_g": 4,
+              "omega3_g": 0.15,
+              "b12_ug": 0.68,
+              "vitamina_c_mg": 0
+            }
+          },
+          {
+            "preparacionId": "pure_lentejas",
+            "nombre": "Puré de lentejas",
+            "puntaje": 0.231,
+            "camino": {
+              "desde": "Puré de papa",
+              "aceptacion": "8/8",
+              "atributos": [
+                "forma=pure",
+                "textura=cremoso"
+              ]
+            },
+            "desdeId": "pure_papa",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=pure",
+              "textura=cremoso",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=hervido"
+            ],
+            "patrones": [
+              "Lo cremoso lo acepta (22 de 25)",
+              "Lo salado hervido lo acepta (15 de 18)",
+              "Lo salado y caliente lo acepta (15 de 19)"
+            ],
+            "aportePorcion": {
+              "energia_kcal": 114,
+              "proteina_g": 7.2,
+              "calcio_mg": 16,
+              "vitamina_d_ug": 0.01,
+              "hierro_mg": 2.65,
+              "fibra_g": 6.3,
+              "omega3_g": 0.04,
+              "b12_ug": 0,
+              "vitamina_c_mg": 1.1
+            }
+          }
+        ],
+        "reglas": [
+          "No come nada verde",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [],
+        "texto": "Chico: Lucía, 10 años. Alergias: ninguna.\nLe falta: fibra (esta semana cubre 13%; hoy le faltan 22 g).\nReglas de la familia: No come nada verde.\nPatrones: Lo cremoso lo acepta (22 de 25) · Los cereales, panes y papas hervido los acepta (15 de 15) · Lo caliente entre los cereales, panes y papas lo acepta (15 de 16) · Los cereales, panes y papas los acepta (15 de 17).\nCandidato 1: Avena con leche, fría (puntaje 0,35)\n  Camino: Arroz con leche (comió 3/3) ─forma=granos, textura=cremoso─▶ Avena con leche, fría\n  Cambia solo: el ingrediente. Se mantiene: forma=granos, textura=cremoso, sabor=dulce, temperatura=frio, coccion=hervido\n  Patrones que aplican: Lo cremoso lo acepta (22 de 25)\n  Aporta: ~4,0 g de fibra por porción (15% de lo que necesita por día)\nCandidato 2: Puré de lentejas (puntaje 0,23)\n  Camino: Puré de papa (comió 8/8) ─forma=pure, textura=cremoso─▶ Puré de lentejas\n  Cambia solo: el ingrediente. Se mantiene: forma=pure, textura=cremoso, sabor=salado, temperatura=caliente, coccion=hervido\n  Patrones que aplican: Lo cremoso lo acepta (22 de 25) · Lo salado hervido lo acepta (15 de 18) · Lo salado y caliente lo acepta (15 de 19)\n  Aporta: ~6,3 g de fibra por porción (24% de lo que necesita por día)\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    },
+    {
+      "id": "bruno-calcio_mg",
+      "ninoId": "bruno",
+      "nutriente": "calcio_mg",
+      "fuente": "armada",
+      "evidencia": {
+        "nutriente": "calcio_mg",
+        "coberturaSemana": 0.25,
+        "faltaHoy": 750,
+        "candidatos": [
+          {
+            "preparacionId": "bastones_garbanzo_horno",
+            "nombre": "Bastones de garbanzo al horno (tipo fainá)",
+            "desdeId": "papas_horno_baston",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=baston",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=horno"
+            ],
+            "puntaje": 0.04,
+            "camino": {
+              "desde": "Papas al horno en bastones, crocantes",
+              "aceptacion": "4/4",
+              "atributos": [
+                "forma=baston",
+                "textura=crocante",
+                "sabor=salado",
+                "temperatura=caliente",
+                "coccion=horno"
+              ]
+            },
+            "patrones": [],
+            "aportePorcion": {
+              "calcio_mg": 39.2
+            }
+          },
+          {
+            "preparacionId": "brocoli_horno_trozos",
+            "nombre": "Brócoli al horno en trozos",
+            "desdeId": "papas_horno_cubos",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=trozos",
+              "textura=blando",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=horno"
+            ],
+            "puntaje": 0.03,
+            "camino": {
+              "desde": "Papas al horno en cubos, blandas",
+              "aceptacion": "5/5",
+              "atributos": [
+                "forma=trozos",
+                "textura=blando",
+                "sabor=salado",
+                "temperatura=caliente",
+                "coccion=horno"
+              ]
+            },
+            "patrones": [],
+            "aportePorcion": {
+              "calcio_mg": 28.8
+            }
+          },
+          {
+            "preparacionId": "bastones_boniato_fritos",
+            "nombre": "Bastones de boniato fritos",
+            "desdeId": "papas_fritas_baston",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=baston",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=frito"
+            ],
+            "puntaje": 0.03,
+            "camino": {
+              "desde": "Papas fritas en bastones",
+              "aceptacion": "9/9",
+              "atributos": [
+                "forma=baston",
+                "textura=crocante",
+                "sabor=salado",
+                "temperatura=caliente",
+                "coccion=frito"
+              ]
+            },
+            "patrones": [],
+            "aportePorcion": {
+              "calcio_mg": 27.6
+            }
+          }
+        ],
+        "reglas": [
+          "No come nada con salsa",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [
+          "leche",
+          "gluten"
+        ],
+        "texto": "Chico: Bruno, 8 años. Alergias: leche y gluten.\nLe falta: calcio (esta semana cubre 25%; hoy le faltan 750 mg).\nReglas de la familia: No come nada con salsa.\nPatrones: todavía pocos datos.\nCandidato 1: Bastones de garbanzo al horno (tipo fainá) (puntaje 0,04)\n  Camino: Papas al horno en bastones, crocantes (comió 4/4) ─forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno─▶ Bastones de garbanzo al horno (tipo fainá)\n  Cambia solo: el ingrediente. Se mantiene: forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno\n  Aporta: ~39,2 mg de calcio por porción (4% de lo que necesita por día)\nCandidato 2: Brócoli al horno en trozos (puntaje 0,03)\n  Camino: Papas al horno en cubos, blandas (comió 5/5) ─forma=trozos, textura=blando, sabor=salado, temperatura=caliente, coccion=horno─▶ Brócoli al horno en trozos\n  Cambia solo: el ingrediente. Se mantiene: forma=trozos, textura=blando, sabor=salado, temperatura=caliente, coccion=horno\n  Aporta: ~28,8 mg de calcio por porción (3% de lo que necesita por día)\nCandidato 3: Bastones de boniato fritos (puntaje 0,03)\n  Camino: Papas fritas en bastones (comió 9/9) ─forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=frito─▶ Bastones de boniato fritos\n  Cambia solo: el ingrediente. Se mantiene: forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=frito\n  Aporta: ~27,6 mg de calcio por porción (3% de lo que necesita por día)\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    },
+    {
+      "id": "bruno-hierro_mg",
+      "ninoId": "bruno",
+      "nutriente": "hierro_mg",
+      "fuente": "armada",
+      "evidencia": {
+        "nutriente": "hierro_mg",
+        "coberturaSemana": 0.6,
+        "faltaHoy": 4,
+        "candidatos": [
+          {
+            "preparacionId": "bife_plancha",
+            "nombre": "Bife de carne a la plancha",
+            "desdeId": "pollo_plancha",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=plano",
+              "textura=jugoso",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=plancha"
+            ],
+            "puntaje": 0.24,
+            "camino": {
+              "desde": "Pollo a la plancha",
+              "aceptacion": "7/7",
+              "atributos": [
+                "forma=plano",
+                "textura=jugoso",
+                "sabor=salado",
+                "temperatura=caliente",
+                "coccion=plancha"
+              ]
+            },
+            "patrones": [],
+            "aportePorcion": {
+              "hierro_mg": 2.38
+            }
+          },
+          {
+            "preparacionId": "bastones_garbanzo_horno",
+            "nombre": "Bastones de garbanzo al horno (tipo fainá)",
+            "desdeId": "papas_horno_baston",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=baston",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=horno"
+            ],
+            "puntaje": 0.23,
+            "camino": {
+              "desde": "Papas al horno en bastones, crocantes",
+              "aceptacion": "4/4",
+              "atributos": [
+                "forma=baston",
+                "textura=crocante",
+                "sabor=salado",
+                "temperatura=caliente",
+                "coccion=horno"
+              ]
+            },
+            "patrones": [],
+            "aportePorcion": {
+              "hierro_mg": 2.3
+            }
+          },
+          {
+            "preparacionId": "bastones_boniato_fritos",
+            "nombre": "Bastones de boniato fritos",
+            "desdeId": "papas_fritas_baston",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=baston",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=frito"
+            ],
+            "puntaje": 0.05,
+            "camino": {
+              "desde": "Papas fritas en bastones",
+              "aceptacion": "9/9",
+              "atributos": [
+                "forma=baston",
+                "textura=crocante",
+                "sabor=salado",
+                "temperatura=caliente",
+                "coccion=frito"
+              ]
+            },
+            "patrones": [],
+            "aportePorcion": {
+              "hierro_mg": 0.5
+            }
+          }
+        ],
+        "reglas": [
+          "No come nada con salsa",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [
+          "leche",
+          "gluten"
+        ],
+        "texto": "Chico: Bruno, 8 años. Alergias: leche y gluten.\nLe falta: hierro (esta semana cubre 60%; hoy le faltan 4 mg).\nReglas de la familia: No come nada con salsa.\nPatrones: todavía pocos datos.\nCandidato 1: Bife de carne a la plancha (puntaje 0,24)\n  Camino: Pollo a la plancha (comió 7/7) ─forma=plano, textura=jugoso, sabor=salado, temperatura=caliente, coccion=plancha─▶ Bife de carne a la plancha\n  Cambia solo: el ingrediente. Se mantiene: forma=plano, textura=jugoso, sabor=salado, temperatura=caliente, coccion=plancha\n  Aporta: ~2,4 mg de hierro por porción (24% de lo que necesita por día)\nCandidato 2: Bastones de garbanzo al horno (tipo fainá) (puntaje 0,23)\n  Camino: Papas al horno en bastones, crocantes (comió 4/4) ─forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno─▶ Bastones de garbanzo al horno (tipo fainá)\n  Cambia solo: el ingrediente. Se mantiene: forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno\n  Aporta: ~2,3 mg de hierro por porción (23% de lo que necesita por día)\nCandidato 3: Bastones de boniato fritos (puntaje 0,05)\n  Camino: Papas fritas en bastones (comió 9/9) ─forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=frito─▶ Bastones de boniato fritos\n  Cambia solo: el ingrediente. Se mantiene: forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=frito\n  Aporta: ~0,5 mg de hierro por porción (5% de lo que necesita por día)\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    },
+    {
+      "id": "bruno-vitamina_d_ug",
+      "ninoId": "bruno",
+      "nutriente": "vitamina_d_ug",
+      "fuente": "armada",
+      "evidencia": {
+        "nutriente": "vitamina_d_ug",
+        "coberturaSemana": 0.15,
+        "faltaHoy": 12.8,
+        "candidatos": [
+          {
+            "preparacionId": "salmon_plancha",
+            "nombre": "Salmón a la plancha",
+            "desdeId": "pollo_plancha",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=plano",
+              "textura=jugoso",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=plancha"
+            ],
+            "puntaje": 0.82,
+            "camino": {
+              "desde": "Pollo a la plancha",
+              "aceptacion": "7/7",
+              "atributos": [
+                "forma=plano",
+                "textura=jugoso",
+                "sabor=salado",
+                "temperatura=caliente",
+                "coccion=plancha"
+              ]
+            },
+            "patrones": [],
+            "aportePorcion": {
+              "vitamina_d_ug": 12.33
+            }
+          },
+          {
+            "preparacionId": "bife_plancha",
+            "nombre": "Bife de carne a la plancha",
+            "desdeId": "pollo_plancha",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=plano",
+              "textura=jugoso",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=plancha"
+            ],
+            "puntaje": 0.01,
+            "camino": {
+              "desde": "Pollo a la plancha",
+              "aceptacion": "7/7",
+              "atributos": [
+                "forma=plano",
+                "textura=jugoso",
+                "sabor=salado",
+                "temperatura=caliente",
+                "coccion=plancha"
+              ]
+            },
+            "patrones": [],
+            "aportePorcion": {
+              "vitamina_d_ug": 0.09
+            }
+          }
+        ],
+        "reglas": [
+          "No come nada con salsa",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [
+          "leche",
+          "gluten"
+        ],
+        "texto": "Chico: Bruno, 8 años. Alergias: leche y gluten.\nLe falta: vitamina D (esta semana cubre 15%; hoy le faltan 13 µg).\nReglas de la familia: No come nada con salsa.\nPatrones: todavía pocos datos.\nCandidato 1: Salmón a la plancha (puntaje 0,82)\n  Camino: Pollo a la plancha (comió 7/7) ─forma=plano, textura=jugoso, sabor=salado, temperatura=caliente, coccion=plancha─▶ Salmón a la plancha\n  Cambia solo: el ingrediente. Se mantiene: forma=plano, textura=jugoso, sabor=salado, temperatura=caliente, coccion=plancha\n  Aporta: ~12,3 µg de vitamina D por porción (82% de lo que necesita por día)\nCandidato 2: Bife de carne a la plancha (puntaje 0,01)\n  Camino: Pollo a la plancha (comió 7/7) ─forma=plano, textura=jugoso, sabor=salado, temperatura=caliente, coccion=plancha─▶ Bife de carne a la plancha\n  Cambia solo: el ingrediente. Se mantiene: forma=plano, textura=jugoso, sabor=salado, temperatura=caliente, coccion=plancha\n  Aporta: ~0,1 µg de vitamina D por porción (1% de lo que necesita por día)\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    },
+    {
+      "id": "bruno-fibra_g",
+      "ninoId": "bruno",
+      "nutriente": "fibra_g",
+      "fuente": "armada",
+      "evidencia": {
+        "nutriente": "fibra_g",
+        "coberturaSemana": 0.35,
+        "faltaHoy": 16.3,
+        "candidatos": [
+          {
+            "preparacionId": "bastones_garbanzo_horno",
+            "nombre": "Bastones de garbanzo al horno (tipo fainá)",
+            "desdeId": "papas_horno_baston",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=baston",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=horno"
+            ],
+            "puntaje": 0.24,
+            "camino": {
+              "desde": "Papas al horno en bastones, crocantes",
+              "aceptacion": "4/4",
+              "atributos": [
+                "forma=baston",
+                "textura=crocante",
+                "sabor=salado",
+                "temperatura=caliente",
+                "coccion=horno"
+              ]
+            },
+            "patrones": [],
+            "aportePorcion": {
+              "fibra_g": 6.08
+            }
+          },
+          {
+            "preparacionId": "bastones_boniato_fritos",
+            "nombre": "Bastones de boniato fritos",
+            "desdeId": "papas_fritas_baston",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=baston",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=frito"
+            ],
+            "puntaje": 0.15,
+            "camino": {
+              "desde": "Papas fritas en bastones",
+              "aceptacion": "9/9",
+              "atributos": [
+                "forma=baston",
+                "textura=crocante",
+                "sabor=salado",
+                "temperatura=caliente",
+                "coccion=frito"
+              ]
+            },
+            "patrones": [],
+            "aportePorcion": {
+              "fibra_g": 3.72
+            }
+          },
+          {
+            "preparacionId": "bastones_boniato_horno",
+            "nombre": "Bastones de boniato al horno",
+            "desdeId": "papas_horno_baston",
+            "cambio": "ingrediente",
+            "seMantiene": [
+              "forma=baston",
+              "textura=crocante",
+              "sabor=salado",
+              "temperatura=caliente",
+              "coccion=horno"
+            ],
+            "puntaje": 0.15,
+            "camino": {
+              "desde": "Papas al horno en bastones, crocantes",
+              "aceptacion": "4/4",
+              "atributos": [
+                "forma=baston",
+                "textura=crocante",
+                "sabor=salado",
+                "temperatura=caliente",
+                "coccion=horno"
+              ]
+            },
+            "patrones": [],
+            "aportePorcion": {
+              "fibra_g": 3.72
+            }
+          }
+        ],
+        "reglas": [
+          "No come nada con salsa",
+          "Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+        ],
+        "alergias": [
+          "leche",
+          "gluten"
+        ],
+        "texto": "Chico: Bruno, 8 años. Alergias: leche y gluten.\nLe falta: fibra (esta semana cubre 35%; hoy le faltan 16 g).\nReglas de la familia: No come nada con salsa.\nPatrones: todavía pocos datos.\nCandidato 1: Bastones de garbanzo al horno (tipo fainá) (puntaje 0,24)\n  Camino: Papas al horno en bastones, crocantes (comió 4/4) ─forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno─▶ Bastones de garbanzo al horno (tipo fainá)\n  Cambia solo: el ingrediente. Se mantiene: forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno\n  Aporta: ~6,1 g de fibra por porción (24% de lo que necesita por día)\nCandidato 2: Bastones de boniato fritos (puntaje 0,15)\n  Camino: Papas fritas en bastones (comió 9/9) ─forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=frito─▶ Bastones de boniato fritos\n  Cambia solo: el ingrediente. Se mantiene: forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=frito\n  Aporta: ~3,7 g de fibra por porción (15% de lo que necesita por día)\nCandidato 3: Bastones de boniato al horno (puntaje 0,15)\n  Camino: Papas al horno en bastones, crocantes (comió 4/4) ─forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno─▶ Bastones de boniato al horno\n  Cambia solo: el ingrediente. Se mantiene: forma=baston, textura=crocante, sabor=salado, temperatura=caliente, coccion=horno\n  Aporta: ~3,7 g de fibra por porción (15% de lo que necesita por día)\nPresentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido."
+      }
+    }
+  ]
+}
