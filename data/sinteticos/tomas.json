@@ -1,0 +1,2408 @@
+{
+  "_nota": "Dataset sintético (simulación declarada). Generado por scripts/generar-sinteticos.mjs. Ver PLAN.md §10.5.",
+  "ninoId": "tomas",
+  "datos": {
+    "nombre": "Tomás",
+    "edad": 6,
+    "sexo": "masculino",
+    "pesoKg": 21,
+    "tallaCm": 116,
+    "alergias": [
+      "huevo"
+    ],
+    "alertas": [],
+    "dieta": "ninguna"
+  },
+  "borrador": {
+    "acepta": [
+      {
+        "nombre": "Papas fritas en bastones",
+        "preparacionId": "papas_fritas_baston",
+        "atributos": {
+          "textura": "crocante",
+          "forma": "baston",
+          "color": "amarillo",
+          "sabor": "salado",
+          "temperatura": "caliente",
+          "presentacion": "separado",
+          "grupo": "cereal_almidon",
+          "coccion": "frito"
+        }
+      },
+      {
+        "nombre": "Milanesa de carne al horno (rebozada sin huevo)",
+        "preparacionId": "milanesa_carne_horno",
+        "atributos": {
+          "textura": "crocante",
+          "forma": "plano",
+          "color": "marron",
+          "sabor": "salado",
+          "temperatura": "caliente",
+          "presentacion": "separado",
+          "grupo": "proteina",
+          "coccion": "horno"
+        }
+      },
+      {
+        "nombre": "Tostadas de pan blanco",
+        "preparacionId": "tostadas",
+        "atributos": {
+          "textura": "crocante",
+          "forma": "plano",
+          "color": "beige",
+          "sabor": "neutro",
+          "temperatura": "tibio",
+          "presentacion": "separado",
+          "grupo": "cereal_almidon",
+          "coccion": "horno"
+        }
+      },
+      {
+        "nombre": "Galletitas de agua",
+        "preparacionId": "galletitas_agua",
+        "atributos": {
+          "textura": "crocante",
+          "forma": "plano",
+          "color": "beige",
+          "sabor": "salado",
+          "temperatura": "frio",
+          "presentacion": "separado",
+          "grupo": "cereal_almidon",
+          "coccion": "listo"
+        }
+      },
+      {
+        "nombre": "Leche chocolatada",
+        "preparacionId": "leche_chocolatada",
+        "atributos": {
+          "textura": "cremoso",
+          "forma": "entero",
+          "color": "marron",
+          "sabor": "dulce",
+          "temperatura": "frio",
+          "presentacion": "separado",
+          "grupo": "lacteo",
+          "coccion": "listo"
+        }
+      }
+    ],
+    "rechaza": [
+      {
+        "nombre": "Puré de papa",
+        "preparacionId": "pure_papa",
+        "motivo": "textura"
+      },
+      {
+        "nombre": "Arroz con pollo",
+        "preparacionId": "arroz_con_pollo",
+        "motivo": "mezcla"
+      }
+    ],
+    "reglas": [
+      {
+        "texto": "No come nada mezclado",
+        "condiciones": [
+          {
+            "tipo": "presentacion",
+            "valor": "mezclado"
+          }
+        ],
+        "efecto": "rechaza"
+      }
+    ]
+  },
+  "reglasOcultas": [
+    {
+      "id": "T1",
+      "texto": "Lo crocante y separado lo acepta, sin importar la cocción (papa frita o al horno en bastones, igual)",
+      "condiciones": [
+        {
+          "tipo": "textura",
+          "valor": "crocante"
+        },
+        {
+          "tipo": "presentacion",
+          "valor": "separado"
+        }
+      ],
+      "resultado": "acepta",
+      "declarada": false
+    },
+    {
+      "id": "T2",
+      "texto": "Lo blando lo rechaza, aunque sea un alimento que acepta en otra textura (papa al horno blanda, papa hervida)",
+      "condiciones": [
+        {
+          "tipo": "textura",
+          "valor": "blando"
+        }
+      ],
+      "resultado": "rechaza",
+      "declarada": false
+    },
+    {
+      "id": "T3",
+      "texto": "Lo jugoso lo rechaza: la hamburguesa no, la milanesa sí, aunque las dos vengan con papas fritas",
+      "condiciones": [
+        {
+          "tipo": "textura",
+          "valor": "jugoso"
+        }
+      ],
+      "resultado": "rechaza",
+      "declarada": false
+    },
+    {
+      "id": "T4",
+      "texto": "Lo mezclado lo rechaza",
+      "condiciones": [
+        {
+          "tipo": "presentacion",
+          "valor": "mezclado"
+        }
+      ],
+      "resultado": "rechaza",
+      "declarada": true
+    },
+    {
+      "id": "T5",
+      "texto": "Lo que viene con salsa lo rechaza, aunque sea su milanesa",
+      "condiciones": [
+        {
+          "tipo": "presentacion",
+          "valor": "con_salsa"
+        }
+      ],
+      "resultado": "rechaza",
+      "declarada": false
+    }
+  ],
+  "comidas": [
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-07",
+      "fechaISO": "2026-10-07T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-tomas-01",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "papas fritas en bastones",
+            "preparacionId": "papas_fritas_baston",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "frito"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "milanesa de carne al horno (rebozada sin huevo)",
+            "preparacionId": "milanesa_carne_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "carne_vacuna",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 20
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "bastones de queso horneados",
+            "preparacionId": "bastones_queso_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "queso_muzzarella",
+                "gramosEst": 24
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 6
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las papas fritas: se las comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "La milanesa: se la comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "nada",
+          "porcion": "chica",
+          "cita": "Los bastones de queso: ni los tocó, los dejó en el plato."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Las papas fritas: se las comió sin dejar nada. La milanesa: se la comió sin dejar nada. Los bastones de queso: ni los tocó, los dejó en el plato. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-07",
+      "fechaISO": "2026-10-07T20:30:00-03:00",
+      "momento": "cena",
+      "analisis": {
+        "analisisId": "sint-tomas-02",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "hamburguesa casera a la plancha",
+            "preparacionId": "hamburguesa_casera",
+            "ingredientes": [
+              {
+                "alimentoId": "carne_picada",
+                "gramosEst": 100
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "jugoso",
+              "forma": "redondo",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "plancha"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "papas fritas en bastones",
+            "preparacionId": "papas_fritas_baston",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "frito"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto",
+          "porcion": "mediana",
+          "motivo": "textura",
+          "cita": "La hamburguesa: la sacó del plato, porque no le gusta cómo se siente en la boca."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las papas fritas: se las comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "pidio_otra_cosa"
+      ],
+      "relato": {
+        "transcripcion": "La hamburguesa: la sacó del plato, porque no le gusta cómo se siente en la boca. Las papas fritas: se las comió sin dejar nada. Pidió su comida de siempre.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-08",
+      "fechaISO": "2026-10-08T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-tomas-03",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "arroz con pollo",
+            "preparacionId": "arroz_con_pollo",
+            "ingredientes": [
+              {
+                "alimentoId": "arroz",
+                "gramosEst": 80
+              },
+              {
+                "alimentoId": "pollo",
+                "gramosEst": 50
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "mixto",
+              "forma": "granos",
+              "color": "mixto",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "tostadas de pan blanco",
+            "preparacionId": "tostadas",
+            "ingredientes": [
+              {
+                "alimentoId": "pan_blanco",
+                "gramosEst": 40
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "beige",
+              "sabor": "neutro",
+              "temperatura": "tibio",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "hondo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto",
+          "porcion": "mediana",
+          "motivo": "mezcla",
+          "cita": "El arroz con pollo: lo sacó del plato, porque estaba todo junto con la salsa."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las tostadas: se las comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "angustia",
+        "pidio_otra_cosa"
+      ],
+      "relato": {
+        "transcripcion": "El arroz con pollo: lo sacó del plato, porque estaba todo junto con la salsa. Las tostadas: se las comió sin dejar nada. Se angustió y lloró un rato. Pidió su comida de siempre.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-08",
+      "fechaISO": "2026-10-08T17:00:00-03:00",
+      "momento": "merienda",
+      "analisis": {
+        "analisisId": "sint-tomas-04",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "leche chocolatada",
+            "preparacionId": "leche_chocolatada",
+            "ingredientes": [
+              {
+                "alimentoId": "leche",
+                "gramosEst": 200
+              },
+              {
+                "alimentoId": "cacao_azucarado",
+                "gramosEst": 15
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "entero",
+              "color": "marron",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "listo"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "galletitas de agua",
+            "preparacionId": "galletitas_agua",
+            "ingredientes": [
+              {
+                "alimentoId": "galletitas_agua",
+                "gramosEst": 25
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "beige",
+              "sabor": "salado",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "listo"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "La leche chocolatada: se la comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las galletitas: se las comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "La leche chocolatada: se la comió sin dejar nada. Las galletitas: se las comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-09",
+      "fechaISO": "2026-10-09T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-tomas-05",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "papas al horno en cubos, blandas",
+            "preparacionId": "papas_horno_cubos",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "milanesa de carne al horno (rebozada sin huevo)",
+            "preparacionId": "milanesa_carne_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "carne_vacuna",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 20
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "nada",
+          "porcion": "mediana",
+          "motivo": "textura",
+          "cita": "Las papas al horno: ni las tocó, las dejó en el plato, porque no le gusta cómo se siente en la boca."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "La milanesa: se la comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Las papas al horno: ni las tocó, las dejó en el plato, porque no le gusta cómo se siente en la boca. La milanesa: se la comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-09",
+      "fechaISO": "2026-10-09T20:30:00-03:00",
+      "momento": "cena",
+      "analisis": {
+        "analisisId": "sint-tomas-06",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "papas fritas en bastones",
+            "preparacionId": "papas_fritas_baston",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "frito"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "bastones de queso horneados",
+            "preparacionId": "bastones_queso_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "queso_muzzarella",
+                "gramosEst": 24
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 6
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "brócoli hervido",
+            "preparacionId": "brocoli_hervido",
+            "ingredientes": [
+              {
+                "alimentoId": "brocoli",
+                "gramosEst": 30
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "verde",
+              "sabor": "neutro",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las papas fritas: se las comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "toco",
+          "porcion": "chica",
+          "cita": "Los bastones de queso: los tocó y los olió, pero no se los llevó a la boca."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "nada",
+          "porcion": "chica",
+          "cita": "El brócoli: ni lo tocó, lo dejó en el plato."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Las papas fritas: se las comió sin dejar nada. Los bastones de queso: los tocó y los olió, pero no se los llevó a la boca. El brócoli: ni lo tocó, lo dejó en el plato. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-10",
+      "fechaISO": "2026-10-10T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-tomas-07",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "papas al horno en bastones, crocantes",
+            "preparacionId": "papas_horno_baston",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "milanesa a la napolitana (sin huevo)",
+            "preparacionId": "milanesa_napolitana",
+            "ingredientes": [
+              {
+                "alimentoId": "carne_vacuna",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 20
+              },
+              {
+                "alimentoId": "salsa_tomate",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "queso_muzzarella",
+                "gramosEst": 30
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "mixto",
+              "forma": "plano",
+              "color": "mixto",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "con_salsa",
+              "grupo": "proteina",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las papas al horno: se las comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "aparto",
+          "porcion": "mediana",
+          "motivo": "mezcla",
+          "cita": "La milanesa: la sacó del plato, porque estaba todo junto con la salsa."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "se_levanto"
+      ],
+      "relato": {
+        "transcripcion": "Las papas al horno: se las comió sin dejar nada. La milanesa: la sacó del plato, porque estaba todo junto con la salsa. Se levantó varias veces de la mesa.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-10",
+      "fechaISO": "2026-10-10T17:00:00-03:00",
+      "momento": "merienda",
+      "analisis": {
+        "analisisId": "sint-tomas-08",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "leche chocolatada",
+            "preparacionId": "leche_chocolatada",
+            "ingredientes": [
+              {
+                "alimentoId": "leche",
+                "gramosEst": 200
+              },
+              {
+                "alimentoId": "cacao_azucarado",
+                "gramosEst": 15
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "entero",
+              "color": "marron",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "listo"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "manzana pelada en bastones",
+            "preparacionId": "manzana_bastones",
+            "ingredientes": [
+              {
+                "alimentoId": "manzana",
+                "gramosEst": 36
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "blanco",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "fruta",
+              "coccion": "crudo"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "La leche chocolatada: se la comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "poco",
+          "porcion": "chica",
+          "cita": "La manzana: comió unos bocados."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "La leche chocolatada: se la comió sin dejar nada. La manzana: comió unos bocados. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-11",
+      "fechaISO": "2026-10-11T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-tomas-09",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "fideos con salsa de tomate",
+            "preparacionId": "fideos_con_salsa",
+            "ingredientes": [
+              {
+                "alimentoId": "fideos",
+                "gramosEst": 80
+              },
+              {
+                "alimentoId": "salsa_tomate",
+                "gramosEst": 40
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "rojo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "con_salsa",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "papas fritas en bastones",
+            "preparacionId": "papas_fritas_baston",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "frito"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "hondo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto",
+          "porcion": "mediana",
+          "motivo": "mezcla",
+          "cita": "Los fideos: los sacó del plato, porque estaba todo junto con la salsa."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las papas fritas: se las comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "se_levanto",
+        "pidio_otra_cosa"
+      ],
+      "relato": {
+        "transcripcion": "Los fideos: los sacó del plato, porque estaba todo junto con la salsa. Las papas fritas: se las comió sin dejar nada. Se levantó varias veces de la mesa. Pidió su comida de siempre.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-11",
+      "fechaISO": "2026-10-11T20:30:00-03:00",
+      "momento": "cena",
+      "analisis": {
+        "analisisId": "sint-tomas-10",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "pollo a la plancha",
+            "preparacionId": "pollo_plancha",
+            "ingredientes": [
+              {
+                "alimentoId": "pollo",
+                "gramosEst": 90
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "jugoso",
+              "forma": "plano",
+              "color": "blanco",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "plancha"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "tostadas de pan blanco",
+            "preparacionId": "tostadas",
+            "ingredientes": [
+              {
+                "alimentoId": "pan_blanco",
+                "gramosEst": 40
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "beige",
+              "sabor": "neutro",
+              "temperatura": "tibio",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto",
+          "porcion": "mediana",
+          "motivo": "textura",
+          "cita": "El pollo: lo sacó del plato, porque no le gusta cómo se siente en la boca."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las tostadas: se las comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "pidio_otra_cosa"
+      ],
+      "relato": {
+        "transcripcion": "El pollo: lo sacó del plato, porque no le gusta cómo se siente en la boca. Las tostadas: se las comió sin dejar nada. Pidió su comida de siempre.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-12",
+      "fechaISO": "2026-10-12T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-tomas-11",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "papas al horno en bastones, crocantes",
+            "preparacionId": "papas_horno_baston",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "milanesa de carne al horno (rebozada sin huevo)",
+            "preparacionId": "milanesa_carne_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "carne_vacuna",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 20
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "bastones de queso horneados",
+            "preparacionId": "bastones_queso_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "queso_muzzarella",
+                "gramosEst": 24
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 6
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las papas al horno: se las comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "La milanesa: se la comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "probo",
+          "porcion": "chica",
+          "cita": "Los bastones de queso: probó un bocadito y los dejó."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Las papas al horno: se las comió sin dejar nada. La milanesa: se la comió sin dejar nada. Los bastones de queso: probó un bocadito y los dejó. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-12",
+      "fechaISO": "2026-10-12T20:30:00-03:00",
+      "momento": "cena",
+      "analisis": {
+        "analisisId": "sint-tomas-12",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "arroz con pollo",
+            "preparacionId": "arroz_con_pollo",
+            "ingredientes": [
+              {
+                "alimentoId": "arroz",
+                "gramosEst": 48
+              },
+              {
+                "alimentoId": "pollo",
+                "gramosEst": 30
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "mixto",
+              "forma": "granos",
+              "color": "mixto",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "papas fritas en bastones",
+            "preparacionId": "papas_fritas_baston",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "frito"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "nada",
+          "porcion": "chica",
+          "cita": "El arroz con pollo: ni lo tocó, lo dejó en el plato."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las papas fritas: se las comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El arroz con pollo: ni lo tocó, lo dejó en el plato. Las papas fritas: se las comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-13",
+      "fechaISO": "2026-10-13T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-tomas-13",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "papa hervida en trozos",
+            "preparacionId": "papa_hervida",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "blanco",
+              "sabor": "neutro",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "milanesa de carne al horno (rebozada sin huevo)",
+            "preparacionId": "milanesa_carne_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "carne_vacuna",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 20
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "bastones de zanahoria horneados",
+            "preparacionId": "bastones_zanahoria_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "zanahoria",
+                "gramosEst": 36
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 2
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "naranja",
+              "sabor": "dulce",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto",
+          "porcion": "mediana",
+          "motivo": "textura",
+          "cita": "La papa hervida: la sacó del plato, porque no le gusta cómo se siente en la boca."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad",
+          "porcion": "mediana",
+          "cita": "La milanesa: comió más o menos la mitad."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "nada",
+          "porcion": "chica",
+          "cita": "Los bastones de zanahoria: ni los tocó, los dejó en el plato."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "La papa hervida: la sacó del plato, porque no le gusta cómo se siente en la boca. La milanesa: comió más o menos la mitad. Los bastones de zanahoria: ni los tocó, los dejó en el plato. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-13",
+      "fechaISO": "2026-10-13T17:00:00-03:00",
+      "momento": "merienda",
+      "analisis": {
+        "analisisId": "sint-tomas-14",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "leche chocolatada",
+            "preparacionId": "leche_chocolatada",
+            "ingredientes": [
+              {
+                "alimentoId": "leche",
+                "gramosEst": 200
+              },
+              {
+                "alimentoId": "cacao_azucarado",
+                "gramosEst": 15
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "entero",
+              "color": "marron",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "listo"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "galletitas de agua",
+            "preparacionId": "galletitas_agua",
+            "ingredientes": [
+              {
+                "alimentoId": "galletitas_agua",
+                "gramosEst": 25
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "beige",
+              "sabor": "salado",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "listo"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "manzana pelada en bastones",
+            "preparacionId": "manzana_bastones",
+            "ingredientes": [
+              {
+                "alimentoId": "manzana",
+                "gramosEst": 36
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "blanco",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "fruta",
+              "coccion": "crudo"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "La leche chocolatada: se la comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las galletitas: se las comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "mitad",
+          "porcion": "chica",
+          "cita": "La manzana: comió más o menos la mitad."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "La leche chocolatada: se la comió sin dejar nada. Las galletitas: se las comió sin dejar nada. La manzana: comió más o menos la mitad. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-14",
+      "fechaISO": "2026-10-14T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-tomas-15",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "papas fritas en bastones",
+            "preparacionId": "papas_fritas_baston",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "frito"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "bastones de queso horneados",
+            "preparacionId": "bastones_queso_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "queso_muzzarella",
+                "gramosEst": 24
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 6
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "bastones de zanahoria horneados",
+            "preparacionId": "bastones_zanahoria_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "zanahoria",
+                "gramosEst": 36
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 2
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "naranja",
+              "sabor": "dulce",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las papas fritas: se las comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "poco",
+          "porcion": "chica",
+          "cita": "Los bastones de queso: comió unos bocados."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "toco",
+          "porcion": "chica",
+          "cita": "Los bastones de zanahoria: los tocó y los olió, pero no se los llevó a la boca."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Las papas fritas: se las comió sin dejar nada. Los bastones de queso: comió unos bocados. Los bastones de zanahoria: los tocó y los olió, pero no se los llevó a la boca. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-14",
+      "fechaISO": "2026-10-14T20:30:00-03:00",
+      "momento": "cena",
+      "analisis": {
+        "analisisId": "sint-tomas-16",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "hamburguesa casera a la plancha",
+            "preparacionId": "hamburguesa_casera",
+            "ingredientes": [
+              {
+                "alimentoId": "carne_picada",
+                "gramosEst": 100
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "jugoso",
+              "forma": "redondo",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "plancha"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "papas fritas en bastones",
+            "preparacionId": "papas_fritas_baston",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "frito"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "toco",
+          "porcion": "mediana",
+          "cita": "La hamburguesa: la tocó y la olió, pero no se la llevó a la boca."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las papas fritas: se las comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "La hamburguesa: la tocó y la olió, pero no se la llevó a la boca. Las papas fritas: se las comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-15",
+      "fechaISO": "2026-10-15T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-tomas-17",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "lentejas guisadas",
+            "preparacionId": "lentejas_guisadas",
+            "ingredientes": [
+              {
+                "alimentoId": "lentejas",
+                "gramosEst": 48
+              },
+              {
+                "alimentoId": "zanahoria",
+                "gramosEst": 12
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "blando",
+              "forma": "granos",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "proteina",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "milanesa de carne al horno (rebozada sin huevo)",
+            "preparacionId": "milanesa_carne_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "carne_vacuna",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 20
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "papas fritas en bastones",
+            "preparacionId": "papas_fritas_baston",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "frito"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "nada",
+          "porcion": "chica",
+          "cita": "Las lentejas: ni las tocó, las dejó en el plato."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "La milanesa: se la comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las papas fritas: se las comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Las lentejas: ni las tocó, las dejó en el plato. La milanesa: se la comió sin dejar nada. Las papas fritas: se las comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-15",
+      "fechaISO": "2026-10-15T20:30:00-03:00",
+      "momento": "cena",
+      "analisis": {
+        "analisisId": "sint-tomas-18",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "fideos con salsa de tomate",
+            "preparacionId": "fideos_con_salsa",
+            "ingredientes": [
+              {
+                "alimentoId": "fideos",
+                "gramosEst": 48
+              },
+              {
+                "alimentoId": "salsa_tomate",
+                "gramosEst": 24
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "rojo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "con_salsa",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "tostadas de pan blanco",
+            "preparacionId": "tostadas",
+            "ingredientes": [
+              {
+                "alimentoId": "pan_blanco",
+                "gramosEst": 40
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "beige",
+              "sabor": "neutro",
+              "temperatura": "tibio",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "hondo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "nada",
+          "porcion": "chica",
+          "cita": "Los fideos: ni los tocó, los dejó en el plato."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las tostadas: se las comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Los fideos: ni los tocó, los dejó en el plato. Las tostadas: se las comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-16",
+      "fechaISO": "2026-10-16T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-tomas-19",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "puré de papa",
+            "preparacionId": "pure_papa",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 130
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "milanesa de carne al horno (rebozada sin huevo)",
+            "preparacionId": "milanesa_carne_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "carne_vacuna",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 20
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "bastones de queso horneados",
+            "preparacionId": "bastones_queso_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "queso_muzzarella",
+                "gramosEst": 24
+              },
+              {
+                "alimentoId": "pan_rallado",
+                "gramosEst": 6
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto",
+          "porcion": "mediana",
+          "motivo": "textura",
+          "cita": "El puré: lo sacó del plato, porque no le gusta cómo se siente en la boca."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "La milanesa: se la comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "mitad",
+          "porcion": "chica",
+          "cita": "Los bastones de queso: comió más o menos la mitad."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El puré: lo sacó del plato, porque no le gusta cómo se siente en la boca. La milanesa: se la comió sin dejar nada. Los bastones de queso: comió más o menos la mitad. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "tomas",
+      "dia": "2026-10-16",
+      "fechaISO": "2026-10-16T17:00:00-03:00",
+      "momento": "merienda",
+      "analisis": {
+        "analisisId": "sint-tomas-20",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "leche chocolatada",
+            "preparacionId": "leche_chocolatada",
+            "ingredientes": [
+              {
+                "alimentoId": "leche",
+                "gramosEst": 200
+              },
+              {
+                "alimentoId": "cacao_azucarado",
+                "gramosEst": 15
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "entero",
+              "color": "marron",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "listo"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "tostadas de pan blanco",
+            "preparacionId": "tostadas",
+            "ingredientes": [
+              {
+                "alimentoId": "pan_blanco",
+                "gramosEst": 40
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "beige",
+              "sabor": "neutro",
+              "temperatura": "tibio",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "mitad",
+          "porcion": "mediana",
+          "cita": "La leche chocolatada: comió más o menos la mitad."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Las tostadas: se las comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "La leche chocolatada: comió más o menos la mitad. Las tostadas: se las comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    }
+  ]
+}

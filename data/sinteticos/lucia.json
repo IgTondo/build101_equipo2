@@ -1,0 +1,2351 @@
+{
+  "_nota": "Dataset sintético (simulación declarada). Generado por scripts/generar-sinteticos.mjs. Ver PLAN.md §10.5.",
+  "ninoId": "lucia",
+  "datos": {
+    "nombre": "Lucía",
+    "edad": 10,
+    "sexo": "femenino",
+    "pesoKg": 31,
+    "tallaCm": 138,
+    "alergias": [],
+    "alertas": [],
+    "dieta": "ninguna"
+  },
+  "borrador": {
+    "acepta": [
+      {
+        "nombre": "Fideos con manteca y queso rallado",
+        "preparacionId": "fideos_manteca_queso",
+        "atributos": {
+          "textura": "blando",
+          "forma": "trozos",
+          "color": "beige",
+          "sabor": "salado",
+          "temperatura": "caliente",
+          "presentacion": "mezclado",
+          "grupo": "cereal_almidon",
+          "coccion": "hervido"
+        }
+      },
+      {
+        "nombre": "Puré de papa",
+        "preparacionId": "pure_papa",
+        "atributos": {
+          "textura": "cremoso",
+          "forma": "pure",
+          "color": "amarillo",
+          "sabor": "salado",
+          "temperatura": "caliente",
+          "presentacion": "separado",
+          "grupo": "cereal_almidon",
+          "coccion": "hervido"
+        }
+      },
+      {
+        "nombre": "Yogur de vainilla",
+        "preparacionId": "yogur_vainilla",
+        "atributos": {
+          "textura": "cremoso",
+          "forma": "pure",
+          "color": "blanco",
+          "sabor": "dulce",
+          "temperatura": "frio",
+          "presentacion": "separado",
+          "grupo": "lacteo",
+          "coccion": "listo"
+        }
+      },
+      {
+        "nombre": "Arroz con leche",
+        "preparacionId": "arroz_con_leche",
+        "atributos": {
+          "textura": "cremoso",
+          "forma": "granos",
+          "color": "blanco",
+          "sabor": "dulce",
+          "temperatura": "frio",
+          "presentacion": "mezclado",
+          "grupo": "lacteo",
+          "coccion": "hervido"
+        }
+      },
+      {
+        "nombre": "Banana pisada",
+        "preparacionId": "banana_pisada",
+        "atributos": {
+          "textura": "cremoso",
+          "forma": "pure",
+          "color": "amarillo",
+          "sabor": "dulce",
+          "temperatura": "frio",
+          "presentacion": "separado",
+          "grupo": "fruta",
+          "coccion": "crudo"
+        }
+      }
+    ],
+    "rechaza": [
+      {
+        "nombre": "Papas fritas en bastones",
+        "preparacionId": "papas_fritas_baston",
+        "motivo": "textura"
+      },
+      {
+        "nombre": "Brócoli hervido",
+        "preparacionId": "brocoli_hervido",
+        "motivo": "color"
+      }
+    ],
+    "reglas": [
+      {
+        "texto": "No come nada verde",
+        "condiciones": [
+          {
+            "tipo": "color",
+            "valor": "verde"
+          }
+        ],
+        "efecto": "rechaza"
+      }
+    ]
+  },
+  "reglasOcultas": [
+    {
+      "id": "L1",
+      "texto": "Lo crocante lo rechaza (al revés que Tomás: las mismas papas fritas)",
+      "condiciones": [
+        {
+          "tipo": "textura",
+          "valor": "crocante"
+        }
+      ],
+      "resultado": "rechaza",
+      "declarada": false
+    },
+    {
+      "id": "L2",
+      "texto": "Lo verde en puré lo acepta: contradice la regla \"no come nada verde\"",
+      "condiciones": [
+        {
+          "tipo": "color",
+          "valor": "verde"
+        },
+        {
+          "tipo": "forma",
+          "valor": "pure"
+        }
+      ],
+      "resultado": "acepta",
+      "declarada": false
+    },
+    {
+      "id": "L3",
+      "texto": "Lo verde entero o en trozos lo rechaza",
+      "condiciones": [
+        {
+          "tipo": "color",
+          "valor": "verde"
+        },
+        {
+          "tipo": "textura",
+          "valor": "blando"
+        }
+      ],
+      "resultado": "rechaza",
+      "declarada": true
+    }
+  ],
+  "comidas": [
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-07",
+      "fechaISO": "2026-10-07T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-lucia-01",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "fideos con manteca y queso rallado",
+            "preparacionId": "fideos_manteca_queso",
+            "ingredientes": [
+              {
+                "alimentoId": "fideos",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              },
+              {
+                "alimentoId": "queso_rallado",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "beige",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "puré de zapallo",
+            "preparacionId": "pure_zapallo",
+            "ingredientes": [
+              {
+                "alimentoId": "zapallo",
+                "gramosEst": 60
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "naranja",
+              "sabor": "dulce",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "hondo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Los fideos: se los comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "nada",
+          "porcion": "chica",
+          "cita": "El puré de zapallo: ni lo tocó, lo dejó en el plato."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Los fideos: se los comió sin dejar nada. El puré de zapallo: ni lo tocó, lo dejó en el plato. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-07",
+      "fechaISO": "2026-10-07T17:00:00-03:00",
+      "momento": "merienda",
+      "analisis": {
+        "analisisId": "sint-lucia-02",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "yogur de vainilla",
+            "preparacionId": "yogur_vainilla",
+            "ingredientes": [
+              {
+                "alimentoId": "yogur",
+                "gramosEst": 150
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "blanco",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "listo"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "galletitas de agua",
+            "preparacionId": "galletitas_agua",
+            "ingredientes": [
+              {
+                "alimentoId": "galletitas_agua",
+                "gramosEst": 15
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "plano",
+              "color": "beige",
+              "sabor": "salado",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "listo"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El yogur: se lo comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "toco",
+          "porcion": "chica",
+          "cita": "Las galletitas: las tocó y las olió, pero no se las llevó a la boca."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El yogur: se lo comió sin dejar nada. Las galletitas: las tocó y las olió, pero no se las llevó a la boca. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-07",
+      "fechaISO": "2026-10-07T20:30:00-03:00",
+      "momento": "cena",
+      "analisis": {
+        "analisisId": "sint-lucia-03",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "puré de papa",
+            "preparacionId": "pure_papa",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 130
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "pollo hervido desmenuzado",
+            "preparacionId": "pollo_desmenuzado",
+            "ingredientes": [
+              {
+                "alimentoId": "pollo",
+                "gramosEst": 70
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "blanco",
+              "sabor": "neutro",
+              "temperatura": "tibio",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "brócoli hervido",
+            "preparacionId": "brocoli_hervido",
+            "ingredientes": [
+              {
+                "alimentoId": "brocoli",
+                "gramosEst": 30
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "verde",
+              "sabor": "neutro",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El puré: se lo comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad",
+          "porcion": "mediana",
+          "cita": "El pollo: comió más o menos la mitad."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "aparto",
+          "porcion": "chica",
+          "motivo": "color",
+          "cita": "El brócoli: lo sacó del plato, porque dijo que lo verde no lo come."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El puré: se lo comió sin dejar nada. El pollo: comió más o menos la mitad. El brócoli: lo sacó del plato, porque dijo que lo verde no lo come. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-08",
+      "fechaISO": "2026-10-08T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-lucia-04",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "papas fritas en bastones",
+            "preparacionId": "papas_fritas_baston",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 120
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "frito"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "pollo hervido desmenuzado",
+            "preparacionId": "pollo_desmenuzado",
+            "ingredientes": [
+              {
+                "alimentoId": "pollo",
+                "gramosEst": 70
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "blanco",
+              "sabor": "neutro",
+              "temperatura": "tibio",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "puré de papa",
+            "preparacionId": "pure_papa",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 130
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto",
+          "porcion": "mediana",
+          "motivo": "textura",
+          "cita": "Las papas fritas: las sacó del plato, porque no le gusta cómo se siente en la boca."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad",
+          "porcion": "mediana",
+          "cita": "El pollo: comió más o menos la mitad."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El puré: se lo comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "pidio_otra_cosa"
+      ],
+      "relato": {
+        "transcripcion": "Las papas fritas: las sacó del plato, porque no le gusta cómo se siente en la boca. El pollo: comió más o menos la mitad. El puré: se lo comió sin dejar nada. Pidió su comida de siempre.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-08",
+      "fechaISO": "2026-10-08T17:00:00-03:00",
+      "momento": "merienda",
+      "analisis": {
+        "analisisId": "sint-lucia-05",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "arroz con leche",
+            "preparacionId": "arroz_con_leche",
+            "ingredientes": [
+              {
+                "alimentoId": "arroz",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 150
+              },
+              {
+                "alimentoId": "azucar",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "granos",
+              "color": "blanco",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "mezclado",
+              "grupo": "lacteo",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "banana pisada",
+            "preparacionId": "banana_pisada",
+            "ingredientes": [
+              {
+                "alimentoId": "banana",
+                "gramosEst": 80
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "fruta",
+              "coccion": "crudo"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El arroz con leche: se lo comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad",
+          "porcion": "mediana",
+          "cita": "La banana: comió más o menos la mitad."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El arroz con leche: se lo comió sin dejar nada. La banana: comió más o menos la mitad. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-09",
+      "fechaISO": "2026-10-09T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-lucia-06",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "fideos con manteca y queso rallado",
+            "preparacionId": "fideos_manteca_queso",
+            "ingredientes": [
+              {
+                "alimentoId": "fideos",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              },
+              {
+                "alimentoId": "queso_rallado",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "beige",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "puré de zapallo",
+            "preparacionId": "pure_zapallo",
+            "ingredientes": [
+              {
+                "alimentoId": "zapallo",
+                "gramosEst": 60
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "naranja",
+              "sabor": "dulce",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "hondo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Los fideos: se los comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "toco",
+          "porcion": "chica",
+          "cita": "El puré de zapallo: lo tocó y lo olió, pero no se lo llevó a la boca."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Los fideos: se los comió sin dejar nada. El puré de zapallo: lo tocó y lo olió, pero no se lo llevó a la boca. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-09",
+      "fechaISO": "2026-10-09T20:30:00-03:00",
+      "momento": "cena",
+      "analisis": {
+        "analisisId": "sint-lucia-07",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "puré de papa",
+            "preparacionId": "pure_papa",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 130
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "arvejas enteras",
+            "preparacionId": "arvejas_enteras",
+            "ingredientes": [
+              {
+                "alimentoId": "arvejas",
+                "gramosEst": 30
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "blando",
+              "forma": "granos",
+              "color": "verde",
+              "sabor": "neutro",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El puré: se lo comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "aparto",
+          "porcion": "chica",
+          "motivo": "color",
+          "cita": "Las arvejas: las sacó del plato, porque dijo que lo verde no lo come."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "angustia"
+      ],
+      "relato": {
+        "transcripcion": "El puré: se lo comió sin dejar nada. Las arvejas: las sacó del plato, porque dijo que lo verde no lo come. Se angustió y lloró un rato.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-10",
+      "fechaISO": "2026-10-10T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-lucia-08",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "lentejas guisadas",
+            "preparacionId": "lentejas_guisadas",
+            "ingredientes": [
+              {
+                "alimentoId": "lentejas",
+                "gramosEst": 48
+              },
+              {
+                "alimentoId": "zanahoria",
+                "gramosEst": 12
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "blando",
+              "forma": "granos",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "proteina",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "fideos con manteca y queso rallado",
+            "preparacionId": "fideos_manteca_queso",
+            "ingredientes": [
+              {
+                "alimentoId": "fideos",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              },
+              {
+                "alimentoId": "queso_rallado",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "beige",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "hondo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "nada",
+          "porcion": "chica",
+          "cita": "Las lentejas: ni las tocó, las dejó en el plato."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Los fideos: se los comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Las lentejas: ni las tocó, las dejó en el plato. Los fideos: se los comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-10",
+      "fechaISO": "2026-10-10T17:00:00-03:00",
+      "momento": "merienda",
+      "analisis": {
+        "analisisId": "sint-lucia-09",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "yogur de vainilla",
+            "preparacionId": "yogur_vainilla",
+            "ingredientes": [
+              {
+                "alimentoId": "yogur",
+                "gramosEst": 150
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "blanco",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "listo"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "banana pisada",
+            "preparacionId": "banana_pisada",
+            "ingredientes": [
+              {
+                "alimentoId": "banana",
+                "gramosEst": 80
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "fruta",
+              "coccion": "crudo"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El yogur: se lo comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "La banana: se la comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El yogur: se lo comió sin dejar nada. La banana: se la comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-11",
+      "fechaISO": "2026-10-11T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-lucia-10",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "puré de papa",
+            "preparacionId": "pure_papa",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 130
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "arvejas en puré",
+            "preparacionId": "pure_arvejas",
+            "ingredientes": [
+              {
+                "alimentoId": "arvejas",
+                "gramosEst": 36
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 2
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "verde",
+              "sabor": "neutro",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "pollo hervido desmenuzado",
+            "preparacionId": "pollo_desmenuzado",
+            "ingredientes": [
+              {
+                "alimentoId": "pollo",
+                "gramosEst": 70
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "blanco",
+              "sabor": "neutro",
+              "temperatura": "tibio",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "mitad",
+          "porcion": "mediana",
+          "cita": "El puré: comió más o menos la mitad."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad",
+          "porcion": "chica",
+          "cita": "El puré de arvejas: comió más o menos la mitad."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "poco",
+          "porcion": "mediana",
+          "cita": "El pollo: comió unos bocados."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El puré: comió más o menos la mitad. El puré de arvejas: comió más o menos la mitad. El pollo: comió unos bocados. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-11",
+      "fechaISO": "2026-10-11T20:30:00-03:00",
+      "momento": "cena",
+      "analisis": {
+        "analisisId": "sint-lucia-11",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "fideos con manteca y queso rallado",
+            "preparacionId": "fideos_manteca_queso",
+            "ingredientes": [
+              {
+                "alimentoId": "fideos",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              },
+              {
+                "alimentoId": "queso_rallado",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "beige",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "puré de zapallo",
+            "preparacionId": "pure_zapallo",
+            "ingredientes": [
+              {
+                "alimentoId": "zapallo",
+                "gramosEst": 60
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "naranja",
+              "sabor": "dulce",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "hondo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Los fideos: se los comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "probo",
+          "porcion": "chica",
+          "cita": "El puré de zapallo: probó un bocadito y lo dejó."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Los fideos: se los comió sin dejar nada. El puré de zapallo: probó un bocadito y lo dejó. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-12",
+      "fechaISO": "2026-10-12T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-lucia-12",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "puré de papa",
+            "preparacionId": "pure_papa",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 130
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "lentejas guisadas",
+            "preparacionId": "lentejas_guisadas",
+            "ingredientes": [
+              {
+                "alimentoId": "lentejas",
+                "gramosEst": 48
+              },
+              {
+                "alimentoId": "zanahoria",
+                "gramosEst": 12
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "blando",
+              "forma": "granos",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "proteina",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "arroz con leche",
+            "preparacionId": "arroz_con_leche",
+            "ingredientes": [
+              {
+                "alimentoId": "arroz",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 150
+              },
+              {
+                "alimentoId": "azucar",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "granos",
+              "color": "blanco",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "mezclado",
+              "grupo": "lacteo",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El puré: se lo comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "toco",
+          "porcion": "chica",
+          "cita": "Las lentejas: las tocó y las olió, pero no se las llevó a la boca."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El arroz con leche: se lo comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El puré: se lo comió sin dejar nada. Las lentejas: las tocó y las olió, pero no se las llevó a la boca. El arroz con leche: se lo comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-13",
+      "fechaISO": "2026-10-13T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-lucia-13",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "arvejas en puré",
+            "preparacionId": "pure_arvejas",
+            "ingredientes": [
+              {
+                "alimentoId": "arvejas",
+                "gramosEst": 36
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 2
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "verde",
+              "sabor": "neutro",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "fideos con manteca y queso rallado",
+            "preparacionId": "fideos_manteca_queso",
+            "ingredientes": [
+              {
+                "alimentoId": "fideos",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              },
+              {
+                "alimentoId": "queso_rallado",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "beige",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "hondo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "chica",
+          "cita": "El puré de arvejas: se lo comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Los fideos: se los comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El puré de arvejas: se lo comió sin dejar nada. Los fideos: se los comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-13",
+      "fechaISO": "2026-10-13T20:30:00-03:00",
+      "momento": "cena",
+      "analisis": {
+        "analisisId": "sint-lucia-14",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "chauchas hervidas",
+            "preparacionId": "chauchas_hervidas",
+            "ingredientes": [
+              {
+                "alimentoId": "chauchas",
+                "gramosEst": 30
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "blando",
+              "forma": "baston",
+              "color": "verde",
+              "sabor": "neutro",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "puré de papa",
+            "preparacionId": "pure_papa",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 130
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "pollo hervido desmenuzado",
+            "preparacionId": "pollo_desmenuzado",
+            "ingredientes": [
+              {
+                "alimentoId": "pollo",
+                "gramosEst": 70
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "blanco",
+              "sabor": "neutro",
+              "temperatura": "tibio",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto",
+          "porcion": "chica",
+          "motivo": "color",
+          "cita": "Las chauchas: las sacó del plato, porque dijo que lo verde no lo come."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El puré: se lo comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "mitad",
+          "porcion": "mediana",
+          "cita": "El pollo: comió más o menos la mitad."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "se_levanto"
+      ],
+      "relato": {
+        "transcripcion": "Las chauchas: las sacó del plato, porque dijo que lo verde no lo come. El puré: se lo comió sin dejar nada. El pollo: comió más o menos la mitad. Se levantó varias veces de la mesa.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-14",
+      "fechaISO": "2026-10-14T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-lucia-15",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "puré de zapallo",
+            "preparacionId": "pure_zapallo",
+            "ingredientes": [
+              {
+                "alimentoId": "zapallo",
+                "gramosEst": 60
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "naranja",
+              "sabor": "dulce",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "fideos con manteca y queso rallado",
+            "preparacionId": "fideos_manteca_queso",
+            "ingredientes": [
+              {
+                "alimentoId": "fideos",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              },
+              {
+                "alimentoId": "queso_rallado",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "beige",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "hondo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "poco",
+          "porcion": "chica",
+          "cita": "El puré de zapallo: comió unos bocados."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Los fideos: se los comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El puré de zapallo: comió unos bocados. Los fideos: se los comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-14",
+      "fechaISO": "2026-10-14T17:00:00-03:00",
+      "momento": "merienda",
+      "analisis": {
+        "analisisId": "sint-lucia-16",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "yogur de vainilla",
+            "preparacionId": "yogur_vainilla",
+            "ingredientes": [
+              {
+                "alimentoId": "yogur",
+                "gramosEst": 150
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "blanco",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "lacteo",
+              "coccion": "listo"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "bastones de zanahoria horneados",
+            "preparacionId": "bastones_zanahoria_horno",
+            "ingredientes": [
+              {
+                "alimentoId": "zanahoria",
+                "gramosEst": 36
+              },
+              {
+                "alimentoId": "aceite_girasol",
+                "gramosEst": 2
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "crocante",
+              "forma": "baston",
+              "color": "naranja",
+              "sabor": "dulce",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "horno"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El yogur: se lo comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "nada",
+          "porcion": "chica",
+          "cita": "Los bastones de zanahoria: ni los tocó, los dejó en el plato."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El yogur: se lo comió sin dejar nada. Los bastones de zanahoria: ni los tocó, los dejó en el plato. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-15",
+      "fechaISO": "2026-10-15T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-lucia-17",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "lentejas guisadas",
+            "preparacionId": "lentejas_guisadas",
+            "ingredientes": [
+              {
+                "alimentoId": "lentejas",
+                "gramosEst": 48
+              },
+              {
+                "alimentoId": "zanahoria",
+                "gramosEst": 12
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "blando",
+              "forma": "granos",
+              "color": "marron",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "proteina",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "puré de papa",
+            "preparacionId": "pure_papa",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 130
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "arvejas en puré",
+            "preparacionId": "pure_arvejas",
+            "ingredientes": [
+              {
+                "alimentoId": "arvejas",
+                "gramosEst": 36
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 2
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "verde",
+              "sabor": "neutro",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "probo",
+          "porcion": "chica",
+          "cita": "Las lentejas: probó un bocadito y las dejó."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El puré: se lo comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "todo",
+          "porcion": "chica",
+          "cita": "El puré de arvejas: se lo comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "Las lentejas: probó un bocadito y las dejó. El puré: se lo comió sin dejar nada. El puré de arvejas: se lo comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-15",
+      "fechaISO": "2026-10-15T20:30:00-03:00",
+      "momento": "cena",
+      "analisis": {
+        "analisisId": "sint-lucia-18",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "brócoli hervido",
+            "preparacionId": "brocoli_hervido",
+            "ingredientes": [
+              {
+                "alimentoId": "brocoli",
+                "gramosEst": 30
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "verde",
+              "sabor": "neutro",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "fideos con manteca y queso rallado",
+            "preparacionId": "fideos_manteca_queso",
+            "ingredientes": [
+              {
+                "alimentoId": "fideos",
+                "gramosEst": 90
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              },
+              {
+                "alimentoId": "queso_rallado",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "beige",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "mezclado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "hondo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto",
+          "porcion": "chica",
+          "motivo": "color",
+          "cita": "El brócoli: lo sacó del plato, porque dijo que lo verde no lo come."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "Los fideos: se los comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El brócoli: lo sacó del plato, porque dijo que lo verde no lo come. Los fideos: se los comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-16",
+      "fechaISO": "2026-10-16T12:30:00-03:00",
+      "momento": "almuerzo",
+      "analisis": {
+        "analisisId": "sint-lucia-19",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "puré de zapallo",
+            "preparacionId": "pure_zapallo",
+            "ingredientes": [
+              {
+                "alimentoId": "zapallo",
+                "gramosEst": 60
+              }
+            ],
+            "porcion": "chica",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "naranja",
+              "sabor": "dulce",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "verdura",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "pollo hervido desmenuzado",
+            "preparacionId": "pollo_desmenuzado",
+            "ingredientes": [
+              {
+                "alimentoId": "pollo",
+                "gramosEst": 70
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "blando",
+              "forma": "trozos",
+              "color": "blanco",
+              "sabor": "neutro",
+              "temperatura": "tibio",
+              "presentacion": "separado",
+              "grupo": "proteina",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i3",
+            "preparacion": "puré de papa",
+            "preparacionId": "pure_papa",
+            "ingredientes": [
+              {
+                "alimentoId": "papa",
+                "gramosEst": 130
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "manteca",
+                "gramosEst": 5
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "salado",
+              "temperatura": "caliente",
+              "presentacion": "separado",
+              "grupo": "cereal_almidon",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 3,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "mitad",
+          "porcion": "chica",
+          "cita": "El puré de zapallo: comió más o menos la mitad."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad",
+          "porcion": "mediana",
+          "cita": "El pollo: comió más o menos la mitad."
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El puré: se lo comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El puré de zapallo: comió más o menos la mitad. El pollo: comió más o menos la mitad. El puré: se lo comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    },
+    {
+      "ninoId": "lucia",
+      "dia": "2026-10-16",
+      "fechaISO": "2026-10-16T17:00:00-03:00",
+      "momento": "merienda",
+      "analisis": {
+        "analisisId": "sint-lucia-20",
+        "sinComida": false,
+        "items": [
+          {
+            "idTmp": "i1",
+            "preparacion": "arroz con leche",
+            "preparacionId": "arroz_con_leche",
+            "ingredientes": [
+              {
+                "alimentoId": "arroz",
+                "gramosEst": 30
+              },
+              {
+                "alimentoId": "leche",
+                "gramosEst": 150
+              },
+              {
+                "alimentoId": "azucar",
+                "gramosEst": 10
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "granos",
+              "color": "blanco",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "mezclado",
+              "grupo": "lacteo",
+              "coccion": "hervido"
+            },
+            "caja": null,
+            "confianza": 1
+          },
+          {
+            "idTmp": "i2",
+            "preparacion": "banana pisada",
+            "preparacionId": "banana_pisada",
+            "ingredientes": [
+              {
+                "alimentoId": "banana",
+                "gramosEst": 80
+              }
+            ],
+            "porcion": "mediana",
+            "atributos": {
+              "textura": "cremoso",
+              "forma": "pure",
+              "color": "amarillo",
+              "sabor": "dulce",
+              "temperatura": "frio",
+              "presentacion": "separado",
+              "grupo": "fruta",
+              "coccion": "crudo"
+            },
+            "caja": null,
+            "confianza": 1
+          }
+        ],
+        "distribucion": {
+          "estado": "separados",
+          "cantidadItems": 2,
+          "plato": "playo"
+        },
+        "preguntas": [],
+        "modelo": "sintetico",
+        "ms": 0
+      },
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "El arroz con leche: se lo comió sin dejar nada."
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo",
+          "porcion": "mediana",
+          "cita": "La banana: se la comió sin dejar nada."
+        }
+      ],
+      "respuestasPreguntas": [],
+      "conducta": [
+        "tranquilo"
+      ],
+      "relato": {
+        "transcripcion": "El arroz con leche: se lo comió sin dejar nada. La banana: se la comió sin dejar nada. La comida fue tranquila.",
+        "fuente": "texto"
+      }
+    }
+  ]
+}
