@@ -19,6 +19,19 @@ interface Opciones { metodo?: 'GET' | 'POST'; cuerpo?: unknown; timeoutMs?: numb
 
 export interface Respuesta<T> { datos: T; stub: boolean; ms: number }
 
+// Endpoints que respondieron con datos de ejemplo (x-nibble-stub) en la pantalla actual. App muestra un aviso
+// mientras haya alguno, para que nada fijo parezca IA (§14) y limpia la lista al cambiar de pantalla.
+const stubsVistos = new Set<string>()
+const oyentes = new Set<() => void>()
+let versionStubs = 0
+const avisarStubs = () => { versionStubs++; oyentes.forEach((f) => f()) }
+export const avisoStubs = {
+  suscribir: (f: () => void) => { oyentes.add(f); return () => { oyentes.delete(f) } },
+  version: () => versionStubs,
+  lista: () => [...stubsVistos],
+  limpiar: () => { if (stubsVistos.size) { stubsVistos.clear(); avisarStubs() } },
+}
+
 /** Pide a /api y devuelve los datos junto con si vinieron de un stub (header x-nibble-stub). */
 export async function pedirConMeta<T>(ruta: string, { metodo = 'GET', cuerpo, timeoutMs = 30_000, senal }: Opciones = {}): Promise<Respuesta<T>> {
   const t0 = performance.now()
@@ -47,7 +60,10 @@ export async function pedirConMeta<T>(ruta: string, { metodo = 'GET', cuerpo, ti
       : { error: { codigo: 'interno', mensaje: 'Algo falló de nuestro lado. ¿Probás de nuevo?', reintentable: true, detalle: texto.slice(0, 300) } } satisfies ErrorApi
     throw new ErrorDeApi(r.status, cuerpoError)
   }
-  return { datos: json as T, stub: r.headers.get('x-nibble-stub') === '1', ms: Math.round(performance.now() - t0) }
+  const stub = r.headers.get('x-nibble-stub') === '1'
+  const endpoint = ruta.replace(/^\/api\//, '').split('?')[0]
+  if (stub && !stubsVistos.has(endpoint)) { stubsVistos.add(endpoint); avisarStubs() }
+  return { datos: json as T, stub, ms: Math.round(performance.now() - t0) }
 }
 
 export async function pedir<T>(ruta: string, opciones?: Opciones): Promise<T> {

@@ -1,4 +1,6 @@
+import { useEffect, useSyncExternalStore } from 'react'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
+import { avisoStubs } from './lib/api'
 import { Estado } from './pantallas/Estado'
 import { Inicio } from './pantallas/Inicio'
 import { Pendiente } from './pantallas/Pendiente'
@@ -16,8 +18,29 @@ const NAV = [
   { a: '/perfil', texto: 'Perfil' },
 ]
 
+// Cómo se llama cada endpoint para el padre, en el aviso de datos de ejemplo.
+const QUE_ES: Record<string, string> = {
+  'analizar-comida': 'la lectura de la foto', 'relato-comida': 'la nota de voz', transcribir: 'la transcripción',
+  'perfil-inicial': 'lo que entendimos del relato', receta: 'la receta', 'imagen-plato': 'la imagen del plato',
+  perfil: 'el perfil', 'registrar-comida': 'el registro de la comida', nutricion: 'los nutrientes del día',
+  progreso: 'el tablero', salud: 'el estado de los servicios', resumen: 'los números del resumen',
+}
+
+function AvisoDatosDeEjemplo() {
+  useSyncExternalStore(avisoStubs.suscribir, avisoStubs.version)
+  const lista = avisoStubs.lista()
+  if (!lista.length) return null
+  const partes = lista.map((e) => QUE_ES[e] ?? e)
+  return (
+    <p className="nb-aviso-ejemplo" role="note">
+      <strong>Datos de ejemplo.</strong> Todavía no está conectado: {partes.join(', ')}.
+    </p>
+  )
+}
+
 export function App() {
-  const { search } = useLocation()
+  const { search, pathname } = useLocation()
+  useEffect(() => avisoStubs.limpiar(), [pathname])
   return (
     <div className="nb-app">
       <header className="nb-cabecera">
@@ -26,6 +49,7 @@ export function App() {
         </Link>
       </header>
       <main className="nb-contenido">
+        <AvisoDatosDeEjemplo />
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/registrar" element={<Registrar />} />

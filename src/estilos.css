@@ -66,3 +66,10 @@ p { margin: 0 0 0.75rem; }
 @media (prefers-reduced-motion: reduce) { .nb-puntos span { animation: none; opacity: 0.6; } }
 .nb-aviso { background: var(--nb-superficie-suave); display: flex; flex-direction: column; gap: 8px; }
 .nb-vacio { text-align: center; }
+
+/* Aviso global de datos de ejemplo (endpoints que todavía responden con fixture) */
+.nb-aviso-ejemplo {
+  margin: 0; padding: 8px 12px; border-radius: var(--nb-radio-chico);
+  background: var(--nb-superficie-suave); border: 1px dashed var(--nb-borde);
+  color: var(--nb-texto-suave); font-size: 0.85rem;
+}
