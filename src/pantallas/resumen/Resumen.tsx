@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type RefObject } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { ResumenRes } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
+import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { pedirConMeta } from '../../lib/api'
 import { useNino } from '../../lib/nino'
 import { useApi } from '../../lib/useApi'
@@ -78,7 +79,9 @@ export function Resumen() {
       </header>
 
       {estado.tipo === 'cargando' && <Cargando texto="Armando el resumen de la semana…" />}
-      {estado.tipo === 'error' && <ErrorConReintento error={estado.error} reintentar={estado.reintentar} />}
+      {estado.tipo === 'error' && (estado.error.codigo === 'no_encontrado'
+        ? <PerfilNoEncontrado ninoId={ninoId} pantalla="/resumen" />
+        : <ErrorConReintento error={estado.error} reintentar={estado.reintentar} />)}
       {estado.tipo === 'ok' && (
         <>
           <article className="nb-tarjeta rs-tarjeta" aria-labelledby="rs-titulo">

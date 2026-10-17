@@ -2,12 +2,13 @@
 // Hacia el padre nunca se dice "rechaza": el estado 'rechaza' se muestra como "Todavía no".
 import { Link } from 'react-router-dom'
 import type { Perfil as PerfilT } from '../../../shared/contratos'
-import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
+import { Cargando, ErrorConReintento } from '../../componentes/Estados'
+import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { api } from '../../lib/api'
 import { NINO_DEMO, useNino } from '../../lib/nino'
 import { useApi } from '../../lib/useApi'
-import { NOMBRE_ALERGENO } from '../../lib/vocabulario'
-import { agruparPreparaciones, separarPatrones, textoConfianza, textoVeces } from './borrador'
+import { NOMBRE_ALERGENO, textoParaPadres } from '../../lib/vocabulario'
+import { agruparPreparaciones, separarPatrones, textoConfianza, textoEnElPlato } from './borrador'
 import { RUTA_DEMO_JURADO, RUTA_PERFIL_NUEVO } from './rutas'
 import { anios, AVISO_DECLARADA, AVISO_DIETA, NOMBRE_DIETA, NOMBRE_SENAL } from './textos'
 import './perfil.css'
@@ -18,17 +19,7 @@ export function Perfil() {
 
   if (estado.tipo === 'cargando') return <Cargando texto="Cargando el perfil…" />
   if (estado.tipo === 'error') {
-    if (estado.error.codigo === 'no_encontrado') {
-      return (
-        <Vacio titulo="No encontramos este perfil">
-          <p className="nb-suave">Puede que se haya creado en otro celular. Podés crear uno nuevo en un par de minutos.</p>
-          <div className="pf-botones">
-            <Link className="nb-boton" to={RUTA_PERFIL_NUEVO}>Crear un perfil</Link>
-            <Link className="nb-boton nb-boton-secundario" to={`/perfil?nino=${NINO_DEMO}`}>Ver el perfil de ejemplo</Link>
-          </div>
-        </Vacio>
-      )
-    }
+    if (estado.error.codigo === 'no_encontrado') return <PerfilNoEncontrado ninoId={ninoId} pantalla="/perfil" />
     return <ErrorConReintento error={estado.error} reintentar={estado.reintentar} />
   }
   return <VistaPerfil perfil={estado.datos} />
@@ -94,7 +85,7 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
           <ul className="pf-lista-simple">
             {patrones.aprendidos.map((p, i) => (
               <li key={i}>
-                {p.texto}
+                {textoParaPadres(p.texto)}
                 <span className="pf-meta">{textoConfianza(p.confianza)} · en <span className="nb-numero">{p.apoyo}</span> {p.apoyo === 1 ? 'comida' : 'comidas'}</span>
               </li>
             ))}
@@ -107,7 +98,7 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
             <h3>De la investigación</h3>
             <p className="pf-ayuda">Son puntos de partida: se confirman o se descartan con sus propias comidas.</p>
             <ul className="pf-lista-simple">
-              {patrones.investigacion.map((p, i) => <li key={i}>{p.texto}</li>)}
+              {patrones.investigacion.map((p, i) => <li key={i}>{textoParaPadres(p.texto)}</li>)}
             </ul>
           </>
         )}
@@ -145,7 +136,7 @@ function GrupoPrep({ titulo, ayuda, lista }: { titulo: string; ayuda: string; li
         {lista.map((p) => (
           <li key={p.id}>
             <span>{p.nombre}</span>
-            <span className="pf-meta nb-numero">{textoVeces(p.veces)} en el plato</span>
+            <span className="pf-meta nb-numero">{textoEnElPlato(p.veces)}</span>
           </li>
         ))}
       </ul>

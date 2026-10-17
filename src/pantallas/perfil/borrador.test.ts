@@ -5,7 +5,7 @@ import tomas from '../../../data/sinteticos/tomas.json'
 import perfilFixture from '../../../fixtures/perfil.json'
 import {
   agregarAcepta, agregarRechaza, agregarRegla, agruparPreparaciones, alternarAlergia, armarCrearPerfilReq, cambiarMotivo,
-  formDesde, formVacio, leerNumero, quitarAcepta, quitarRegla, renombrarAcepta, separarPatrones, sumarNota, textoVeces, validarDatos,
+  formDesde, formVacio, leerNumero, quitarAcepta, quitarRegla, renombrarAcepta, separarPatrones, sumarNota, textoEnElPlato, textoVeces, validarDatos,
 } from './borrador'
 import { DATOS_DEMO, RELATO_DEMO } from './demo'
 import { RUTA_DEMO_JURADO } from './rutas'
@@ -121,6 +121,8 @@ describe('vista del perfil', () => {
   it('cuenta veces en singular y plural', () => {
     expect(textoVeces(1)).toBe('1 vez')
     expect(textoVeces(14)).toBe('14 veces')
+    expect(textoEnElPlato(0)).toBe('Según lo que contaste')
+    expect(textoEnElPlato(3)).toBe('3 veces en el plato')
   })
 })
 

@@ -66,6 +66,7 @@ p { margin: 0 0 0.75rem; }
 @media (prefers-reduced-motion: reduce) { .nb-puntos span { animation: none; opacity: 0.6; } }
 .nb-aviso { background: var(--nb-superficie-suave); display: flex; flex-direction: column; gap: 8px; }
 .nb-vacio { text-align: center; }
+.nb-botones { display: flex; flex-direction: column; gap: 10px; }
 
 /* Aviso global de datos de ejemplo (endpoints que todavía responden con fixture) */
 .nb-aviso-ejemplo {

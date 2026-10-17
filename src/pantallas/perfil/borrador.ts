@@ -190,6 +190,8 @@ export function separarPatrones(lista: PatronVista[]) {
 }
 
 export const textoVeces = (n: number) => (n === 1 ? '1 vez' : `${n} veces`)
+/** Lo que contó el padre al crear el perfil todavía no pasó por el plato (veces = 0): no se dice "0 veces". */
+export const textoEnElPlato = (n: number) => (n > 0 ? `${textoVeces(n)} en el plato` : 'Según lo que contaste')
 
 export function textoConfianza(c: number): string {
   if (c >= 0.75) return 'Bastante claro'
