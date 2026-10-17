@@ -1,6 +1,102 @@
-import { Pendiente } from '../Pendiente'
+// C8 · Resumen para el nutricionista (PLAN.md §9). Ruta: /resumen?nino=
+// Los números los calcula el servidor; el texto se redacta solo con esos números. Acá se lee y se copia.
+import { useEffect, useRef, useState, type RefObject } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import type { ResumenRes } from '../../../shared/contratos'
+import { Cargando, ErrorConReintento } from '../../componentes/Estados'
+import { pedirConMeta } from '../../lib/api'
+import { useNino } from '../../lib/nino'
+import { useApi } from '../../lib/useApi'
+import './resumen.css'
 
-// Resumen para el nutricionista: la reemplaza la tarea C8.
+const ACLARACION = 'Valores aproximados, no es un diagnóstico.'
+
+function fechaLegible(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return new Intl.DateTimeFormat('es-UY', { dateStyle: 'long', timeStyle: 'short', timeZone: 'America/Montevideo' }).format(d)
+}
+
+type Copiado = 'nada' | 'copiado' | 'seleccionado'
+
+function BotonCopiar({ texto, destino }: { texto: string; destino: RefObject<HTMLElement | null> }) {
+  const [estado, setEstado] = useState<Copiado>('nada')
+  const reloj = useRef<number | undefined>(undefined)
+  useEffect(() => () => window.clearTimeout(reloj.current), [])
+
+  function avisar(e: Copiado) {
+    setEstado(e)
+    window.clearTimeout(reloj.current)
+    if (e === 'copiado') reloj.current = window.setTimeout(() => setEstado('nada'), 2500)
+  }
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(texto)
+      return avisar('copiado')
+    } catch { /* sin permiso o sin contexto seguro: se selecciona el texto */ }
+    const el = destino.current
+    const sel = window.getSelection()
+    if (el && sel) {
+      const rango = document.createRange()
+      rango.selectNodeContents(el)
+      sel.removeAllRanges()
+      sel.addRange(rango)
+      let ok = false
+      try { ok = document.execCommand('copy') } catch { ok = false }
+      avisar(ok ? 'copiado' : 'seleccionado')
+    }
+  }
+
+  return (
+    <div className="rs-copiar">
+      <button type="button" className="nb-boton" onClick={copiar}>
+        {estado === 'copiado' ? 'Copiado' : 'Copiar'}
+      </button>
+      <p className="rs-copiar-aviso" role="status" aria-live="polite">
+        {estado === 'copiado' && 'Copiado. Ya lo podés pegar en un mensaje o un correo.'}
+        {estado === 'seleccionado' && 'Seleccionamos el texto: copialo desde el menú del celular.'}
+      </p>
+    </div>
+  )
+}
+
 export function Resumen() {
-  return <Pendiente titulo="Resumen para el nutricionista" tarea="C8" />
+  const ninoId = useNino()
+  const { search } = useLocation()
+  const estado = useApi(
+    (senal) => pedirConMeta<ResumenRes>(`/api/resumen?${new URLSearchParams({ ninoId })}`, { timeoutMs: 40_000, senal }),
+    [ninoId],
+  )
+  const textoRef = useRef<HTMLDivElement>(null)
+
+  return (
+    <>
+      <header className="rs-encabezado">
+        <h1>Resumen para el nutricionista</h1>
+        <p className="nb-suave">Para llevar a la consulta o mandar por mensaje. {ACLARACION}</p>
+      </header>
+
+      {estado.tipo === 'cargando' && <Cargando texto="Armando el resumen de la semana…" />}
+      {estado.tipo === 'error' && <ErrorConReintento error={estado.error} reintentar={estado.reintentar} />}
+      {estado.tipo === 'ok' && (
+        <>
+          <article className="nb-tarjeta rs-tarjeta" aria-labelledby="rs-titulo">
+            <div className="rs-meta">
+              <h2 id="rs-titulo" className="rs-titulo">Semana de alimentación</h2>
+              {estado.datos.stub && <span className="nb-chip rs-chip">Datos de ejemplo</span>}
+            </div>
+            <div ref={textoRef} className="rs-texto">{estado.datos.datos.texto}</div>
+            <p className="rs-fecha">
+              Generado el <time dateTime={estado.datos.datos.generadoISO}>{fechaLegible(estado.datos.datos.generadoISO)}</time>
+            </p>
+          </article>
+          <BotonCopiar texto={estado.datos.datos.texto} destino={textoRef} />
+          <p className="rs-nota">Los números los calcula la app con las comidas que registraste; el texto se redacta usando solo esos números.</p>
+        </>
+      )}
+
+      <Link className="nb-boton nb-boton-secundario" to={{ pathname: '/tablero', search }}>Volver al tablero</Link>
+    </>
+  )
 }

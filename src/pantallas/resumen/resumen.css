@@ -1,0 +1,25 @@
+/* C8 · Resumen para el nutricionista. Mobile first; tokens de brand/tokens/nibble.css. Prefijo rs-. */
+.rs-encabezado h1 { text-wrap: balance; }
+.rs-encabezado p { margin: 0; text-wrap: pretty; }
+
+.rs-tarjeta { display: flex; flex-direction: column; gap: 12px; }
+.rs-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.rs-titulo { font-size: 1.1rem; margin: 0; }
+.rs-chip { border: 1px solid var(--nb-borde); font-weight: 700; }
+
+.rs-texto {
+  white-space: pre-wrap; overflow-wrap: anywhere;
+  font-size: 1rem; line-height: 1.6; font-variant-numeric: tabular-nums;
+  user-select: text; -webkit-user-select: text;
+}
+.rs-fecha { font-size: 0.85rem; color: var(--nb-texto-suave); margin: 0; padding-top: 10px; border-top: 1px solid var(--nb-borde); }
+
+.rs-copiar { display: flex; flex-direction: column; gap: 4px; }
+.rs-copiar .nb-boton { transition: transform 120ms ease-out, background-color 150ms ease-out; }
+.rs-copiar .nb-boton:active { transform: scale(0.98); }
+.rs-copiar-aviso { min-height: 1.5em; margin: 0; font-size: 0.9rem; color: var(--nb-texto-suave); text-align: center; }
+.rs-nota { font-size: 0.85rem; color: var(--nb-texto-suave); text-wrap: pretty; margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-copiar .nb-boton:active { transform: none; }
+}
