@@ -1,6 +1,6 @@
-// Claude con el SDK oficial (PLAN.md §7, A4). JSON con output_config.format (zodOutputFormat) + validación Zod.
-// Sin temperature ni top_p, sin `thinking` (corre el adaptativo por defecto) y sin prefill: los modelos 5.5 los
-// rechazan. El effort va dentro de output_config.
+// Claude con el SDK oficial (PLAN.md §7, A4). JSON con output_config.format (JSON Schema propio, ver schemaClaude)
+// + validación Zod. Sin temperature ni top_p, sin `thinking` (corre el adaptativo por defecto) y sin prefill: los
+// modelos 5.5 los rechazan. El effort va dentro de output_config.
 import Anthropic, {
   APIConnectionTimeoutError,
   AuthenticationError,
@@ -8,8 +8,7 @@ import Anthropic, {
   RateLimitError,
   type AutoParseableOutputFormat,
 } from '@anthropic-ai/sdk'
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
-import type { ZodType } from 'zod'
+import { z, type ZodType } from 'zod'
 import { ErrorIA } from '../errores.js'
 import type { Parte } from '../modelo.js'
 import {
@@ -60,16 +59,60 @@ function corte(motivo: Anthropic.StopReason | null): Turno<unknown>['corte'] {
   return 'fin'
 }
 
-// messages.parse() tira AnthropicError si la salida no valida, y con eso se pierde la respuesta que el reintento
-// tiene que mandar de vuelta. Por eso: el JSON Schema de zodOutputFormat con un parse que no tira.
-function formato<T>(schema: ZodType<T>): AutoParseableOutputFormat<Validacion<T>> {
-  let base: AutoParseableOutputFormat<T>
-  try {
-    base = zodOutputFormat(schema)
-  } catch (e) {
-    throw new Error(`zodOutputFormat no pudo convertir el schema (${descripcion(e)}). z.tuple no está soportado: usá z.array(…).length(n)`)
+type Nodo = Record<string, unknown>
+
+const FORMATOS = new Set(['date-time', 'time', 'date', 'duration', 'email', 'hostname', 'uri', 'ipv4', 'ipv6', 'uuid'])
+const A_LA_DESCRIPCION = new Set([
+  'minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum', 'multipleOf', 'minLength', 'maxLength', 'pattern', 'minItems', 'maxItems',
+])
+
+const adaptarTodos = (nodos: unknown) => (nodos as Nodo[]).map(adaptar)
+const adaptarMapa = (mapa: unknown) => Object.fromEntries(Object.entries(mapa as Record<string, Nodo>).map(([k, v]) => [k, adaptar(v)]))
+
+// Un nodo de z.toJSONSchema → lo que acepta la salida estructurada. Se queda con type, enum, const, anyOf, allOf,
+// properties, required, items, $ref/$defs, description, title, los formatos soportados y minItems 0 o 1; cada object
+// lleva additionalProperties: false. Las restricciones que la API no acepta van como pista en la descripción (como
+// hace el SDK) y Zod las sigue validando. El resto ($schema, default…) se descarta.
+function adaptar(nodo: Nodo): Nodo {
+  const fuera: Nodo = {}
+  const pistas: string[] = []
+  for (const [clave, valor] of Object.entries(nodo)) {
+    if (['type', 'enum', 'const', 'required', 'title', 'description', '$ref'].includes(clave)) fuera[clave] = valor
+    else if (clave === 'properties') fuera.properties = adaptarMapa(valor)
+    else if (clave === '$defs') fuera.$defs = adaptarMapa(valor)
+    else if (clave === 'anyOf' || clave === 'oneOf') fuera.anyOf = adaptarTodos(valor)
+    else if (clave === 'allOf') fuera.allOf = adaptarTodos(valor)
+    else if (clave === 'items' && typeof valor === 'object') fuera.items = adaptar(valor as Nodo)
+    else if (clave === 'prefixItems') {
+      // z.tuple: la API no tiene tuplas; va como array del tipo de sus elementos y Zod controla el largo.
+      const elementos = adaptarTodos(valor)
+      const iguales = elementos.every((e) => JSON.stringify(e) === JSON.stringify(elementos[0]))
+      fuera.items = iguales ? elementos[0] : { anyOf: elementos }
+    } else if (clave === 'format' && FORMATOS.has(String(valor))) fuera.format = valor
+    else if (clave === 'minItems' && (valor === 0 || valor === 1)) fuera.minItems = valor
+    else if (clave === 'propertyNames' || (clave === 'additionalProperties' && typeof valor === 'object' && valor && Object.keys(valor).length)) {
+      throw new Error('La salida estructurada de Claude no acepta z.record (pide additionalProperties: false): usá un array de objetos')
+    } else if (A_LA_DESCRIPCION.has(clave) && Math.abs(Number(valor)) !== Number.MAX_SAFE_INTEGER) {
+      pistas.push(`${clave}: ${JSON.stringify(valor)}`)
+    }
   }
-  return { type: base.type, schema: base.schema, parse: (texto) => validarJSON(schema, texto) }
+  if (fuera.type === 'object') {
+    fuera.properties ??= {}
+    fuera.additionalProperties = false
+  }
+  if (pistas.length) fuera.description = [fuera.description, `{${pistas.join(', ')}}`].filter(Boolean).join('\n\n')
+  return fuera
+}
+
+/** El JSON Schema que va en output_config.format. No usamos el de zodOutputFormat: manda enum y const a la descripción. */
+export function schemaClaude(schema: ZodType): Nodo {
+  return adaptar(z.toJSONSchema(schema) as Nodo)
+}
+
+// messages.parse() tira AnthropicError si la salida no valida, y con eso se pierde la respuesta que el reintento
+// tiene que mandar de vuelta. Por eso el formato lleva un parse que no tira (en el pedido viaja { type, schema }).
+function formato<T>(schema: ZodType<T>): AutoParseableOutputFormat<Validacion<T>> {
+  return { type: 'json_schema', schema: schemaClaude(schema), parse: (texto) => validarJSON(schema, texto) }
 }
 
 function base(pedido: Pedido, maxTokens: number, mensajes: Anthropic.MessageParam[]) {

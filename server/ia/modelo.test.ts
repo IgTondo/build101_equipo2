@@ -212,9 +212,40 @@ describe('generarJSON con Claude', () => {
     expect(modeloPara('vision')).toBe('claude-haiku-5-5')
   })
 
-  it('avisa si el schema usa z.tuple (zodOutputFormat no lo soporta)', async () => {
-    const ConTupla = z.object({ caja: z.tuple([z.number(), z.number(), z.number(), z.number()]) })
-    await expect(generarJSON({ tarea: 'vision', partes: PARTES, schema: ConTupla })).rejects.toThrow(/z\.array/)
+  it('el schema enviado conserva enum y const, cierra cada object y no lleva lo que la API no soporta', async () => {
+    const Item = z.object({
+      textura: z.enum(['crocante', 'blando']),
+      origen: z.literal('duda'),
+      confianza: z.number().min(0).max(1),
+      nombre: z.string().min(1),
+      caja: z.tuple([z.number(), z.number(), z.number(), z.number()]).nullable(),
+      atributos: z.object({ coccion: z.enum(['frito', 'horno']).nullable() }),
+    })
+    const Schema = z.object({ items: z.array(Item).max(3) })
+    claudeResponde('{"items":[{"textura":"crocante","origen":"duda","confianza":0.9,"nombre":"papas","caja":[1,2,3,4],"atributos":{"coccion":null}}]}')
+    const r = await generarJSON({ tarea: 'vision', partes: PARTES, schema: Schema })
+    expect(r.datos.items[0].caja).toEqual([1, 2, 3, 4])
+    // Lo que viaja en el pedido (el parse no se serializa).
+    const enviado = JSON.parse(JSON.stringify(llamada(sdk.claudeParse).output_config?.format))
+    expect(Object.keys(enviado)).toEqual(['type', 'schema'])
+    expect(enviado.type).toBe('json_schema')
+    const { schema } = enviado
+    const item = schema.properties.items.items
+    expect(item.properties.textura).toEqual({ type: 'string', enum: ['crocante', 'blando'] })
+    expect(item.properties.origen).toEqual({ type: 'string', const: 'duda' })
+    expect(item.properties.atributos.properties.coccion.anyOf[0].enum).toEqual(['frito', 'horno'])
+    expect(item.properties.caja.anyOf[0]).toMatchObject({ type: 'array', items: { type: 'number' } })
+    for (const objeto of [schema, item, item.properties.atributos]) expect(objeto.additionalProperties).toBe(false)
+    const texto = JSON.stringify(schema)
+    for (const clave of ['$schema', 'minimum', 'maximum', 'minLength', 'maxItems', 'prefixItems']) expect(texto).not.toContain(`"${clave}"`)
+    // Las restricciones que no viajan quedan como pista para el modelo (y las sigue validando Zod).
+    expect(item.properties.confianza.description).toBe('{minimum: 0, maximum: 1}')
+  })
+
+  it('z.record no se puede mandar a Claude: avisa en vez de mandar un object vacío', async () => {
+    const ConRecord = z.object({ gramos: z.record(z.string(), z.number()) })
+    await expect(generarJSON({ tarea: 'vision', partes: PARTES, schema: ConRecord })).rejects.toThrow(/z\.record/)
+    expect(sdk.claudeParse).not.toHaveBeenCalled()
   })
 
   it('sin partes → entrada_invalida', async () => {
