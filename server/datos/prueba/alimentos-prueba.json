@@ -1,0 +1,1043 @@
+{
+  "_nota": "Fixture para los tests de la pista B: valores aproximados por 100 g tomados de USDA (SR Legacy/FNDDS) de memoria. El catálogo real es data/alimentos.json (A3).",
+  "alimentos": [
+    {
+      "id": "aceite_canola",
+      "nombre": "Aceite de canola",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "otro",
+      "por100g": {
+        "energia_kcal": 884,
+        "proteina_g": 0,
+        "calcio_mg": 0,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0,
+        "fibra_g": 0,
+        "omega3_g": 9.1,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [],
+      "porcionMedianaG": 10,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "aceite_girasol",
+      "nombre": "Aceite de girasol",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "otro",
+      "por100g": {
+        "energia_kcal": 884,
+        "proteina_g": 0,
+        "calcio_mg": 0,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0,
+        "fibra_g": 0,
+        "omega3_g": 0,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [],
+      "porcionMedianaG": 10,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "arroz",
+      "nombre": "Arroz blanco cocido (sin enriquecer)",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 130,
+        "proteina_g": 2.7,
+        "calcio_mg": 10,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.2,
+        "fibra_g": 0.4,
+        "omega3_g": 0.02,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [],
+      "porcionMedianaG": 120,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "arvejas",
+      "nombre": "Arvejas hervidas",
+      "alias": [
+        "guisantes",
+        "chícharos"
+      ],
+      "fdcId": null,
+      "grupo": "verdura",
+      "por100g": {
+        "energia_kcal": 78,
+        "proteina_g": 5.2,
+        "calcio_mg": 24,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 1.5,
+        "fibra_g": 4.5,
+        "omega3_g": 0.02,
+        "b12_ug": 0,
+        "vitamina_c_mg": 9.9
+      },
+      "alergenos": [],
+      "porcionMedianaG": 60,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "atun",
+      "nombre": "Atún enlatado en aceite, escurrido",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "proteina",
+      "por100g": {
+        "energia_kcal": 198,
+        "proteina_g": 29.1,
+        "calcio_mg": 13,
+        "vitamina_d_ug": 6.7,
+        "hierro_mg": 1.4,
+        "fibra_g": 0,
+        "omega3_g": 0.33,
+        "b12_ug": 2.2,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "pescado"
+      ],
+      "porcionMedianaG": 60,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "avena",
+      "nombre": "Avena en copos (cruda)",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 379,
+        "proteina_g": 13.2,
+        "calcio_mg": 52,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 4.3,
+        "fibra_g": 10.1,
+        "omega3_g": 0.1,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "gluten"
+      ],
+      "porcionMedianaG": 40,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "azucar",
+      "nombre": "Azúcar",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "otro",
+      "por100g": {
+        "energia_kcal": 387,
+        "proteina_g": 0,
+        "calcio_mg": 1,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.05,
+        "fibra_g": 0,
+        "omega3_g": 0,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [],
+      "porcionMedianaG": 10,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "banana",
+      "nombre": "Banana",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "fruta",
+      "por100g": {
+        "energia_kcal": 89,
+        "proteina_g": 1.1,
+        "calcio_mg": 5,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.26,
+        "fibra_g": 2.6,
+        "omega3_g": 0.03,
+        "b12_ug": 0,
+        "vitamina_c_mg": 8.7
+      },
+      "alergenos": [],
+      "porcionMedianaG": 100,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "boniato",
+      "nombre": "Boniato cocido",
+      "alias": [
+        "batata",
+        "camote"
+      ],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 90,
+        "proteina_g": 2,
+        "calcio_mg": 38,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.69,
+        "fibra_g": 3.3,
+        "omega3_g": 0.01,
+        "b12_ug": 0,
+        "vitamina_c_mg": 19.6
+      },
+      "alergenos": [],
+      "porcionMedianaG": 120,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "brocoli",
+      "nombre": "Brócoli hervido",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "verdura",
+      "por100g": {
+        "energia_kcal": 35,
+        "proteina_g": 2.4,
+        "calcio_mg": 40,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.67,
+        "fibra_g": 3.3,
+        "omega3_g": 0.1,
+        "b12_ug": 0,
+        "vitamina_c_mg": 64.9
+      },
+      "alergenos": [],
+      "porcionMedianaG": 60,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "cacao_azucarado",
+      "nombre": "Cacao en polvo azucarado (para leche)",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "otro",
+      "por100g": {
+        "energia_kcal": 380,
+        "proteina_g": 4,
+        "calcio_mg": 50,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 3,
+        "fibra_g": 5,
+        "omega3_g": 0,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "soja"
+      ],
+      "porcionMedianaG": 15,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "carne_picada",
+      "nombre": "Carne picada cocida",
+      "alias": [
+        "carne molida"
+      ],
+      "fdcId": null,
+      "grupo": "proteina",
+      "por100g": {
+        "energia_kcal": 254,
+        "proteina_g": 25.9,
+        "calcio_mg": 27,
+        "vitamina_d_ug": 0.1,
+        "hierro_mg": 2.6,
+        "fibra_g": 0,
+        "omega3_g": 0.06,
+        "b12_ug": 2.6,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [],
+      "porcionMedianaG": 100,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "carne_vacuna",
+      "nombre": "Carne vacuna magra cocida (nalga)",
+      "alias": [
+        "carne de vaca",
+        "nalga"
+      ],
+      "fdcId": null,
+      "grupo": "proteina",
+      "por100g": {
+        "energia_kcal": 200,
+        "proteina_g": 29.6,
+        "calcio_mg": 6,
+        "vitamina_d_ug": 0.1,
+        "hierro_mg": 2.7,
+        "fibra_g": 0,
+        "omega3_g": 0.03,
+        "b12_ug": 2.2,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [],
+      "porcionMedianaG": 90,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "chauchas",
+      "nombre": "Chauchas hervidas",
+      "alias": [
+        "judías verdes",
+        "porotos verdes"
+      ],
+      "fdcId": null,
+      "grupo": "verdura",
+      "por100g": {
+        "energia_kcal": 35,
+        "proteina_g": 1.9,
+        "calcio_mg": 44,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.65,
+        "fibra_g": 3.2,
+        "omega3_g": 0.07,
+        "b12_ug": 0,
+        "vitamina_c_mg": 9.7
+      },
+      "alergenos": [],
+      "porcionMedianaG": 60,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "cereal_fortificado",
+      "nombre": "Copos de maíz fortificados (hierro y vitaminas)",
+      "alias": [
+        "corn flakes fortificados"
+      ],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 357,
+        "proteina_g": 7.5,
+        "calcio_mg": 5,
+        "vitamina_d_ug": 3.6,
+        "hierro_mg": 28.9,
+        "fibra_g": 3.3,
+        "omega3_g": 0.02,
+        "b12_ug": 2.1,
+        "vitamina_c_mg": 21
+      },
+      "alergenos": [
+        "gluten"
+      ],
+      "porcionMedianaG": 30,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "fideos",
+      "nombre": "Fideos cocidos (harina enriquecida)",
+      "alias": [
+        "pasta",
+        "tallarines"
+      ],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 158,
+        "proteina_g": 5.8,
+        "calcio_mg": 7,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 1.3,
+        "fibra_g": 1.8,
+        "omega3_g": 0.02,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "gluten"
+      ],
+      "porcionMedianaG": 150,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "frutilla",
+      "nombre": "Frutilla",
+      "alias": [
+        "fresa"
+      ],
+      "fdcId": null,
+      "grupo": "fruta",
+      "por100g": {
+        "energia_kcal": 32,
+        "proteina_g": 0.67,
+        "calcio_mg": 16,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.41,
+        "fibra_g": 2,
+        "omega3_g": 0.07,
+        "b12_ug": 0,
+        "vitamina_c_mg": 58.8
+      },
+      "alergenos": [],
+      "porcionMedianaG": 100,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "galletitas_agua",
+      "nombre": "Galletitas de agua",
+      "alias": [
+        "galletas de agua",
+        "crackers"
+      ],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 418,
+        "proteina_g": 9.5,
+        "calcio_mg": 21,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 4.8,
+        "fibra_g": 2.8,
+        "omega3_g": 0.1,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "gluten"
+      ],
+      "porcionMedianaG": 25,
+      "fuente": "USDA",
+      "dataset": "sr_legacy",
+      "porciones": [
+        {
+          "descripcion": "galletita",
+          "gramos": 5
+        }
+      ]
+    },
+    {
+      "id": "galletitas_integrales",
+      "nombre": "Galletitas integrales",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 432,
+        "proteina_g": 10,
+        "calcio_mg": 31,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 3.2,
+        "fibra_g": 10.7,
+        "omega3_g": 0.1,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "gluten"
+      ],
+      "porcionMedianaG": 40,
+      "fuente": "USDA",
+      "dataset": "sr_legacy",
+      "porciones": [
+        {
+          "descripcion": "galletita",
+          "gramos": 5
+        }
+      ]
+    },
+    {
+      "id": "huevo",
+      "nombre": "Huevo cocido",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "proteina",
+      "por100g": {
+        "energia_kcal": 155,
+        "proteina_g": 12.6,
+        "calcio_mg": 50,
+        "vitamina_d_ug": 2.2,
+        "hierro_mg": 1.2,
+        "fibra_g": 0,
+        "omega3_g": 0.08,
+        "b12_ug": 1.1,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "huevo"
+      ],
+      "porcionMedianaG": 50,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "jugo_naranja",
+      "nombre": "Jugo de naranja natural",
+      "alias": [
+        "zumo de naranja"
+      ],
+      "fdcId": null,
+      "grupo": "fruta",
+      "por100g": {
+        "energia_kcal": 45,
+        "proteina_g": 0.7,
+        "calcio_mg": 11,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.2,
+        "fibra_g": 0.2,
+        "omega3_g": 0.01,
+        "b12_ug": 0,
+        "vitamina_c_mg": 50
+      },
+      "alergenos": [],
+      "porcionMedianaG": 200,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "leche",
+      "nombre": "Leche entera",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "lacteo",
+      "por100g": {
+        "energia_kcal": 61,
+        "proteina_g": 3.2,
+        "calcio_mg": 113,
+        "vitamina_d_ug": 0.1,
+        "hierro_mg": 0.03,
+        "fibra_g": 0,
+        "omega3_g": 0.08,
+        "b12_ug": 0.45,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "leche"
+      ],
+      "porcionMedianaG": 200,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "leche_vitamina_d",
+      "nombre": "Leche entera fortificada con vitamina D",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "lacteo",
+      "por100g": {
+        "energia_kcal": 61,
+        "proteina_g": 3.2,
+        "calcio_mg": 113,
+        "vitamina_d_ug": 1.3,
+        "hierro_mg": 0.03,
+        "fibra_g": 0,
+        "omega3_g": 0.08,
+        "b12_ug": 0.45,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "leche"
+      ],
+      "porcionMedianaG": 200,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "lentejas",
+      "nombre": "Lentejas hervidas",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "proteina",
+      "por100g": {
+        "energia_kcal": 116,
+        "proteina_g": 9,
+        "calcio_mg": 19,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 3.3,
+        "fibra_g": 7.9,
+        "omega3_g": 0.04,
+        "b12_ug": 0,
+        "vitamina_c_mg": 1.5
+      },
+      "alergenos": [],
+      "porcionMedianaG": 100,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "manteca",
+      "nombre": "Manteca",
+      "alias": [
+        "mantequilla"
+      ],
+      "fdcId": null,
+      "grupo": "otro",
+      "por100g": {
+        "energia_kcal": 717,
+        "proteina_g": 0.85,
+        "calcio_mg": 24,
+        "vitamina_d_ug": 1.5,
+        "hierro_mg": 0.02,
+        "fibra_g": 0,
+        "omega3_g": 0.32,
+        "b12_ug": 0.17,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "leche"
+      ],
+      "porcionMedianaG": 5,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "manzana",
+      "nombre": "Manzana pelada",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "fruta",
+      "por100g": {
+        "energia_kcal": 48,
+        "proteina_g": 0.27,
+        "calcio_mg": 5,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.07,
+        "fibra_g": 1.3,
+        "omega3_g": 0.01,
+        "b12_ug": 0,
+        "vitamina_c_mg": 4
+      },
+      "alergenos": [],
+      "porcionMedianaG": 100,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "merluza",
+      "nombre": "Merluza cocida",
+      "alias": [
+        "pescado blanco"
+      ],
+      "fdcId": null,
+      "grupo": "proteina",
+      "por100g": {
+        "energia_kcal": 116,
+        "proteina_g": 23.5,
+        "calcio_mg": 62,
+        "vitamina_d_ug": 1,
+        "hierro_mg": 0.4,
+        "fibra_g": 0,
+        "omega3_g": 0.5,
+        "b12_ug": 2.6,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "pescado"
+      ],
+      "porcionMedianaG": 90,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "morron",
+      "nombre": "Morrón rojo",
+      "alias": [
+        "pimiento rojo",
+        "ají morrón"
+      ],
+      "fdcId": null,
+      "grupo": "verdura",
+      "por100g": {
+        "energia_kcal": 31,
+        "proteina_g": 1,
+        "calcio_mg": 7,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.43,
+        "fibra_g": 2.1,
+        "omega3_g": 0.03,
+        "b12_ug": 0,
+        "vitamina_c_mg": 127.7
+      },
+      "alergenos": [],
+      "porcionMedianaG": 50,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "nuggets_pollo",
+      "nombre": "Nuggets de pollo comprados",
+      "alias": [
+        "patitas de pollo",
+        "bocaditos de pollo"
+      ],
+      "fdcId": null,
+      "grupo": "proteina",
+      "por100g": {
+        "energia_kcal": 296,
+        "proteina_g": 15.3,
+        "calcio_mg": 15,
+        "vitamina_d_ug": 0.1,
+        "hierro_mg": 0.9,
+        "fibra_g": 1.2,
+        "omega3_g": 0.8,
+        "b12_ug": 0.25,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "gluten",
+        "soja"
+      ],
+      "porcionMedianaG": 96,
+      "fuente": "USDA",
+      "dataset": "fndds",
+      "porciones": [
+        {
+          "descripcion": "nugget",
+          "gramos": 16
+        }
+      ]
+    },
+    {
+      "id": "pan_blanco",
+      "nombre": "Pan blanco de molde",
+      "alias": [
+        "pan de molde"
+      ],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 266,
+        "proteina_g": 7.6,
+        "calcio_mg": 144,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 3.6,
+        "fibra_g": 2.7,
+        "omega3_g": 0.06,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "gluten"
+      ],
+      "porcionMedianaG": 50,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "pan_integral",
+      "nombre": "Pan integral de molde",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 247,
+        "proteina_g": 13,
+        "calcio_mg": 161,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 2.5,
+        "fibra_g": 6.8,
+        "omega3_g": 0.08,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "gluten"
+      ],
+      "porcionMedianaG": 60,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "pan_rallado",
+      "nombre": "Pan rallado",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 395,
+        "proteina_g": 13.4,
+        "calcio_mg": 183,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 4.8,
+        "fibra_g": 4.5,
+        "omega3_g": 0.1,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "gluten"
+      ],
+      "porcionMedianaG": 20,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "papa",
+      "nombre": "Papa cocida, sin cáscara",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 86,
+        "proteina_g": 1.7,
+        "calcio_mg": 8,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.31,
+        "fibra_g": 2,
+        "omega3_g": 0.01,
+        "b12_ug": 0,
+        "vitamina_c_mg": 7.4
+      },
+      "alergenos": [],
+      "porcionMedianaG": 150,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "pollo",
+      "nombre": "Pechuga de pollo cocida",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "proteina",
+      "por100g": {
+        "energia_kcal": 165,
+        "proteina_g": 31,
+        "calcio_mg": 15,
+        "vitamina_d_ug": 0.1,
+        "hierro_mg": 1,
+        "fibra_g": 0,
+        "omega3_g": 0.06,
+        "b12_ug": 0.34,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [],
+      "porcionMedianaG": 90,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "prepizza",
+      "nombre": "Prepizza (masa de pizza cocida)",
+      "alias": [
+        "masa de pizza"
+      ],
+      "fdcId": null,
+      "grupo": "cereal_almidon",
+      "por100g": {
+        "energia_kcal": 280,
+        "proteina_g": 8,
+        "calcio_mg": 20,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 2.5,
+        "fibra_g": 2,
+        "omega3_g": 0.1,
+        "b12_ug": 0,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "gluten"
+      ],
+      "porcionMedianaG": 70,
+      "fuente": "USDA",
+      "dataset": "fndds"
+    },
+    {
+      "id": "queso_muzzarella",
+      "nombre": "Queso muzzarella",
+      "alias": [
+        "mozzarella",
+        "muzarela"
+      ],
+      "fdcId": null,
+      "grupo": "lacteo",
+      "por100g": {
+        "energia_kcal": 300,
+        "proteina_g": 22.2,
+        "calcio_mg": 505,
+        "vitamina_d_ug": 0.4,
+        "hierro_mg": 0.44,
+        "fibra_g": 0,
+        "omega3_g": 0.3,
+        "b12_ug": 2.3,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "leche"
+      ],
+      "porcionMedianaG": 40,
+      "fuente": "USDA",
+      "dataset": "sr_legacy",
+      "porciones": [
+        {
+          "descripcion": "baston de queso",
+          "gramos": 13
+        }
+      ]
+    },
+    {
+      "id": "queso_rallado",
+      "nombre": "Queso rallado",
+      "alias": [
+        "queso parmesano rallado"
+      ],
+      "fdcId": null,
+      "grupo": "lacteo",
+      "por100g": {
+        "energia_kcal": 420,
+        "proteina_g": 35,
+        "calcio_mg": 1000,
+        "vitamina_d_ug": 0.5,
+        "hierro_mg": 0.8,
+        "fibra_g": 0,
+        "omega3_g": 0.3,
+        "b12_ug": 1.2,
+        "vitamina_c_mg": 0
+      },
+      "alergenos": [
+        "leche"
+      ],
+      "porcionMedianaG": 10,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "salsa_tomate",
+      "nombre": "Salsa de tomate",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "verdura",
+      "por100g": {
+        "energia_kcal": 50,
+        "proteina_g": 1.4,
+        "calcio_mg": 27,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.8,
+        "fibra_g": 1.8,
+        "omega3_g": 0.03,
+        "b12_ug": 0,
+        "vitamina_c_mg": 7
+      },
+      "alergenos": [],
+      "porcionMedianaG": 40,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "yogur",
+      "nombre": "Yogur de vainilla",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "lacteo",
+      "por100g": {
+        "energia_kcal": 90,
+        "proteina_g": 4.5,
+        "calcio_mg": 150,
+        "vitamina_d_ug": 0.1,
+        "hierro_mg": 0.07,
+        "fibra_g": 0,
+        "omega3_g": 0.05,
+        "b12_ug": 0.5,
+        "vitamina_c_mg": 0.6
+      },
+      "alergenos": [
+        "leche"
+      ],
+      "porcionMedianaG": 150,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "yogur_vitamina_d",
+      "nombre": "Yogur de vainilla fortificado con vitamina D",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "lacteo",
+      "por100g": {
+        "energia_kcal": 90,
+        "proteina_g": 4.5,
+        "calcio_mg": 150,
+        "vitamina_d_ug": 2,
+        "hierro_mg": 0.07,
+        "fibra_g": 0,
+        "omega3_g": 0.05,
+        "b12_ug": 0.5,
+        "vitamina_c_mg": 0.6
+      },
+      "alergenos": [
+        "leche"
+      ],
+      "porcionMedianaG": 150,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "zanahoria",
+      "nombre": "Zanahoria",
+      "alias": [],
+      "fdcId": null,
+      "grupo": "verdura",
+      "por100g": {
+        "energia_kcal": 41,
+        "proteina_g": 0.93,
+        "calcio_mg": 33,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.3,
+        "fibra_g": 2.8,
+        "omega3_g": 0,
+        "b12_ug": 0,
+        "vitamina_c_mg": 5.9
+      },
+      "alergenos": [],
+      "porcionMedianaG": 60,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    },
+    {
+      "id": "zapallo",
+      "nombre": "Zapallo cocido",
+      "alias": [
+        "calabaza"
+      ],
+      "fdcId": null,
+      "grupo": "verdura",
+      "por100g": {
+        "energia_kcal": 40,
+        "proteina_g": 0.9,
+        "calcio_mg": 41,
+        "vitamina_d_ug": 0,
+        "hierro_mg": 0.6,
+        "fibra_g": 3.2,
+        "omega3_g": 0.03,
+        "b12_ug": 0,
+        "vitamina_c_mg": 15.1
+      },
+      "alergenos": [],
+      "porcionMedianaG": 100,
+      "fuente": "USDA",
+      "dataset": "sr_legacy"
+    }
+  ]
+}
