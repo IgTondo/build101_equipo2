@@ -79,6 +79,7 @@ export interface ItemDetectado {
   atributos: Atributos
   caja: Caja | null
   confianza: number                      // de 0 a 1
+  nombreIngles?: string                  // A · solo si algún ingrediente cayó en otro_<grupo>: el código lo busca en alimentos_fdc (§7)
 }
 export interface Pregunta {
   id: string; texto: string; opciones: string[]
