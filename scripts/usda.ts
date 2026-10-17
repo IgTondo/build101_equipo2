@@ -259,7 +259,7 @@ async function subir(docs: Alimento[]): Promise<void> {
   const { MongoClient } = await import('mongodb')
   const cliente = new MongoClient(uri)
   try {
-    const db = cliente.db(process.env.MONGODB_DB) // sin MONGODB_DB, la base de la URI
+    const db = cliente.db(process.env.MONGODB_DB || 'nibble') // la misma base que lee B (server/datos/mongo.ts)
     if (await db.listCollections({ name: 'alimentos_fdc' }).hasNext()) await db.collection('alimentos_fdc').drop()
     const col = db.collection<Alimento & { _id: string }>('alimentos_fdc')
     for (let i = 0; i < docs.length; i += 1000) await col.insertMany(docs.slice(i, i + 1000).map((a) => ({ _id: a.id, ...a })))
