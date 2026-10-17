@@ -7,7 +7,28 @@
       "rice"
     ],
     "grupo": "cereal_almidon",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2708408,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 100,
+    "por100g": {
+      "energia_kcal": 129,
+      "proteina_g": 2.67,
+      "calcio_mg": 10,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.19,
+      "fibra_g": 0.4,
+      "omega3_g": 0.013,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup, cooked",
+        "gramos": 158
+      }
+    ]
   },
   {
     "id": "fideos",
@@ -25,6 +46,31 @@
     "grupo": "cereal_almidon",
     "alergenos": [
       "gluten"
+    ],
+    "fdcId": 2708357,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 100,
+    "por100g": {
+      "energia_kcal": 157,
+      "proteina_g": 5.76,
+      "calcio_mg": 7,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.27,
+      "fibra_g": 1.8,
+      "omega3_g": 0.024,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 oz, dry, yields",
+        "gramos": 80
+      },
+      {
+        "descripcion": "1 cup, cooked",
+        "gramos": 140
+      }
     ]
   },
   {
@@ -40,6 +86,31 @@
     "alergenos": [
       "gluten",
       "huevo"
+    ],
+    "fdcId": 2708352,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 100,
+    "por100g": {
+      "energia_kcal": 137,
+      "proteina_g": 4.51,
+      "calcio_mg": 12,
+      "vitamina_d_ug": 0.1,
+      "hierro_mg": 1.46,
+      "fibra_g": 1.2,
+      "omega3_g": 0.028,
+      "b12_ug": 0.09,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 oz, dry, yields",
+        "gramos": 75
+      },
+      {
+        "descripcion": "1 cup, cooked",
+        "gramos": 160
+      }
     ]
   },
   {
@@ -55,6 +126,31 @@
       "gluten",
       "huevo",
       "leche"
+    ],
+    "fdcId": 2708722,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 120,
+    "por100g": {
+      "energia_kcal": 135,
+      "proteina_g": 2.44,
+      "calcio_mg": 22,
+      "vitamina_d_ug": 0.2,
+      "hierro_mg": 0.83,
+      "fibra_g": 1,
+      "omega3_g": 0.036,
+      "b12_ug": 0.06,
+      "vitamina_c_mg": 1.9
+    },
+    "porciones": [
+      {
+        "descripcion": "1 piece",
+        "gramos": 26
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 188
+      }
     ]
   },
   {
@@ -76,6 +172,71 @@
       "gluten",
       "leche",
       "soja"
+    ],
+    "fdcId": 2707610,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 30,
+    "por100g": {
+      "energia_kcal": 272,
+      "proteina_g": 10.75,
+      "calcio_mg": 52,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 3.91,
+      "fibra_g": 2.2,
+      "omega3_g": 0.064,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 small or thin/very thin slice",
+        "gramos": 32
+      },
+      {
+        "descripcion": "1 loaf (14\" long)",
+        "gramos": 470
+      },
+      {
+        "descripcion": "1 cup, NFS",
+        "gramos": 45
+      },
+      {
+        "descripcion": "1 medium or regular slice",
+        "gramos": 64
+      },
+      {
+        "descripcion": "1 individual loaf",
+        "gramos": 82
+      },
+      {
+        "descripcion": "1 mini baguette (about 9\" long)",
+        "gramos": 152
+      },
+      {
+        "descripcion": "1 slice, Vienna bread",
+        "gramos": 28
+      },
+      {
+        "descripcion": "1 slice, snack-size",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 baguette (about 22\" long)",
+        "gramos": 324
+      },
+      {
+        "descripcion": "1 slice, crust not eaten",
+        "gramos": 31
+      },
+      {
+        "descripcion": "1 large or thick slice",
+        "gramos": 96
+      },
+      {
+        "descripcion": "1 cubic inch",
+        "gramos": 3.7
+      }
     ]
   },
   {
@@ -93,6 +254,47 @@
       "leche",
       "soja",
       "sesamo"
+    ],
+    "fdcId": 2707711,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 30,
+    "por100g": {
+      "energia_kcal": 267,
+      "proteina_g": 10.38,
+      "calcio_mg": 51,
+      "vitamina_d_ug": 0.2,
+      "hierro_mg": 2.38,
+      "fibra_g": 6.8,
+      "omega3_g": 0.071,
+      "b12_ug": 0.06,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 individual loaf",
+        "gramos": 82
+      },
+      {
+        "descripcion": "1 medium or regular slice",
+        "gramos": 44
+      },
+      {
+        "descripcion": "1 slice, crust not eaten",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 cubic inch",
+        "gramos": 4.7
+      },
+      {
+        "descripcion": "1 small or thin/very thin slice",
+        "gramos": 33
+      },
+      {
+        "descripcion": "1 large or thick slice",
+        "gramos": 55
+      }
     ]
   },
   {
@@ -109,6 +311,31 @@
       "gluten",
       "leche",
       "soja"
+    ],
+    "fdcId": 174928,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 15,
+    "por100g": {
+      "energia_kcal": 395,
+      "proteina_g": 13.35,
+      "calcio_mg": 183,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 4.83,
+      "fibra_g": 4.5,
+      "omega3_g": 0.186,
+      "b12_ug": 0.35,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 oz",
+        "gramos": 28.4
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 108
+      }
     ]
   },
   {
@@ -126,6 +353,39 @@
       "gluten",
       "leche",
       "soja"
+    ],
+    "fdcId": 2708167,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 418,
+      "proteina_g": 9.46,
+      "calcio_mg": 19,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 5.57,
+      "fibra_g": 2.8,
+      "omega3_g": 0.553,
+      "b12_ug": 0.09,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 sleeve",
+        "gramos": 115
+      },
+      {
+        "descripcion": "1 cracker",
+        "gramos": 3
+      },
+      {
+        "descripcion": "1 cup, NFS",
+        "gramos": 50
+      },
+      {
+        "descripcion": "1 miniature/bite size",
+        "gramos": 1
+      }
     ]
   },
   {
@@ -142,6 +402,47 @@
       "gluten",
       "leche",
       "soja"
+    ],
+    "fdcId": 172749,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 427,
+      "proteina_g": 10.58,
+      "calcio_mg": 36,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 3.34,
+      "fibra_g": 10.3,
+      "omega3_g": 0.832,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 serving",
+        "gramos": 28
+      },
+      {
+        "descripcion": "6 crackers, Triscuits, regular size",
+        "gramos": 28
+      },
+      {
+        "descripcion": "1 cracker",
+        "gramos": 4.6
+      },
+      {
+        "descripcion": "0.5 oz",
+        "gramos": 14.2
+      },
+      {
+        "descripcion": "1 cup, crushed",
+        "gramos": 94
+      },
+      {
+        "descripcion": "10 Triscuit Bits",
+        "gramos": 10
+      }
     ]
   },
   {
@@ -161,6 +462,51 @@
       "leche",
       "huevo",
       "soja"
+    ],
+    "fdcId": 2707970,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 464,
+      "proteina_g": 5.35,
+      "calcio_mg": 35,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 2.24,
+      "fibra_g": 1.3,
+      "omega3_g": 0.283,
+      "b12_ug": 0.19,
+      "vitamina_c_mg": 0.1
+    },
+    "porciones": [
+      {
+        "descripcion": "1 2-1/4\" dia (include Snickerdoodles)",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 small",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 miniature/bite size",
+        "gramos": 5
+      },
+      {
+        "descripcion": "1 Lemon Cooler",
+        "gramos": 6
+      },
+      {
+        "descripcion": "1 large",
+        "gramos": 45
+      },
+      {
+        "descripcion": "1 cup, crushed",
+        "gramos": 85
+      },
+      {
+        "descripcion": "1 medium",
+        "gramos": 30
+      }
     ]
   },
   {
@@ -176,6 +522,39 @@
       "leche",
       "huevo",
       "soja"
+    ],
+    "fdcId": 2707945,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 25,
+    "por100g": {
+      "energia_kcal": 450,
+      "proteina_g": 6.2,
+      "calcio_mg": 37,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 2.58,
+      "fibra_g": 2.8,
+      "omega3_g": 0.129,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0.5
+    },
+    "porciones": [
+      {
+        "descripcion": "1 small",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 large",
+        "gramos": 45
+      },
+      {
+        "descripcion": "1 medium",
+        "gramos": 30
+      },
+      {
+        "descripcion": "1 miniature/bite size",
+        "gramos": 5
+      }
     ]
   },
   {
@@ -191,6 +570,47 @@
       "gluten",
       "leche",
       "sesamo"
+    ],
+    "fdcId": 2707690,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 15,
+    "por100g": {
+      "energia_kcal": 412,
+      "proteina_g": 12,
+      "calcio_mg": 22,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 4.28,
+      "fibra_g": 3,
+      "omega3_g": 0.244,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 medium stick",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 small stick",
+        "gramos": 5
+      },
+      {
+        "descripcion": "1 large stick",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 extra large stick",
+        "gramos": 35
+      },
+      {
+        "descripcion": "1 snack size stick",
+        "gramos": 2
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 46
+      }
     ]
   },
   {
@@ -207,6 +627,31 @@
     "grupo": "cereal_almidon",
     "alergenos": [
       "gluten"
+    ],
+    "fdcId": 173904,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 30,
+    "por100g": {
+      "energia_kcal": 379,
+      "proteina_g": 13.15,
+      "calcio_mg": 52,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 4.25,
+      "fibra_g": 10.1,
+      "omega3_g": 0.1,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 81
+      },
+      {
+        "descripcion": "0.33 cup",
+        "gramos": 27
+      }
     ]
   },
   {
@@ -226,6 +671,31 @@
       "gluten",
       "leche",
       "soja"
+    ],
+    "fdcId": 2708453,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 30,
+    "por100g": {
+      "energia_kcal": 365,
+      "proteina_g": 6.4,
+      "calcio_mg": 4,
+      "vitamina_d_ug": 5,
+      "hierro_mg": 28.01,
+      "fibra_g": 3.5,
+      "omega3_g": 0.018,
+      "b12_ug": 1.8,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 30
+      },
+      {
+        "descripcion": "1 prepackaged single serving",
+        "gramos": 30
+      }
     ]
   },
   {
@@ -240,6 +710,27 @@
     "grupo": "cereal_almidon",
     "alergenos": [
       "gluten"
+    ],
+    "fdcId": 168894,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 30,
+    "por100g": {
+      "energia_kcal": 364,
+      "proteina_g": 10.33,
+      "calcio_mg": 15,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 4.64,
+      "fibra_g": 2.7,
+      "omega3_g": 0.022,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 125
+      }
     ]
   },
   {
@@ -252,7 +743,40 @@
       "grits"
     ],
     "grupo": "cereal_almidon",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2708374,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 150,
+    "por100g": {
+      "energia_kcal": 58,
+      "proteina_g": 1.12,
+      "calcio_mg": 4,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.65,
+      "fibra_g": 0.6,
+      "omega3_g": 0.003,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup, cooked",
+        "gramos": 240
+      },
+      {
+        "descripcion": "1 oz, dry, yields",
+        "gramos": 190
+      },
+      {
+        "descripcion": "1 cup, dry, yields",
+        "gramos": 955
+      },
+      {
+        "descripcion": "1 strip or slice",
+        "gramos": 50
+      }
+    ]
   },
   {
     "id": "papa",
@@ -264,7 +788,48 @@
       "potato"
     ],
     "grupo": "cereal_almidon",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709388,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 120,
+    "por100g": {
+      "energia_kcal": 93,
+      "proteina_g": 1.95,
+      "calcio_mg": 5,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.35,
+      "fibra_g": 1.5,
+      "omega3_g": 0.01,
+      "b12_ug": 0,
+      "vitamina_c_mg": 12.7
+    },
+    "porciones": [
+      {
+        "descripcion": "1 small",
+        "gramos": 130
+      },
+      {
+        "descripcion": "1 large",
+        "gramos": 300
+      },
+      {
+        "descripcion": "1 medium",
+        "gramos": 170
+      },
+      {
+        "descripcion": "1 baby potato",
+        "gramos": 60
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 160
+      },
+      {
+        "descripcion": "1 new potato",
+        "gramos": 60
+      }
+    ]
   },
   {
     "id": "boniato",
@@ -276,7 +841,44 @@
       "sweet potato"
     ],
     "grupo": "cereal_almidon",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709702,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 100,
+    "por100g": {
+      "energia_kcal": 82,
+      "proteina_g": 1.64,
+      "calcio_mg": 23,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.42,
+      "fibra_g": 3.1,
+      "omega3_g": 0.001,
+      "b12_ug": 0,
+      "vitamina_c_mg": 13.1
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup, mashed",
+        "gramos": 250
+      },
+      {
+        "descripcion": "1 large",
+        "gramos": 235
+      },
+      {
+        "descripcion": "1 oz, raw, yields",
+        "gramos": 25
+      },
+      {
+        "descripcion": "1 medium",
+        "gramos": 150
+      },
+      {
+        "descripcion": "1 small",
+        "gramos": 80
+      }
+    ]
   },
   {
     "id": "choclo",
@@ -291,7 +893,40 @@
       "corn"
     ],
     "grupo": "cereal_almidon",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709910,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 60,
+    "por100g": {
+      "energia_kcal": 86,
+      "proteina_g": 3.26,
+      "calcio_mg": 2,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.52,
+      "fibra_g": 2,
+      "omega3_g": 0.014,
+      "b12_ug": 0,
+      "vitamina_c_mg": 5.8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 165
+      },
+      {
+        "descripcion": "1 mini ear",
+        "gramos": 55
+      },
+      {
+        "descripcion": "1 baby corn",
+        "gramos": 8
+      },
+      {
+        "descripcion": "1 regular ear",
+        "gramos": 105
+      }
+    ]
   },
   {
     "id": "prepizza",
@@ -306,6 +941,43 @@
       "gluten",
       "leche",
       "soja"
+    ],
+    "fdcId": 2707612,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 249,
+      "proteina_g": 8.77,
+      "calcio_mg": 35,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 3.16,
+      "fibra_g": 1.8,
+      "omega3_g": 0.072,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice",
+        "gramos": 57
+      },
+      {
+        "descripcion": "1 whole (16\" dia)",
+        "gramos": 456
+      },
+      {
+        "descripcion": "1 whole (12\" dia)",
+        "gramos": 285
+      },
+      {
+        "descripcion": "1 whole (6\" dia)",
+        "gramos": 114
+      },
+      {
+        "descripcion": "1 surface inch",
+        "gramos": 4
+      }
     ]
   },
   {
@@ -324,6 +996,43 @@
       "leche",
       "huevo",
       "soja"
+    ],
+    "fdcId": 2707678,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 40,
+    "por100g": {
+      "energia_kcal": 406,
+      "proteina_g": 8.2,
+      "calcio_mg": 37,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 2.03,
+      "fibra_g": 2.6,
+      "omega3_g": 0.294,
+      "b12_ug": 0.16,
+      "vitamina_c_mg": 0.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 mini croissant",
+        "gramos": 28
+      },
+      {
+        "descripcion": "1 crescent roll",
+        "gramos": 28
+      },
+      {
+        "descripcion": "1 large croissant",
+        "gramos": 73
+      },
+      {
+        "descripcion": "1 medium croissant",
+        "gramos": 57
+      },
+      {
+        "descripcion": "1 small croissant",
+        "gramos": 42
+      }
     ]
   },
   {
@@ -341,7 +1050,52 @@
       "steak"
     ],
     "grupo": "proteina",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2705824,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 229,
+      "proteina_g": 27,
+      "calcio_mg": 16,
+      "vitamina_d_ug": 0.1,
+      "hierro_mg": 2.64,
+      "fibra_g": 0,
+      "omega3_g": 0.055,
+      "b12_ug": 2.04,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 regular",
+        "gramos": 160
+      },
+      {
+        "descripcion": "1 oz yields",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 piece/slice, any size",
+        "gramos": 30
+      },
+      {
+        "descripcion": "1 cubic inch",
+        "gramos": 17
+      },
+      {
+        "descripcion": "1 thick",
+        "gramos": 240
+      },
+      {
+        "descripcion": "1 thin",
+        "gramos": 120
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 135
+      }
+    ]
   },
   {
     "id": "carne_picada",
@@ -353,7 +1107,36 @@
       "ground beef"
     ],
     "grupo": "proteina",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2705854,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 261,
+      "proteina_g": 25.55,
+      "calcio_mg": 24,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 2.47,
+      "fibra_g": 0,
+      "omega3_g": 0.058,
+      "b12_ug": 2.7,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cubic inch",
+        "gramos": 17
+      },
+      {
+        "descripcion": "1 oz yields",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 125
+      }
+    ]
   },
   {
     "id": "pollo",
@@ -366,7 +1149,60 @@
       "chicken"
     ],
     "grupo": "proteina",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2705956,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 161,
+      "proteina_g": 30.22,
+      "calcio_mg": 7,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.45,
+      "fibra_g": 0,
+      "omega3_g": 0.034,
+      "b12_ug": 0.18,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 large breast",
+        "gramos": 135
+      },
+      {
+        "descripcion": "1 large or thick slice",
+        "gramos": 85
+      },
+      {
+        "descripcion": "1 medium slice",
+        "gramos": 60
+      },
+      {
+        "descripcion": "1 small or thin slice",
+        "gramos": 30
+      },
+      {
+        "descripcion": "1 breast quarter (yield after cooking, bone removed)",
+        "gramos": 155
+      },
+      {
+        "descripcion": "1 medium breast",
+        "gramos": 120
+      },
+      {
+        "descripcion": "1 cup, cooked, diced",
+        "gramos": 135
+      },
+      {
+        "descripcion": "1 small breast",
+        "gramos": 105
+      },
+      {
+        "descripcion": "1 oz, cooked",
+        "gramos": 28.4
+      }
+    ]
   },
   {
     "id": "nuggets_pollo",
@@ -384,6 +1220,31 @@
       "huevo",
       "leche",
       "soja"
+    ],
+    "fdcId": 2706096,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 298,
+      "proteina_g": 13.36,
+      "calcio_mg": 52,
+      "vitamina_d_ug": 0.3,
+      "hierro_mg": 1.06,
+      "fibra_g": 1.8,
+      "omega3_g": 0.538,
+      "b12_ug": 0.24,
+      "vitamina_c_mg": 0.4
+    },
+    "porciones": [
+      {
+        "descripcion": "1 nugget",
+        "gramos": 16
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 140
+      }
     ]
   },
   {
@@ -402,6 +1263,31 @@
       "huevo",
       "leche",
       "soja"
+    ],
+    "fdcId": 169447,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 70,
+    "por100g": {
+      "energia_kcal": 295,
+      "proteina_g": 23.05,
+      "calcio_mg": 11,
+      "vitamina_d_ug": 0.2,
+      "hierro_mg": 2.42,
+      "fibra_g": 0,
+      "omega3_g": 0.064,
+      "b12_ug": 2.65,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "3 oz",
+        "gramos": 85
+      },
+      {
+        "descripcion": "1 unit, cooked (yield from 1 lb raw meat)",
+        "gramos": 313
+      }
     ]
   },
   {
@@ -415,7 +1301,52 @@
       "pork"
     ],
     "grupo": "proteina",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2705866,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 183,
+      "proteina_g": 27.5,
+      "calcio_mg": 7,
+      "vitamina_d_ug": 0.6,
+      "hierro_mg": 0.61,
+      "fibra_g": 0,
+      "omega3_g": 0.032,
+      "b12_ug": 0.61,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice, any size",
+        "gramos": 30
+      },
+      {
+        "descripcion": "1 thick",
+        "gramos": 180
+      },
+      {
+        "descripcion": "1 oz yields",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 regular",
+        "gramos": 120
+      },
+      {
+        "descripcion": "1 cubic inch",
+        "gramos": 17
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 135
+      },
+      {
+        "descripcion": "1 thin",
+        "gramos": 90
+      }
+    ]
   },
   {
     "id": "salchicha",
@@ -433,6 +1364,43 @@
       "gluten",
       "leche",
       "soja"
+    ],
+    "fdcId": 2706166,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 45,
+    "por100g": {
+      "energia_kcal": 310,
+      "proteina_g": 11.7,
+      "calcio_mg": 15,
+      "vitamina_d_ug": 0.9,
+      "hierro_mg": 1.14,
+      "fibra_g": 0,
+      "omega3_g": 0.101,
+      "b12_ug": 0.82,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cocktail/miniature",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 regular",
+        "gramos": 57
+      },
+      {
+        "descripcion": "1 footlong",
+        "gramos": 88
+      },
+      {
+        "descripcion": "1 bun length/jumbo",
+        "gramos": 57
+      },
+      {
+        "descripcion": "1 cup, sliced",
+        "gramos": 150
+      }
     ]
   },
   {
@@ -448,6 +1416,39 @@
     "alergenos": [
       "leche",
       "soja"
+    ],
+    "fdcId": 2706206,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 101,
+      "proteina_g": 16.7,
+      "calcio_mg": 5,
+      "vitamina_d_ug": 0.6,
+      "hierro_mg": 0.58,
+      "fibra_g": 0,
+      "omega3_g": 0.019,
+      "b12_ug": 0.36,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "Guideline amount on regular sandwich",
+        "gramos": 56
+      },
+      {
+        "descripcion": "1 slice, NFS",
+        "gramos": 28
+      },
+      {
+        "descripcion": "Guideline amount on large sandwich",
+        "gramos": 84
+      },
+      {
+        "descripcion": "1 cup, pieces",
+        "gramos": 140
+      }
     ]
   },
   {
@@ -462,6 +1463,59 @@
     "alergenos": [
       "leche",
       "soja"
+    ],
+    "fdcId": 2706179,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 341,
+      "proteina_g": 19.3,
+      "calcio_mg": 37,
+      "vitamina_d_ug": 1.5,
+      "hierro_mg": 2.34,
+      "fibra_g": 0,
+      "omega3_g": 0.217,
+      "b12_ug": 1.21,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 breakfast size link",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 piece",
+        "gramos": 75
+      },
+      {
+        "descripcion": "1 cubic inch",
+        "gramos": 16
+      },
+      {
+        "descripcion": "1 patty",
+        "gramos": 35
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 15
+      },
+      {
+        "descripcion": "1 cocktail or miniature link",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 bun-size or griller link",
+        "gramos": 75
+      },
+      {
+        "descripcion": "1 cup, NFS",
+        "gramos": 140
+      },
+      {
+        "descripcion": "1 oz, cooked",
+        "gramos": 28.4
+      }
     ]
   },
   {
@@ -478,6 +1532,35 @@
     "grupo": "proteina",
     "alergenos": [
       "huevo"
+    ],
+    "fdcId": 2707154,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 143,
+      "proteina_g": 12.4,
+      "calcio_mg": 48,
+      "vitamina_d_ug": 2.5,
+      "hierro_mg": 1.67,
+      "fibra_g": 0,
+      "omega3_g": 0.011,
+      "b12_ug": 0.82,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 egg",
+        "gramos": 50
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 135
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 5
+      }
     ]
   },
   {
@@ -491,6 +1574,34 @@
     "grupo": "proteina",
     "alergenos": [
       "huevo"
+    ],
+    "fdcId": null,
+    "fuente": "equipo",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 143,
+      "proteina_g": 12.4,
+      "calcio_mg": 48,
+      "vitamina_d_ug": 5,
+      "hierro_mg": 1.67,
+      "fibra_g": 0,
+      "omega3_g": 0.511,
+      "b12_ug": 0.82,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 egg",
+        "gramos": 50
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 135
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 5
+      }
     ]
   },
   {
@@ -507,6 +1618,47 @@
     "grupo": "proteina",
     "alergenos": [
       "pescado"
+    ],
+    "fdcId": 2706313,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 90,
+    "por100g": {
+      "energia_kcal": 153,
+      "proteina_g": 22.75,
+      "calcio_mg": 60,
+      "vitamina_d_ug": 1.8,
+      "hierro_mg": 0.43,
+      "fibra_g": 0,
+      "omega3_g": 0.489,
+      "b12_ug": 2.57,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 135
+      },
+      {
+        "descripcion": "1 small/regular fillet",
+        "gramos": 90
+      },
+      {
+        "descripcion": "1 large fillet",
+        "gramos": 135
+      },
+      {
+        "descripcion": "1 oz yields",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 whole fish, any size",
+        "gramos": 270
+      },
+      {
+        "descripcion": "1 cubic inch",
+        "gramos": 17
+      }
     ]
   },
   {
@@ -526,6 +1678,31 @@
       "huevo",
       "leche",
       "soja"
+    ],
+    "fdcId": 2706231,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 75,
+    "por100g": {
+      "energia_kcal": 277,
+      "proteina_g": 11.01,
+      "calcio_mg": 16,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.84,
+      "fibra_g": 1.5,
+      "omega3_g": 0.39,
+      "b12_ug": 0.96,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 nugget",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 stick",
+        "gramos": 20
+      }
     ]
   },
   {
@@ -539,6 +1716,43 @@
     "grupo": "proteina",
     "alergenos": [
       "pescado"
+    ],
+    "fdcId": 2706311,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 85,
+      "proteina_g": 19,
+      "calcio_mg": 18,
+      "vitamina_d_ug": 1.2,
+      "hierro_mg": 1.67,
+      "fibra_g": 0,
+      "omega3_g": 0.228,
+      "b12_ug": 2.57,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 small can",
+        "gramos": 75
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 135
+      },
+      {
+        "descripcion": "1 large can",
+        "gramos": 255
+      },
+      {
+        "descripcion": "1 pouch",
+        "gramos": 75
+      },
+      {
+        "descripcion": "1 standard can",
+        "gramos": 115
+      }
     ]
   },
   {
@@ -551,6 +1765,47 @@
     "grupo": "proteina",
     "alergenos": [
       "pescado"
+    ],
+    "fdcId": 2706286,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 274,
+      "proteina_g": 25.4,
+      "calcio_mg": 11,
+      "vitamina_d_ug": 13.7,
+      "hierro_mg": 0.44,
+      "fibra_g": 0,
+      "omega3_g": 2.688,
+      "b12_ug": 3.87,
+      "vitamina_c_mg": 2.9
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 135
+      },
+      {
+        "descripcion": "1 steak",
+        "gramos": 210
+      },
+      {
+        "descripcion": "1 small/regular fillet",
+        "gramos": 140
+      },
+      {
+        "descripcion": "1 large fillet",
+        "gramos": 210
+      },
+      {
+        "descripcion": "1 oz yields",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 cubic inch",
+        "gramos": 17
+      }
     ]
   },
   {
@@ -561,7 +1816,32 @@
       "lentils"
     ],
     "grupo": "proteina",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2707425,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 115,
+      "proteina_g": 8.97,
+      "calcio_mg": 19,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 3.31,
+      "fibra_g": 7.9,
+      "omega3_g": 0.037,
+      "b12_ug": 0,
+      "vitamina_c_mg": 1.4
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 180
+      },
+      {
+        "descripcion": "1 oz dry, yield after cooking",
+        "gramos": 70
+      }
+    ]
   },
   {
     "id": "garbanzos",
@@ -572,7 +1852,36 @@
       "hummus"
     ],
     "grupo": "proteina",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2707416,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 60,
+    "por100g": {
+      "energia_kcal": 163,
+      "proteina_g": 8.81,
+      "calcio_mg": 49,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 2.87,
+      "fibra_g": 7.6,
+      "omega3_g": 0.043,
+      "b12_ug": 0,
+      "vitamina_c_mg": 1.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 180
+      },
+      {
+        "descripcion": "1 pea",
+        "gramos": 2
+      },
+      {
+        "descripcion": "1 oz dry, yield after cooking",
+        "gramos": 70
+      }
+    ]
   },
   {
     "id": "porotos",
@@ -588,7 +1897,32 @@
       "beans"
     ],
     "grupo": "proteina",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2707355,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 60,
+    "por100g": {
+      "energia_kcal": 138,
+      "proteina_g": 9.67,
+      "calcio_mg": 90,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 3.68,
+      "fibra_g": 6.3,
+      "omega3_g": 0.069,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 oz dry, yield after cooking",
+        "gramos": 70
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 180
+      }
+    ]
   },
   {
     "id": "pasta_mani",
@@ -602,6 +1936,39 @@
     "grupo": "proteina",
     "alergenos": [
       "mani"
+    ],
+    "fdcId": 2707537,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 16,
+    "por100g": {
+      "energia_kcal": 598,
+      "proteina_g": 22.21,
+      "calcio_mg": 49,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.74,
+      "fibra_g": 5,
+      "omega3_g": 0.028,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 single serving",
+        "gramos": 45
+      },
+      {
+        "descripcion": "Guideline amount per sandwich",
+        "gramos": 32
+      },
+      {
+        "descripcion": "Guideline amount per slice of bread/roll",
+        "gramos": 16
+      },
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 16
+      }
     ]
   },
   {
@@ -612,7 +1979,44 @@
       "carrot"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709664,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 50,
+      "proteina_g": 0.98,
+      "calcio_mg": 31,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.16,
+      "fibra_g": 3.2,
+      "omega3_g": 0.002,
+      "b12_ug": 0,
+      "vitamina_c_mg": 5.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup, mashed",
+        "gramos": 230
+      },
+      {
+        "descripcion": "1 piece/slice",
+        "gramos": 5
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 155
+      },
+      {
+        "descripcion": "1 regular carrot",
+        "gramos": 60
+      },
+      {
+        "descripcion": "1 baby carrot",
+        "gramos": 10
+      }
+    ]
   },
   {
     "id": "zapallo",
@@ -628,7 +2032,32 @@
       "squash"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709692,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 52,
+      "proteina_g": 1.05,
+      "calcio_mg": 22,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.84,
+      "fibra_g": 0.5,
+      "omega3_g": 0.09,
+      "b12_ug": 0,
+      "vitamina_c_mg": 8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 230
+      },
+      {
+        "descripcion": "1 cup, mashed",
+        "gramos": 250
+      }
+    ]
   },
   {
     "id": "zapallito",
@@ -642,7 +2071,40 @@
       "courgette"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709991,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 60,
+    "por100g": {
+      "energia_kcal": 21,
+      "proteina_g": 1.3,
+      "calcio_mg": 22,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.48,
+      "fibra_g": 1.2,
+      "omega3_g": 0.061,
+      "b12_ug": 0,
+      "vitamina_c_mg": 18.5
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 180
+      },
+      {
+        "descripcion": "1 whole",
+        "gramos": 200
+      },
+      {
+        "descripcion": "1 cup, mashed",
+        "gramos": 240
+      }
+    ]
   },
   {
     "id": "brocoli",
@@ -653,7 +2115,40 @@
       "broccoli"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709645,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 41,
+      "proteina_g": 2.67,
+      "calcio_mg": 48,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.72,
+      "fibra_g": 2.5,
+      "omega3_g": 0.022,
+      "b12_ug": 0,
+      "vitamina_c_mg": 80.6
+    },
+    "porciones": [
+      {
+        "descripcion": "1 spear",
+        "gramos": 40
+      },
+      {
+        "descripcion": "1 piece",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 155
+      },
+      {
+        "descripcion": "1 floweret",
+        "gramos": 10
+      }
+    ]
   },
   {
     "id": "chauchas",
@@ -667,7 +2162,36 @@
       "green beans"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709852,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 42,
+      "proteina_g": 2.05,
+      "calcio_mg": 42,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.68,
+      "fibra_g": 3.1,
+      "omega3_g": 0.072,
+      "b12_ug": 0,
+      "vitamina_c_mg": 10.8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 140
+      },
+      {
+        "descripcion": "1 bean",
+        "gramos": 6
+      },
+      {
+        "descripcion": "1 cut piece",
+        "gramos": 2
+      }
+    ]
   },
   {
     "id": "arvejas",
@@ -680,7 +2204,28 @@
       "peas"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709960,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 78,
+      "proteina_g": 5.14,
+      "calcio_mg": 24,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.52,
+      "fibra_g": 4.5,
+      "omega3_g": 0.024,
+      "b12_ug": 0,
+      "vitamina_c_mg": 9.9
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 160
+      }
+    ]
   },
   {
     "id": "tomate",
@@ -691,7 +2236,52 @@
       "tomato"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709719,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 60,
+    "por100g": {
+      "energia_kcal": 20,
+      "proteina_g": 0.82,
+      "calcio_mg": 10,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.22,
+      "fibra_g": 1.2,
+      "omega3_g": 0.003,
+      "b12_ug": 0,
+      "vitamina_c_mg": 16.3
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 grape tomato",
+        "gramos": 8
+      },
+      {
+        "descripcion": "1 plum tomato",
+        "gramos": 60
+      },
+      {
+        "descripcion": "1 whole",
+        "gramos": 125
+      },
+      {
+        "descripcion": "1 Italian tomato",
+        "gramos": 60
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 180
+      },
+      {
+        "descripcion": "1 cherry",
+        "gramos": 17
+      }
+    ]
   },
   {
     "id": "salsa_tomate",
@@ -705,7 +2295,28 @@
       "tomato sauce"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 170054,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 40,
+    "por100g": {
+      "energia_kcal": 24,
+      "proteina_g": 1.2,
+      "calcio_mg": 14,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.96,
+      "fibra_g": 1.5,
+      "omega3_g": 0.005,
+      "b12_ug": 0,
+      "vitamina_c_mg": 7
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 245
+      }
+    ]
   },
   {
     "id": "lechuga",
@@ -715,7 +2326,40 @@
       "lettuce"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709789,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 20,
+      "proteina_g": 0.92,
+      "calcio_mg": 31,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.26,
+      "fibra_g": 1.3,
+      "omega3_g": 0.076,
+      "b12_ug": 0,
+      "vitamina_c_mg": 8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 leaf",
+        "gramos": 8
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 35
+      },
+      {
+        "descripcion": "Guideline amount in salad",
+        "gramos": 70
+      },
+      {
+        "descripcion": "1 head",
+        "gramos": 539
+      }
+    ]
   },
   {
     "id": "espinaca",
@@ -725,7 +2369,28 @@
       "spinach"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709615,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 33,
+      "proteina_g": 3.41,
+      "calcio_mg": 79,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.23,
+      "fibra_g": 1.9,
+      "omega3_g": 0.162,
+      "b12_ug": 0,
+      "vitamina_c_mg": 24.9
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 180
+      }
+    ]
   },
   {
     "id": "acelga",
@@ -735,7 +2400,28 @@
       "chard"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709575,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 44,
+      "proteina_g": 1.88,
+      "calcio_mg": 54,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.88,
+      "fibra_g": 1.7,
+      "omega3_g": 0.095,
+      "b12_ug": 0,
+      "vitamina_c_mg": 21.9
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      }
+    ]
   },
   {
     "id": "cebolla",
@@ -745,7 +2431,40 @@
       "onion"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709795,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 38,
+      "proteina_g": 0.86,
+      "calcio_mg": 17,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.24,
+      "fibra_g": 1.7,
+      "omega3_g": 0.004,
+      "b12_ug": 0,
+      "vitamina_c_mg": 8.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 160
+      },
+      {
+        "descripcion": "1 ring",
+        "gramos": 5
+      },
+      {
+        "descripcion": "1 whole",
+        "gramos": 148
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 15
+      }
+    ]
   },
   {
     "id": "morron",
@@ -758,7 +2477,44 @@
       "bell pepper"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709801,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 31,
+      "proteina_g": 0.9,
+      "calcio_mg": 6,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.35,
+      "fibra_g": 1.2,
+      "omega3_g": 0.056,
+      "b12_ug": 0,
+      "vitamina_c_mg": 141.7
+    },
+    "porciones": [
+      {
+        "descripcion": "1 piece",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 regular",
+        "gramos": 120
+      },
+      {
+        "descripcion": "1 miniature",
+        "gramos": 30
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      },
+      {
+        "descripcion": "1 ring",
+        "gramos": 10
+      }
+    ]
   },
   {
     "id": "pepino",
@@ -768,7 +2524,44 @@
       "cucumber"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709784,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 40,
+    "por100g": {
+      "energia_kcal": 16,
+      "proteina_g": 0.62,
+      "calcio_mg": 16,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0,
+      "fibra_g": 0.5,
+      "omega3_g": 0.005,
+      "b12_ug": 0,
+      "vitamina_c_mg": 2.8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 stick",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 120
+      },
+      {
+        "descripcion": "1 miniature",
+        "gramos": 65
+      },
+      {
+        "descripcion": "1 regular",
+        "gramos": 200
+      },
+      {
+        "descripcion": "1 piece/slice",
+        "gramos": 10
+      }
+    ]
   },
   {
     "id": "coliflor",
@@ -777,7 +2570,36 @@
       "cauliflower"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709897,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 26,
+      "proteina_g": 1.99,
+      "calcio_mg": 23,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.44,
+      "fibra_g": 2.1,
+      "omega3_g": 0.016,
+      "b12_ug": 0,
+      "vitamina_c_mg": 42.5
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 155
+      },
+      {
+        "descripcion": "1 floweret",
+        "gramos": 13
+      },
+      {
+        "descripcion": "1 piece",
+        "gramos": 13
+      }
+    ]
   },
   {
     "id": "remolacha",
@@ -789,7 +2611,36 @@
       "beetroot"
     ],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709872,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 45,
+      "proteina_g": 1.67,
+      "calcio_mg": 17,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.83,
+      "fibra_g": 2.9,
+      "omega3_g": 0.005,
+      "b12_ug": 0,
+      "vitamina_c_mg": 4.3
+    },
+    "porciones": [
+      {
+        "descripcion": "1 whole",
+        "gramos": 50
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 170
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 10
+      }
+    ]
   },
   {
     "id": "banana",
@@ -802,7 +2653,44 @@
       "guineo"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709224,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 100,
+    "por100g": {
+      "energia_kcal": 97,
+      "proteina_g": 0.74,
+      "calcio_mg": 5,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0,
+      "fibra_g": 1.7,
+      "omega3_g": 0.027,
+      "b12_ug": 0,
+      "vitamina_c_mg": 12
+    },
+    "porciones": [
+      {
+        "descripcion": "1 linear inch",
+        "gramos": 15
+      },
+      {
+        "descripcion": "1 banana",
+        "gramos": 126
+      },
+      {
+        "descripcion": "1 cup, mashed",
+        "gramos": 225
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 6
+      }
+    ]
   },
   {
     "id": "manzana",
@@ -814,7 +2702,52 @@
       "apple"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709215,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 120,
+    "por100g": {
+      "energia_kcal": 61,
+      "proteina_g": 0.17,
+      "calcio_mg": 5,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.03,
+      "fibra_g": 2.1,
+      "omega3_g": 0.009,
+      "b12_ug": 0,
+      "vitamina_c_mg": 4.6
+    },
+    "porciones": [
+      {
+        "descripcion": "1 medium",
+        "gramos": 200
+      },
+      {
+        "descripcion": "1 small",
+        "gramos": 165
+      },
+      {
+        "descripcion": "1 single serving package",
+        "gramos": 34
+      },
+      {
+        "descripcion": "1 extra large",
+        "gramos": 295
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 25
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 125
+      },
+      {
+        "descripcion": "1 large",
+        "gramos": 242
+      }
+    ]
   },
   {
     "id": "pera",
@@ -824,7 +2757,36 @@
       "pear"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709254,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 120,
+    "por100g": {
+      "energia_kcal": 59,
+      "proteina_g": 0.37,
+      "calcio_mg": 9,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.18,
+      "fibra_g": 3.1,
+      "omega3_g": 0.001,
+      "b12_ug": 0,
+      "vitamina_c_mg": 4.3
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice/chunk",
+        "gramos": 25
+      },
+      {
+        "descripcion": "1 fruit",
+        "gramos": 180
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 125
+      }
+    ]
   },
   {
     "id": "naranja",
@@ -834,7 +2796,36 @@
       "orange"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709171,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 130,
+    "por100g": {
+      "energia_kcal": 50,
+      "proteina_g": 0.92,
+      "calcio_mg": 42,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.22,
+      "fibra_g": 2.2,
+      "omega3_g": 0.007,
+      "b12_ug": 0,
+      "vitamina_c_mg": 56.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 fruit",
+        "gramos": 154
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 180
+      },
+      {
+        "descripcion": "1 section/slice",
+        "gramos": 15
+      }
+    ]
   },
   {
     "id": "jugo_naranja",
@@ -845,7 +2836,40 @@
       "orange juice"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709187,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 200,
+    "por100g": {
+      "energia_kcal": 47,
+      "proteina_g": 0.81,
+      "calcio_mg": 9,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.07,
+      "fibra_g": 0.3,
+      "omega3_g": 0.007,
+      "b12_ug": 0,
+      "vitamina_c_mg": 30.5
+    },
+    "porciones": [
+      {
+        "descripcion": "1 fl oz (no ice)",
+        "gramos": 31
+      },
+      {
+        "descripcion": "Juice of 1 orange (2-5/8\" dia)",
+        "gramos": 86
+      },
+      {
+        "descripcion": "1 fl oz (with ice)",
+        "gramos": 23
+      },
+      {
+        "descripcion": "1 fl oz (NFS)",
+        "gramos": 31
+      }
+    ]
   },
   {
     "id": "mandarina",
@@ -857,7 +2881,36 @@
       "tangerine"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709175,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 53,
+      "proteina_g": 0.81,
+      "calcio_mg": 37,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.15,
+      "fibra_g": 1.8,
+      "omega3_g": 0.018,
+      "b12_ug": 0,
+      "vitamina_c_mg": 26.7
+    },
+    "porciones": [
+      {
+        "descripcion": "1 fruit",
+        "gramos": 109
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 195
+      },
+      {
+        "descripcion": "1 section/slice",
+        "gramos": 11
+      }
+    ]
   },
   {
     "id": "frutilla",
@@ -869,7 +2922,32 @@
       "strawberry"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709283,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 100,
+    "por100g": {
+      "energia_kcal": 36,
+      "proteina_g": 0.64,
+      "calcio_mg": 17,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.26,
+      "fibra_g": 1.8,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 59.6
+    },
+    "porciones": [
+      {
+        "descripcion": "1 fruit",
+        "gramos": 18
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      }
+    ]
   },
   {
     "id": "kiwi",
@@ -879,7 +2957,36 @@
       "kiwifruit"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709239,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 70,
+    "por100g": {
+      "energia_kcal": 64,
+      "proteina_g": 1.06,
+      "calcio_mg": 35,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.24,
+      "fibra_g": 3,
+      "omega3_g": 0.042,
+      "b12_ug": 0,
+      "vitamina_c_mg": 74.7
+    },
+    "porciones": [
+      {
+        "descripcion": "1 fruit",
+        "gramos": 75
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 180
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 7
+      }
+    ]
   },
   {
     "id": "durazno",
@@ -890,7 +2997,36 @@
       "peach"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709249,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 120,
+    "por100g": {
+      "energia_kcal": 46,
+      "proteina_g": 0.91,
+      "calcio_mg": 4,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.34,
+      "fibra_g": 1.5,
+      "omega3_g": 0.002,
+      "b12_ug": 0,
+      "vitamina_c_mg": 4.1
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 155
+      },
+      {
+        "descripcion": "1 fruit",
+        "gramos": 150
+      },
+      {
+        "descripcion": "1 slice/chunk",
+        "gramos": 20
+      }
+    ]
   },
   {
     "id": "uva",
@@ -900,7 +3036,32 @@
       "grapes"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709237,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 83,
+      "proteina_g": 0.9,
+      "calcio_mg": 10,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.18,
+      "fibra_g": 0.9,
+      "omega3_g": 0.011,
+      "b12_ug": 0,
+      "vitamina_c_mg": 3.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      },
+      {
+        "descripcion": "1 grape",
+        "gramos": 7
+      }
+    ]
   },
   {
     "id": "sandia",
@@ -911,7 +3072,64 @@
       "watermelon"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709270,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 150,
+    "por100g": {
+      "energia_kcal": 30,
+      "proteina_g": 0.61,
+      "calcio_mg": 7,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.24,
+      "fibra_g": 0.4,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 8.1
+    },
+    "porciones": [
+      {
+        "descripcion": "1 miniature melon",
+        "gramos": 1300
+      },
+      {
+        "descripcion": "1 large melon",
+        "gramos": 6000
+      },
+      {
+        "descripcion": "1 small wedge/slice",
+        "gramos": 218
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 155
+      },
+      {
+        "descripcion": "1 ball",
+        "gramos": 15
+      },
+      {
+        "descripcion": "1 large wedge/slice",
+        "gramos": 432
+      },
+      {
+        "descripcion": "1 cube",
+        "gramos": 15
+      },
+      {
+        "descripcion": "1 small melon",
+        "gramos": 3200
+      },
+      {
+        "descripcion": "1 medium melon",
+        "gramos": 5200
+      },
+      {
+        "descripcion": "1 medium wedge/slice",
+        "gramos": 325
+      }
+    ]
   },
   {
     "id": "melon",
@@ -921,7 +3139,60 @@
       "cantaloupe"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709226,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 120,
+    "por100g": {
+      "energia_kcal": 38,
+      "proteina_g": 0.82,
+      "calcio_mg": 9,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.38,
+      "fibra_g": 0.8,
+      "omega3_g": 0.046,
+      "b12_ug": 0,
+      "vitamina_c_mg": 10.9
+    },
+    "porciones": [
+      {
+        "descripcion": "1 small wedge/slice",
+        "gramos": 35
+      },
+      {
+        "descripcion": "1 medium melon",
+        "gramos": 550
+      },
+      {
+        "descripcion": "1 ball",
+        "gramos": 15
+      },
+      {
+        "descripcion": "1 cube",
+        "gramos": 15
+      },
+      {
+        "descripcion": "1 medium wedge/slice",
+        "gramos": 70
+      },
+      {
+        "descripcion": "1 large wedge/slice",
+        "gramos": 105
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 155
+      },
+      {
+        "descripcion": "1 large melon",
+        "gramos": 815
+      },
+      {
+        "descripcion": "1 small melon",
+        "gramos": 440
+      }
+    ]
   },
   {
     "id": "anana",
@@ -932,7 +3203,40 @@
       "pineapple"
     ],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709260,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 100,
+    "por100g": {
+      "energia_kcal": 60,
+      "proteina_g": 0.46,
+      "calcio_mg": 12,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.05,
+      "fibra_g": 0.9,
+      "omega3_g": 0.017,
+      "b12_ug": 0,
+      "vitamina_c_mg": 58.6
+    },
+    "porciones": [
+      {
+        "descripcion": "1 chunk",
+        "gramos": 15
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 56
+      },
+      {
+        "descripcion": "1 fruit",
+        "gramos": 905
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 165
+      }
+    ]
   },
   {
     "id": "leche",
@@ -945,6 +3249,39 @@
     "grupo": "lacteo",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 172217,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 200,
+    "por100g": {
+      "energia_kcal": 61,
+      "proteina_g": 3.15,
+      "calcio_mg": 113,
+      "vitamina_d_ug": 0.1,
+      "hierro_mg": 0.03,
+      "fibra_g": 0,
+      "omega3_g": 0.075,
+      "b12_ug": 0.45,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 244
+      },
+      {
+        "descripcion": "1 tbsp",
+        "gramos": 15
+      },
+      {
+        "descripcion": "1 fl oz",
+        "gramos": 30.5
+      },
+      {
+        "descripcion": "1 quart",
+        "gramos": 976
+      }
     ]
   },
   {
@@ -958,6 +3295,39 @@
     "grupo": "lacteo",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 171265,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 200,
+    "por100g": {
+      "energia_kcal": 61,
+      "proteina_g": 3.15,
+      "calcio_mg": 113,
+      "vitamina_d_ug": 1.3,
+      "hierro_mg": 0.03,
+      "fibra_g": 0,
+      "omega3_g": 0.075,
+      "b12_ug": 0.45,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 244
+      },
+      {
+        "descripcion": "1 fl oz",
+        "gramos": 30.5
+      },
+      {
+        "descripcion": "1 tbsp",
+        "gramos": 15
+      },
+      {
+        "descripcion": "1 quart",
+        "gramos": 976
+      }
     ]
   },
   {
@@ -972,6 +3342,35 @@
     "grupo": "lacteo",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 170888,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 150,
+    "por100g": {
+      "energia_kcal": 85,
+      "proteina_g": 4.93,
+      "calcio_mg": 171,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.07,
+      "fibra_g": 0,
+      "omega3_g": 0.01,
+      "b12_ug": 0.53,
+      "vitamina_c_mg": 0.8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 container (6 oz)",
+        "gramos": 170
+      },
+      {
+        "descripcion": "1 container (8 oz)",
+        "gramos": 227
+      },
+      {
+        "descripcion": "1 cup (8 fl oz)",
+        "gramos": 245
+      }
     ]
   },
   {
@@ -984,6 +3383,39 @@
     "grupo": "lacteo",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 172219,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 150,
+    "por100g": {
+      "energia_kcal": 85,
+      "proteina_g": 4.93,
+      "calcio_mg": 171,
+      "vitamina_d_ug": 1.2,
+      "hierro_mg": 0.07,
+      "fibra_g": 0,
+      "omega3_g": 0.01,
+      "b12_ug": 0.53,
+      "vitamina_c_mg": 0.8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 container (6 oz)",
+        "gramos": 170
+      },
+      {
+        "descripcion": "1 container (8 oz)",
+        "gramos": 227
+      },
+      {
+        "descripcion": "0.5 container (4 oz)",
+        "gramos": 113
+      },
+      {
+        "descripcion": "1 cup (8 fl oz)",
+        "gramos": 245
+      }
     ]
   },
   {
@@ -997,6 +3429,35 @@
     "grupo": "lacteo",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 170888,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 200,
+    "por100g": {
+      "energia_kcal": 85,
+      "proteina_g": 4.93,
+      "calcio_mg": 171,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.07,
+      "fibra_g": 0,
+      "omega3_g": 0.01,
+      "b12_ug": 0.53,
+      "vitamina_c_mg": 0.8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 container (6 oz)",
+        "gramos": 170
+      },
+      {
+        "descripcion": "1 container (8 oz)",
+        "gramos": 227
+      },
+      {
+        "descripcion": "1 cup (8 fl oz)",
+        "gramos": 245
+      }
     ]
   },
   {
@@ -1013,6 +3474,43 @@
     "grupo": "lacteo",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 2705717,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 356,
+      "proteina_g": 24.94,
+      "calcio_mg": 700,
+      "vitamina_d_ug": 0.5,
+      "hierro_mg": 0.24,
+      "fibra_g": 0,
+      "omega3_g": 0.394,
+      "b12_ug": 1.54,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice",
+        "gramos": 21
+      },
+      {
+        "descripcion": "1 cracker-size slice",
+        "gramos": 9
+      },
+      {
+        "descripcion": "1 cup, diced",
+        "gramos": 132
+      },
+      {
+        "descripcion": "1 cubic inch",
+        "gramos": 17
+      },
+      {
+        "descripcion": "1 package (7 oz)",
+        "gramos": 198
+      }
     ]
   },
   {
@@ -1027,6 +3525,59 @@
     "grupo": "lacteo",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 2705722,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 30,
+    "por100g": {
+      "energia_kcal": 296,
+      "proteina_g": 23.7,
+      "calcio_mg": 693,
+      "vitamina_d_ug": 0.4,
+      "hierro_mg": 0.2,
+      "fibra_g": 0,
+      "omega3_g": 0.096,
+      "b12_ug": 1.65,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cubic inch",
+        "gramos": 18
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 21
+      },
+      {
+        "descripcion": "1 cracker-size slice",
+        "gramos": 9
+      },
+      {
+        "descripcion": "1 cup, shredded",
+        "gramos": 113
+      },
+      {
+        "descripcion": "1 cup, diced",
+        "gramos": 132
+      },
+      {
+        "descripcion": "1 cheese curd",
+        "gramos": 4
+      },
+      {
+        "descripcion": "1 cup, melted",
+        "gramos": 244
+      },
+      {
+        "descripcion": "1 cup, NFS",
+        "gramos": 113
+      },
+      {
+        "descripcion": "1 stick",
+        "gramos": 28.4
+      }
     ]
   },
   {
@@ -1042,6 +3593,31 @@
     "grupo": "lacteo",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 2705728,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 10,
+    "por100g": {
+      "energia_kcal": 412,
+      "proteina_g": 29.87,
+      "calcio_mg": 917,
+      "vitamina_d_ug": 0.2,
+      "hierro_mg": 0.3,
+      "fibra_g": 0,
+      "omega3_g": 0.237,
+      "b12_ug": 1.38,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 100
+      },
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 6.2
+      }
     ]
   },
   {
@@ -1055,6 +3631,35 @@
     "grupo": "lacteo",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 2705760,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 343,
+      "proteina_g": 5.79,
+      "calcio_mg": 97,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0,
+      "fibra_g": 0,
+      "omega3_g": 0.161,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 15
+      },
+      {
+        "descripcion": "1 individual container",
+        "gramos": 28.4
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 240
+      }
     ]
   },
   {
@@ -1067,6 +3672,27 @@
     "grupo": "lacteo",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 2705750,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 40,
+    "por100g": {
+      "energia_kcal": 148,
+      "proteina_g": 9.6,
+      "calcio_mg": 248,
+      "vitamina_d_ug": 0.2,
+      "hierro_mg": 0.27,
+      "fibra_g": 0,
+      "omega3_g": 0.062,
+      "b12_ug": 0.54,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 246
+      }
     ]
   },
   {
@@ -1081,6 +3707,51 @@
       "leche",
       "huevo",
       "soja"
+    ],
+    "fdcId": 2705630,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 70,
+    "por100g": {
+      "energia_kcal": 207,
+      "proteina_g": 3.5,
+      "calcio_mg": 128,
+      "vitamina_d_ug": 0.2,
+      "hierro_mg": 0.09,
+      "fibra_g": 0.7,
+      "omega3_g": 0.178,
+      "b12_ug": 0.39,
+      "vitamina_c_mg": 0.6
+    },
+    "porciones": [
+      {
+        "descripcion": "1 large ice cream cup",
+        "gramos": 360
+      },
+      {
+        "descripcion": "1 medium ice cream cup",
+        "gramos": 240
+      },
+      {
+        "descripcion": "1 small ice cream cup",
+        "gramos": 120
+      },
+      {
+        "descripcion": "1 individual container",
+        "gramos": 75
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 135
+      },
+      {
+        "descripcion": "1 cubic inch",
+        "gramos": 9.2
+      },
+      {
+        "descripcion": "1 scoop",
+        "gramos": 120
+      }
     ]
   },
   {
@@ -1098,6 +3769,34 @@
     "alergenos": [
       "leche",
       "huevo"
+    ],
+    "fdcId": 168785,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 100,
+    "por100g": {
+      "energia_kcal": 114,
+      "proteina_g": 2.7,
+      "calcio_mg": 101,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.07,
+      "fibra_g": 0,
+      "omega3_g": 0.05,
+      "b12_ug": 0.3,
+      "vitamina_c_mg": 0.8
+    },
+    "faltantes": [
+      "vitamina_d_ug"
+    ],
+    "porciones": [
+      {
+        "descripcion": "0.5 cup",
+        "gramos": 142
+      },
+      {
+        "descripcion": "1 package yield (2 cups)",
+        "gramos": 569
+      }
     ]
   },
   {
@@ -1108,7 +3807,32 @@
       "sunflower oil"
     ],
     "grupo": "otro",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2710192,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 5,
+    "por100g": {
+      "energia_kcal": 900,
+      "proteina_g": 0,
+      "calcio_mg": 0,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0,
+      "fibra_g": 0,
+      "omega3_g": 0.165,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 224
+      },
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 14
+      }
+    ]
   },
   {
     "id": "aceite_canola",
@@ -1118,7 +3842,32 @@
       "canola oil"
     ],
     "grupo": "otro",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2710188,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 5,
+    "por100g": {
+      "energia_kcal": 900,
+      "proteina_g": 0,
+      "calcio_mg": 0,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0,
+      "fibra_g": 0,
+      "omega3_g": 7.45,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 224
+      },
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 14
+      }
+    ]
   },
   {
     "id": "aceite_oliva",
@@ -1127,7 +3876,32 @@
       "olive oil"
     ],
     "grupo": "otro",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2710186,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 5,
+    "por100g": {
+      "energia_kcal": 900,
+      "proteina_g": 0,
+      "calcio_mg": 1,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.56,
+      "fibra_g": 0,
+      "omega3_g": 0.638,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 14
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 224
+      }
+    ]
   },
   {
     "id": "manteca",
@@ -1139,6 +3913,51 @@
     "grupo": "otro",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 2710155,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 5,
+    "por100g": {
+      "energia_kcal": 743,
+      "proteina_g": 0.85,
+      "calcio_mg": 21,
+      "vitamina_d_ug": 0.4,
+      "hierro_mg": 0.06,
+      "fibra_g": 0,
+      "omega3_g": 0.396,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 224
+      },
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 14
+      },
+      {
+        "descripcion": "1 pat",
+        "gramos": 7
+      },
+      {
+        "descripcion": "Guideline amount per slice of bread/roll",
+        "gramos": 7
+      },
+      {
+        "descripcion": "Guideline amount on large sandwich",
+        "gramos": 28
+      },
+      {
+        "descripcion": "1 stick",
+        "gramos": 113
+      },
+      {
+        "descripcion": "Guideline amount on regular sandwich",
+        "gramos": 14
+      }
     ]
   },
   {
@@ -1149,7 +3968,44 @@
       "sugar"
     ],
     "grupo": "otro",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2710258,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 10,
+    "por100g": {
+      "energia_kcal": 401,
+      "proteina_g": 0,
+      "calcio_mg": 1,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.05,
+      "fibra_g": 0,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 teaspoon",
+        "gramos": 4.2
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 200
+      },
+      {
+        "descripcion": "1 cube",
+        "gramos": 2.3
+      },
+      {
+        "descripcion": "1 individual packet",
+        "gramos": 3.5
+      },
+      {
+        "descripcion": "Guideline amount per fl oz of beverage",
+        "gramos": 1.4
+      }
+    ]
   },
   {
     "id": "cacao_azucarado",
@@ -1167,6 +4023,27 @@
       "leche",
       "soja",
       "gluten"
+    ],
+    "fdcId": 174122,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 15,
+    "por100g": {
+      "energia_kcal": 398,
+      "proteina_g": 6.67,
+      "calcio_mg": 133,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.19,
+      "fibra_g": 3.7,
+      "omega3_g": 0.003,
+      "b12_ug": 0.35,
+      "vitamina_c_mg": 0.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 serving (3 heaping tsp or 1 envelope)",
+        "gramos": 28
+      }
     ]
   },
   {
@@ -1182,6 +4059,27 @@
     "grupo": "otro",
     "alergenos": [
       "leche"
+    ],
+    "fdcId": 2705699,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 315,
+      "proteina_g": 6.84,
+      "calcio_mg": 251,
+      "vitamina_d_ug": 0.2,
+      "hierro_mg": 0.17,
+      "fibra_g": 0,
+      "omega3_g": 0.065,
+      "b12_ug": 0.31,
+      "vitamina_c_mg": 2.6
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 300
+      }
     ]
   },
   {
@@ -1198,6 +4096,31 @@
       "leche",
       "huevo",
       "soja"
+    ],
+    "fdcId": 172719,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 481,
+      "proteina_g": 3.6,
+      "calcio_mg": 35,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 3.13,
+      "fibra_g": 5.2,
+      "omega3_g": 0.146,
+      "b12_ug": 0.05,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 oz",
+        "gramos": 28.4
+      },
+      {
+        "descripcion": "1 cookie",
+        "gramos": 17
+      }
     ]
   },
   {
@@ -1210,7 +4133,36 @@
       "jam"
     ],
     "grupo": "otro",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2710301,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 15,
+    "por100g": {
+      "energia_kcal": 278,
+      "proteina_g": 0.37,
+      "calcio_mg": 20,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.49,
+      "fibra_g": 1.1,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 8.8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 20
+      },
+      {
+        "descripcion": "Guideline amount per slice of bread/roll",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 individual packet",
+        "gramos": 14
+      }
+    ]
   },
   {
     "id": "mayonesa",
@@ -1222,6 +4174,51 @@
     "grupo": "otro",
     "alergenos": [
       "huevo"
+    ],
+    "fdcId": 2710204,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 10,
+    "por100g": {
+      "energia_kcal": 680,
+      "proteina_g": 0.96,
+      "calcio_mg": 8,
+      "vitamina_d_ug": 0.2,
+      "hierro_mg": 0.21,
+      "fibra_g": 0,
+      "omega3_g": 5.461,
+      "b12_ug": 0.12,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "Guideline amount on large sandwich",
+        "gramos": 28
+      },
+      {
+        "descripcion": "1 dipping-size container",
+        "gramos": 28
+      },
+      {
+        "descripcion": "Guideline amount on regular sandwich",
+        "gramos": 14
+      },
+      {
+        "descripcion": "1 packet",
+        "gramos": 12
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 220
+      },
+      {
+        "descripcion": "Guideline amount in salad",
+        "gramos": 28
+      },
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 13.8
+      }
     ]
   },
   {
@@ -1232,7 +4229,48 @@
       "catsup"
     ],
     "grupo": "otro",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2709733,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 10,
+    "por100g": {
+      "energia_kcal": 109,
+      "proteina_g": 1.08,
+      "calcio_mg": 14,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.39,
+      "fibra_g": 0.3,
+      "omega3_g": 0.001,
+      "b12_ug": 0,
+      "vitamina_c_mg": 4.1
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 272
+      },
+      {
+        "descripcion": "Guideline amount on regular sandwich",
+        "gramos": 17
+      },
+      {
+        "descripcion": "1 packet",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 17
+      },
+      {
+        "descripcion": "1 dipping-size container",
+        "gramos": 28
+      },
+      {
+        "descripcion": "Guideline amount on large sandwich",
+        "gramos": 34
+      }
+    ]
   },
   {
     "id": "papas_chips",
@@ -1247,6 +4285,47 @@
     "alergenos": [
       "leche",
       "soja"
+    ],
+    "fdcId": 2709422,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 25,
+    "por100g": {
+      "energia_kcal": 532,
+      "proteina_g": 6.39,
+      "calcio_mg": 21,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.28,
+      "fibra_g": 3.1,
+      "omega3_g": 0.359,
+      "b12_ug": 0,
+      "vitamina_c_mg": 21.6
+    },
+    "porciones": [
+      {
+        "descripcion": "1 large single serving bag",
+        "gramos": 85
+      },
+      {
+        "descripcion": "1 medium single serving bag",
+        "gramos": 57
+      },
+      {
+        "descripcion": "1 100 calorie package",
+        "gramos": 18
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 25
+      },
+      {
+        "descripcion": "1 small single serving bag",
+        "gramos": 28
+      },
+      {
+        "descripcion": "1 chip",
+        "gramos": 2
+      }
     ]
   },
   {
@@ -1264,6 +4343,35 @@
       "soja",
       "frutos_secos",
       "mani"
+    ],
+    "fdcId": 167587,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 25,
+    "por100g": {
+      "energia_kcal": 535,
+      "proteina_g": 7.65,
+      "calcio_mg": 189,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 2.35,
+      "fibra_g": 3.4,
+      "omega3_g": 0.122,
+      "b12_ug": 0.75,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 bar, miniature",
+        "gramos": 7
+      },
+      {
+        "descripcion": "1 bar (1.55 oz)",
+        "gramos": 44
+      },
+      {
+        "descripcion": "1 cup chips",
+        "gramos": 168
+      }
     ]
   },
   {
@@ -1274,7 +4382,44 @@
       "honey"
     ],
     "grupo": "otro",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": 2710281,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 10,
+    "por100g": {
+      "energia_kcal": 304,
+      "proteina_g": 0.3,
+      "calcio_mg": 6,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.42,
+      "fibra_g": 0.2,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0.5
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 20
+      },
+      {
+        "descripcion": "Guideline amount per fl oz of beverage",
+        "gramos": 2.4
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 320
+      },
+      {
+        "descripcion": "1 single serving container",
+        "gramos": 14
+      },
+      {
+        "descripcion": "Guideline amount per slice of bread/roll",
+        "gramos": 10
+      }
+    ]
   },
   {
     "id": "bizcochuelo",
@@ -1292,6 +4437,31 @@
       "huevo",
       "leche",
       "soja"
+    ],
+    "fdcId": 2707886,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 290,
+      "proteina_g": 5.4,
+      "calcio_mg": 70,
+      "vitamina_d_ug": 0.2,
+      "hierro_mg": 2.72,
+      "fibra_g": 0.5,
+      "omega3_g": 0.025,
+      "b12_ug": 0.24,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 50
+      },
+      {
+        "descripcion": "1 piece/slice, any size",
+        "gramos": 65
+      }
     ]
   },
   {
@@ -1305,7 +4475,21 @@
       "gluten",
       "soja",
       "sesamo"
-    ]
+    ],
+    "fdcId": null,
+    "fuente": "equipo",
+    "porcionMedianaG": 30,
+    "por100g": {
+      "energia_kcal": 272,
+      "proteina_g": 6.4,
+      "calcio_mg": 22,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 2.38,
+      "fibra_g": 2.6,
+      "omega3_g": 0.064,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    }
   },
   {
     "id": "otro_proteina",
@@ -1320,21 +4504,63 @@
       "soja",
       "pescado",
       "mariscos"
-    ]
+    ],
+    "fdcId": null,
+    "fuente": "equipo",
+    "porcionMedianaG": 70,
+    "por100g": {
+      "energia_kcal": 183,
+      "proteina_g": 19,
+      "calcio_mg": 19,
+      "vitamina_d_ug": 0.3,
+      "hierro_mg": 1.67,
+      "fibra_g": 0,
+      "omega3_g": 0.064,
+      "b12_ug": 0.82,
+      "vitamina_c_mg": 0
+    }
   },
   {
     "id": "otro_verdura",
     "nombre": "Otra verdura",
     "alias": [],
     "grupo": "verdura",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": null,
+    "fuente": "equipo",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 35.5,
+      "proteina_g": 1.25,
+      "calcio_mg": 22.5,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.58,
+      "fibra_g": 1.7,
+      "omega3_g": 0.023,
+      "b12_ug": 0,
+      "vitamina_c_mg": 10.35
+    }
   },
   {
     "id": "otro_fruta",
     "nombre": "Otra fruta",
     "alias": [],
     "grupo": "fruta",
-    "alergenos": []
+    "alergenos": [],
+    "fdcId": null,
+    "fuente": "equipo",
+    "porcionMedianaG": 120,
+    "por100g": {
+      "energia_kcal": 53,
+      "proteina_g": 0.81,
+      "calcio_mg": 9,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.18,
+      "fibra_g": 1.7,
+      "omega3_g": 0.009,
+      "b12_ug": 0,
+      "vitamina_c_mg": 12
+    }
   },
   {
     "id": "otro_lacteo",
@@ -1345,7 +4571,21 @@
       "leche",
       "huevo",
       "soja"
-    ]
+    ],
+    "fdcId": null,
+    "fuente": "equipo",
+    "porcionMedianaG": 85,
+    "por100g": {
+      "energia_kcal": 131,
+      "proteina_g": 4.93,
+      "calcio_mg": 171,
+      "vitamina_d_ug": 0.2,
+      "hierro_mg": 0.07,
+      "fibra_g": 0,
+      "omega3_g": 0.075,
+      "b12_ug": 0.53,
+      "vitamina_c_mg": 0
+    }
   },
   {
     "id": "otro_otro",
@@ -1359,6 +4599,20 @@
       "mani",
       "frutos_secos",
       "soja"
-    ]
+    ],
+    "fdcId": null,
+    "fuente": "equipo",
+    "porcionMedianaG": 10,
+    "por100g": {
+      "energia_kcal": 481,
+      "proteina_g": 0.96,
+      "calcio_mg": 20,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.42,
+      "fibra_g": 0.2,
+      "omega3_g": 0.122,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    }
   }
 ]
