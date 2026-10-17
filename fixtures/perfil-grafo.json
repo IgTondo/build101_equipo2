@@ -1,0 +1,1843 @@
+{
+  "motor": "mongo",
+  "nodos": [
+    {
+      "id": "nino:sint-tomas",
+      "tipo": "Nino",
+      "nombre": "Tomás",
+      "props": {}
+    },
+    {
+      "id": "prep:papas_fritas_baston",
+      "tipo": "Preparacion",
+      "nombre": "Papas fritas en bastones",
+      "props": {
+        "estado": "ACEPTA",
+        "puntaje": 0.988,
+        "veces": 8
+      }
+    },
+    {
+      "id": "atr:textura:crocante",
+      "tipo": "Atributo",
+      "nombre": "textura=crocante",
+      "props": {}
+    },
+    {
+      "id": "atr:forma:baston",
+      "tipo": "Atributo",
+      "nombre": "forma=baston",
+      "props": {}
+    },
+    {
+      "id": "atr:color:amarillo",
+      "tipo": "Atributo",
+      "nombre": "color=amarillo",
+      "props": {}
+    },
+    {
+      "id": "atr:sabor:salado",
+      "tipo": "Atributo",
+      "nombre": "sabor=salado",
+      "props": {}
+    },
+    {
+      "id": "atr:temperatura:caliente",
+      "tipo": "Atributo",
+      "nombre": "temperatura=caliente",
+      "props": {}
+    },
+    {
+      "id": "atr:presentacion:separado",
+      "tipo": "Atributo",
+      "nombre": "presentacion=separado",
+      "props": {}
+    },
+    {
+      "id": "atr:grupo:cereal_almidon",
+      "tipo": "Atributo",
+      "nombre": "grupo=cereal_almidon",
+      "props": {}
+    },
+    {
+      "id": "atr:coccion:frito",
+      "tipo": "Atributo",
+      "nombre": "coccion=frito",
+      "props": {}
+    },
+    {
+      "id": "prep:milanesa_carne_horno",
+      "tipo": "Preparacion",
+      "nombre": "Milanesa de carne al horno (rebozada sin huevo)",
+      "props": {
+        "estado": "ACEPTA",
+        "puntaje": 0.932,
+        "veces": 6
+      }
+    },
+    {
+      "id": "atr:forma:plano",
+      "tipo": "Atributo",
+      "nombre": "forma=plano",
+      "props": {}
+    },
+    {
+      "id": "atr:color:marron",
+      "tipo": "Atributo",
+      "nombre": "color=marron",
+      "props": {}
+    },
+    {
+      "id": "atr:grupo:proteina",
+      "tipo": "Atributo",
+      "nombre": "grupo=proteina",
+      "props": {}
+    },
+    {
+      "id": "atr:coccion:horno",
+      "tipo": "Atributo",
+      "nombre": "coccion=horno",
+      "props": {}
+    },
+    {
+      "id": "prep:tostadas",
+      "tipo": "Preparacion",
+      "nombre": "Tostadas de pan blanco",
+      "props": {
+        "estado": "ACEPTA",
+        "puntaje": 0.952,
+        "veces": 4
+      }
+    },
+    {
+      "id": "atr:color:beige",
+      "tipo": "Atributo",
+      "nombre": "color=beige",
+      "props": {}
+    },
+    {
+      "id": "atr:sabor:neutro",
+      "tipo": "Atributo",
+      "nombre": "sabor=neutro",
+      "props": {}
+    },
+    {
+      "id": "atr:temperatura:tibio",
+      "tipo": "Atributo",
+      "nombre": "temperatura=tibio",
+      "props": {}
+    },
+    {
+      "id": "prep:galletitas_agua",
+      "tipo": "Preparacion",
+      "nombre": "Galletitas de agua",
+      "props": {
+        "estado": "ACEPTA",
+        "puntaje": 0.902,
+        "veces": 2
+      }
+    },
+    {
+      "id": "atr:temperatura:frio",
+      "tipo": "Atributo",
+      "nombre": "temperatura=frio",
+      "props": {}
+    },
+    {
+      "id": "atr:coccion:listo",
+      "tipo": "Atributo",
+      "nombre": "coccion=listo",
+      "props": {}
+    },
+    {
+      "id": "prep:leche_chocolatada",
+      "tipo": "Preparacion",
+      "nombre": "Leche chocolatada",
+      "props": {
+        "estado": "ACEPTA",
+        "puntaje": 0.862,
+        "veces": 4
+      }
+    },
+    {
+      "id": "atr:textura:cremoso",
+      "tipo": "Atributo",
+      "nombre": "textura=cremoso",
+      "props": {}
+    },
+    {
+      "id": "atr:forma:entero",
+      "tipo": "Atributo",
+      "nombre": "forma=entero",
+      "props": {}
+    },
+    {
+      "id": "atr:sabor:dulce",
+      "tipo": "Atributo",
+      "nombre": "sabor=dulce",
+      "props": {}
+    },
+    {
+      "id": "atr:grupo:lacteo",
+      "tipo": "Atributo",
+      "nombre": "grupo=lacteo",
+      "props": {}
+    },
+    {
+      "id": "prep:papas_horno_baston",
+      "tipo": "Preparacion",
+      "nombre": "Papas al horno en bastones, crocantes",
+      "props": {
+        "estado": "ACEPTA",
+        "puntaje": 0.755,
+        "veces": 2
+      }
+    },
+    {
+      "id": "prep:pure_papa",
+      "tipo": "Preparacion",
+      "nombre": "Puré de papa",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.07,
+        "veces": 1
+      }
+    },
+    {
+      "id": "atr:forma:pure",
+      "tipo": "Atributo",
+      "nombre": "forma=pure",
+      "props": {}
+    },
+    {
+      "id": "atr:coccion:hervido",
+      "tipo": "Atributo",
+      "nombre": "coccion=hervido",
+      "props": {}
+    },
+    {
+      "id": "prep:arroz_con_pollo",
+      "tipo": "Preparacion",
+      "nombre": "Arroz con pollo",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.064,
+        "veces": 2
+      }
+    },
+    {
+      "id": "atr:textura:mixto",
+      "tipo": "Atributo",
+      "nombre": "textura=mixto",
+      "props": {}
+    },
+    {
+      "id": "atr:forma:granos",
+      "tipo": "Atributo",
+      "nombre": "forma=granos",
+      "props": {}
+    },
+    {
+      "id": "atr:color:mixto",
+      "tipo": "Atributo",
+      "nombre": "color=mixto",
+      "props": {}
+    },
+    {
+      "id": "atr:presentacion:mezclado",
+      "tipo": "Atributo",
+      "nombre": "presentacion=mezclado",
+      "props": {}
+    },
+    {
+      "id": "prep:bastones_queso_horno",
+      "tipo": "Preparacion",
+      "nombre": "Bastones de queso horneados",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.441,
+        "veces": 5
+      }
+    },
+    {
+      "id": "prep:hamburguesa_casera",
+      "tipo": "Preparacion",
+      "nombre": "Hamburguesa casera a la plancha",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.29,
+        "veces": 2
+      }
+    },
+    {
+      "id": "atr:textura:jugoso",
+      "tipo": "Atributo",
+      "nombre": "textura=jugoso",
+      "props": {}
+    },
+    {
+      "id": "atr:forma:redondo",
+      "tipo": "Atributo",
+      "nombre": "forma=redondo",
+      "props": {}
+    },
+    {
+      "id": "atr:coccion:plancha",
+      "tipo": "Atributo",
+      "nombre": "coccion=plancha",
+      "props": {}
+    },
+    {
+      "id": "prep:papas_horno_cubos",
+      "tipo": "Preparacion",
+      "nombre": "Papas al horno en cubos, blandas",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.365,
+        "veces": 1
+      }
+    },
+    {
+      "id": "atr:textura:blando",
+      "tipo": "Atributo",
+      "nombre": "textura=blando",
+      "props": {}
+    },
+    {
+      "id": "atr:forma:trozos",
+      "tipo": "Atributo",
+      "nombre": "forma=trozos",
+      "props": {}
+    },
+    {
+      "id": "prep:brocoli_hervido",
+      "tipo": "Preparacion",
+      "nombre": "Brócoli hervido",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.365,
+        "veces": 1
+      }
+    },
+    {
+      "id": "atr:color:verde",
+      "tipo": "Atributo",
+      "nombre": "color=verde",
+      "props": {}
+    },
+    {
+      "id": "atr:grupo:verdura",
+      "tipo": "Atributo",
+      "nombre": "grupo=verdura",
+      "props": {}
+    },
+    {
+      "id": "prep:milanesa_napolitana",
+      "tipo": "Preparacion",
+      "nombre": "Milanesa a la napolitana (sin huevo)",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.35,
+        "veces": 1
+      }
+    },
+    {
+      "id": "atr:presentacion:con_salsa",
+      "tipo": "Atributo",
+      "nombre": "presentacion=con_salsa",
+      "props": {}
+    },
+    {
+      "id": "prep:manzana_bastones",
+      "tipo": "Preparacion",
+      "nombre": "Manzana pelada en bastones",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.539,
+        "veces": 2
+      }
+    },
+    {
+      "id": "atr:color:blanco",
+      "tipo": "Atributo",
+      "nombre": "color=blanco",
+      "props": {}
+    },
+    {
+      "id": "atr:grupo:fruta",
+      "tipo": "Atributo",
+      "nombre": "grupo=fruta",
+      "props": {}
+    },
+    {
+      "id": "atr:coccion:crudo",
+      "tipo": "Atributo",
+      "nombre": "coccion=crudo",
+      "props": {}
+    },
+    {
+      "id": "prep:fideos_con_salsa",
+      "tipo": "Preparacion",
+      "nombre": "Fideos con salsa de tomate",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.26,
+        "veces": 2
+      }
+    },
+    {
+      "id": "atr:color:rojo",
+      "tipo": "Atributo",
+      "nombre": "color=rojo",
+      "props": {}
+    },
+    {
+      "id": "prep:pollo_plancha",
+      "tipo": "Preparacion",
+      "nombre": "Pollo a la plancha",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.35,
+        "veces": 1
+      }
+    },
+    {
+      "id": "prep:papa_hervida",
+      "tipo": "Preparacion",
+      "nombre": "Papa hervida en trozos",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.35,
+        "veces": 1
+      }
+    },
+    {
+      "id": "prep:bastones_zanahoria_horno",
+      "tipo": "Preparacion",
+      "nombre": "Bastones de zanahoria horneados",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.301,
+        "veces": 2
+      }
+    },
+    {
+      "id": "atr:color:naranja",
+      "tipo": "Atributo",
+      "nombre": "color=naranja",
+      "props": {}
+    },
+    {
+      "id": "prep:lentejas_guisadas",
+      "tipo": "Preparacion",
+      "nombre": "Lentejas guisadas",
+      "props": {
+        "estado": "EN_PROCESO",
+        "puntaje": 0.365,
+        "veces": 1
+      }
+    },
+    {
+      "id": "pat:sint-tomas|textura=crocante → acepta",
+      "tipo": "Patron",
+      "nombre": "Lo crocante lo acepta (26 de 31)",
+      "props": {
+        "resultado": "acepta"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|textura=crocante ∧ grupo=cereal_almidon → acepta",
+      "tipo": "Patron",
+      "nombre": "Lo crocante entre los cereales, panes y papas lo acepta (16 de 16)",
+      "props": {
+        "resultado": "acepta"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|presentacion=separado ∧ grupo=cereal_almidon → acepta",
+      "tipo": "Patron",
+      "nombre": "Los cereales, panes y papas servido separado los acepta (16 de 19)",
+      "props": {
+        "resultado": "acepta"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|textura=crocante ∧ forma=plano → acepta",
+      "tipo": "Patron",
+      "nombre": "Lo crocante en forma plana lo acepta (12 de 12)",
+      "props": {
+        "resultado": "acepta"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|presentacion=separado ∧ forma=plano → acepta",
+      "tipo": "Patron",
+      "nombre": "Lo servido separado en forma plana lo acepta (12 de 13)",
+      "props": {
+        "resultado": "acepta"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|forma=plano → acepta",
+      "tipo": "Patron",
+      "nombre": "Lo plano lo acepta (12 de 14)",
+      "props": {
+        "resultado": "acepta"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|coccion=hervido → rechaza",
+      "tipo": "Patron",
+      "nombre": "Lo hervido lo rechaza (8 de 8)",
+      "props": {
+        "resultado": "rechaza"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|textura=blando → rechaza",
+      "tipo": "Patron",
+      "nombre": "Lo blando lo rechaza (6 de 6)",
+      "props": {
+        "resultado": "rechaza"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|presentacion=con_salsa → rechaza",
+      "tipo": "Patron",
+      "nombre": "Lo que viene con salsa lo rechaza (3 de 3)",
+      "props": {
+        "resultado": "rechaza"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|textura=mixto → rechaza",
+      "tipo": "Patron",
+      "nombre": "Lo de textura mixta lo rechaza (3 de 3)",
+      "props": {
+        "resultado": "rechaza"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|textura=jugoso → rechaza",
+      "tipo": "Patron",
+      "nombre": "Lo jugoso lo rechaza (3 de 3)",
+      "props": {
+        "resultado": "rechaza"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|grupo=verdura → rechaza",
+      "tipo": "Patron",
+      "nombre": "Las verduras las rechaza (3 de 3)",
+      "props": {
+        "resultado": "rechaza"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|presentacion=mezclado → rechaza",
+      "tipo": "Patron",
+      "nombre": "Lo mezclado lo rechaza (3 de 3)",
+      "props": {
+        "resultado": "rechaza"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|color=beige ∧ sabor=neutro → acepta",
+      "tipo": "Patron",
+      "nombre": "Lo beige y de sabor neutro lo acepta (4 de 4)",
+      "props": {
+        "resultado": "acepta"
+      }
+    },
+    {
+      "id": "pat:sint-tomas|distribucion=tocandose → rechaza",
+      "tipo": "Patron",
+      "nombre": "Lo que se sirve cuando los alimentos se tocan lo rechaza (según la investigación)",
+      "props": {
+        "resultado": "rechaza"
+      }
+    },
+    {
+      "id": "atr:distribucion:tocandose",
+      "tipo": "Atributo",
+      "nombre": "distribucion=tocandose",
+      "props": {}
+    }
+  ],
+  "aristas": [
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:papas_fritas_baston",
+      "tipo": "ACEPTA",
+      "props": {
+        "puntaje": 0.988
+      }
+    },
+    {
+      "desde": "prep:papas_fritas_baston",
+      "hasta": "atr:textura:crocante",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_fritas_baston",
+      "hasta": "atr:forma:baston",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_fritas_baston",
+      "hasta": "atr:color:amarillo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_fritas_baston",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_fritas_baston",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_fritas_baston",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_fritas_baston",
+      "hasta": "atr:grupo:cereal_almidon",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_fritas_baston",
+      "hasta": "atr:coccion:frito",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:milanesa_carne_horno",
+      "tipo": "ACEPTA",
+      "props": {
+        "puntaje": 0.932
+      }
+    },
+    {
+      "desde": "prep:milanesa_carne_horno",
+      "hasta": "atr:textura:crocante",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_carne_horno",
+      "hasta": "atr:forma:plano",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_carne_horno",
+      "hasta": "atr:color:marron",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_carne_horno",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_carne_horno",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_carne_horno",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_carne_horno",
+      "hasta": "atr:grupo:proteina",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_carne_horno",
+      "hasta": "atr:coccion:horno",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:tostadas",
+      "tipo": "ACEPTA",
+      "props": {
+        "puntaje": 0.952
+      }
+    },
+    {
+      "desde": "prep:tostadas",
+      "hasta": "atr:textura:crocante",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:tostadas",
+      "hasta": "atr:forma:plano",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:tostadas",
+      "hasta": "atr:color:beige",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:tostadas",
+      "hasta": "atr:sabor:neutro",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:tostadas",
+      "hasta": "atr:temperatura:tibio",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:tostadas",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:tostadas",
+      "hasta": "atr:grupo:cereal_almidon",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:tostadas",
+      "hasta": "atr:coccion:horno",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:galletitas_agua",
+      "tipo": "ACEPTA",
+      "props": {
+        "puntaje": 0.902
+      }
+    },
+    {
+      "desde": "prep:galletitas_agua",
+      "hasta": "atr:textura:crocante",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:galletitas_agua",
+      "hasta": "atr:forma:plano",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:galletitas_agua",
+      "hasta": "atr:color:beige",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:galletitas_agua",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:galletitas_agua",
+      "hasta": "atr:temperatura:frio",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:galletitas_agua",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:galletitas_agua",
+      "hasta": "atr:grupo:cereal_almidon",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:galletitas_agua",
+      "hasta": "atr:coccion:listo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:leche_chocolatada",
+      "tipo": "ACEPTA",
+      "props": {
+        "puntaje": 0.862
+      }
+    },
+    {
+      "desde": "prep:leche_chocolatada",
+      "hasta": "atr:textura:cremoso",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:leche_chocolatada",
+      "hasta": "atr:forma:entero",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:leche_chocolatada",
+      "hasta": "atr:color:marron",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:leche_chocolatada",
+      "hasta": "atr:sabor:dulce",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:leche_chocolatada",
+      "hasta": "atr:temperatura:frio",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:leche_chocolatada",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:leche_chocolatada",
+      "hasta": "atr:grupo:lacteo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:leche_chocolatada",
+      "hasta": "atr:coccion:listo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:papas_horno_baston",
+      "tipo": "ACEPTA",
+      "props": {
+        "puntaje": 0.755
+      }
+    },
+    {
+      "desde": "prep:papas_horno_baston",
+      "hasta": "atr:textura:crocante",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_baston",
+      "hasta": "atr:forma:baston",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_baston",
+      "hasta": "atr:color:amarillo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_baston",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_baston",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_baston",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_baston",
+      "hasta": "atr:grupo:cereal_almidon",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_baston",
+      "hasta": "atr:coccion:horno",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:pure_papa",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.07
+      }
+    },
+    {
+      "desde": "prep:pure_papa",
+      "hasta": "atr:textura:cremoso",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pure_papa",
+      "hasta": "atr:forma:pure",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pure_papa",
+      "hasta": "atr:color:amarillo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pure_papa",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pure_papa",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pure_papa",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pure_papa",
+      "hasta": "atr:grupo:cereal_almidon",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pure_papa",
+      "hasta": "atr:coccion:hervido",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:arroz_con_pollo",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.064
+      }
+    },
+    {
+      "desde": "prep:arroz_con_pollo",
+      "hasta": "atr:textura:mixto",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:arroz_con_pollo",
+      "hasta": "atr:forma:granos",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:arroz_con_pollo",
+      "hasta": "atr:color:mixto",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:arroz_con_pollo",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:arroz_con_pollo",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:arroz_con_pollo",
+      "hasta": "atr:presentacion:mezclado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:arroz_con_pollo",
+      "hasta": "atr:grupo:cereal_almidon",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:arroz_con_pollo",
+      "hasta": "atr:coccion:hervido",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:bastones_queso_horno",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.441
+      }
+    },
+    {
+      "desde": "prep:bastones_queso_horno",
+      "hasta": "atr:textura:crocante",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_queso_horno",
+      "hasta": "atr:forma:baston",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_queso_horno",
+      "hasta": "atr:color:amarillo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_queso_horno",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_queso_horno",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_queso_horno",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_queso_horno",
+      "hasta": "atr:grupo:lacteo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_queso_horno",
+      "hasta": "atr:coccion:horno",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:hamburguesa_casera",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.29
+      }
+    },
+    {
+      "desde": "prep:hamburguesa_casera",
+      "hasta": "atr:textura:jugoso",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:hamburguesa_casera",
+      "hasta": "atr:forma:redondo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:hamburguesa_casera",
+      "hasta": "atr:color:marron",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:hamburguesa_casera",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:hamburguesa_casera",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:hamburguesa_casera",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:hamburguesa_casera",
+      "hasta": "atr:grupo:proteina",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:hamburguesa_casera",
+      "hasta": "atr:coccion:plancha",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:papas_horno_cubos",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.365
+      }
+    },
+    {
+      "desde": "prep:papas_horno_cubos",
+      "hasta": "atr:textura:blando",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_cubos",
+      "hasta": "atr:forma:trozos",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_cubos",
+      "hasta": "atr:color:amarillo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_cubos",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_cubos",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_cubos",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_cubos",
+      "hasta": "atr:grupo:cereal_almidon",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papas_horno_cubos",
+      "hasta": "atr:coccion:horno",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:brocoli_hervido",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.365
+      }
+    },
+    {
+      "desde": "prep:brocoli_hervido",
+      "hasta": "atr:textura:blando",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:brocoli_hervido",
+      "hasta": "atr:forma:trozos",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:brocoli_hervido",
+      "hasta": "atr:color:verde",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:brocoli_hervido",
+      "hasta": "atr:sabor:neutro",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:brocoli_hervido",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:brocoli_hervido",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:brocoli_hervido",
+      "hasta": "atr:grupo:verdura",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:brocoli_hervido",
+      "hasta": "atr:coccion:hervido",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:milanesa_napolitana",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.35
+      }
+    },
+    {
+      "desde": "prep:milanesa_napolitana",
+      "hasta": "atr:textura:mixto",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_napolitana",
+      "hasta": "atr:forma:plano",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_napolitana",
+      "hasta": "atr:color:mixto",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_napolitana",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_napolitana",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_napolitana",
+      "hasta": "atr:presentacion:con_salsa",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_napolitana",
+      "hasta": "atr:grupo:proteina",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:milanesa_napolitana",
+      "hasta": "atr:coccion:horno",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:manzana_bastones",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.539
+      }
+    },
+    {
+      "desde": "prep:manzana_bastones",
+      "hasta": "atr:textura:crocante",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:manzana_bastones",
+      "hasta": "atr:forma:baston",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:manzana_bastones",
+      "hasta": "atr:color:blanco",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:manzana_bastones",
+      "hasta": "atr:sabor:dulce",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:manzana_bastones",
+      "hasta": "atr:temperatura:frio",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:manzana_bastones",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:manzana_bastones",
+      "hasta": "atr:grupo:fruta",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:manzana_bastones",
+      "hasta": "atr:coccion:crudo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:fideos_con_salsa",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.26
+      }
+    },
+    {
+      "desde": "prep:fideos_con_salsa",
+      "hasta": "atr:textura:blando",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:fideos_con_salsa",
+      "hasta": "atr:forma:trozos",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:fideos_con_salsa",
+      "hasta": "atr:color:rojo",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:fideos_con_salsa",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:fideos_con_salsa",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:fideos_con_salsa",
+      "hasta": "atr:presentacion:con_salsa",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:fideos_con_salsa",
+      "hasta": "atr:grupo:cereal_almidon",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:fideos_con_salsa",
+      "hasta": "atr:coccion:hervido",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:pollo_plancha",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.35
+      }
+    },
+    {
+      "desde": "prep:pollo_plancha",
+      "hasta": "atr:textura:jugoso",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pollo_plancha",
+      "hasta": "atr:forma:plano",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pollo_plancha",
+      "hasta": "atr:color:blanco",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pollo_plancha",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pollo_plancha",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pollo_plancha",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pollo_plancha",
+      "hasta": "atr:grupo:proteina",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:pollo_plancha",
+      "hasta": "atr:coccion:plancha",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:papa_hervida",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.35
+      }
+    },
+    {
+      "desde": "prep:papa_hervida",
+      "hasta": "atr:textura:blando",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papa_hervida",
+      "hasta": "atr:forma:trozos",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papa_hervida",
+      "hasta": "atr:color:blanco",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papa_hervida",
+      "hasta": "atr:sabor:neutro",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papa_hervida",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papa_hervida",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papa_hervida",
+      "hasta": "atr:grupo:cereal_almidon",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:papa_hervida",
+      "hasta": "atr:coccion:hervido",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:bastones_zanahoria_horno",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.301
+      }
+    },
+    {
+      "desde": "prep:bastones_zanahoria_horno",
+      "hasta": "atr:textura:crocante",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_zanahoria_horno",
+      "hasta": "atr:forma:baston",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_zanahoria_horno",
+      "hasta": "atr:color:naranja",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_zanahoria_horno",
+      "hasta": "atr:sabor:dulce",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_zanahoria_horno",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_zanahoria_horno",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_zanahoria_horno",
+      "hasta": "atr:grupo:verdura",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:bastones_zanahoria_horno",
+      "hasta": "atr:coccion:horno",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "prep:lentejas_guisadas",
+      "tipo": "EN_PROCESO",
+      "props": {
+        "puntaje": 0.365
+      }
+    },
+    {
+      "desde": "prep:lentejas_guisadas",
+      "hasta": "atr:textura:blando",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:lentejas_guisadas",
+      "hasta": "atr:forma:granos",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:lentejas_guisadas",
+      "hasta": "atr:color:marron",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:lentejas_guisadas",
+      "hasta": "atr:sabor:salado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:lentejas_guisadas",
+      "hasta": "atr:temperatura:caliente",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:lentejas_guisadas",
+      "hasta": "atr:presentacion:mezclado",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:lentejas_guisadas",
+      "hasta": "atr:grupo:proteina",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "prep:lentejas_guisadas",
+      "hasta": "atr:coccion:hervido",
+      "tipo": "TIENE",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|textura=crocante → acepta",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|textura=crocante → acepta",
+      "hasta": "atr:textura:crocante",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|textura=crocante ∧ grupo=cereal_almidon → acepta",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|textura=crocante ∧ grupo=cereal_almidon → acepta",
+      "hasta": "atr:textura:crocante",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|textura=crocante ∧ grupo=cereal_almidon → acepta",
+      "hasta": "atr:grupo:cereal_almidon",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|presentacion=separado ∧ grupo=cereal_almidon → acepta",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|presentacion=separado ∧ grupo=cereal_almidon → acepta",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|presentacion=separado ∧ grupo=cereal_almidon → acepta",
+      "hasta": "atr:grupo:cereal_almidon",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|textura=crocante ∧ forma=plano → acepta",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|textura=crocante ∧ forma=plano → acepta",
+      "hasta": "atr:textura:crocante",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|textura=crocante ∧ forma=plano → acepta",
+      "hasta": "atr:forma:plano",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|presentacion=separado ∧ forma=plano → acepta",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|presentacion=separado ∧ forma=plano → acepta",
+      "hasta": "atr:presentacion:separado",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|presentacion=separado ∧ forma=plano → acepta",
+      "hasta": "atr:forma:plano",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|forma=plano → acepta",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|forma=plano → acepta",
+      "hasta": "atr:forma:plano",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|coccion=hervido → rechaza",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|coccion=hervido → rechaza",
+      "hasta": "atr:coccion:hervido",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|textura=blando → rechaza",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|textura=blando → rechaza",
+      "hasta": "atr:textura:blando",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|presentacion=con_salsa → rechaza",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|presentacion=con_salsa → rechaza",
+      "hasta": "atr:presentacion:con_salsa",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|textura=mixto → rechaza",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|textura=mixto → rechaza",
+      "hasta": "atr:textura:mixto",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|textura=jugoso → rechaza",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|textura=jugoso → rechaza",
+      "hasta": "atr:textura:jugoso",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|grupo=verdura → rechaza",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|grupo=verdura → rechaza",
+      "hasta": "atr:grupo:verdura",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|presentacion=mezclado → rechaza",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|presentacion=mezclado → rechaza",
+      "hasta": "atr:presentacion:mezclado",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|color=beige ∧ sabor=neutro → acepta",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|color=beige ∧ sabor=neutro → acepta",
+      "hasta": "atr:color:beige",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|color=beige ∧ sabor=neutro → acepta",
+      "hasta": "atr:sabor:neutro",
+      "tipo": "CONDICION",
+      "props": {}
+    },
+    {
+      "desde": "nino:sint-tomas",
+      "hasta": "pat:sint-tomas|distribucion=tocandose → rechaza",
+      "tipo": "TIENE_PATRON",
+      "props": {}
+    },
+    {
+      "desde": "pat:sint-tomas|distribucion=tocandose → rechaza",
+      "hasta": "atr:distribucion:tocandose",
+      "tipo": "CONDICION",
+      "props": {}
+    }
+  ]
+}

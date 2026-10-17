@@ -17,7 +17,7 @@ export default manejar(async (req, res) => {
     res.status(200).json(await crearPerfil(perfil))
     return
   }
-  if (!hayMongo()) return responderStub(res, 'perfil')
+  if (!hayMongo()) return responderStub(res, param(req, 'vista') === 'grafo' ? 'perfil-grafo' : 'perfil')
   const ninoId = param(req, 'ninoId')
   if (!ninoId) throw new ErrorNibble('entrada_invalida', 'Falta ninoId.')
   if (param(req, 'vista') === 'grafo') {

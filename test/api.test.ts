@@ -54,7 +54,7 @@ describe('api/', () => {
   }
 
   it('cada stub tiene su fixture', () => {
-    const fixtures = ENDPOINTS.flatMap((n) => (n === 'perfil' ? ['perfil', 'perfil-crear'] : [n]))
+    const fixtures = ENDPOINTS.flatMap((n) => (n === 'perfil' ? ['perfil', 'perfil-crear', 'perfil-grafo'] : [n]))
     for (const f of fixtures) expect(existsSync(join(process.cwd(), 'fixtures', `${f}.json`)), f).toBe(true)
   })
 })

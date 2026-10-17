@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from 'react'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { avisoStubs } from './lib/api'
 import { Estado } from './pantallas/Estado'
+import { Grafo } from './pantallas/grafo/Grafo'
 import { Inicio } from './pantallas/Inicio'
 import { Pendiente } from './pantallas/Pendiente'
 import { Perfil } from './pantallas/perfil/Perfil'
@@ -56,6 +57,7 @@ export function App() {
           <Route path="/tablero" element={<Tablero />} />
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/perfil/nuevo" element={<PerfilNuevo />} />
+          <Route path="/grafo" element={<Grafo />} />
           <Route path="/receta" element={<Receta />} />
           <Route path="/resumen" element={<Resumen />} />
           <Route path="/estado" element={<Estado />} />
