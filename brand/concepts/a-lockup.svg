@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 878 256" width="878" height="256" role="img" aria-labelledby="title">
+  <title id="title">Nibble, concepto A: No se tocan (horizontal)</title>
+  <g fill="#111111">
+    <rect x="54" y="24" width="44" height="200" rx="22"/>
+    <path d="M114 77.34 A74 74 0 1 1 114 222.66 V176.53 A30 30 0 1 0 114 123.47 Z"/>
+    <g transform="translate(280 20)">
+      <path d="M0 186 V152 A49 49 0 0 1 98 152 V186 A14 14 0 0 1 70 186 V152 A21 21 0 0 0 28 152 V186 A14 14 0 0 1 0 186 Z"/>
+      <rect x="124" y="104" width="28" height="96" rx="14"/>
+      <circle cx="138" cy="76" r="15"/>
+      <rect x="178" y="64" width="28" height="136" rx="14"/>
+      <path d="M217 104.03 A49 49 0 1 1 217 199.97 V170.47 A21 21 0 1 0 217 133.53 Z"/>
+      <rect x="298" y="64" width="28" height="136" rx="14"/>
+      <path d="M337 104.03 A49 49 0 1 1 337 199.97 V170.47 A21 21 0 1 0 337 133.53 Z"/>
+      <rect x="418" y="64" width="28" height="136" rx="14"/>
+      <path d="M533.76 198.04 A49 49 0 1 1 566 152 A14 14 0 0 1 538 152 A21 21 0 1 0 524.18 171.73 A14 14 0 0 1 533.76 198.04 Z"/>
+      <rect x="482" y="139" width="70" height="26"/>
+    </g>
+  </g>
+</svg>

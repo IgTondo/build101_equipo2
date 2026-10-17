@@ -1,0 +1,39 @@
+{
+  "brand": "Nibble",
+  "tagline": "Comer bien, de a poco",
+  "brief": "Una app para familias de chicos con autismo y selectividad alimentaria: una foto de cualquier comida, nutrientes calculados con tablas reales y un perfil que aprende los patrones del chico. Tiene que transmitir calma, cercanía y confianza, sin presión en la mesa.",
+  "adjectives": ["calma", "cercana", "confiable", "paciente"],
+  "criteria": "Que se lea a 16 px, que funcione en un color, que se diferencie de las apps de comida infantiles y saturadas, y que cuente el nombre de un vistazo.",
+  "mockups": ["app-icon", "website", "favicon-tab", "social", "sticker", "business-card"],
+  "nav": ["Cómo funciona", "Para nutricionistas", "Probala"],
+  "brand_color": "#3E9A68",
+  "greyscale": false,
+  "final": true,
+  "round": 2,
+  "designer": "Equipo 2 · build 101",
+  "concepts": [
+    {
+      "name": "Mordisco",
+      "symbol": "../logo/nibble-simbolo.svg",
+      "lockup": "../logo/nibble-logo.svg",
+      "avatar": "../logo/nibble-simbolo.svg",
+      "symbol_on_tile": "../logo/variantes/nibble-simbolo-white.svg",
+      "lockup_on_tile": "../logo/variantes/nibble-logo-white.svg",
+      "symbol_on_dark": "../logo/nibble-simbolo-oscuro.svg",
+      "lockup_on_dark": "../logo/nibble-logo-oscuro.svg",
+      "idea": "La palabra nibble, con un mordisquito en el hombro de su propia n: un bocado por vez.",
+      "rationale": [
+        "Cuenta el nombre (mordisquito) al instante, sin dibujar comida ni usar los clichés del autismo",
+        "Formas redondas y puntas suaves, como bastones: cálida pero adulta",
+        "El logo es la palabra; la n mordida sola queda solo para el ícono de la app y el favicon",
+        "Se lee a 16 px: la versión chica agranda el mordisco para que no se pierda"
+      ]
+    }
+  ],
+  "recommendation": "La n mordida en Verde Nibble (#3E9A68) y el resto de la palabra en Pino (#2F5C4B), sobre crema. Títulos en Nunito y texto en Atkinson Hyperlegible Next.",
+  "next_steps": [
+    "Usar los tokens de brand/tokens/nibble.css en la app",
+    "Copiar brand/web/ a la carpeta public/ de la app",
+    "Usar el logo en la portada del pitch y el símbolo junto al QR"
+  ]
+}

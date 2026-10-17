@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="984" viewBox="0 0 1600 984"><defs><filter id="grey"><feColorMatrix type="saturate" values="0"/></filter></defs><rect width="1600" height="984" fill="#f7f7f4"/><text x="60" y="78" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="40" font-weight="700" fill="#161616">Nibble: conceptos de logo</text><text x="60" y="116" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="20" fill="#6b6b6b">Primera ronda, en gris. Elegí una dirección o contame qué te gusta de cada una.</text><rect x="60" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#161616" stroke-width="2"/><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="90" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title id="c0-title">Nibble, concepto A: No se tocan</title>
+  <g fill="#111111">
+    <rect x="54" y="24" width="44" height="200" rx="22"/>
+    <path d="M114 77.34 A74 74 0 1 1 114 222.66 V176.53 A30 30 0 1 0 114 123.47 Z"/>
+  </g>
+</svg>
+</g><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 878 256" x="90" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title id="l0-title">Nibble, concepto A: No se tocan (horizontal)</title>
+  <g fill="#111111">
+    <rect x="54" y="24" width="44" height="200" rx="22"/>
+    <path d="M114 77.34 A74 74 0 1 1 114 222.66 V176.53 A30 30 0 1 0 114 123.47 Z"/>
+    <g transform="translate(280 20)">
+      <path d="M0 186 V152 A49 49 0 0 1 98 152 V186 A14 14 0 0 1 70 186 V152 A21 21 0 0 0 28 152 V186 A14 14 0 0 1 0 186 Z"/>
+      <rect x="124" y="104" width="28" height="96" rx="14"/>
+      <circle cx="138" cy="76" r="15"/>
+      <rect x="178" y="64" width="28" height="136" rx="14"/>
+      <path d="M217 104.03 A49 49 0 1 1 217 199.97 V170.47 A21 21 0 1 0 217 133.53 Z"/>
+      <rect x="298" y="64" width="28" height="136" rx="14"/>
+      <path d="M337 104.03 A49 49 0 1 1 337 199.97 V170.47 A21 21 0 1 0 337 133.53 Z"/>
+      <rect x="418" y="64" width="28" height="136" rx="14"/>
+      <path d="M533.76 198.04 A49 49 0 1 1 566 152 A14 14 0 0 1 538 152 A21 21 0 1 0 524.18 171.73 A14 14 0 0 1 533.76 198.04 Z"/>
+      <rect x="482" y="139" width="70" height="26"/>
+    </g>
+  </g>
+</svg>
+</g><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="90" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title id="s064-title">Nibble, concepto A: No se tocan</title>
+  <g fill="#111111">
+    <rect x="54" y="24" width="44" height="200" rx="22"/>
+    <path d="M114 77.34 A74 74 0 1 1 114 222.66 V176.53 A30 30 0 1 0 114 123.47 Z"/>
+  </g>
+</svg>
+</g><text x="122" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="180" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title id="s032-title">Nibble, concepto A: No se tocan</title>
+  <g fill="#111111">
+    <rect x="54" y="24" width="44" height="200" rx="22"/>
+    <path d="M114 77.34 A74 74 0 1 1 114 222.66 V176.53 A30 30 0 1 0 114 123.47 Z"/>
+  </g>
+</svg>
+</g><text x="196" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="238" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title id="s016-title">Nibble, concepto A: No se tocan</title>
+  <g fill="#111111">
+    <rect x="54" y="24" width="44" height="200" rx="22"/>
+    <path d="M114 77.34 A74 74 0 1 1 114 222.66 V176.53 A30 30 0 1 0 114 123.47 Z"/>
+  </g>
+</svg>
+</g><text x="246" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="90.0" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">A · No se tocan</text><text x="90.0" y="808" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#161616" letter-spacing="1.5">RECOMMENDED</text><text x="90.0" y="842" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">La b es un palo y una panza que no se</text><text x="90.0" y="868" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">tocan, como la regla de oro del plato.</text><rect x="562.667" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#e4e4e0" stroke-width="1"/><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="592.667" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title id="c1-title">Nibble, concepto B: Mordisco</title>
+  <g fill="#111111">
+    <path d="M32 190 V124 A96 96 0 0 1 170.78 38.06 A34 34 0 0 0 213.94 81.22 A96 96 0 0 1 224 124 V190 A30 30 0 0 1 164 190 V124 A36 36 0 0 0 92 124 V190 A30 30 0 0 1 32 190 Z"/>
+  </g>
+</svg>
+</g><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 878 256" x="592.667" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title id="l1-title">Nibble, concepto B: Mordisco (horizontal)</title>
+  <g fill="#111111">
+    <path d="M32 190 V124 A96 96 0 0 1 170.78 38.06 A34 34 0 0 0 213.94 81.22 A96 96 0 0 1 224 124 V190 A30 30 0 0 1 164 190 V124 A36 36 0 0 0 92 124 V190 A30 30 0 0 1 32 190 Z"/>
+    <g transform="translate(280 20)">
+      <path d="M0 186 V152 A49 49 0 0 1 98 152 V186 A14 14 0 0 1 70 186 V152 A21 21 0 0 0 28 152 V186 A14 14 0 0 1 0 186 Z"/>
+      <rect x="124" y="104" width="28" height="96" rx="14"/>
+      <circle cx="138" cy="76" r="15"/>
+      <rect x="178" y="64" width="28" height="136" rx="14"/>
+      <path fill-rule="evenodd" d="M178 152 A49 49 0 1 1 276 152 A49 49 0 1 1 178 152 Z M206 152 A21 21 0 1 1 248 152 A21 21 0 1 1 206 152 Z"/>
+      <rect x="298" y="64" width="28" height="136" rx="14"/>
+      <path fill-rule="evenodd" d="M298 152 A49 49 0 1 1 396 152 A49 49 0 1 1 298 152 Z M326 152 A21 21 0 1 1 368 152 A21 21 0 1 1 326 152 Z"/>
+      <rect x="418" y="64" width="28" height="136" rx="14"/>
+      <path d="M533.76 198.04 A49 49 0 1 1 566 152 A14 14 0 0 1 538 152 A21 21 0 1 0 524.18 171.73 A14 14 0 0 1 533.76 198.04 Z"/>
+      <rect x="482" y="139" width="70" height="26"/>
+    </g>
+  </g>
+</svg>
+</g><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="592.667" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title id="s164-title">Nibble, concepto B: Mordisco</title>
+  <g fill="#111111">
+    <path d="M32 190 V124 A96 96 0 0 1 170.78 38.06 A34 34 0 0 0 213.94 81.22 A96 96 0 0 1 224 124 V190 A30 30 0 0 1 164 190 V124 A36 36 0 0 0 92 124 V190 A30 30 0 0 1 32 190 Z"/>
+  </g>
+</svg>
+</g><text x="624.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="682.667" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title id="s132-title">Nibble, concepto B: Mordisco</title>
+  <g fill="#111111">
+    <path d="M32 190 V124 A96 96 0 0 1 170.78 38.06 A34 34 0 0 0 213.94 81.22 A96 96 0 0 1 224 124 V190 A30 30 0 0 1 164 190 V124 A36 36 0 0 0 92 124 V190 A30 30 0 0 1 32 190 Z"/>
+  </g>
+</svg>
+</g><text x="698.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="740.667" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title id="s116-title">Nibble, concepto B: Mordisco</title>
+  <g fill="#111111">
+    <path d="M32 190 V124 A96 96 0 0 1 170.78 38.06 A34 34 0 0 0 213.94 81.22 A96 96 0 0 1 224 124 V190 A30 30 0 0 1 164 190 V124 A36 36 0 0 0 92 124 V190 A30 30 0 0 1 32 190 Z"/>
+  </g>
+</svg>
+</g><text x="748.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="592.6666666666667" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">B · Mordisco</text><text x="592.6666666666667" y="814" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">La n de nibble con un mordisquito: de a</text><text x="592.6666666666667" y="840" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">poco, un bocado por vez.</text><rect x="1065.33" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#e4e4e0" stroke-width="1"/><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="1095.33" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title id="c2-title">Nibble, concepto C: A la mesa</title>
+  <g fill="#111111">
+    <circle cx="128" cy="70" r="38"/>
+    <path d="M32 128 H224 A96 96 0 0 1 32 128 Z"/>
+  </g>
+</svg>
+</g><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 878 256" x="1095.33" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title id="l2-title">Nibble, concepto C: A la mesa (horizontal)</title>
+  <g fill="#111111">
+    <circle cx="128" cy="70" r="38"/>
+    <path d="M32 128 H224 A96 96 0 0 1 32 128 Z"/>
+    <g transform="translate(280 22)">
+      <path d="M0 186 V152 A49 49 0 0 1 98 152 V186 A14 14 0 0 1 70 186 V152 A21 21 0 0 0 28 152 V186 A14 14 0 0 1 0 186 Z"/>
+      <rect x="124" y="104" width="28" height="96" rx="14"/>
+      <circle cx="138" cy="76" r="15"/>
+      <rect x="178" y="64" width="28" height="136" rx="14"/>
+      <path fill-rule="evenodd" d="M178 152 A49 49 0 1 1 276 152 A49 49 0 1 1 178 152 Z M206 152 A21 21 0 1 1 248 152 A21 21 0 1 1 206 152 Z"/>
+      <rect x="298" y="64" width="28" height="136" rx="14"/>
+      <path fill-rule="evenodd" d="M298 152 A49 49 0 1 1 396 152 A49 49 0 1 1 298 152 Z M326 152 A21 21 0 1 1 368 152 A21 21 0 1 1 326 152 Z"/>
+      <rect x="418" y="64" width="28" height="136" rx="14"/>
+      <path d="M533.76 198.04 A49 49 0 1 1 566 152 A14 14 0 0 1 538 152 A21 21 0 1 0 524.18 171.73 A14 14 0 0 1 533.76 198.04 Z"/>
+      <rect x="482" y="139" width="70" height="26"/>
+    </g>
+  </g>
+</svg>
+</g><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="1095.33" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title id="s264-title">Nibble, concepto C: A la mesa</title>
+  <g fill="#111111">
+    <circle cx="128" cy="70" r="38"/>
+    <path d="M32 128 H224 A96 96 0 0 1 32 128 Z"/>
+  </g>
+</svg>
+</g><text x="1127.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="1185.33" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title id="s232-title">Nibble, concepto C: A la mesa</title>
+  <g fill="#111111">
+    <circle cx="128" cy="70" r="38"/>
+    <path d="M32 128 H224 A96 96 0 0 1 32 128 Z"/>
+  </g>
+</svg>
+</g><text x="1201.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g filter="url(#grey)"><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title" viewBox="0 0 256 256" x="1243.33" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title id="s216-title">Nibble, concepto C: A la mesa</title>
+  <g fill="#111111">
+    <circle cx="128" cy="70" r="38"/>
+    <path d="M32 128 H224 A96 96 0 0 1 32 128 Z"/>
+  </g>
+</svg>
+</g><text x="1251.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="1095.3333333333335" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">C · A la mesa</text><text x="1095.3333333333335" y="814" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Un bocado sobre un bol, separados: la</text><text x="1095.3333333333335" y="840" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">comida servida, sin presión.</text></svg>

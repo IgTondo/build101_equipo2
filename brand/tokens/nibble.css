@@ -1,0 +1,65 @@
+/*
+ * Nibble: tokens de marca para la app (React + Vite).
+ * Importar una sola vez, por ejemplo en src/main.tsx:  import '../brand/tokens/nibble.css'
+ * (o copiar este archivo a src/styles/). Contrastes calculados con la fórmula WCAG 2.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700&family=Nunito:wght@700;800&display=swap');
+
+:root {
+  /* Paleta */
+  --nb-verde: #3E9A68;         /* Verde Nibble: logo, ilustración, rellenos, destacados · 3,3:1 sobre crema (no para texto chico) */
+  --nb-verde-hondo: #2E7D52;   /* botones, links y texto verde · 4,7:1 sobre crema, 5,0:1 con texto blanco */
+  --nb-verde-noche: #236140;   /* hover y presionado · 6,9:1 sobre crema */
+  --nb-pino: #2F5C4B;          /* texto principal · 7,1:1 sobre crema */
+  --nb-musgo: #5A6E64;         /* texto secundario · 5,1:1 sobre crema */
+  --nb-hoja: #A6DDB9;          /* logo sobre fondo oscuro, rellenos de gráficos · 5,0:1 sobre pino */
+  --nb-brote: #EDF7F0;         /* tarjetas, chips, superficies */
+  --nb-crema: #FBF7F0;         /* fondo de la app (menos brillo que el blanco puro) */
+  --nb-blanco: #FFFFFF;
+  --nb-zapallo: #F0A673;       /* acento SOLO para gráficos e ilustración; nunca texto sobre fondo claro (1,9:1) */
+
+  /* Roles (usar estos en los componentes) */
+  --nb-fondo: var(--nb-crema);
+  --nb-superficie: var(--nb-blanco);
+  --nb-superficie-suave: var(--nb-brote);
+  --nb-texto: var(--nb-pino);
+  --nb-texto-suave: var(--nb-musgo);
+  --nb-primario: var(--nb-verde-hondo);
+  --nb-primario-hover: var(--nb-verde-noche);
+  --nb-sobre-primario: var(--nb-blanco);
+  --nb-marca: var(--nb-verde);
+  --nb-acento: var(--nb-zapallo);
+  --nb-borde: #DCE8E0;
+
+  /* Tipografía */
+  --nb-font-titulos: 'Nunito', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  --nb-font-texto: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --nb-texto-base: 17px;       /* un punto más grande que lo habitual: se lee en la cocina, con el celular en la mano */
+  --nb-interlineado: 1.5;
+
+  /* Forma: todo redondeado, como las puntas del logo */
+  --nb-radio: 16px;
+  --nb-radio-chico: 10px;
+  --nb-radio-pastilla: 999px;
+  --nb-sombra: 0 1px 2px rgba(22, 53, 42, 0.06), 0 4px 16px rgba(22, 53, 42, 0.06);
+}
+
+body {
+  background: var(--nb-fondo);
+  color: var(--nb-texto);
+  font-family: var(--nb-font-texto);
+  font-size: var(--nb-texto-base);
+  line-height: var(--nb-interlineado);
+}
+
+h1, h2, h3 {
+  font-family: var(--nb-font-titulos);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--nb-texto);
+}
+
+/* Números de nutrientes: cifras de igual ancho para que las columnas no bailen */
+.nb-numero {
+  font-variant-numeric: tabular-nums;
+}

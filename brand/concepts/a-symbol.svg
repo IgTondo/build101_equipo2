@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title">
+  <title id="title">Nibble, concepto A: No se tocan</title>
+  <g fill="#111111">
+    <rect x="54" y="24" width="44" height="200" rx="22"/>
+    <path d="M114 77.34 A74 74 0 1 1 114 222.66 V176.53 A30 30 0 1 0 114 123.47 Z"/>
+  </g>
+</svg>

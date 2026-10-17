@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title">
+  <title id="title">Nibble, concepto C: A la mesa</title>
+  <g fill="#111111">
+    <circle cx="128" cy="70" r="38"/>
+    <path d="M32 128 H224 A96 96 0 0 1 32 128 Z"/>
+  </g>
+</svg>

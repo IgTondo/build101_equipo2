@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 878 256" width="878" height="256" role="img" aria-labelledby="title">
+  <title id="title">Nibble, concepto C: A la mesa (horizontal)</title>
+  <g fill="#111111">
+    <circle cx="128" cy="70" r="38"/>
+    <path d="M32 128 H224 A96 96 0 0 1 32 128 Z"/>
+    <g transform="translate(280 22)">
+      <path d="M0 186 V152 A49 49 0 0 1 98 152 V186 A14 14 0 0 1 70 186 V152 A21 21 0 0 0 28 152 V186 A14 14 0 0 1 0 186 Z"/>
+      <rect x="124" y="104" width="28" height="96" rx="14"/>
+      <circle cx="138" cy="76" r="15"/>
+      <rect x="178" y="64" width="28" height="136" rx="14"/>
+      <path fill-rule="evenodd" d="M178 152 A49 49 0 1 1 276 152 A49 49 0 1 1 178 152 Z M206 152 A21 21 0 1 1 248 152 A21 21 0 1 1 206 152 Z"/>
+      <rect x="298" y="64" width="28" height="136" rx="14"/>
+      <path fill-rule="evenodd" d="M298 152 A49 49 0 1 1 396 152 A49 49 0 1 1 298 152 Z M326 152 A21 21 0 1 1 368 152 A21 21 0 1 1 326 152 Z"/>
+      <rect x="418" y="64" width="28" height="136" rx="14"/>
+      <path d="M533.76 198.04 A49 49 0 1 1 566 152 A14 14 0 0 1 538 152 A21 21 0 1 0 524.18 171.73 A14 14 0 0 1 533.76 198.04 Z"/>
+      <rect x="482" y="139" width="70" height="26"/>
+    </g>
+  </g>
+</svg>
