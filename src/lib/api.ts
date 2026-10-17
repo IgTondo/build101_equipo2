@@ -85,7 +85,9 @@ export const api = {
   perfil: (ninoId: string, senal?: AbortSignal) => pedir<Perfil>(`/api/perfil?${q({ ninoId })}`, { senal }),
   registrarComida: (req: RegistrarComidaReq, senal?: AbortSignal) => pedir<RegistrarComidaRes>('/api/registrar-comida', { metodo: 'POST', cuerpo: req, senal }),
   nutricion: (ninoId: string, dia: string, senal?: AbortSignal) => pedir<CoberturaDia>(`/api/nutricion?${q({ ninoId, dia })}`, { senal }),
-  progreso: (ninoId: string, dias = 28, motor?: Motor, senal?: AbortSignal) => pedir<Progreso>(`/api/progreso?${q({ ninoId, dias, motor })}`, { senal }),
+  /** `hasta` ('YYYY-MM-DD') fija el "hoy" del tablero: para mirar la última semana con comidas si la de hoy está vacía. */
+  progreso: (ninoId: string, { dias = 28, motor, hasta }: { dias?: number; motor?: Motor; hasta?: string } = {}, senal?: AbortSignal) =>
+    pedir<Progreso>(`/api/progreso?${q({ ninoId, dias, motor, hasta })}`, { senal }),
   salud: (senal?: AbortSignal) => pedir<SaludRes>('/api/salud', { senal }),
   resumen: (ninoId: string, senal?: AbortSignal) => pedir<ResumenRes>(`/api/resumen?${q({ ninoId })}`, { timeoutMs: 40_000, senal }),
 }

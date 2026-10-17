@@ -36,7 +36,7 @@ export function Receta() {
   const motor = esMotor(motorUrl) ? motorUrl : undefined
   const preparacionInicial = useRef(params.get('preparacionId') ?? undefined)
 
-  const progreso = useApi((s) => api.progreso(ninoId, 7, motor, s), [ninoId, motor])
+  const progreso = useApi((s) => api.progreso(ninoId, { dias: 7, motor }, s), [ninoId, motor])
   const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
   const nombre = perfil.tipo === 'ok' ? perfil.datos.datos.nombre : null
   const reglas = perfil.tipo === 'ok' ? perfil.datos.reglas : perfil.tipo === 'error' ? SIN_REGLAS : null

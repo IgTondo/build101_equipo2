@@ -14,7 +14,9 @@ const ESCALERA: Cuanto[] = [...CUANTO].sort((a, b) => NIVEL_CUANTO[a] - NIVEL_CU
 export function Repertorio({ aceptadas, enProceso, repertorioTendencia, grupos, exposiciones }: Props) {
   const id = useId()
   const [todas, setTodas] = useState(false)
-  const visibles = GRUPOS_VISIBLES.map((g) => grupos.find((x) => x.grupo === g) ?? { grupo: g, diasSinComer: null })
+  // Solo los grupos que manda B (§1: fruta, verdura, lácteo y proteína), en un orden fijo: un grupo que no viene
+  // no es "nunca lo registramos", es un dato que no se calcula.
+  const visibles = GRUPOS_VISIBLES.flatMap((g) => grupos.filter((x) => x.grupo === g))
   const frase = fraseGrupoAusente(grupos)
   const listaExp = todas ? exposiciones : exposiciones.slice(0, EXPOSICIONES_A_LA_VISTA)
 
@@ -34,17 +36,21 @@ export function Repertorio({ aceptadas, enProceso, repertorioTendencia, grupos, 
           {enProceso > 0 && <p className="nb-suave tb-nota">Y {enProceso} en camino, que se le están ofreciendo.</p>}
         </div>
 
-        <h3 className="tb-subtitulo">Grupos de alimentos</h3>
-        {frase && <p className="tb-frase-grupo">{frase}.</p>}
-        <ul className="tb-grupos">
-          {visibles.map((g) => (
-            <li key={g.grupo} className={g.diasSinComer !== null && g.diasSinComer >= 7 ? 'tb-grupo-lejos' : undefined}>
-              <span>{NOMBRE_GRUPO[g.grupo]}</span>
-              <span className="tb-grupo-cuando nb-numero">{textoDiasSinComer(g.diasSinComer)}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="nb-suave tb-nota">La última vez que comió algo de cada grupo.</p>
+        {visibles.length > 0 && (
+          <>
+            <h3 className="tb-subtitulo">Grupos de alimentos</h3>
+            {frase && <p className="tb-frase-grupo">{frase}.</p>}
+            <ul className="tb-grupos">
+              {visibles.map((g) => (
+                <li key={g.grupo} className={g.diasSinComer !== null && g.diasSinComer >= 7 ? 'tb-grupo-lejos' : undefined}>
+                  <span>{NOMBRE_GRUPO[g.grupo]}</span>
+                  <span className="tb-grupo-cuando nb-numero">{textoDiasSinComer(g.diasSinComer)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="nb-suave tb-nota">La última vez que comió algo de cada grupo.</p>
+          </>
+        )}
       </section>
 
       <section className="nb-tarjeta tb-seccion" aria-labelledby={`${id}-e`}>

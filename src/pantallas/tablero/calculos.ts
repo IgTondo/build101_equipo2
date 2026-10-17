@@ -1,5 +1,6 @@
 // Funciones puras del tablero (C3): orden, escalas y textos. Sin React, para poder testearlas.
-import { MOTOR, type CoberturaDia, type ComidaResumen, type Grupo, type Motor, type Nutriente, type Nutrientes, type PatronVista } from '../../../shared/contratos'
+import { MOTOR, type CoberturaDia, type ComidaResumen, type Grupo, type Motor, type Nutriente, type Nutrientes, type PatronVista, type Progreso } from '../../../shared/contratos'
+import { diaUruguay } from '../../lib/nino'
 import { NUTRIENTES_CON_META } from '../../lib/vocabulario'
 
 /**
@@ -82,6 +83,43 @@ export interface ComidaConDia extends ComidaResumen { dia: string }
 
 export function hayComidas(dias: readonly CoberturaDia[]): boolean {
   return dias.some((d) => d.comidas.length > 0)
+}
+
+/** 'YYYY-MM-DD' + n días (n puede ser negativo). */
+export function sumarDias(dia: string, n: number): string {
+  const d = new Date(`${dia}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+
+/**
+ * Si la semana de `hoy` vino sin comidas, el último día con alguna comida registrada, sacado de lo que B igual
+ * calcula sobre todo el historial: los días desde la última vez de cada grupo, la última exposición y las semanas
+ * de la evolución que tienen datos. null = nunca se registró nada (el tablero muestra el estado vacío).
+ */
+export function ultimoDiaConComidas(p: Pick<Progreso, 'grupos' | 'exposiciones' | 'semanas'>, hoy: string): string | null {
+  const masNuevo = (dias: string[]) => dias.filter((d) => d < hoy).sort().at(-1) ?? null
+  // Primero los días exactos; las semanas de la evolución solo dicen "algún día de esa semana".
+  const exactos = [
+    ...p.grupos.flatMap((g) => (g.diasSinComer !== null ? [sumarDias(hoy, -g.diasSinComer)] : [])),
+    ...p.exposiciones.flatMap((e) => (Number.isFinite(Date.parse(e.ultimaISO)) ? [diaUruguay(new Date(e.ultimaISO))] : [])),
+  ]
+  const porSemana = p.semanas.filter((s) => Object.values(s.cobertura).some((v) => v > 0)).map((s) => sumarDias(s.desde, 6))
+  return masNuevo(exactos) ?? masNuevo(porSemana)
+}
+
+/** Días de `desde` a `hasta` ('YYYY-MM-DD'). */
+export function diasEntre(desde: string, hasta: string): number {
+  return Math.round((diaUTC(hasta).getTime() - diaUTC(desde).getTime()) / 86_400_000)
+}
+
+/**
+ * B cuenta los días sin comer de cada grupo desde `hasta` (el "hoy" que se le pidió). Para el padre, "hace cuánto"
+ * es desde hoy: se suman los días que pasaron entre `hasta` y hoy.
+ */
+export function gruposDesdeHoy(grupos: Progreso['grupos'], hasta: string, hoy: string): Progreso['grupos'] {
+  const desfase = Math.max(diasEntre(hasta, hoy), 0)
+  return grupos.map((g) => (g.diasSinComer === null ? g : { ...g, diasSinComer: g.diasSinComer + desfase }))
 }
 
 /** Las últimas comidas, de la más nueva a la más vieja. */

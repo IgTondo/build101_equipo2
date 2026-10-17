@@ -5,6 +5,10 @@
 .tb-titulo { text-wrap: balance; }
 .tb-hero { padding: 4px 2px 4px; }
 .tb-frase { font-size: 1.2rem; line-height: 1.45; margin: 0; text-wrap: pretty; }
+.tb-aviso-semana {
+  margin: 0; padding: 10px 12px; border-radius: var(--nb-radio-chico);
+  background: var(--nb-superficie-suave); color: var(--nb-texto-suave); font-size: 0.95rem; text-wrap: pretty;
+}
 
 .tb-seccion { display: flex; flex-direction: column; gap: 4px; }
 .tb-seccion h2 { text-wrap: balance; }

@@ -4,7 +4,7 @@ import progreso from '../../../fixtures/progreso.json'
 import {
   coberturaPromedio, escalaBarra, etiquetaDia, fechaCorta, fraseGrupoAusente, hayComidas, leerMotor, MARCA_100,
   nivelConfianza, ordenarNutrientes, ordenarPatrones, rutaReceta, srcMiniatura, textoDiasSinComer, textoEnergia,
-  textoEvolucion, textoTendencia, textoVeces, ultimasComidas, ultimoDia, valorAtributo,
+  diasEntre, gruposDesdeHoy, sumarDias, textoEvolucion, textoTendencia, textoVeces, ultimasComidas, ultimoDia, ultimoDiaConComidas, valorAtributo,
 } from './calculos'
 
 const dias = progreso.dias as CoberturaDia[]
@@ -129,5 +129,36 @@ describe('ordenarPatrones', () => {
     expect(r[0].texto).toBe('Lo crocante servido separado lo acepta')
     const pesos = r.filter((p) => p.fuente === 'aprendido').map((p) => p.apoyo * p.confianza)
     expect(pesos).toEqual([...pesos].sort((a, b) => b - a))
+  })
+})
+
+describe('ultimoDiaConComidas (semana de hoy vacía, pero con historial)', () => {
+  const cero = { calcio_mg: 0 } as Nutrientes
+  it('suma días sin perder el mes', () => {
+    expect(sumarDias('2026-10-01', -1)).toBe('2026-09-30')
+    expect(sumarDias('2026-10-16', 7)).toBe('2026-10-23')
+  })
+  it('toma el más reciente entre grupos, exposiciones y semanas con datos', () => {
+    expect(ultimoDiaConComidas({
+      grupos: [{ grupo: 'fruta', diasSinComer: 14 }, { grupo: 'verdura', diasSinComer: null }],
+      exposiciones: [{ preparacionId: 'x', nombre: 'X', veces: 1, mejorPaso: 'nada', ultimaISO: '2026-10-12T20:30:00-03:00' }],
+      semanas: [{ desde: '2026-10-03', cobertura: { ...cero, calcio_mg: 0.2 } }, { desde: '2026-10-24', cobertura: cero }],
+    }, '2026-10-30')).toBe('2026-10-16')
+  })
+  it('prefiere el día exacto de grupos y exposiciones a la semana de la evolución', () => {
+    expect(ultimoDiaConComidas({
+      grupos: [{ grupo: 'lacteo', diasSinComer: 16 }], exposiciones: [],
+      semanas: [{ desde: '2026-09-27', cobertura: { ...cero, calcio_mg: 0.1 } }],
+    }, '2026-10-17')).toBe('2026-10-01')
+    expect(ultimoDiaConComidas({ grupos: [], exposiciones: [], semanas: [{ desde: '2026-09-27', cobertura: { ...cero, calcio_mg: 0.1 } }] }, '2026-10-17'))
+      .toBe('2026-10-03')
+  })
+  it('los días sin comer de cada grupo se cuentan desde hoy, no desde `hasta`', () => {
+    expect(diasEntre('2026-10-01', '2026-10-17')).toBe(16)
+    expect(gruposDesdeHoy([{ grupo: 'lacteo', diasSinComer: 0 }, { grupo: 'fruta', diasSinComer: null }], '2026-10-01', '2026-10-17'))
+      .toEqual([{ grupo: 'lacteo', diasSinComer: 16 }, { grupo: 'fruta', diasSinComer: null }])
+  })
+  it('null si nunca se registró nada (perfil recién creado)', () => {
+    expect(ultimoDiaConComidas({ grupos: [{ grupo: 'fruta', diasSinComer: null }], exposiciones: [], semanas: [] }, '2026-10-17')).toBeNull()
   })
 })
