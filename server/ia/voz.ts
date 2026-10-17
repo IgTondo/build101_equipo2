@@ -1,6 +1,8 @@
 // Transcripción (PLAN.md §7, A4 y A7): Whisper large-v3-turbo en Groq; respaldo en Workers AI.
 // Idioma 'es'. `pista` va como prompt de Whisper: los nombres de los alimentos del plato y del perfil.
 // El respaldo entra si Groq no tiene key o falla por cupo (limite) o por error del proveedor.
+// Se sacan las frases que Whisper inventa con silencio o ruido ("Subtítulos… Amara.org", "Gracias por ver"…);
+// si no queda nada, es audio_vacio.
 import { toFile } from 'groq-sdk'
 import { ErrorIA } from './errores.js'
 import { correrWorkersAI, credencialesCloudflare } from './proveedores/cloudflare.js'
@@ -32,6 +34,29 @@ const EXTENSION: Record<string, string> = {
   'audio/ogg': 'ogg',
   'audio/wav': 'wav',
   'audio/x-wav': 'wav',
+}
+
+// Cierres de video de YouTube que Whisper en español alucina con silencio o ruido, ya normalizados. Se comparan
+// oraciones enteras (una o varias de estas frases y nada más), para no tocar un relato que use esas palabras.
+const FRASE_INVENTADA = [
+  'subtitul(os|ado)( (realizados|hechos|creados))? por la comunidad de amara org',
+  '(muchas )?gracias por (ver|mirar)( el video)?',
+  'suscrib(ete|ite|anse)( al canal)?',
+].join('|')
+const SOLO_INVENTADAS = new RegExp(`^(?:${FRASE_INVENTADA})(?:(?: y)? (?:${FRASE_INVENTADA}))*$`)
+
+/** Sin tildes, mayúsculas ni puntuación: '¡Suscríbete!' → 'suscribete'. */
+function normalizar(texto: string): string {
+  return texto.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+}
+
+/** Saca las oraciones que son solo frases inventadas por Whisper; el resto queda tal cual. */
+export function sinFrasesInventadas(texto: string): string {
+  return texto
+    .split(/(?<=[.!?…])\s+|\n+/)
+    .filter((oracion) => !SOLO_INVENTADAS.test(normalizar(oracion)))
+    .join(' ')
+    .trim()
 }
 
 /** 'audio/webm;codecs=opus' → { mime: 'audio/webm', ext: 'webm' }. */
@@ -88,7 +113,11 @@ export async function transcribir(opciones: OpcionesTranscribir): Promise<Transc
   if (audio.length === 0) throw new ErrorIA('audio_vacio', 'el audio vino vacío')
   const pista = opciones.pista?.trim().slice(0, MAX_PISTA) || undefined
   const r = await conRespaldo(audio, opciones.audioBase64, f, pista)
-  const texto = r.texto.trim()
-  if (!texto) throw new ErrorIA('audio_vacio', `${r.modelo} devolvió una transcripción vacía`)
+  const crudo = r.texto.trim()
+  const texto = sinFrasesInventadas(crudo)
+  if (!normalizar(texto)) {
+    const que = crudo ? 'solo trajo frases que Whisper inventa con silencio o ruido' : 'devolvió una transcripción vacía'
+    throw new ErrorIA('audio_vacio', `${r.modelo} ${que}`)
+  }
   return { texto, ms: Date.now() - inicio, modelo: r.modelo }
 }

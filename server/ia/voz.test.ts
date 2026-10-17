@@ -2,7 +2,7 @@
 import { APIConnectionTimeoutError, RateLimitError } from 'groq-sdk'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ErrorIA } from './errores.js'
-import { transcribir } from './voz.js'
+import { sinFrasesInventadas, transcribir } from './voz.js'
 
 const sdk = vi.hoisted(() => ({ transcribir: vi.fn() }))
 
@@ -87,6 +87,53 @@ describe('transcribir con Groq', () => {
     sdk.transcribir.mockResolvedValueOnce({ text: 'hola' })
     await transcribir({ audioBase64: AUDIO, mime: 'audio/mp4', pista: 'milanesa, '.repeat(200) })
     expect(sdk.transcribir.mock.calls[0][0].prompt.length).toBeLessThanOrEqual(600)
+  })
+})
+
+describe('frases que Whisper inventa con silencio o ruido', () => {
+  it.each([
+    'Subtítulos realizados por la comunidad de Amara.org',
+    ' Subtítulos por la comunidad de Amara.org',
+    'subtitulos realizados por la comunidad de amara.org',
+    'Subtitulado por la comunidad de Amara.org.',
+    '¡Gracias por ver el video!',
+    'Gracias por ver.',
+    'Muchas gracias por ver el vídeo. ¡Suscríbete al canal!',
+    'Gracias por ver, suscríbete al canal.',
+    'SUSCRÍBETE',
+    '...',
+  ])('"%s" sola → audio_no_entendido', async (alucinacion) => {
+    sdk.transcribir.mockResolvedValueOnce({ text: alucinacion })
+    const e = await errorDe(transcribir({ audioBase64: AUDIO, mime: 'audio/mp4' }))
+    expect(e.motivo).toBe('audio_vacio')
+    expect(e.codigo).toBe('audio_no_entendido')
+  })
+
+  it('si queda relato, lo devuelve sin esas frases y tal cual (tildes y mayúsculas)', async () => {
+    sdk.transcribir.mockResolvedValueOnce({ text: ' Comió todas las papas y el dambo lo apartó. Subtítulos realizados por la comunidad de Amara.org' })
+    const r = await transcribir({ audioBase64: AUDIO, mime: 'audio/mp4' })
+    expect(r.texto).toBe('Comió todas las papas y el dambo lo apartó.')
+  })
+
+  it('saca las frases al principio, en el medio o en otra línea', () => {
+    expect(sinFrasesInventadas('¡Gracias por ver! Lo probó y lo escupió.')).toBe('Lo probó y lo escupió.')
+    expect(sinFrasesInventadas('El boniato ni lo miró. ¡Suscríbete! La milanesa, toda.')).toBe('El boniato ni lo miró. La milanesa, toda.')
+    expect(sinFrasesInventadas('Comió el puré.\nGracias por ver el video.')).toBe('Comió el puré.')
+  })
+
+  it('no toca un relato que usa esas palabras dentro de una oración', () => {
+    const relato = 'Le dije gracias por ver la tele conmigo y comió el puré.'
+    expect(sinFrasesInventadas(relato)).toBe(relato)
+  })
+
+  it('filtra también lo que transcribe el respaldo de Workers AI', async () => {
+    vi.stubEnv('GROQ_API_KEY', '')
+    vi.stubEnv('CLOUDFLARE_ACCOUNT_ID', 'cuenta-test')
+    vi.stubEnv('CLOUDFLARE_API_TOKEN', 'token-test')
+    cloudflareResponde({ success: true, result: { text: 'Subtítulos realizados por la comunidad de Amara.org' } })
+    const e = await errorDe(transcribir({ audioBase64: AUDIO, mime: 'audio/webm' }))
+    expect(e.codigo).toBe('audio_no_entendido')
+    expect(e.detalle.detalle).toContain('inventa')
   })
 })
 
