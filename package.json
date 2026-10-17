@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "fixtures": "tsx scripts/generar-fixtures.ts",
     "sinteticos": "node scripts/generar-sinteticos.mjs",
-    "deploy": "vercel --prod"
+    "deploy": "vercel --prod",
+    "env:vercel": "node scripts/vercel-env.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
