@@ -1,8 +1,8 @@
 // GET /api/resumen?ninoId → ResumenRes
 // Dueño: pista C (C8, PLAN.md §9). Los números los arma el código (server/resumen/numeros.ts); el texto, Claude Haiku 5.5
 // con "usá solo estos números" y un chequeo por código, o una plantilla si no se puede (server/resumen/texto.ts).
-// Mientras el progreso y el perfil salgan de fixtures (server/resumen/datos.ts), la respuesta lleva x-nibble-stub: 1:
-// el texto es real, pero los números son de ejemplo.
+// El progreso y el perfil salen de B (obtenerProgreso y obtenerPerfil) cuando hay MONGODB_URI; si no, de los fixtures,
+// y entonces la respuesta lleva x-nibble-stub: 1 (el texto es real, pero los números son de ejemplo).
 import type { ResumenRes } from '../shared/contratos.js'
 import { ErrorNibble, HEADER_STUB, manejar, param, permitir } from '../server/http.js'
 import { cargarPerfil, cargarProgreso } from '../server/resumen/datos.js'
