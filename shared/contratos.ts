@@ -60,6 +60,7 @@ export interface Alimento {              // data/alimentos.json (curado) · cole
   fuente: 'USDA' | 'TCAU' | 'equipo'     // v2 · se muestra al usuario
   dataset?: 'foundation' | 'sr_legacy' | 'fndds'           // v3
   porciones?: { descripcion: string; gramos: number }[]    // v3 · pesos reales por unidad ("1 nugget = 16 g"), de FNDDS o SR Legacy
+  faltantes?: Nutriente[]                // A3 · nutrientes sin dato en la tabla: van en 0 (§10.1, "se marca")
 }
 export interface PreparacionCatalogo {   // data/preparaciones.json · catálogo semilla curado
   id: string; nombre: string; atributos: Atributos
