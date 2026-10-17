@@ -122,6 +122,7 @@ function base(pedido: Pedido, maxTokens: number, mensajes: Anthropic.MessagePara
   return {
     model: pedido.modelo,
     max_tokens: maxTokens,
+    ...(pedido.sinThinking ? { thinking: { type: 'disabled' as const } } : {}),
     ...(pedido.sistema ? { system: pedido.sistema } : {}),
     messages: [...mensajes], // copia: el array sigue creciendo con la corrección
   }

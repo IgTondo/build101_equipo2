@@ -36,6 +36,7 @@ export function porPedido(vence: Vence): { timeout: number; maxRetries: number; 
 export interface Pedido {
   modelo: string
   effort: Effort         // solo lo usa Claude (output_config.effort)
+  sinThinking?: boolean  // solo Claude: thinking disabled (Haiku 5.5 lo acepta con effort high o menor)
   sistema?: string
   partes: Parte[]
   vence?: Vence          // limiteMs ya convertido: lo comparten el reintento y el respaldo

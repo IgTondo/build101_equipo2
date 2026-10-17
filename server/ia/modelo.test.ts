@@ -122,21 +122,32 @@ describe('generarJSON con Claude', () => {
     }])
   })
 
-  it('manda effort dentro de output_config y nunca temperature, top_p ni thinking', async () => {
+  it('manda effort dentro de output_config y nunca temperature ni top_p; visión sin thinking, receta con el adaptativo', async () => {
     claudeResponde(VALIDO, VALIDO)
     await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato })
     await generarJSON({ tarea: 'receta', partes: PARTES, schema: Plato })
     const [vision, receta] = [llamada(sdk.claudeParse, 0), llamada(sdk.claudeParse, 1)]
     expect(vision.output_config?.effort).toBe('low')
     expect(vision.output_config?.format?.type).toBe('json_schema')
+    expect(vision.thinking).toEqual({ type: 'disabled' })
     expect(receta.model).toBe('claude-sonnet-5-5')
     expect(receta.output_config?.effort).toBe('medium')
+    expect(receta).not.toHaveProperty('thinking')
     for (const p of [vision, receta]) {
       expect(p).not.toHaveProperty('temperature')
       expect(p).not.toHaveProperty('top_p')
-      expect(p).not.toHaveProperty('thinking')
       expect(p).not.toHaveProperty('effort')
     }
+  })
+
+  it('CLAUDE_SIN_THINKING pisa qué tareas van sin thinking (vacío: todas lo usan)', async () => {
+    claudeResponde(VALIDO, VALIDO)
+    vi.stubEnv('CLAUDE_SIN_THINKING', '')
+    await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato })
+    vi.stubEnv('CLAUDE_SIN_THINKING', 'relato, receta')
+    await generarJSON({ tarea: 'receta', partes: PARTES, schema: Plato })
+    expect(llamada(sdk.claudeParse, 0)).not.toHaveProperty('thinking')
+    expect(llamada(sdk.claudeParse, 1).thinking).toEqual({ type: 'disabled' })
   })
 
   it('si no valida, reintenta una vez con la respuesta y los problemas de Zod', async () => {

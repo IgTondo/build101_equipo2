@@ -63,6 +63,16 @@ export function modeloPara(tarea: Tarea): string {
 
 const EFFORT: Record<Tarea, Effort> = { vision: 'low', relato: 'low', perfil: 'medium', resumen: 'low', receta: 'medium' }
 
+// Medido el 17/10 con Haiku 5.5 y las keys reales: con el contexto del chico, la visión tardaba 7–10 s pensando y
+// 2,4–3,7 s sin pensar, con la misma precisión en la eval (eval/resultados/); el perfil, 16,7 s contra 4–6 s.
+// Relato y receta piensan: ahí pesa más acertar que la latencia. CLAUDE_SIN_THINKING (lista, o vacío) pisa esto.
+const SIN_THINKING = 'vision,perfil'
+
+/** ¿Va con thinking disabled? Haiku 5.5 lo acepta con effort high o menor. Se lee en cada llamada. */
+export function sinThinking(tarea: Tarea): boolean {
+  return (process.env.CLAUDE_SIN_THINKING ?? SIN_THINKING).split(',').map((t) => t.trim()).includes(tarea)
+}
+
 // Con thinking adaptativo el razonamiento cuenta en max_tokens. Topes holgados para la salida esperada, pero que
 // cortan una generación desbocada antes de que se coma los 25 s del timeout.
 const MAX_TOKENS: Record<Tarea, number> = { vision: 4096, relato: 3072, perfil: 6144, resumen: 3072, receta: 6144 }
@@ -141,6 +151,7 @@ function pedidoPara(proveedor: Proveedor, opciones: OpcionesTexto, vence: Vence)
   return {
     modelo: modeloDe(proveedor.nombre, opciones.tarea),
     effort: EFFORT[opciones.tarea],
+    sinThinking: sinThinking(opciones.tarea),
     sistema: opciones.sistema,
     partes: opciones.partes,
     vence,
