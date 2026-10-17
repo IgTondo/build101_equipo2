@@ -116,6 +116,17 @@ describe('texto.ts: número-chequeo', () => {
     expect(numerosQueNoEstan(textoPlantilla(sinPerfil), lineasHechos(sinPerfil))).toEqual([])
   })
 
+  it('la plantilla con una sola comida en un día: singular, sin "del 17/10 al 17/10" ni "0 respecto"', () => {
+    const h = armarHechos(PROGRESO, PERFIL)
+    const uno = { ...h, periodo: { ...h.periodo, desde: '2026-10-17', hasta: '2026-10-17', comidas: 1 }, conducta: { ...h.conducta, comidas: 1 },
+      repertorio: { aceptadas: 1, enProceso: 0, tendencia: 0 } }
+    const t = textoPlantilla(uno)
+    expect(t).toContain('del 17/10, armado con 1 comida registrada por la familia')
+    expect(t).toContain('acepta 1 preparación (igual que la semana anterior)')
+    expect(t).toContain('de 1 comida;')
+    expect(numerosQueNoEstan(t, lineasHechos(uno))).toEqual([])
+  })
+
   it('pulir saca el markdown y deja la aclaración una sola vez, al final', () => {
     const t = pulir(`**Repertorio:** acepta 6.\n${ACLARACION}\nAlgo más.`)
     expect(t).not.toContain('**')

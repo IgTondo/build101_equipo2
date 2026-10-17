@@ -84,6 +84,10 @@ export function numerosQueNoEstan(texto: string, lineas: string[]): string[] {
 // ---------- Plantilla (respaldo, sin LLM) ----------
 const ultimaVez = (d: number | null) => (d === null ? 'sin registros' : d === 0 ? 'hoy' : d === 1 ? 'ayer' : `hace ${d} días`)
 const lista = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}`)
+const comidasTexto = (n: number) => `${n} ${n === 1 ? 'comida registrada' : 'comidas registradas'}`
+const periodoTexto = (desde: string, hasta: string) =>
+  desde === hasta ? `del ${fechaCorta(hasta)}` : `del ${fechaCorta(desde)} al ${fechaCorta(hasta)}`
+const tendenciaTexto = (t: number) => (t === 0 ? 'igual que la semana anterior' : `${t > 0 ? '+' : ''}${t} respecto de la semana anterior`)
 
 export function textoPlantilla(h: Hechos): string {
   const { conteo, comidas } = h.conducta
@@ -91,10 +95,10 @@ export function textoPlantilla(h: Hechos): string {
   const t = h.repertorio.tendencia
   const riesgo = conteo.arcadas + conteo.atragantamiento
   const lineas = [
-    `Resumen de alimentación de ${h.nombre}${h.edad !== null ? ` (${h.edad} años)` : ''}, del ${fechaCorta(h.periodo.desde)} al ${fechaCorta(h.periodo.hasta)}, ` +
-      `armado con ${comidas} comidas registradas por la familia.`,
+    `Resumen de alimentación de ${h.nombre}${h.edad !== null ? ` (${h.edad} años)` : ''}, ${periodoTexto(h.periodo.desde, h.periodo.hasta)}, ` +
+      `armado con ${comidasTexto(comidas)} por la familia.`,
     '',
-    `Repertorio: acepta ${h.repertorio.aceptadas} preparaciones (${t > 0 ? '+' : ''}${t} respecto de la semana anterior) y tiene ${h.repertorio.enProceso} en proceso.`,
+    `Repertorio: acepta ${h.repertorio.aceptadas} ${h.repertorio.aceptadas === 1 ? 'preparación' : 'preparaciones'} (${tendenciaTexto(t)}) y tiene ${h.repertorio.enProceso} en proceso.`,
     `Grupos: ${ausentes.length ? `no comió ${lista(ausentes.map((g) => g.nombre))} en los últimos ${DIAS_GRUPO_AUSENTE} días` : 'comió de todos los grupos en la semana'}. ` +
       `Última vez de cada grupo: ${h.grupos.map((g) => `${g.nombre}, ${ultimaVez(g.diasSinComer)}`).join('; ')}.`,
     `Nutrientes: cobertura semanal estimada respecto de la referencia para su edad. ` +
@@ -104,7 +108,7 @@ export function textoPlantilla(h: Hechos): string {
     `Exposiciones: ${h.exposiciones.total} en curso` + (h.exposiciones.lista.length
       ? `. ${h.exposiciones.lista.map((e) => `${e.nombre} (${e.veces} ${e.veces === 1 ? 'ofrecimiento' : 'ofrecimientos'}, mejor escalón: ${e.escalon})`).join('; ')}.`
       : '.'),
-    `Conducta en la mesa: tranquilo en ${conteo.tranquilo} de ${comidas} comidas; se levantó en ${conteo.se_levanto}; ` +
+    `Conducta en la mesa: tranquilo en ${conteo.tranquilo} de ${comidas} ${comidas === 1 ? 'comida' : 'comidas'}; se levantó en ${conteo.se_levanto}; ` +
       `pidió su comida de siempre en ${conteo.pidio_otra_cosa}; angustia en ${conteo.angustia}; ` +
       (riesgo ? `arcadas o vómitos en ${conteo.arcadas} y tos o atragantamiento en ${conteo.atragantamiento}.` : 'sin arcadas ni atragantamientos.'),
     `Señales de alerta: ${h.alertas.length ? h.alertas.join(' ') : 'ninguna.'}`,
