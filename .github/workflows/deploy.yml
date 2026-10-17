@@ -1,0 +1,51 @@
+# Deploy a producción en Vercel cuando el CI pasa en main (C4). Usa el CLI con un token, porque el repo no está
+# conectado a Vercel por GitHub (notas/pista-c.md). Necesita tres secretos en el repo (Settings → Secrets and
+# variables → Actions): VERCEL_TOKEN, VERCEL_ORG_ID y VERCEL_PROJECT_ID. Sin el token, avisa y no hace nada.
+name: Deploy
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-produccion
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ${{ vars.RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 15
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: ¿Está el token?
+        id: token
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then echo "::notice::Falta el secreto VERCEL_TOKEN: no se despliega."; echo "hay=no" >> "$GITHUB_OUTPUT"; else echo "hay=si" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@v4
+        if: steps.token.outputs.hay == 'si'
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v4
+        if: steps.token.outputs.hay == 'si'
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.token.outputs.hay == 'si'
+        run: npm ci
+      - name: Bajar la config y las variables de producción
+        if: steps.token.outputs.hay == 'si'
+        run: npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Build
+        if: steps.token.outputs.hay == 'si'
+        run: npx vercel build --prod --token="$VERCEL_TOKEN"
+      - name: Deploy a producción
+        if: steps.token.outputs.hay == 'si'
+        run: |
+          URL=$(npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "Desplegado en $URL" >> "$GITHUB_STEP_SUMMARY"
