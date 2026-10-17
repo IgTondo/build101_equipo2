@@ -54,7 +54,8 @@ export const col = {
   ninos: () => db().collection<NinoDoc>('ninos'),
   comidas: () => db().collection<ComidaDoc>('comidas'),
   recetas: () => db().collection<RecetaDoc>('recetas'),
-  alimentosFdc: () => db().collection<Alimento>('alimentos_fdc'),
+  /** La crea y la llena scripts/usda.ts de A (_id = id del alimento, con su índice de texto): acá solo se lee. */
+  alimentosFdc: () => db().collection<Alimento & { _id: string }>('alimentos_fdc'),
   nodos: () => db().collection<NodoDoc>('nodos'),
   relaciones: () => db().collection<RelacionDoc>('relaciones'),
 }
@@ -66,15 +67,6 @@ export function asegurarIndices(): Promise<void> {
     await col.recetas().createIndex({ ninoId: 1, creadoISO: -1 })
     await col.nodos().createIndex({ ninoId: 1, label: 1 })
     await col.relaciones().createIndexes([{ key: { ninoId: 1, tipo: 1 } }, { key: { desde: 1 } }, { key: { hasta: 1 } }])
-    try {
-      // alimentos_fdc la llena A3: si A ya creó sus índices con otro nombre, no se pisan
-      await col.alimentosFdc().createIndexes([
-        { key: { id: 1 }, name: 'id' },
-        { key: { nombre: 'text', alias: 'text' }, name: 'texto', default_language: 'none' },
-      ])
-    } catch (e) {
-      console.warn('[mongo] índices de alimentos_fdc:', (e as Error).message)
-    }
   })().catch((e: unknown) => {
     indices = null
     throw e

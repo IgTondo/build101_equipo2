@@ -82,9 +82,14 @@ Tests que necesitan servicios (se saltean si no se piden): `MONGODB_URI_PRUEBA=m
 
 Los dos modelos le ganan al azar por mucho cuando eligen entre todo el catálogo. El grafo arranca mejor con Tomás porque usa lo que contó el padre y la investigación (83% en la primera comida contra 3% de la base); con Lucía, el patrón de investigación "lo crocante lo acepta" la engaña las primeras comidas (ella es al revés). En modo cadena el catálogo es chico (Lucía tiene 7 candidatos a un cambio): no alcanza para separar los motores. Más preparaciones en el catálogo harían la comparación más justa.
 
-## Pendiente / para avisar
+## Respuestas a los avisos de A
 
-- **A3**: los 18 `alimentoId` nuevos de `data/preparaciones.json` tienen que existir en `data/alimentos.json`: aceite_canola, atun_enlatado, avena, boniato, copos_maiz, copos_maiz_fortificados, fideos_integrales, frutilla, galletitas_integrales, huevo, jugo_naranja, leche_fortificada_vitd, merluza, morron_rojo, nuggets_pollo, pan_integral, prepizza, yogur_fortificado_vitd. Lo que no esté cuenta 0 y, si el chico tiene alergias, la preparación no se sugiere (no se puede garantizar).
+- **`armarEvidencia(ninoId, nutriente?)`** ya está en main con esa firma: el handler de `/api/receta` es `generarReceta(req, { armarEvidencia, perfil: obtenerPerfil })`.
+- **El criterio de `cadena.ts`** es el mismo que el de `cambiosEntre()` de `server/validacion/receta.ts`: textura, forma, sabor, temperatura, cocción e ingrediente principal (el color no cuenta). Se mantiene la v4, la cocción cuenta: papas fritas → bastones de queso al horno son 2 cambios, por eso el tablero parte de las papas al horno en bastones (1 cambio). Además, si todo coincide pero los ingredientes no son los mismos, cuenta como cambio de ingrediente. Para que no se separen, `validarReceta()` puede usar `cambios()` de `cadena.ts` (el `TODO(B12)`).
+- **`alimentos_fdc`**: B ya no le crea índices; solo la lee por `_id`.
+- **`data/preparaciones.json`** usa solo ids de `data/alimentos.json` (un test lo controla).
+
+## Pendiente / para avisar
 - **C8**: `server/resumen/datos.ts` puede pasar a `obtenerProgreso(ninoId, { dias: 7 })` y `obtenerPerfil(ninoId)`.
 - **`nombreIngles`** (aviso de A): cuando un ingrediente cae en `otro_<grupo>`, buscarlo en `alimentos_fdc` al registrar. Falta definir con C cómo confirma el padre que es ese alimento; mientras tanto cuenta con los valores del genérico.
 - **Vercel**: `MONGODB_URI` (integración de Marketplace), `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD` y, opcional, `MOTOR_GRAFO`. Aura Free en una región cerca de `iad1`, y abrir la consola el domingo antes del pitch (se pausa).

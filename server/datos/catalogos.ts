@@ -46,7 +46,7 @@ export async function resolverAlimentos(ids: Iterable<string>): Promise<Map<stri
   const faltan = [...new Set(ids)].filter((id) => !tabla.has(id))
   if (faltan.length && !alimentosFijos) {
     try {
-      const encontrados = await col.alimentosFdc().find({ id: { $in: faltan } }, { projection: { _id: 0 } }).toArray()
+      const encontrados = await col.alimentosFdc().find({ _id: { $in: faltan } }, { projection: { _id: 0 } }).toArray()
       for (const a of encontrados) tabla.set(a.id, a)
     } catch (e) {
       console.warn('[alimentos] no se pudo buscar en alimentos_fdc:', (e as Error).message)
