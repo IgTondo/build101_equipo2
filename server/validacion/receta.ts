@@ -9,6 +9,7 @@ import {
   type Alergeno, type Atributos, type Cambio, type Candidato, type Nutrientes, type Plato,
   type PreparacionCatalogo, type Presentacion, type Receta, type Regla,
 } from '../../shared/contratos.js'
+import { cambios, principal } from '../aprendizaje/cadena.js'
 import { alimentoPorId, esGenerico } from '../ia/catalogo.js'
 
 export interface ContextoValidacion {
@@ -53,33 +54,30 @@ const sinProblemas = (): ProblemasPorTipo => ({ cambio: [], reglas: [], mezclas:
 export const aplanar = (p: ProblemasPorTipo): string[] => TIPOS_PROBLEMA.flatMap((t) => p[t])
 
 // ---------- La cadena ----------
-// Criterio de cadena.ts (PLAN.md §8): cuentan textura, forma, sabor, temperatura, cocción (v4) e ingrediente principal
-// (el de más gramos). El color no cuenta: cambia con el ingrediente y no distinguió a los chicos con TEA (Hubbard 2014).
-// Si la preparación es la versión fortificada de la de partida (`fortificadaDe`), el cambio es 'fortificar'.
-// TODO(B12): cuando B suba server/aprendizaje/cadena.ts, usar su cálculo acá, para que el tablero y la receta cuenten igual.
-const DIMENSIONES = ['textura', 'forma', 'sabor', 'temperatura', 'coccion'] as const
-
+// El conteo es el de cadena.ts (B, PLAN.md §8), para que el tablero y la receta cuenten igual: forma, textura, sabor,
+// temperatura, cocción e ingrediente principal (el de más gramos); el color no cuenta; una dimensión que falta de un
+// lado no cuenta; con todo igual pero otros ingredientes, cuenta como ingrediente. Si la preparación es la versión
+// fortificada de la de partida (`fortificadaDe`), el cambio es 'fortificar'.
 export interface Diferencia { cambio: Cambio; antes: string; despues: string }
 
-export function ingredientePrincipal(ingredientes: { alimentoId: string; gramos: number }[]): string | undefined {
-  let mejor: { alimentoId: string; gramos: number } | undefined
-  for (const i of ingredientes) if (!mejor || i.gramos > mejor.gramos) mejor = i
-  return mejor?.alimentoId
+export function ingredientePrincipal(ingredientes: readonly { alimentoId: string; gramos: number }[]): string | undefined {
+  return principal(ingredientes) ?? undefined
 }
 
+/** Los cambios de cadena.ts, con lo de antes y lo de después para los mensajes. */
 export function cambiosEntre(desde: PreparacionCatalogo, hacia: PreparacionCatalogo): Diferencia[] {
   if (hacia.fortificadaDe === desde.id) return [{ cambio: 'fortificar', antes: desde.id, despues: hacia.id }]
-  const difs: Diferencia[] = []
-  for (const d of DIMENSIONES) {
-    const antes = desde.atributos[d]
-    const despues = hacia.atributos[d]
-    // La cocción es opcional en el contrato: si falta en alguna de las dos, no se cuenta.
-    if (antes !== undefined && despues !== undefined && antes !== despues) difs.push({ cambio: d, antes, despues })
-  }
-  const antes = ingredientePrincipal(desde.ingredientes)
-  const despues = ingredientePrincipal(hacia.ingredientes)
-  if (antes && despues && antes !== despues) difs.push({ cambio: 'ingrediente', antes, despues })
-  return difs
+  return cambios(desde, hacia).map((cambio) => {
+    if (cambio !== 'ingrediente' && cambio !== 'fortificar') {
+      return { cambio, antes: String(desde.atributos[cambio]), despues: String(hacia.atributos[cambio]) }
+    }
+    const antes = ingredientePrincipal(desde.ingredientes) ?? ''
+    const despues = ingredientePrincipal(hacia.ingredientes) ?? ''
+    if (antes !== despues) return { cambio, antes, despues }
+    // Mismo principal, otros ingredientes: se muestran todos
+    const todos = (p: PreparacionCatalogo) => p.ingredientes.map((i) => nombreAlimento(i.alimentoId)).join(' + ')
+    return { cambio, antes: todos(desde), despues: todos(hacia) }
+  })
 }
 
 function describir(d: Diferencia): string {

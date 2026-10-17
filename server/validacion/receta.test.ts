@@ -54,6 +54,13 @@ describe('cambiosEntre (criterio de cadena.ts, §8)', () => {
     expect(cambiosEntre(prep('yogur_vainilla'), prep('yogur_vainilla_d')).map((d) => d.cambio)).toEqual(['fortificar'])
   })
 
+  it('mismo ingrediente principal pero otros ingredientes: cuenta como ingrediente (cadena.ts)', () => {
+    const conQueso = { ...prep('papas_horno_baston'), id: 'papas_con_queso', ingredientes: [...prep('papas_horno_baston').ingredientes, { alimentoId: 'queso_muzzarella', gramos: 10 }] }
+    expect(cambiosEntre(prep('papas_horno_baston'), conQueso)).toEqual([
+      { cambio: 'ingrediente', antes: 'Papa + Aceite de girasol', despues: 'Papa + Aceite de girasol + Queso muzzarella' },
+    ])
+  })
+
   it('el color no cuenta', () => {
     const verde = { ...prep('papas_horno_baston'), id: 'x', atributos: { ...prep('papas_horno_baston').atributos, color: 'verde' as const } }
     expect(cambiosEntre(prep('papas_horno_baston'), verde)).toEqual([])
