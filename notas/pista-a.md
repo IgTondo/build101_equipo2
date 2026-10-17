@@ -1,6 +1,6 @@
 # Pista A · notas de trabajo
 
-> Se actualiza con cada push. Referencia: PLAN.md §7. Estado al 17/10, 20:00: **todas las tareas de A (A1–A12) están en main**; falta probarlas en vivo con keys.
+> Se actualiza con cada push. Referencia: PLAN.md §7. Estado al 17/10, 21:00: **todas las tareas de A (A1–A12) están en main y probadas en vivo** con las keys reales (local), salvo Whisper con notas reales.
 
 ## Hecho (en main)
 
@@ -40,7 +40,7 @@ Los errores son `ErrorIA`, que extiende `ErrorNibble` (`server/http.ts`): si el 
 ## Decisiones
 
 - Modelos: `claude-haiku-5-5` para visión, relato, perfil y resumen; `claude-sonnet-5-5` para la receta. Sin `temperature`. SDK con timeout de 25 s y `maxRetries: 1`; `limiteMs` acota el total de una llamada para no pasar los 60 s de Vercel.
-- `effort` dentro de `output_config`: `low` en visión, relato y resumen; `medium` en perfil y receta (la receta, por latencia; si pasa de 55 s en vivo, bajarla a `low`).
+- `effort` dentro de `output_config`: `low` en visión, relato y resumen; `medium` en perfil y receta. **Visión y perfil van con `thinking: disabled`** por latencia (medido en vivo; `CLAUDE_SIN_THINKING` lo pisa); relato y receta piensan.
 - `MODELO_<TAREA>` por env pisa el modelo de una tarea (la eval de visión compara Haiku y Sonnet). Respaldos: `MODELO_GEMINI` (Gemini 3.5 Flash-Lite) y `MODELO_GROQ` (Llama 4 Scout).
 - **El SDK 0.135 saca los `enum` del JSON Schema** (`lib/transform-json-schema.mjs` los pasa a la `description`). Por eso `proveedores/claude.ts` arma su propio schema (`schemaClaude`), que conserva `enum` y `const`. En los schemas: `z.enum` restringe la salida; `.min`/`.max` viajan como pista y los valida Zod; `z.record` no se puede usar.
 - **Validador de receta sin aflojar**: papas fritas en bastones → bastones de queso al horno da **2 cambios** (ingrediente + cocción frito → horno, por la v4). El test que lo muestra quedó como pendiente (`it.skip` en `server/validacion/receta.test.ts`). El tablero de B ya parte de las papas al horno en bastones. Alérgenos en el texto: ante la duda, se detectan (un falso positivo cuesta un reintento). El alimento seguro fuera del catálogo solo vale si se observó con todos sus atributos.
@@ -48,19 +48,29 @@ Los errores son `ErrorIA`, que extiende `ErrorNibble` (`server/http.ts`): si el 
 - `sinComida` responde 200 con `sinComida: true` (lo que ya maneja la pantalla Registrar).
 - El prompt de visión se itera con la API de Claude, no con AI Studio.
 
-## Falta probar en vivo (nada se corrió contra un proveedor real)
+## Probado en vivo (17/10, keys reales, API local contra Atlas en una base aparte `nibble_prueba_a`)
 
-1. `npx tsx scripts/probar-ia.ts` con las keys (A1): visión, FLUX y Whisper con una nota de iPhone y otra de Android.
-2. Las evals: `npx tsx scripts/eval-vision.ts`, `eval-voz.ts` (con y sin `--texto`) y `eval-recetas.ts` (< USD 1 en total), o desde Actions → Evals. Las tablas van a la diapositiva y al README.
-3. Latencias: visión < 8 s, relato < 8 s, receta < 55 s, imagen < 20 s.
-4. Que la API acepte los schemas propios (los `enum` grandes de `alimentoId`), Groq con `json_schema` y Gemini con `responseJsonSchema`.
-5. El ciclo completo en el deploy con Mongo: foto → relato → registrar → tablero → receta → imagen.
+- **A1** (`probar-ia.ts`): visión con Haiku en 1,7–3,0 s por foto y FLUX en 3,5 s; los pings de salud de Claude, Groq y Cloudflare, OK.
+- **Ciclo completo** con un chico de prueba (alergia al huevo): relato → `/api/perfil-inicial` → `/api/perfil` → foto → `/api/analizar-comida` (milanesa y papas fritas) → `/api/relato-comida` (papas `todo` y milanesa `probo`, cada una con su cita) → `/api/registrar-comida` ("qué aprendí") → `/api/progreso` (frase y las 3 sugerencias) → `/api/receta` (bastones de queso rebozados **sin huevo**, validada a la primera, 7,5 s) → `/api/imagen-plato` (separado, sin texto, 2,9 s).
+- **Evals** (`eval/resultados/`):
+  - Visión con 8 fotos: Haiku 15/18 alimentos, 88% de atributos, 4,1 s, 100% en < 8 s; le gana a Sonnet.
+  - Voz por texto con 40 relatos sintéticos: 100% de `cuanto` y conducta, 0 inventados, 1,7 s.
+  - Recetas con 12 casos: el LLM erró 2 de 13 salidas por alergias, el código las atrapó, 0 inválidas, USD 0,34.
+- **`alimentos_fdc`** cargada en Mongo (base `nibble`): 13.694 alimentos con índice de texto.
+- **Latencia → sin thinking en visión y perfil** (`f6b309a`). Con el contexto del chico, la visión tardaba 7–10 s pensando y 2,4–3,7 s sin pensar, con la misma precisión. El perfil bajó de 16,7 s a 4–6 s.
+
+## Falta probar en vivo
+
+1. Whisper con notas reales de iPhone (`audio/mp4`) y Android (`audio/webm`): `probar-ia.ts` y `eval-voz.ts` sin `--texto`.
+2. El ciclo en producción, cuando C cargue las variables en Vercel.
+3. Groq y Gemini como respaldo del LLM (no se forzó la caída de Claude).
+4. **Red de la sede**: bloquea la salida al puerto 27017, así que desde ese wifi no conecta Mongo; con el hotspot del celular, sí. Neo4j (7687) seguramente tenga el mismo problema. Vercel no tiene esa restricción.
 
 ## Bloqueado
 
-- **No hay `.env.local` ni keys** (Anthropic, Groq, Cloudflare, Mongo). Con las keys, los endpoints de A ya responden de verdad; sin ellas, 502 `proveedor_caido` con `motivo: sin_clave`.
-- `alimentos_fdc` en Mongo: `npx tsx scripts/usda.ts --subir` cuando haya `MONGODB_URI` (los CSV se bajan a `data/usda/`).
+- **Producción sin variables**: las carga C en Vercel (ver abajo). Las keys locales están en `.env.local`, que no se commitea.
 - Notas de voz reales y fotos del equipo: no hay; las de `eval/` son de internet y relatos sintéticos (declarados).
+- Neo4j: en `.env.local` están `AURA_INSTANCEID`/`AURA_INSTANCENAME`, pero B lee `NEO4J_URI`, `NEO4J_USERNAME` y `NEO4J_PASSWORD`. Hasta que estén, `MOTOR_GRAFO=mongo`.
 
 ## Para C: variables en Vercel (proyecto `nibble`)
 
