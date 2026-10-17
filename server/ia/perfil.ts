@@ -14,7 +14,9 @@ import {
 } from '../../shared/contratos.js'
 import { ErrorNibble } from '../http.js'
 import { generarJSON } from './modelo.js'
-import { ATRIBUTOS, mensajePerfil, NUTRIENTES_OBJETIVO, SISTEMA_PERFIL, VOCABULARIO } from './prompts/perfil.js'
+import {
+  ATRIBUTOS, mensajeIndicacion, mensajePerfil, NUTRIENTES_OBJETIVO, SISTEMA_INDICACION, SISTEMA_PERFIL, VOCABULARIO,
+} from './prompts/perfil.js'
 import { normalizar } from './relato.js'
 
 // ---------- Entrada ----------
@@ -224,17 +226,41 @@ export function depurarIndicacion(salida: SalidaIndicacion): { objetivos: Partia
 }
 
 // ---------- El perfil ----------
+/**
+ * La foto de la indicación → sus objetivos diarios, o undefined si no se lee o no trae ninguno válido.
+ * Nunca hace fallar al perfil: si la llamada falla, el perfil sale igual y queda en el log.
+ */
+export async function leerIndicacion(fotoBase64: string, chico: { nombre: string; edad: number }): Promise<Partial<Nutrientes> | undefined> {
+  try {
+    const { datos } = await generarJSON({
+      tarea: 'perfil',
+      sistema: SISTEMA_INDICACION,
+      partes: [{ tipo: 'imagen', base64: fotoBase64, mime: 'image/jpeg' }, { tipo: 'texto', texto: mensajeIndicacion(chico) }],
+      schema: esquemaSalidaIndicacion,
+    })
+    const { objetivos, descartes } = depurarIndicacion(datos)
+    if (descartes.length) console.warn(JSON.stringify({ evento: 'perfil', aviso: 'objetivos_descartados', descartes }))
+    return Object.keys(objetivos).length ? objetivos : undefined
+  } catch (e) {
+    console.warn(JSON.stringify({ evento: 'perfil', aviso: 'indicacion_no_leida', error: e instanceof Error ? e.message : String(e) }))
+    return undefined
+  }
+}
+
 export async function extraerPerfil(req: PerfilInicialReq): Promise<PerfilBorrador> {
   const texto = req.texto.trim()
   if (!texto) throw new ErrorNibble('entrada_invalida', 'Contanos cómo come para armar su perfil.', { campo: 'texto' })
-  // TODO(A12, P2): fotoIndicacionBase64 → objetivosNutricionista (la foto de la indicación del nutricionista).
-  // Se acepta en el pedido pero todavía no se procesa ni se le manda al modelo.
   const catalogo = preparaciones()
-  const { datos } = await generarJSON({
-    tarea: 'perfil',
-    sistema: SISTEMA_PERFIL,
-    partes: [{ tipo: 'texto', texto: mensajePerfil({ nombre: req.datos.nombre, edad: req.datos.edad, catalogo, texto }) }],
-    schema: esquemaSalidaPerfil,
-  })
-  return depurarPerfil(datos, catalogo)
+  const chico = { nombre: req.datos.nombre, edad: req.datos.edad }
+  // El relato y la foto van en paralelo: la foto suma su latencia solo si tarda más que el relato.
+  const [perfil, objetivos] = await Promise.all([
+    generarJSON({
+      tarea: 'perfil',
+      sistema: SISTEMA_PERFIL,
+      partes: [{ tipo: 'texto', texto: mensajePerfil({ ...chico, catalogo, texto }) }],
+      schema: esquemaSalidaPerfil,
+    }).then(({ datos }) => depurarPerfil(datos, catalogo)),
+    req.fotoIndicacionBase64 ? leerIndicacion(req.fotoIndicacionBase64, chico) : undefined,
+  ])
+  return objetivos ? { ...perfil, objetivosNutricionista: objetivos } : perfil
 }

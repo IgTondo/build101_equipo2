@@ -3,7 +3,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DatosBasicos, ErrorApi, PerfilBorrador, PerfilInicialReq, PreparacionCatalogo } from '../../shared/contratos.js'
-import { HEADER_STUB, type Handler } from '../http.js'
+import { ErrorNibble, HEADER_STUB, type Handler } from '../http.js'
 import perfilInicialHandler from '../../api/perfil-inicial.js'
 import { generarJSON } from './modelo.js'
 import {
@@ -56,7 +56,7 @@ function conLLM(s: SalidaPerfil) {
   mockJSON.mockResolvedValue({ datos: s, modelo: 'claude-haiku-5-5', ms: 1500, reintentos: 0 })
 }
 
-beforeEach(() => mockJSON.mockReset())
+beforeEach(() => { mockJSON.mockReset() }) // con llaves: si devuelve el mock, Vitest lo llama como limpieza
 afterEach(() => fijarPreparaciones(null))
 
 // ---------- Depuración ----------
@@ -276,12 +276,70 @@ describe('extraerPerfil', () => {
     for (const p of lista) expect(p).toMatchObject({ id: expect.any(String), nombre: expect.any(String) })
   })
 
-  it('acepta la foto de la indicación pero todavía no la procesa (P2)', async () => {
+  // Cada llamada queda pendiente hasta que el test la suelta: así se ve que las dos salen antes de que vuelva ninguna.
+  function conFoto(indicacion: SalidaIndicacion | Error, relato: SalidaPerfil | Error = salida()) {
+    const soltar: (() => void)[] = []
+    mockJSON.mockImplementation((o) => new Promise((ok, mal) => {
+      const r = o.partes.some((p) => p.tipo === 'imagen') ? indicacion : relato
+      soltar.push(() => (r instanceof Error ? mal(r) : ok({ datos: r, modelo: 'claude-haiku-5-5', ms: 1, reintentos: 0 })))
+    }))
+    return () => soltar.forEach((s) => s())
+  }
+  const INDICACION: SalidaIndicacion = { objetivos: [
+    objetivo({ nutriente: 'calcio_mg', valor: 1.3, unidad: 'g', cita: 'Calcio 1,3 g por día' }),
+    objetivo({ nutriente: 'vitamina_d_ug', valor: 400, unidad: 'UI', cita: 'Vitamina D 400 UI en gotas', tipo: 'suplemento' }),
+  ] }
+
+  it('sin foto, una sola llamada y sin objetivosNutricionista', async () => {
     fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
     conLLM(salida())
-    const b = await extraerPerfil(pedido({ fotoIndicacionBase64: '/9j/AAAA' }))
-    expect(b.objetivosNutricionista).toBeUndefined()
-    expect(mockJSON.mock.calls[0][0].partes.every((p) => p.tipo === 'texto')).toBe(true)
+    const b = await extraerPerfil(pedido())
+    expect(mockJSON).toHaveBeenCalledTimes(1)
+    expect('objetivosNutricionista' in b).toBe(false)
+  })
+
+  it('con foto, la lee en paralelo con el relato (imagen JPEG, tarea perfil) y suma los objetivos válidos', async () => {
+    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    const soltar = conFoto(INDICACION)
+    const promesa = extraerPerfil(pedido({ fotoIndicacionBase64: '/9j/FOTO' }))
+    expect(mockJSON).toHaveBeenCalledTimes(2) // las dos salieron antes de que respondiera ninguna
+    soltar()
+    const b = await promesa
+
+    const foto = mockJSON.mock.calls.map(([o]) => o).find((o) => o.partes.some((p) => p.tipo === 'imagen'))!
+    expect(foto.tarea).toBe('perfil')
+    expect(foto.partes[0]).toEqual({ tipo: 'imagen', base64: '/9j/FOTO', mime: 'image/jpeg' })
+    expect(foto.sistema).toContain('"vitamina D 400 UI en gotas" es suplemento')
+    expect(b.objetivosNutricionista).toEqual({ calcio_mg: 1300 })
+    expect(b.acepta.map((a) => a.nombre)).toEqual(['Papas fritas en bastones', 'Yogur'])
+  })
+
+  it('si la foto no se lee, el perfil sale igual, sin objetivosNutricionista', async () => {
+    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    const soltar = conFoto(new Error('la imagen no se pudo procesar'))
+    const promesa = extraerPerfil(pedido({ fotoIndicacionBase64: '/9j/FOTO' }))
+    soltar()
+    const b = await promesa
+    expect('objetivosNutricionista' in b).toBe(false)
+    expect(b.reglas).toHaveLength(1)
+  })
+
+  it('si la foto no trae objetivos válidos (solo suplementos, o nada), objetivosNutricionista no va', async () => {
+    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    for (const indicacion of [{ objetivos: [INDICACION.objetivos[1]] }, { objetivos: [] }]) {
+      const soltar = conFoto(indicacion)
+      const promesa = extraerPerfil(pedido({ fotoIndicacionBase64: '/9j/FOTO' }))
+      soltar()
+      expect('objetivosNutricionista' in (await promesa)).toBe(false)
+    }
+  })
+
+  it('si falla el relato, falla el perfil aunque la foto se lea', async () => {
+    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    const soltar = conFoto(INDICACION, new ErrorNibble('timeout', 'La IA tardó demasiado.'))
+    const promesa = extraerPerfil(pedido({ fotoIndicacionBase64: '/9j/FOTO' }))
+    soltar()
+    await expect(promesa).rejects.toMatchObject({ codigo: 'timeout' })
   })
 
   it('sin texto → entrada_invalida, sin llamar al modelo', async () => {
