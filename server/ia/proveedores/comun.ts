@@ -1,10 +1,36 @@
 // Piezas comunes a los proveedores de LLM (PLAN.md §7, A4). Cada proveedor arma una Conversacion; el bucle de
 // reintento (modelo.ts) es el mismo para todos: pedir → validar con Zod → si no valida, corregir una vez.
 import { z, type ZodType } from 'zod'
+import { ErrorIA } from '../errores.js'
 import type { Parte } from '../modelo.js'
 
 export type NombreProveedor = 'claude' | 'gemini' | 'groq'
 export type Effort = 'low' | 'medium'
+
+/** Date.now() + limiteMs: cuándo se acaba el presupuesto total de la llamada. undefined = sin presupuesto. */
+export type Vence = number | undefined
+
+export const TIMEOUT_MS = 25_000         // por request, como el de los clientes
+export const MIN_REINTENTO_MS = 8_000    // con menos que esto no se reintenta ni se pasa al respaldo
+
+export function vencimiento(limiteMs: number | undefined): Vence {
+  return limiteMs === undefined ? undefined : Date.now() + limiteMs
+}
+
+export function quedanMs(vence: Vence): number {
+  return vence === undefined ? Infinity : vence - Date.now()
+}
+
+/**
+ * Opciones por request cuando hay limiteMs (sin limiteMs: undefined, y valen las del cliente). `timeout` es por
+ * intento y el SDK puede reintentar: la señal corta todo al vencer el presupuesto.
+ */
+export function porPedido(vence: Vence): { timeout: number; maxRetries: number; signal: AbortSignal } | undefined {
+  if (vence === undefined) return undefined
+  const resta = quedanMs(vence)
+  if (resta <= 0) throw new ErrorIA('timeout', 'se agotó el tiempo de la llamada (limiteMs)')
+  return { timeout: Math.min(TIMEOUT_MS, resta), maxRetries: resta > 30_000 ? 1 : 0, signal: AbortSignal.timeout(resta) }
+}
 
 /** Lo que modelo.ts ya resolvió a partir de la tarea. */
 export interface Pedido {
@@ -12,6 +38,7 @@ export interface Pedido {
   effort: Effort         // solo lo usa Claude (output_config.effort)
   sistema?: string
   partes: Parte[]
+  vence?: Vence          // limiteMs ya convertido: lo comparten el reintento y el respaldo
 }
 
 export type Validacion<T> = { ok: true; datos: T } | { ok: false; problemas: string }

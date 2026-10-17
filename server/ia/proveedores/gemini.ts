@@ -5,7 +5,7 @@ import type { ZodType } from 'zod'
 import { ErrorIA } from '../errores.js'
 import type { Parte } from '../modelo.js'
 import {
-  descripcion, jsonSchemaDe, ordenarPartes, pedidoDeCorreccion, validarJSON, validarTexto,
+  descripcion, jsonSchemaDe, ordenarPartes, pedidoDeCorreccion, porPedido, validarJSON, validarTexto,
   type Conversacion, type Pedido, type Proveedor, type Turno, type Validacion,
 } from './comun.js'
 
@@ -48,10 +48,17 @@ function conversacion<T>(pedido: Pedido, validar: (texto: string) => Validacion<
     async pedir(maxTokens) {
       let r
       try {
+        // Gemini no reintenta (el cliente no tiene retryOptions): con limiteMs alcanza con acotar el timeout.
+        const plazo = porPedido(pedido.vence)
         r = await clienteGemini().models.generateContent({
           model: pedido.modelo,
           contents: [...contenidos],
-          config: { ...config, ...(pedido.sistema ? { systemInstruction: pedido.sistema } : {}), maxOutputTokens: maxTokens },
+          config: {
+            ...config,
+            ...(pedido.sistema ? { systemInstruction: pedido.sistema } : {}),
+            ...(plazo ? { httpOptions: { timeout: plazo.timeout }, abortSignal: plazo.signal } : {}),
+            maxOutputTokens: maxTokens,
+          },
         })
       } catch (e) {
         throw errorGemini(e)

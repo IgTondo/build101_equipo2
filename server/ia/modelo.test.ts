@@ -1,6 +1,8 @@
 // Tests de modelo.ts (A4) con los tres SDK mockeados: nunca llaman a una API real.
 // El mock de messages.parse imita al SDK: corre output_config.format.parse() sobre el texto y lo deja en parsed_output.
-import { APIConnectionTimeoutError, AuthenticationError, InternalServerError, RateLimitError } from '@anthropic-ai/sdk'
+import {
+  APIConnectionTimeoutError, APIUserAbortError, AuthenticationError, InternalServerError, RateLimitError,
+} from '@anthropic-ai/sdk'
 import { ApiError } from '@google/genai'
 import { RateLimitError as RateLimitGroq } from 'groq-sdk'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -361,5 +363,105 @@ describe('respaldo en cadena (claude → gemini → groq)', () => {
     const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
     expect(e.motivo).toBe('sin_clave')
     expect(e.detalle.detalle).toContain('openai')
+  })
+})
+
+describe('limiteMs: presupuesto total de la llamada', () => {
+  // Reloj de mentira: cada respuesta falsa puede "tardar" sumándole ms.
+  let ahora = 1_000_000
+  interface OpcionesPedido { timeout: number; maxRetries: number; signal: AbortSignal }
+  const opciones = (fn: typeof sdk.claudeParse, i = 0) => fn.mock.calls[i][1] as OpcionesPedido
+
+  function tarda(ms: number, r: RespuestaFalsa) {
+    sdk.claudeParse.mockImplementationOnce(async (params: ParamsClaude) => {
+      ahora += ms
+      if (r instanceof Error) throw r
+      return typeof r === 'string' ? mensajeClaude(params, r) : mensajeClaude(params, r.texto, r.stop)
+    })
+  }
+
+  beforeEach(() => {
+    ahora = 1_000_000
+    vi.spyOn(Date, 'now').mockImplementation(() => ahora)
+  })
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('sin limiteMs, los pedidos van sin opciones: valen las del cliente (25 s y 1 reintento)', async () => {
+    claudeResponde(VALIDO)
+    await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato })
+    expect(sdk.claudeParse.mock.calls[0][1]).toBeUndefined()
+  })
+
+  it('cada request lleva min(25 s, lo que queda), 1 reintento del SDK solo si quedan más de 30 s, y la señal', async () => {
+    claudeResponde(VALIDO, VALIDO)
+    await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato, limiteMs: 50_000 })
+    await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato, limiteMs: 20_000 })
+    expect(opciones(sdk.claudeParse, 0)).toMatchObject({ timeout: 25_000, maxRetries: 1 })
+    expect(opciones(sdk.claudeParse, 0).signal).toBeInstanceOf(AbortSignal)
+    expect(opciones(sdk.claudeParse, 1)).toMatchObject({ timeout: 20_000, maxRetries: 0 })
+  })
+
+  it('el reintento por JSON inválido usa lo que queda', async () => {
+    tarda(20_000, SIN_GRAMOS)
+    claudeResponde(VALIDO)
+    const r = await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato, limiteMs: 40_000 })
+    expect(r.reintentos).toBe(1)
+    expect(opciones(sdk.claudeParse, 1)).toMatchObject({ timeout: 20_000, maxRetries: 0 })
+  })
+
+  it('si quedan menos de 8 s, no reintenta: json_invalido', async () => {
+    tarda(13_000, SIN_GRAMOS)
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato, limiteMs: 20_000 }))
+    expect(e.motivo).toBe('json_invalido')
+    expect(e.detalle.detalle).toContain('no quedaba tiempo')
+    expect(sdk.claudeParse).toHaveBeenCalledTimes(1)
+  })
+
+  it('con el presupuesto agotado → timeout, sin llamar', async () => {
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato, limiteMs: 0 }))
+    expect(e.motivo).toBe('timeout')
+    expect(e.codigo).toBe('timeout')
+    expect(sdk.claudeParse).not.toHaveBeenCalled()
+  })
+
+  it('si la señal del presupuesto corta el request → timeout, sin pasar al respaldo', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'gemini-test')
+    claudeResponde(new APIUserAbortError())
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato, limiteMs: 50_000 }))
+    expect(e.motivo).toBe('timeout')
+    expect(sdk.gemini).not.toHaveBeenCalled()
+  })
+
+  it('el respaldo hereda lo que queda del presupuesto', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'gemini-test')
+    tarda(25_000, error429())
+    geminiResponde(VALIDO)
+    const r = await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato, limiteMs: 45_000 })
+    expect(r.modelo).toBe('gemini-3.5-flash-lite')
+    const config = sdk.gemini.mock.calls[0][0].config
+    expect(config.httpOptions).toEqual({ timeout: 20_000 })
+    expect(config.abortSignal).toBeInstanceOf(AbortSignal)
+  })
+
+  it('no arranca el respaldo con menos de 8 s: sale el error del principal', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'gemini-test')
+    tarda(25_000, error429())
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato, limiteMs: 30_000 }))
+    expect(e.motivo).toBe('limite')
+    expect(sdk.gemini).not.toHaveBeenCalled()
+  })
+
+  it('Groq y generarTexto también llevan las opciones por request', async () => {
+    vi.stubEnv('PROVEEDOR_IA', 'groq')
+    vi.stubEnv('GROQ_API_KEY', 'groq-test')
+    groqResponde(VALIDO)
+    await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato, limiteMs: 50_000 })
+    expect(sdk.groq.mock.calls[0][1]).toMatchObject({ timeout: 25_000, maxRetries: 1 })
+    vi.stubEnv('PROVEEDOR_IA', '')
+    claudeResponde('Comió bien.')
+    await generarTexto({ tarea: 'resumen', partes: [{ tipo: 'texto', texto: 'Resumí.' }], limiteMs: 10_000 })
+    expect(opciones(sdk.claudeCreate)).toMatchObject({ timeout: 10_000, maxRetries: 0 })
   })
 })

@@ -3,6 +3,7 @@
 // modelos 5.5 los rechazan. El effort va dentro de output_config.
 import Anthropic, {
   APIConnectionTimeoutError,
+  APIUserAbortError,
   AuthenticationError,
   PermissionDeniedError,
   RateLimitError,
@@ -12,7 +13,7 @@ import { z, type ZodType } from 'zod'
 import { ErrorIA } from '../errores.js'
 import type { Parte } from '../modelo.js'
 import {
-  descripcion, ordenarPartes, pedidoDeCorreccion, validarJSON, validarTexto,
+  descripcion, ordenarPartes, pedidoDeCorreccion, porPedido, validarJSON, validarTexto,
   type Conversacion, type Pedido, type Proveedor, type Turno, type Validacion,
 } from './comun.js'
 
@@ -30,6 +31,8 @@ export function clienteClaude(): Anthropic {
 export function errorClaude(e: unknown): ErrorIA {
   if (e instanceof ErrorIA) return e
   if (e instanceof APIConnectionTimeoutError) return new ErrorIA('timeout', 'Claude no respondió a tiempo', { causa: e })
+  // La única señal que mandamos es la de limiteMs (porPedido): si cortó, se acabó el presupuesto.
+  if (e instanceof APIUserAbortError) return new ErrorIA('timeout', 'Claude: se agotó el tiempo de la llamada (limiteMs)', { causa: e })
   if (e instanceof RateLimitError) return new ErrorIA('limite', `Claude: ${descripcion(e)}`, { causa: e })
   if (e instanceof AuthenticationError || e instanceof PermissionDeniedError) {
     return new ErrorIA('sin_clave', `Claude: key inválida (${e.status})`, { causa: e })
@@ -138,7 +141,7 @@ export const proveedorClaude: Proveedor = {
           clienteClaude().messages.parse({
             ...base(pedido, maxTokens, mensajes),
             output_config: { format: formatoJSON, effort: pedido.effort },
-          }),
+          }, porPedido(pedido.vence)),
         )
         ultima = r.content
         const salida = r.parsed_output ?? { ok: false, problemas: 'la respuesta vino sin texto' }
@@ -156,7 +159,10 @@ export const proveedorClaude: Proveedor = {
     return {
       async pedir(maxTokens) {
         const r = await llamar(() =>
-          clienteClaude().messages.create({ ...base(pedido, maxTokens, mensajes), output_config: { effort: pedido.effort } }),
+          clienteClaude().messages.create(
+            { ...base(pedido, maxTokens, mensajes), output_config: { effort: pedido.effort } },
+            porPedido(pedido.vence),
+          ),
         )
         const texto = r.content.map((b) => (b.type === 'text' ? b.text : '')).join('')
         return { salida: validarTexto(texto), corte: corte(r.stop_reason), modelo: r.model }

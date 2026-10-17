@@ -5,7 +5,10 @@
 import type { ZodType } from 'zod'
 import { ErrorIA, type MotivoErrorIA } from './errores.js'
 import { proveedorClaude } from './proveedores/claude.js'
-import type { Conversacion, Effort, NombreProveedor, Pedido, Proveedor } from './proveedores/comun.js'
+import {
+  MIN_REINTENTO_MS, quedanMs, vencimiento,
+  type Conversacion, type Effort, type NombreProveedor, type Pedido, type Proveedor, type Vence,
+} from './proveedores/comun.js'
 import { proveedorGemini } from './proveedores/gemini.js'
 import { proveedorGroq } from './proveedores/groq.js'
 
@@ -21,6 +24,7 @@ export interface OpcionesJSON<T> {
   partes: Parte[]
   schema: ZodType<T>     // se manda como JSON Schema (output_config.format) y se valida con Zod; 1 reintento con el error
   maxTokens?: number
+  limiteMs?: number      // presupuesto TOTAL: reintento del SDK, corrección y respaldo incluidos (ver conRespaldo)
 }
 
 export interface ResultadoJSON<T> {
@@ -35,6 +39,7 @@ export interface OpcionesTexto {
   sistema?: string
   partes: Parte[]
   maxTokens?: number
+  limiteMs?: number      // presupuesto TOTAL, como en OpcionesJSON
 }
 
 export interface ResultadoTexto {
@@ -86,11 +91,14 @@ function orden(): NombreProveedor[] {
 
 // Si el principal falla por cupo o por un error del proveedor, se prueba el siguiente que tenga key. Con timeout no:
 // la función de Vercel corta a los 60 s. El principal se prueba siempre (sin key → sin_clave).
-async function conRespaldo<R>(correr: (proveedor: Proveedor) => Promise<R>): Promise<R> {
+// Con limiteMs, el presupuesto es uno solo para toda la cadena: cada request lleva lo que queda (porPedido) y no se
+// arranca un respaldo con menos de MIN_REINTENTO_MS (sale el error del principal).
+async function conRespaldo<R>(correr: (proveedor: Proveedor) => Promise<R>, vence: Vence): Promise<R> {
   const fallos: [NombreProveedor, ErrorIA][] = []
   for (const [i, nombre] of orden().entries()) {
     const proveedor = PROVEEDORES[nombre]
     if (i > 0 && !proveedor.tieneClave()) continue
+    if (i > 0 && quedanMs(vence) < MIN_REINTENTO_MS) break
     try {
       return await correr(proveedor)
     } catch (e) {
@@ -105,11 +113,15 @@ async function conRespaldo<R>(correr: (proveedor: Proveedor) => Promise<R>): Pro
 }
 
 // Pide, valida y, si no valida, manda la respuesta con los problemas para que la corrija (1 vez). Si se cortó por
-// max_tokens, repite el mismo pedido con el doble de lugar: un JSON cortado no se corrige.
-async function conversar<T>(conversacion: Conversacion<T>, maxTokens: number, corrige: boolean) {
+// max_tokens, repite el mismo pedido con el doble de lugar: un JSON cortado no se corrige. Con limiteMs, no
+// reintenta si quedan menos de MIN_REINTENTO_MS.
+async function conversar<T>(conversacion: Conversacion<T>, maxTokens: number, corrige: boolean, vence: Vence) {
   let tope = maxTokens
   let problema = ''
   for (let intento = 0; intento <= REINTENTOS; intento++) {
+    if (intento > 0 && quedanMs(vence) < MIN_REINTENTO_MS) {
+      throw new ErrorIA('json_invalido', `${problema} (no quedaba tiempo para reintentar)`)
+    }
     const turno = await conversacion.pedir(tope)
     if (turno.corte === 'rechazo') throw new ErrorIA('rechazo', `${turno.modelo} no quiso responder`)
     if (turno.corte === 'max_tokens') {
@@ -124,27 +136,31 @@ async function conversar<T>(conversacion: Conversacion<T>, maxTokens: number, co
   throw new ErrorIA('json_invalido', problema)
 }
 
-function pedidoPara(proveedor: Proveedor, opciones: OpcionesTexto): Pedido {
+function pedidoPara(proveedor: Proveedor, opciones: OpcionesTexto, vence: Vence): Pedido {
   if (opciones.partes.length === 0) throw new ErrorIA('entrada_invalida', `${opciones.tarea}: el pedido no tiene partes`)
   return {
     modelo: modeloDe(proveedor.nombre, opciones.tarea),
     effort: EFFORT[opciones.tarea],
     sistema: opciones.sistema,
     partes: opciones.partes,
+    vence,
   }
 }
 
-// Lanza ErrorIA (ver errores.ts) si falta la key, se pasa del timeout o la salida no valida después del reintento.
+// Lanza ErrorIA (ver errores.ts) si falta la key, se pasa del timeout (o de limiteMs) o la salida no valida después
+// del reintento.
 export async function generarJSON<T>(opciones: OpcionesJSON<T>): Promise<ResultadoJSON<T>> {
   const inicio = Date.now()
+  const vence = vencimiento(opciones.limiteMs)
   const tope = opciones.maxTokens ?? MAX_TOKENS[opciones.tarea]
-  const r = await conRespaldo((p) => conversar(p.json(pedidoPara(p, opciones), opciones.schema), tope, true))
+  const r = await conRespaldo((p) => conversar(p.json(pedidoPara(p, opciones, vence), opciones.schema), tope, true, vence), vence)
   return { ...r, ms: Date.now() - inicio }
 }
 
 export async function generarTexto(opciones: OpcionesTexto): Promise<ResultadoTexto> {
   const inicio = Date.now()
+  const vence = vencimiento(opciones.limiteMs)
   const tope = opciones.maxTokens ?? MAX_TOKENS[opciones.tarea]
-  const r = await conRespaldo((p) => conversar(p.texto(pedidoPara(p, opciones)), tope, false))
+  const r = await conRespaldo((p) => conversar(p.texto(pedidoPara(p, opciones, vence)), tope, false, vence), vence)
   return { texto: r.datos, modelo: r.modelo, ms: Date.now() - inicio }
 }

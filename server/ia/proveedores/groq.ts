@@ -1,12 +1,14 @@
 // Groq con groq-sdk (PLAN.md §4.1): Llama 4 Scout como respaldo del LLM (acepta imágenes) y Whisper para voz.ts.
 // Variable: GROQ_API_KEY; modelo del LLM: MODELO_GROQ. Misma validación Zod que Claude.
-import Groq, { APIConnectionTimeoutError, AuthenticationError, PermissionDeniedError, RateLimitError } from 'groq-sdk'
+import Groq, {
+  APIConnectionTimeoutError, APIUserAbortError, AuthenticationError, PermissionDeniedError, RateLimitError,
+} from 'groq-sdk'
 import type { ChatCompletionContentPart, ChatCompletionMessageParam } from 'groq-sdk/resources/chat/completions'
 import type { ZodType } from 'zod'
 import { ErrorIA } from '../errores.js'
 import type { Parte } from '../modelo.js'
 import {
-  descripcion, jsonSchemaDe, ordenarPartes, pedidoDeCorreccion, validarJSON, validarTexto,
+  descripcion, jsonSchemaDe, ordenarPartes, pedidoDeCorreccion, porPedido, validarJSON, validarTexto,
   type Conversacion, type Pedido, type Proveedor, type Validacion,
 } from './comun.js'
 
@@ -27,6 +29,8 @@ export function tieneClaveGroq(): boolean {
 export function errorGroq(e: unknown): ErrorIA {
   if (e instanceof ErrorIA) return e
   if (e instanceof APIConnectionTimeoutError) return new ErrorIA('timeout', 'Groq no respondió a tiempo', { causa: e })
+  // La única señal que mandamos es la de limiteMs (porPedido): si cortó, se acabó el presupuesto.
+  if (e instanceof APIUserAbortError) return new ErrorIA('timeout', 'Groq: se agotó el tiempo de la llamada (limiteMs)', { causa: e })
   if (e instanceof RateLimitError) return new ErrorIA('limite', `Groq: ${descripcion(e)}`, { causa: e })
   if (e instanceof AuthenticationError || e instanceof PermissionDeniedError) {
     return new ErrorIA('sin_clave', `Groq: key inválida (${e.status})`, { causa: e })
@@ -59,7 +63,7 @@ function conversacion<T>(pedido: Pedido, validar: (texto: string) => Validacion<
           ...(schema
             ? { response_format: { type: 'json_schema' as const, json_schema: { name: 'respuesta', schema: jsonSchemaDe(schema) } } }
             : {}),
-        })
+        }, porPedido(pedido.vence))
       } catch (e) {
         throw errorGroq(e)
       }
