@@ -1,0 +1,334 @@
+// Tests de modelo.ts (A4) con los tres SDK mockeados: nunca llaman a una API real.
+// El mock de messages.parse imita al SDK: corre output_config.format.parse() sobre el texto y lo deja en parsed_output.
+import { APIConnectionTimeoutError, AuthenticationError, InternalServerError, RateLimitError } from '@anthropic-ai/sdk'
+import { ApiError } from '@google/genai'
+import { RateLimitError as RateLimitGroq } from 'groq-sdk'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { z } from 'zod'
+import { ErrorIA } from './errores.js'
+import { generarJSON, generarTexto, modeloPara, type Parte } from './modelo.js'
+
+const sdk = vi.hoisted(() => ({ claudeParse: vi.fn(), claudeCreate: vi.fn(), gemini: vi.fn(), groq: vi.fn() }))
+
+vi.mock('@anthropic-ai/sdk', async (original) => {
+  const real = await original<typeof import('@anthropic-ai/sdk')>()
+  class Anthropic { messages = { parse: sdk.claudeParse, create: sdk.claudeCreate } }
+  return { ...real, default: Anthropic }
+})
+vi.mock('@google/genai', async (original) => {
+  const real = await original<typeof import('@google/genai')>()
+  class GoogleGenAI { models = { generateContent: sdk.gemini } }
+  return { ...real, GoogleGenAI }
+})
+vi.mock('groq-sdk', async (original) => {
+  const real = await original<typeof import('groq-sdk')>()
+  class Groq { chat = { completions: { create: sdk.groq } } }
+  return { ...real, default: Groq }
+})
+
+const Plato = z.object({ alimentos: z.array(z.object({ nombre: z.string(), gramos: z.number() })) })
+const VALIDO = '{"alimentos":[{"nombre":"papas fritas","gramos":120}]}'
+const SIN_GRAMOS = '{"alimentos":[{"nombre":"papas fritas"}]}'
+const PARTES: Parte[] = [{ tipo: 'texto', texto: '¿Qué hay en el plato?' }, { tipo: 'imagen', base64: 'AAAA', mime: 'image/jpeg' }]
+const KEY = 'sk-ant-secreta-de-test'
+
+interface ParamsClaude {
+  model: string
+  max_tokens: number
+  messages: { role: string; content: unknown }[]
+  output_config?: { effort?: string; format?: { type: string; parse(texto: string): unknown } }
+  [otro: string]: unknown
+}
+
+function mensajeClaude(params: ParamsClaude, texto: string, stop = 'end_turn') {
+  const formato = params.output_config?.format
+  return {
+    id: 'msg_test', type: 'message', role: 'assistant', model: params.model,
+    content: texto ? [{ type: 'thinking', thinking: '', signature: 'firma' }, { type: 'text', text: texto, citations: null }] : [],
+    stop_reason: stop,
+    parsed_output: texto && formato ? formato.parse(texto) : null,
+  }
+}
+
+type RespuestaFalsa = string | { texto: string; stop: string } | Error
+
+function claudeResponde(...respuestas: RespuestaFalsa[]) {
+  for (const r of respuestas) {
+    const responder = async (params: ParamsClaude) => {
+      if (r instanceof Error) throw r
+      return typeof r === 'string' ? mensajeClaude(params, r) : mensajeClaude(params, r.texto, r.stop)
+    }
+    sdk.claudeParse.mockImplementationOnce(responder)
+    sdk.claudeCreate.mockImplementationOnce(responder)
+  }
+}
+
+function geminiResponde(texto: string, finishReason = 'STOP') {
+  sdk.gemini.mockResolvedValueOnce({
+    text: texto,
+    candidates: [{ content: { role: 'model', parts: [{ text: texto }] }, finishReason }],
+    modelVersion: 'gemini-3.5-flash-lite',
+  })
+}
+
+function groqResponde(texto: string) {
+  sdk.groq.mockResolvedValueOnce({
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+    choices: [{ message: { role: 'assistant', content: texto }, finish_reason: 'stop' }],
+  })
+}
+
+const llamada = (fn: typeof sdk.claudeParse, i = 0) => fn.mock.calls[i][0] as ParamsClaude
+const error429 = () => new RateLimitError(429, { type: 'error' }, 'rate limited', new Headers())
+
+async function errorDe(promesa: Promise<unknown>): Promise<ErrorIA> {
+  const e = await promesa.then(() => null, (e: unknown) => e)
+  expect(e).toBeInstanceOf(ErrorIA)
+  return e as ErrorIA
+}
+
+beforeEach(() => {
+  for (const v of ['GEMINI_API_KEY', 'GROQ_API_KEY', 'PROVEEDOR_IA', 'MODELO_VISION', 'MODELO_RECETA', 'MODELO_GEMINI', 'MODELO_GROQ']) {
+    vi.stubEnv(v, '')
+  }
+  vi.stubEnv('ANTHROPIC_API_KEY', KEY)
+})
+
+afterEach(() => {
+  vi.unstubAllEnvs()
+  vi.resetAllMocks()
+})
+
+describe('generarJSON con Claude', () => {
+  it('devuelve los datos validados, el modelo y la latencia', async () => {
+    claudeResponde(VALIDO)
+    const r = await generarJSON({ tarea: 'vision', sistema: 'Sos un nutricionista.', partes: PARTES, schema: Plato })
+    expect(r.datos).toEqual({ alimentos: [{ nombre: 'papas fritas', gramos: 120 }] })
+    expect(r.modelo).toBe('claude-haiku-5-5')
+    expect(r.reintentos).toBe(0)
+    expect(r.ms).toBeGreaterThanOrEqual(0)
+    const p = llamada(sdk.claudeParse)
+    expect(p.system).toBe('Sos un nutricionista.')
+    expect(p.max_tokens).toBe(4096)
+    // La imagen va antes del texto aunque venga después en `partes`.
+    expect(p.messages).toEqual([{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: 'AAAA' } },
+        { type: 'text', text: '¿Qué hay en el plato?' },
+      ],
+    }])
+  })
+
+  it('manda effort dentro de output_config y nunca temperature, top_p ni thinking', async () => {
+    claudeResponde(VALIDO, VALIDO)
+    await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato })
+    await generarJSON({ tarea: 'receta', partes: PARTES, schema: Plato })
+    const [vision, receta] = [llamada(sdk.claudeParse, 0), llamada(sdk.claudeParse, 1)]
+    expect(vision.output_config?.effort).toBe('low')
+    expect(vision.output_config?.format?.type).toBe('json_schema')
+    expect(receta.model).toBe('claude-sonnet-5-5')
+    expect(receta.output_config?.effort).toBe('medium')
+    for (const p of [vision, receta]) {
+      expect(p).not.toHaveProperty('temperature')
+      expect(p).not.toHaveProperty('top_p')
+      expect(p).not.toHaveProperty('thinking')
+      expect(p).not.toHaveProperty('effort')
+    }
+  })
+
+  it('si no valida, reintenta una vez con la respuesta y los problemas de Zod', async () => {
+    claudeResponde(SIN_GRAMOS, VALIDO)
+    const r = await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato })
+    expect(r.reintentos).toBe(1)
+    expect(r.datos.alimentos[0].gramos).toBe(120)
+    const segunda = llamada(sdk.claudeParse, 1)
+    expect(segunda.messages).toHaveLength(3)
+    // La respuesta vuelve entera, con el bloque de thinking.
+    expect(segunda.messages[1]).toMatchObject({ role: 'assistant', content: [{ type: 'thinking' }, { type: 'text', text: SIN_GRAMOS }] })
+    expect(segunda.messages[2].role).toBe('user')
+    expect(segunda.messages[2].content).toContain('alimentos.0.gramos')
+    // La primera llamada no se modificó después de mandarla.
+    expect(llamada(sdk.claudeParse, 0).messages).toHaveLength(1)
+  })
+
+  it('si no valida dos veces, tira json_invalido', async () => {
+    claudeResponde('esto no es JSON', SIN_GRAMOS)
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
+    expect(e.motivo).toBe('json_invalido')
+    expect(e.codigo).toBe('proveedor_caido')
+    expect(sdk.claudeParse).toHaveBeenCalledTimes(2)
+  })
+
+  it('si se corta por max_tokens, repite el pedido con el doble de lugar (sin la respuesta cortada)', async () => {
+    claudeResponde({ texto: '{"alimentos":[{"nom', stop: 'max_tokens' }, VALIDO)
+    const r = await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato })
+    expect(r.reintentos).toBe(1)
+    const segunda = llamada(sdk.claudeParse, 1)
+    expect(segunda.max_tokens).toBe(8192)
+    expect(segunda.messages).toHaveLength(1)
+  })
+
+  it('stop_reason refusal → rechazo, sin reintento', async () => {
+    claudeResponde({ texto: '', stop: 'refusal' })
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
+    expect(e.motivo).toBe('rechazo')
+    expect(sdk.claudeParse).toHaveBeenCalledTimes(1)
+  })
+
+  it('timeout de conexión → timeout, sin pasar al respaldo', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'gemini-test')
+    claudeResponde(new APIConnectionTimeoutError())
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
+    expect(e.motivo).toBe('timeout')
+    expect(e.codigo).toBe('timeout')
+    expect(sdk.gemini).not.toHaveBeenCalled()
+  })
+
+  it('sin ANTHROPIC_API_KEY → sin_clave, sin llamar al SDK', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', '')
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
+    expect(e.motivo).toBe('sin_clave')
+    expect(sdk.claudeParse).not.toHaveBeenCalled()
+  })
+
+  it('401 → sin_clave con "key inválida", y la key nunca aparece en el detalle', async () => {
+    claudeResponde(new AuthenticationError(401, { type: 'error' }, 'invalid x-api-key', new Headers()))
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
+    expect(e.motivo).toBe('sin_clave')
+    expect(e.detalle.detalle).toContain('key inválida')
+    expect(JSON.stringify(e.detalle)).not.toContain(KEY)
+  })
+
+  it('MODELO_VISION pisa el modelo de la tarea en cada llamada', async () => {
+    vi.stubEnv('MODELO_VISION', 'claude-sonnet-5-5')
+    expect(modeloPara('vision')).toBe('claude-sonnet-5-5')
+    expect(modeloPara('relato')).toBe('claude-haiku-5-5')
+    claudeResponde(VALIDO)
+    const r = await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato })
+    expect(llamada(sdk.claudeParse).model).toBe('claude-sonnet-5-5')
+    expect(r.modelo).toBe('claude-sonnet-5-5')
+    vi.stubEnv('MODELO_VISION', '')
+    expect(modeloPara('vision')).toBe('claude-haiku-5-5')
+  })
+
+  it('avisa si el schema usa z.tuple (zodOutputFormat no lo soporta)', async () => {
+    const ConTupla = z.object({ caja: z.tuple([z.number(), z.number(), z.number(), z.number()]) })
+    await expect(generarJSON({ tarea: 'vision', partes: PARTES, schema: ConTupla })).rejects.toThrow(/z\.array/)
+  })
+
+  it('sin partes → entrada_invalida', async () => {
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: [], schema: Plato }))
+    expect(e.motivo).toBe('entrada_invalida')
+  })
+})
+
+describe('generarTexto', () => {
+  it('concatena los bloques de texto y no manda format', async () => {
+    sdk.claudeCreate.mockResolvedValueOnce({
+      model: 'claude-haiku-5-5',
+      content: [{ type: 'thinking', thinking: '', signature: 'x' }, { type: 'text', text: 'Esta semana ' }, { type: 'text', text: 'comió 4 verduras.' }],
+      stop_reason: 'end_turn',
+    })
+    const r = await generarTexto({ tarea: 'resumen', partes: [{ tipo: 'texto', texto: 'Resumí.' }] })
+    expect(r).toMatchObject({ texto: 'Esta semana comió 4 verduras.', modelo: 'claude-haiku-5-5' })
+    const p = llamada(sdk.claudeCreate)
+    expect(p.output_config).toEqual({ effort: 'low' })
+    expect(p).not.toHaveProperty('temperature')
+  })
+
+  it('si se corta por max_tokens, repite con más lugar', async () => {
+    claudeResponde({ texto: 'Esta semana', stop: 'max_tokens' }, 'Esta semana comió bien.')
+    const r = await generarTexto({ tarea: 'resumen', partes: [{ tipo: 'texto', texto: 'Resumí.' }] })
+    expect(r.texto).toBe('Esta semana comió bien.')
+    expect(llamada(sdk.claudeCreate, 1).max_tokens).toBe(6144)
+  })
+})
+
+describe('respaldo en cadena (claude → gemini → groq)', () => {
+  it('si Claude da 429 y hay key de Gemini, responde Gemini con el mismo schema', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'gemini-test')
+    claudeResponde(error429())
+    geminiResponde(VALIDO)
+    const r = await generarJSON({ tarea: 'vision', sistema: 'Sistema', partes: PARTES, schema: Plato })
+    expect(r.modelo).toBe('gemini-3.5-flash-lite')
+    expect(r.datos.alimentos).toHaveLength(1)
+    const p = sdk.gemini.mock.calls[0][0]
+    expect(p.model).toBe('gemini-3.5-flash-lite')
+    expect(p.config.responseMimeType).toBe('application/json')
+    expect(p.config.responseJsonSchema).toMatchObject({ type: 'object', required: ['alimentos'] })
+    expect(p.config.responseJsonSchema).not.toHaveProperty('$schema')
+    expect(p.config.systemInstruction).toBe('Sistema')
+    expect(p.config).not.toHaveProperty('temperature')
+    expect(p.contents[0].parts[0]).toEqual({ inlineData: { mimeType: 'image/jpeg', data: 'AAAA' } })
+  })
+
+  it('si Claude y Gemini fallan, responde Groq (con la imagen como data URL)', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'gemini-test')
+    vi.stubEnv('GROQ_API_KEY', 'groq-test')
+    vi.stubEnv('MODELO_GROQ', 'otro-modelo-groq')
+    claudeResponde(new InternalServerError(529, { type: 'error' }, 'overloaded', new Headers()))
+    sdk.gemini.mockRejectedValueOnce(new ApiError({ message: 'server error', status: 500 }))
+    groqResponde(VALIDO)
+    const r = await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato })
+    expect(r.modelo).toBe('meta-llama/llama-4-scout-17b-16e-instruct')
+    const p = sdk.groq.mock.calls[0][0]
+    expect(p.model).toBe('otro-modelo-groq')
+    expect(p.response_format).toMatchObject({ type: 'json_schema', json_schema: { name: 'respuesta' } })
+    expect(p.messages[0].content[0]).toEqual({ type: 'image_url', image_url: { url: 'data:image/jpeg;base64,AAAA' } })
+  })
+
+  it('saltea los proveedores sin key; si no queda ninguno, tira el error del principal', async () => {
+    claudeResponde(error429())
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
+    expect(e.motivo).toBe('limite')
+    expect(e.codigo).toBe('limite_proveedor')
+    expect(sdk.gemini).not.toHaveBeenCalled()
+    expect(sdk.groq).not.toHaveBeenCalled()
+  })
+
+  it('si fallan todos, el error resume la cadena', async () => {
+    vi.stubEnv('GROQ_API_KEY', 'groq-test')
+    claudeResponde(error429())
+    sdk.groq.mockRejectedValueOnce(new RateLimitGroq(429, { type: 'error' }, 'rate limited', new Headers()))
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
+    expect(e.motivo).toBe('limite')
+    expect(e.detalle.detalle).toBe('fallaron todos: claude (limite), groq (limite)')
+  })
+
+  it('json_invalido no pasa al respaldo', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'gemini-test')
+    claudeResponde(SIN_GRAMOS, SIN_GRAMOS)
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
+    expect(e.motivo).toBe('json_invalido')
+    expect(sdk.gemini).not.toHaveBeenCalled()
+  })
+
+  it('PROVEEDOR_IA=groq usa Groq como principal y corrige con la misma validación', async () => {
+    vi.stubEnv('PROVEEDOR_IA', 'groq')
+    vi.stubEnv('GROQ_API_KEY', 'groq-test')
+    groqResponde(SIN_GRAMOS)
+    groqResponde(VALIDO)
+    const r = await generarJSON({ tarea: 'relato', partes: PARTES, schema: Plato })
+    expect(r.reintentos).toBe(1)
+    expect(sdk.claudeParse).not.toHaveBeenCalled()
+    const segunda = sdk.groq.mock.calls[1][0]
+    expect(segunda.messages.slice(1).map((m: { role: string }) => m.role)).toEqual(['assistant', 'user'])
+    expect(segunda.messages[1].content).toBe(SIN_GRAMOS)
+  })
+
+  it('PROVEEDOR_IA=gemini: un bloqueo de seguridad es rechazo', async () => {
+    vi.stubEnv('PROVEEDOR_IA', 'gemini')
+    vi.stubEnv('GEMINI_API_KEY', 'gemini-test')
+    geminiResponde('', 'SAFETY')
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
+    expect(e.motivo).toBe('rechazo')
+  })
+
+  it('un PROVEEDOR_IA desconocido es un error de configuración', async () => {
+    vi.stubEnv('PROVEEDOR_IA', 'openai')
+    const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
+    expect(e.motivo).toBe('sin_clave')
+    expect(e.detalle.detalle).toContain('openai')
+  })
+})
