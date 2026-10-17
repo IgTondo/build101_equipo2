@@ -37,17 +37,15 @@ describe('eval/etiquetas.json', () => {
     expect(faltan).toEqual([])
   })
 
-  it('cada foto es un JPEG de 1024 px como máximo, y entre todas pesan menos de 2 MB', () => {
-    let total = 0
+  it('cada foto es un JPEG de 1024 px y 300 KB como máximo (lo que manda la app; el repo no engorda)', () => {
     for (const e of etiquetas) {
       const ruta = join(DIR_FOTOS, e.archivo)
       expect(existsSync(ruta), e.archivo).toBe(true)
       const medidas = medidasJpeg(readFileSync(ruta))
       expect(medidas, `${e.archivo} no es un JPEG`).not.toBeNull()
       expect(Math.max(medidas!.ancho, medidas!.alto), e.archivo).toBeLessThanOrEqual(1024)
-      total += statSync(ruta).size
+      expect(statSync(ruta).size, e.archivo).toBeLessThanOrEqual(300 * 1024)
     }
-    expect(total).toBeLessThan(2 * 1024 * 1024)
   })
 })
 
