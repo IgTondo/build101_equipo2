@@ -48,5 +48,5 @@
 
 ## Para A
 
-- `/api/receta` sigue en stub: falta engancharlo con `armarEvidencia()` de B.
+- `api/receta.ts`: C le sumó el respaldo de B (sin `MONGODB_URI` responde el fixture con `x-nibble-stub: 1`), porque sin base daba 500 `interno` en producción. Una línea después de validar; cámbienlo si prefieren otra cosa.
 - Propuesta aditiva para contratos: `excluir?: string[]` en `RecetaReq`, para que "Otra opción" no repita recetas.
