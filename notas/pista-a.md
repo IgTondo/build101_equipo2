@@ -12,7 +12,7 @@
 | A7 | `interpretarRelato()`: la cita se comprueba por código; **`/api/relato-comida` y `/api/transcribir` reales** | `server/ia/relato.ts`, `prompts/relato.ts` |
 | A8 | `extraerPerfil()`: las alergias nunca salen de la IA; **`/api/perfil-inicial` real** | `server/ia/perfil.ts`, `prompts/perfil.ts` |
 | A1 | `npx tsx scripts/probar-ia.ts`: dice qué keys faltan y prueba Claude visión (3 fotos), FLUX y Whisper (iPhone y Android) con las que haya; < USD 0,01 | `scripts/probar-ia.ts` |
-| A9 | `validarReceta()` por código (alérgenos, reglas, un solo cambio, mezclas, gramos, lenguaje prohibido, aporte recalculado) y `generarReceta()` (evidencia → Sonnet 5.5 → validación → 1 reintento → siguiente candidato, con corte por tiempo). **`/api/receta` sigue en stub**: falta `armarEvidencia()` de B | `server/validacion/receta.ts`, `server/ia/receta.ts`, `prompts/receta.ts` |
+| A9 | `validarReceta()` por código (alérgenos, reglas, un solo cambio, mezclas, gramos, lenguaje prohibido, aporte recalculado) y `generarReceta()` (evidencia → Sonnet 5.5 → validación → 1 reintento → siguiente candidato, con corte por tiempo). **`/api/receta` real** desde e73c9b2, con `armarEvidencia()` y `obtenerPerfil()` de B y `?motor=` | `server/validacion/receta.ts`, `server/ia/receta.ts`, `prompts/receta.ts` |
 | A10 | `imagenPlato()`: prompt en inglés (cenital, separado, sin texto ni personas; plato con divisiones si una regla lo pide); **`/api/imagen-plato` real** | `server/ia/imagen-plato.ts` |
 | A12 (parte) | Foto de la indicación del nutricionista → `objetivosNutricionista`: se lee en paralelo con el relato; el código convierte unidades (vitamina D: 1 µg = 40 UI), descarta lo fuera de rango y **nunca convierte suplementos en objetivos** | `server/ia/perfil.ts` |
 | — | `limiteMs` en `generarJSON`/`generarTexto`: presupuesto total por llamada (reintentos incluidos), para no pasar los 60 s de Vercel; Whisper descarta las frases que inventa con silencio ("Subtítulos realizados por la comunidad de Amara.org"…) | `server/ia/modelo.ts`, `voz.ts` |
@@ -52,12 +52,13 @@ Los errores son `ErrorIA`, que extiende `ErrorNibble` (`server/http.ts`): si el 
 - Sin el respaldo del lado del servidor para Sonnet (`fallbacks`): para Sonnet 5.5 solo cubre rechazos `cyber` y `frontier_llm`, que no aplican a recetas, y no se puede probar sin keys.
 - `sinComida` responde 200 con `sinComida: true` (lo que ya maneja la pantalla Registrar).
 - El prompt de visión se itera con la API de Claude, no con AI Studio.
-- `/api/receta` sigue como stub hasta que B suba `armarEvidencia()`; la lógica queda lista en `server/ia/receta.ts`.
+- La visión recibe el contexto del chico con `obtenerContexto()` de B (b3f289d); sin chico o sin base, sigue con contexto vacío.
 
 ## Bloqueado
 
 - **No hay `.env.local` ni keys** (Anthropic, Groq, Cloudflare, Mongo): nada se probó en vivo. Con las keys, los endpoints de arriba ya responden de verdad; sin ellas, 502 `proveedor_caido` con `motivo: sin_clave`.
-- **De B**: `obtenerContexto()` para la visión (hoy, contexto vacío: el enganche es `fijarFuenteContexto()` en `server/ia/vision.ts`), `armarEvidencia()` y `cadena.ts` para la receta, y `data/preparaciones.json` (hasta que esté, se usa `data/sinteticos/preparaciones.json`).
+- **"Más nutritiva"** puede mandar un `preparacionId` que no está entre los 3 candidatos de `armarEvidencia()`: hoy responde 400. En curso: buscarlo en la lista completa del recomendador (solo con lo que exporta B).
+- El validador todavía cuenta los cambios con su propia función; en curso: pasar a `cambios()` de `cadena.ts` (mismo criterio) para que el tablero y la receta cuenten igual.
 - `alimentos_fdc` en Mongo: `npx tsx scripts/usda.ts --subir` cuando haya `MONGODB_URI` (los CSV se bajan a `data/usda/`).
 - `nombreIngles`: la visión lo devuelve, pero nadie lo busca todavía en `alimentos_fdc` (es del registro, B).
 
