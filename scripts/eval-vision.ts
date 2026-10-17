@@ -13,6 +13,9 @@ import { DIR_FOTOS, NINO_EVAL, leerEtiquetas } from './eval/datos.js'
 import { deTotal, fechaUY, lista, mensajeError, porcentaje, segundos, tabla } from './eval/markdown.js'
 import { ATRIBUTOS_EVAL, compararFoto, recomendarModelo, resumirVision, type ResultadoFoto, type ResumenVision } from './eval/metricas.js'
 
+const imprimir = console.log.bind(console)
+console.log = console.error // lo que loguee server/ia/ va a stderr: stdout queda solo para la tabla
+
 const MODELOS = { haiku: 'claude-haiku-5-5', sonnet: 'claude-sonnet-5-5' } as const
 type Alias = keyof typeof MODELOS
 
@@ -106,5 +109,5 @@ for (const p of pasadas) {
 }
 if (avisos.length) salida.push('', '## Avisos', '', ...avisos.map((a) => `- ${a}`))
 
-console.log(salida.join('\n'))
+imprimir(salida.join('\n'))
 if (pasadas.every((p) => p.resumen.errores === p.resumen.fotos)) process.exitCode = 1 // ninguna llamada anduvo: falta la key o la visión

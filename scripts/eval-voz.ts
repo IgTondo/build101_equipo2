@@ -16,6 +16,9 @@ import { DIR_VOZ, NINO_EVAL, analisisMinimo, leerRelatos } from './eval/datos.js
 import { deTotal, fechaUY, lista, mensajeError, porcentaje, segundos, tabla } from './eval/markdown.js'
 import { compararRelato, relatoFallido, resumirVoz, type ResultadoRelato, type ResumenVoz } from './eval/metricas.js'
 
+const imprimir = console.log.bind(console)
+console.log = console.error // lo que loguee server/ia/ va a stderr: stdout queda solo para la tabla
+
 const { values } = parseArgs({ options: { texto: { type: 'boolean', default: false } } })
 const casos = leerRelatos()
 
@@ -83,5 +86,5 @@ if (fallos.length) {
   ))
 }
 
-console.log(salida.join('\n'))
+imprimir(salida.join('\n'))
 if (total.errores === total.casos) process.exitCode = 1 // ninguna llamada anduvo: falta la key o el relato
