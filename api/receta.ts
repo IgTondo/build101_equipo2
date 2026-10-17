@@ -5,6 +5,7 @@ import { MOTOR, type Motor, type Receta } from '../shared/contratos.js'
 import { ErrorNibble, manejar, param, permitir } from '../server/http.js'
 import { obtenerPerfil } from '../server/datos/perfiles.js'
 import { armarEvidencia } from '../server/grafo/evidencia.js'
+import { buscarCandidato } from '../server/ia/candidato.js'
 import { esquemaRecetaReq, generarReceta } from '../server/ia/receta.js'
 
 export default manejar(async (req, res) => {
@@ -15,6 +16,8 @@ export default manejar(async (req, res) => {
   const receta: Receta = await generarReceta(pedido, {
     armarEvidencia: (ninoId, nutriente) => armarEvidencia(ninoId, nutriente, motor as Motor),
     perfil: obtenerPerfil,
+    // "Más nutritiva" puede pedir un candidato que no está entre los 3 de la evidencia: se busca en la lista completa
+    candidato: (ninoId, preparacionId, nutriente) => buscarCandidato(ninoId, preparacionId, nutriente, motor as Motor),
   })
   res.status(200).json(receta)
 })
