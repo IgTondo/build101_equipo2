@@ -4,9 +4,13 @@
 import { z } from 'zod'
 import type { AnalisisComida, AnalizarComidaReq } from '../shared/contratos.js'
 import { manejar, permitir } from '../server/http.js'
-import { analizarComida, contextoVision } from '../server/ia/vision.js'
+import { obtenerContexto } from '../server/datos/contexto.js'
+import { analizarComida, CONTEXTO_VACIO, contextoVision, fijarFuenteContexto } from '../server/ia/vision.js'
 
 const MAX_IMAGEN = 4_500_000            // el body entero no puede pasar de 4,5 MB en Vercel
+
+// El contexto del chico es de B (lo que acepta, lo que está probando y sus reglas). Sin chico o sin base, null → vacío.
+fijarFuenteContexto(async (ninoId) => (await obtenerContexto(ninoId)) ?? CONTEXTO_VACIO)
 
 const Pedido = z.object({
   ninoId: z.string().trim().min(1),
