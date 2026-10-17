@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Atributos, ItemDetectado, RelatoComida } from '../../shared/contratos.js'
-import { deTotal, porcentaje, segundos, tabla } from './markdown.js'
+import { deTotal, fechaUY, mensajeError, porcentaje, segundos, tabla } from './markdown.js'
 import {
   alimentoPrincipal, citaValida, compararFoto, compararRelato, latencia, percentil, recomendarModelo, relatoFallido,
   resumirVision, resumirVoz, type AlimentoEtiquetado, type EsperadoRelato, type ResultadoFoto,
@@ -158,5 +158,11 @@ describe('markdown', () => {
     expect(deTotal(0, 0)).toBe('—')
     expect(segundos(3249)).toBe('3,2 s')
     expect(segundos(null)).toBe('—')
+  })
+
+  it('fecha en hora de Uruguay y errores con su detalle', () => {
+    expect(fechaUY(new Date('2026-10-18T00:30:00Z'))).toBe('17/10/2026 21:30')
+    expect(mensajeError(Object.assign(new Error('Tardó'), { detalle: { motivo: 'timeout' } }))).toBe('Tardó {"motivo":"timeout"}')
+    expect(mensajeError('roto')).toBe('roto')
   })
 })
