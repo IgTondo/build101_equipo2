@@ -162,6 +162,38 @@ describe('generarReceta', () => {
     expect(r.preparacionBaseId).toBe('papas_horno_baston')
   })
 
+  it('preparacionId fuera de los 3 de la evidencia: lo trae deps.candidato, va primero y suma sus líneas al texto', async () => {
+    const soloQueso: Evidencia = { ...EVIDENCIA, candidatos: [CANDIDATO_QUESO] }
+    const buscados: unknown[][] = []
+    responde(SALIDA_PAPAS)
+    const r = await pedir({
+      armarEvidencia: async () => soloQueso,
+      candidato: async (...args) => { buscados.push(args); return CANDIDATO_PAPAS },
+    }, 'papas_horno_baston')
+    expect(buscados).toEqual([['tomas', 'papas_horno_baston', 'calcio_mg']])
+    expect(r.preparacionBaseId).toBe('papas_horno_baston')
+    expect(r.evidencia.candidatos.map((c) => c.preparacionId)).toEqual(['papas_horno_baston', 'bastones_queso_horno'])
+    expect(r.evidencia.texto.startsWith(EVIDENCIA.texto)).toBe(true)
+    expect(r.evidencia.texto).toContain('Candidato 2 (el que eligió la familia en el tablero): Papas al horno en bastones, crocantes (puntaje 0,35)')
+    expect(r.evidencia.texto).toContain('  Camino: Papas fritas en bastones (comió 8/8) ─forma=baston, textura=crocante, sabor=salado, temperatura=caliente─▶ Papas al horno en bastones, crocantes')
+    expect(r.evidencia.texto).toContain('  Cambia solo: la cocción. Se mantiene: forma=baston, textura=crocante, sabor=salado, temperatura=caliente')
+    expect(r.evidencia.texto).toContain('  Aporta: ~14,0 mg de calcio por porción')
+    expect(promptDe(0)).toContain('Candidato 2 (el que eligió la familia en el tablero)')
+  })
+
+  it('deps.candidato no se llama si el pedido ya está en la evidencia', async () => {
+    let llamado = false
+    responde(SALIDA_PAPAS)
+    await pedir({ candidato: async () => { llamado = true; return undefined } }, 'papas_horno_baston')
+    expect(llamado).toBe(false)
+  })
+
+  it('si deps.candidato tampoco lo encuentra → entrada_invalida, como antes', async () => {
+    const e = await errorDe(pedir({ candidato: async () => undefined }, 'milanesa_napolitana'))
+    expect(e.codigo).toBe('entrada_invalida')
+    expect(llm).not.toHaveBeenCalled()
+  })
+
   it('preparacionId que no está en la evidencia → entrada_invalida, sin llamar al LLM', async () => {
     const e = await errorDe(pedir({}, 'milanesa_napolitana'))
     expect(e.codigo).toBe('entrada_invalida')

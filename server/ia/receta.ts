@@ -14,6 +14,7 @@ import {
   type Alergeno, type Candidato, type Evidencia, type Nutriente, type Nutrientes, type Perfil,
   type PreparacionCatalogo, type Presentacion, type Receta, type RecetaReq,
 } from '../../shared/contratos.js'
+import { NOMBRE_NUTRIENTE, TEXTO_CAMBIO, decimal } from '../aprendizaje/textos.js'
 import { ErrorNibble } from '../http.js'
 import {
   calcularAporte, problemasPorTipo, validarCandidato, validarReceta, type ContextoValidacion, type ProblemasPorTipo,
@@ -37,6 +38,9 @@ export interface DepsReceta {
   preparacion?: (id: string) => PreparacionCatalogo | undefined  // por defecto, preparacionCatalogo()
   ahora?: () => number                                 // reloj, para los tests del tope de tiempo
   alIntentar?: (intento: IntentoReceta) => void        // cada salida del LLM con sus problemas, para la eval de recetas (A12)
+  // La tarjeta "Más nutritiva" puede pedir un candidato que no está entre los 3 de la evidencia: se busca solo en ese
+  // caso (buscarCandidato() de server/ia/candidato.ts). Sin esto, o si no aparece, el pedido es entrada_invalida.
+  candidato?: (ninoId: string, preparacionId: string, nutriente?: Nutriente) => Promise<Candidato | undefined>
 }
 
 export interface IntentoReceta {
@@ -122,6 +126,23 @@ function ordenar(candidatos: Candidato[], preparacionId: string | undefined): Ca
   return [...candidatos.slice(i), ...candidatos.slice(0, i)]
 }
 
+const UNIDAD: Record<Nutriente, string> = {
+  energia_kcal: 'kcal', proteina_g: 'g', calcio_mg: 'mg', vitamina_d_ug: 'µg', hierro_mg: 'mg', fibra_g: 'g', omega3_g: 'g', b12_ug: 'µg', vitamina_c_mg: 'mg',
+}
+
+/** Suma un candidato a la evidencia: primero en la lista y sus líneas al texto que ve el LLM, como las de evidenciaDe(). */
+export function conCandidato(evidencia: Evidencia, x: Candidato): Evidencia {
+  const n = evidencia.nutriente
+  const lineas = [
+    `Candidato ${evidencia.candidatos.length + 1} (el que eligió la familia en el tablero): ${x.nombre} (puntaje ${decimal(x.puntaje)})`,
+    `  Camino: ${x.camino.desde} (comió ${x.camino.aceptacion}) ─${x.camino.atributos.join(', ')}─▶ ${x.nombre}`,
+    `  Cambia solo: ${x.cambio === 'fortificar' ? 'es la versión fortificada' : TEXTO_CAMBIO[x.cambio]}. Se mantiene: ${x.seMantiene.join(', ') || '—'}`,
+    ...(x.patrones.length ? [`  Patrones que aplican: ${x.patrones.join(' · ')}`] : []),
+    `  Aporta: ~${decimal(x.aportePorcion[n] ?? 0, 1)} ${UNIDAD[n]} de ${NOMBRE_NUTRIENTE[n]} por porción`,
+  ]
+  return { ...evidencia, candidatos: [x, ...evidencia.candidatos], texto: [evidencia.texto, ...lineas].join('\n') }
+}
+
 function registrar(datos: Record<string, unknown>, aviso = false) {
   const linea = JSON.stringify({ evento: 'receta', ...datos })
   if (aviso) console.warn(linea)
@@ -133,7 +154,13 @@ export async function generarReceta(req: RecetaReq, deps: DepsReceta): Promise<R
   const ahora = deps.ahora ?? Date.now
   const preparacion = deps.preparacion ?? preparacionCatalogo
   const t0 = ahora()
-  const [evidencia, perfil] = await Promise.all([deps.armarEvidencia(req.ninoId, req.nutriente), deps.perfil(req.ninoId)])
+  const [paquete, perfil] = await Promise.all([deps.armarEvidencia(req.ninoId, req.nutriente), deps.perfil(req.ninoId)])
+  let evidencia = paquete
+  const pedido = req.preparacionId
+  if (pedido && deps.candidato && !evidencia.candidatos.some((c) => c.preparacionId === pedido)) {
+    const extra = await deps.candidato(req.ninoId, pedido, evidencia.nutriente)
+    if (extra) evidencia = conCandidato(evidencia, extra)
+  }
 
   const descartes: { preparacionId: string; problemas: string[] }[] = []
   const sinCandidatos = () => {
