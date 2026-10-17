@@ -62,6 +62,22 @@ Los errores son `ErrorIA`, que extiende `ErrorNibble` (`server/http.ts`): si el 
 - `alimentos_fdc` en Mongo: `npx tsx scripts/usda.ts --subir` cuando haya `MONGODB_URI` (los CSV se bajan a `data/usda/`).
 - Notas de voz reales y fotos del equipo: no hay; las de `eval/` son de internet y relatos sintéticos (declarados).
 
+## Para C: variables en Vercel (proyecto `nibble`)
+
+El proyecto está en la cuenta Hobby de C y la de IgTondo no lo ve (403), así que lo configura C. Producción ya corre el código de A; el 17/10 a las 20:05, `GET /api/salud` decía que faltan **todas**:
+
+| Variable | Para qué | De dónde |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Visión, relato, perfil, receta y resumen | console.anthropic.com (con límite de gasto) |
+| `GROQ_API_KEY` | Whisper (notas de voz y `/api/transcribir`) | console.groq.com |
+| `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` | FLUX (imagen del plato) y Whisper de respaldo | dash.cloudflare.com; token de **usuario** (My Profile → API Tokens, plantilla Workers AI). Con un token de cuenta FLUX anda igual, pero `/api/salud` lo marca como caído |
+| `MONGODB_URI` | Todo lo de B (registrar, tablero, perfil, evidencia de la receta) y el contexto de la visión | Integración de MongoDB Atlas del Marketplace, o un cluster Free con 0.0.0.0/0 |
+| `MOTOR_GRAFO` | `mongo` mientras Neo4j no esté (hoy vale `neo4j`) | — |
+| `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD` | Solo si se usa Neo4j | Aura Free |
+| `GEMINI_API_KEY` | Opcional: respaldo del LLM | aistudio.google.com |
+
+Pasos: completar `.env.local` (copia de `.env.example`) → `npm run env:vercel` (sube sin imprimir los valores) → `npm run deploy` → `GET /api/salud` tiene que dar `ok: true`. Con el mismo `.env.local`, A corre `npx tsx scripts/probar-ia.ts`, las evals y `npx tsx scripts/usda.ts --subir` (carga `alimentos_fdc`). Para las evals desde Actions, las mismas keys de IA van como secretos del repo.
+
 ## Para avisar al grupo
 
 - **B**: la colección `alimentos_fdc` la crea `scripts/usda.ts --subir` (borra y recrea, con índice de texto). `api/salud.ts` puede sumar `estadoIA()`. `nombreIngles`: la visión lo devuelve; buscarlo en `alimentos_fdc` al registrar es de B. El borrador del perfil puede traer reglas con `condiciones: []` (solo texto) y `acepta` con atributos parciales.
