@@ -14,6 +14,8 @@
 | A1 | `npx tsx scripts/probar-ia.ts`: dice qué keys faltan y prueba Claude visión (3 fotos), FLUX y Whisper (iPhone y Android) con las que haya; < USD 0,01 | `scripts/probar-ia.ts` |
 | A9 | `validarReceta()` por código (alérgenos, reglas, un solo cambio, mezclas, gramos, lenguaje prohibido, aporte recalculado) y `generarReceta()` (evidencia → Sonnet 5.5 → validación → 1 reintento → siguiente candidato, con corte por tiempo). **`/api/receta` sigue en stub**: falta `armarEvidencia()` de B | `server/validacion/receta.ts`, `server/ia/receta.ts`, `prompts/receta.ts` |
 | A10 | `imagenPlato()`: prompt en inglés (cenital, separado, sin texto ni personas; plato con divisiones si una regla lo pide); **`/api/imagen-plato` real** | `server/ia/imagen-plato.ts` |
+| A12 (parte) | Foto de la indicación del nutricionista → `objetivosNutricionista`: se lee en paralelo con el relato; el código convierte unidades (vitamina D: 1 µg = 40 UI), descarta lo fuera de rango y **nunca convierte suplementos en objetivos** | `server/ia/perfil.ts` |
+| — | `limiteMs` en `generarJSON`/`generarTexto`: presupuesto total por llamada (reintentos incluidos), para no pasar los 60 s de Vercel; Whisper descarta las frases que inventa con silencio ("Subtítulos realizados por la comunidad de Amara.org"…) | `server/ia/modelo.ts`, `voz.ts` |
 | A11 | `eval-vision.ts` (Haiku y Sonnet) y `eval-voz.ts` (`--texto` sin Whisper); 8 fotos CC0 o de dominio público (`fuente: 'internet'`); 40 relatos del dataset sintético (`fuente: 'sintetico'`) | `scripts/eval-*.ts`, `scripts/eval/`, `eval/` |
 | — | `server/ia/catalogo.ts` (lee `data/alimentos.json`) y `ErrorIA` como `ErrorNibble` | `server/ia/` |
 
@@ -21,8 +23,7 @@ Tests: 434 en verde (6 salteados: los guardas de stub de los endpoints que ya so
 
 ## En curso (un worktree de Orca y una rama por carril; integra solo el coordinador)
 
-- **núcleo**: filtro de las alucinaciones de Whisper con silencio ("Subtítulos realizados por la comunidad de Amara.org"…) → `audio_no_entendido`.
-- **A12 (P2)**: arranca ahora, porque todo el P0/P1 de la pista A que no depende de B ya está en main: eval de recetas (§11.3) y foto de la indicación del nutricionista → `objetivosNutricionista`.
+- **A12 (P2)**: eval de recetas (§11.3), con 12 casos sintéticos (3 perfiles con alergias × 4 nutrientes) porque `armarEvidencia()` de B todavía no existe; y `generarReceta()` con `limiteMs` para cortar a los ~55 s. Arrancó porque todo el P0/P1 de la pista A que no depende de B ya está en main.
 
 ## Cómo se usa `server/ia/` (para B y C)
 
@@ -63,6 +64,8 @@ Los errores son `ErrorIA`, que extiende `ErrorNibble` (`server/http.ts`): si el 
 ## Para avisar al grupo
 
 - **B**: los ids de `data/alimentos.json` ya están (y los nutrientes); usalos en `preparaciones.json`. La colección `alimentos_fdc` la crea `scripts/usda.ts --subir` (borra y recrea, con índice de texto): no la creen aparte. `api/salud.ts` puede sumar `estadoIA()`. Para `/api/receta` necesitamos `armarEvidencia(ninoId, nutriente?)` → `Evidencia`; con eso, el handler es de 5 líneas (`generarReceta(req, { armarEvidencia, … })`). `estadoIA()` para `/api/salud`. El borrador del perfil puede traer reglas con `condiciones: []` (solo texto) y `acepta` con atributos parciales.
+- **C**: `fixtures/receta.json` no pasaría el validador: el aceite va en 2 g (mínimo 5) y el segundo candidato (leche chocolatada → yogur de vainilla) está declarado como un cambio de `forma`, pero cambian la forma y el ingrediente. Sugerencia: aceite en 5 g y otro segundo candidato.
+- **B**: `cadena.ts` tiene que contar los cambios con el mismo criterio que `server/validacion/receta.ts` (`cambiosEntre()`, con un `TODO(B12)` para usar el de B): textura, forma, sabor, temperatura, cocción e ingrediente principal. Si no, el tablero va a sugerir candidatos que la receta descarta. Con ese criterio, leche chocolatada → yogur da 2 cambios.
 - **C**: `/api/relato-comida` responde 400 sin audio ni texto y 422 `audio_no_entendido` si la transcripción viene vacía; solo devuelve respuestas con cita verificada y `sinMencion` no se cruza con `respuestas`.
 - Cambios de contrato (todos aditivos):
   - `contratos:` `nombreIngles?: string` en `ItemDetectado` (fff4e2b): la visión lo devuelve solo cuando un ingrediente cae en `otro_<grupo>`.
