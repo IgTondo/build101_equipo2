@@ -57,20 +57,21 @@ export async function pedir<T>(ruta: string, opciones?: Opciones): Promise<T> {
 const q = (params: Record<string, string | number | undefined>) =>
   new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString()
 
+// Todas aceptan una AbortSignal al final, para cancelar si el padre se va de la pantalla.
 export const api = {
-  analizarComida: (req: AnalizarComidaReq) => pedir<AnalisisComida>('/api/analizar-comida', { metodo: 'POST', cuerpo: req, timeoutMs: 25_000 }),
-  relatoComida: (req: RelatoComidaReq) => pedir<RelatoComida>('/api/relato-comida', { metodo: 'POST', cuerpo: req }),
-  transcribir: (req: TranscribirReq) => pedir<TranscribirRes>('/api/transcribir', { metodo: 'POST', cuerpo: req }),
-  perfilInicial: (req: PerfilInicialReq) => pedir<PerfilBorrador>('/api/perfil-inicial', { metodo: 'POST', cuerpo: req }),
-  receta: (req: RecetaReq, motor?: Motor) => pedir<Receta>(`/api/receta?${q({ motor })}`, { metodo: 'POST', cuerpo: req, timeoutMs: 60_000 }),
-  imagenPlato: (req: ImagenPlatoReq) => pedir<ImagenPlatoRes>('/api/imagen-plato', { metodo: 'POST', cuerpo: req, timeoutMs: 40_000 }),
-  crearPerfil: (req: CrearPerfilReq) => pedir<CrearPerfilRes>('/api/perfil', { metodo: 'POST', cuerpo: req }),
-  perfil: (ninoId: string) => pedir<Perfil>(`/api/perfil?${q({ ninoId })}`),
-  registrarComida: (req: RegistrarComidaReq) => pedir<RegistrarComidaRes>('/api/registrar-comida', { metodo: 'POST', cuerpo: req }),
-  nutricion: (ninoId: string, dia: string) => pedir<CoberturaDia>(`/api/nutricion?${q({ ninoId, dia })}`),
-  progreso: (ninoId: string, dias = 28, motor?: Motor) => pedir<Progreso>(`/api/progreso?${q({ ninoId, dias, motor })}`),
-  salud: () => pedir<SaludRes>('/api/salud'),
-  resumen: (ninoId: string) => pedir<ResumenRes>(`/api/resumen?${q({ ninoId })}`),
+  analizarComida: (req: AnalizarComidaReq, senal?: AbortSignal) => pedir<AnalisisComida>('/api/analizar-comida', { metodo: 'POST', cuerpo: req, timeoutMs: 25_000, senal }),
+  relatoComida: (req: RelatoComidaReq, senal?: AbortSignal) => pedir<RelatoComida>('/api/relato-comida', { metodo: 'POST', cuerpo: req, senal }),
+  transcribir: (req: TranscribirReq, senal?: AbortSignal) => pedir<TranscribirRes>('/api/transcribir', { metodo: 'POST', cuerpo: req, senal }),
+  perfilInicial: (req: PerfilInicialReq, senal?: AbortSignal) => pedir<PerfilBorrador>('/api/perfil-inicial', { metodo: 'POST', cuerpo: req, senal }),
+  receta: (req: RecetaReq, motor?: Motor, senal?: AbortSignal) => pedir<Receta>(`/api/receta?${q({ motor })}`, { metodo: 'POST', cuerpo: req, timeoutMs: 60_000, senal }),
+  imagenPlato: (req: ImagenPlatoReq, senal?: AbortSignal) => pedir<ImagenPlatoRes>('/api/imagen-plato', { metodo: 'POST', cuerpo: req, timeoutMs: 40_000, senal }),
+  crearPerfil: (req: CrearPerfilReq, senal?: AbortSignal) => pedir<CrearPerfilRes>('/api/perfil', { metodo: 'POST', cuerpo: req, senal }),
+  perfil: (ninoId: string, senal?: AbortSignal) => pedir<Perfil>(`/api/perfil?${q({ ninoId })}`, { senal }),
+  registrarComida: (req: RegistrarComidaReq, senal?: AbortSignal) => pedir<RegistrarComidaRes>('/api/registrar-comida', { metodo: 'POST', cuerpo: req, senal }),
+  nutricion: (ninoId: string, dia: string, senal?: AbortSignal) => pedir<CoberturaDia>(`/api/nutricion?${q({ ninoId, dia })}`, { senal }),
+  progreso: (ninoId: string, dias = 28, motor?: Motor, senal?: AbortSignal) => pedir<Progreso>(`/api/progreso?${q({ ninoId, dias, motor })}`, { senal }),
+  salud: (senal?: AbortSignal) => pedir<SaludRes>('/api/salud', { senal }),
+  resumen: (ninoId: string, senal?: AbortSignal) => pedir<ResumenRes>(`/api/resumen?${q({ ninoId })}`, { timeoutMs: 40_000, senal }),
 }
 
 /** Los 12 endpoints (límite de funciones de Vercel Hobby), para la pantalla /estado. */

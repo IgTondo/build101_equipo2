@@ -2,8 +2,14 @@ import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { Estado } from './pantallas/Estado'
 import { Inicio } from './pantallas/Inicio'
 import { Pendiente } from './pantallas/Pendiente'
+import { Perfil } from './pantallas/perfil/Perfil'
+import { PerfilNuevo } from './pantallas/perfil/PerfilNuevo'
+import { Receta } from './pantallas/receta/Receta'
+import { Registrar } from './pantallas/registrar/Registrar'
+import { Resumen } from './pantallas/resumen/Resumen'
+import { Tablero } from './pantallas/tablero/Tablero'
 
-// Las pantallas de C2–C8 reemplazan a <Pendiente>. La navegación conserva ?nino= (§9).
+// Cada pantalla vive en su carpeta de src/pantallas/. La navegación conserva ?nino= (§9).
 const NAV = [
   { a: '/registrar', texto: 'Registrar' },
   { a: '/tablero', texto: 'Tablero' },
@@ -22,11 +28,12 @@ export function App() {
       <main className="nb-contenido">
         <Routes>
           <Route path="/" element={<Inicio />} />
-          <Route path="/registrar" element={<Pendiente titulo="Registrar una comida" tarea="C2" />} />
-          <Route path="/tablero" element={<Pendiente titulo="¿Está comiendo bien?" tarea="C3" />} />
-          <Route path="/perfil" element={<Pendiente titulo="Perfil" tarea="C6" />} />
-          <Route path="/receta" element={<Pendiente titulo="Receta" tarea="C7" />} />
-          <Route path="/resumen" element={<Pendiente titulo="Resumen para el nutricionista" tarea="C8" />} />
+          <Route path="/registrar" element={<Registrar />} />
+          <Route path="/tablero" element={<Tablero />} />
+          <Route path="/perfil" element={<Perfil />} />
+          <Route path="/perfil/nuevo" element={<PerfilNuevo />} />
+          <Route path="/receta" element={<Receta />} />
+          <Route path="/resumen" element={<Resumen />} />
           <Route path="/estado" element={<Estado />} />
           <Route path="*" element={<Pendiente titulo="No encontramos esta página" />} />
         </Routes>

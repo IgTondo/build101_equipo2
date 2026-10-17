@@ -55,3 +55,14 @@ p { margin: 0 0 0.75rem; }
   border-radius: var(--nb-radio-chico); color: var(--nb-texto-suave); text-decoration: none; font-weight: 700;
 }
 .nb-nav a.active { background: var(--nb-superficie-suave); color: var(--nb-primario); }
+
+/* Estados (C9) */
+.nb-cargando { display: flex; align-items: center; gap: 10px; color: var(--nb-texto-suave); }
+.nb-puntos { display: inline-flex; gap: 4px; }
+.nb-puntos span { width: 8px; height: 8px; border-radius: 50%; background: var(--nb-marca); animation: nb-latido 1.2s infinite ease-in-out; }
+.nb-puntos span:nth-child(2) { animation-delay: 0.15s; }
+.nb-puntos span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes nb-latido { 0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .nb-puntos span { animation: none; opacity: 0.6; } }
+.nb-aviso { background: var(--nb-superficie-suave); display: flex; flex-direction: column; gap: 8px; }
+.nb-vacio { text-align: center; }
