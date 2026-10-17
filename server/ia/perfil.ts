@@ -3,16 +3,18 @@
 // valores fuera del vocabulario se descartan y un preparacionId que no está en el catálogo pasa a null.
 // Las alergias nunca salen de la IA: vienen a mano en `datos`, no se le pasan al modelo y no se devuelven. Lo que el
 // modelo marca como evitado por alergia (porAlergia) se descarta.
+// La foto de la indicación del nutricionista (A12, P2) → objetivosNutricionista, con depurarIndicacion(): unidades del
+// contrato, rangos plausibles para chicos y solo objetivos de ingesta diaria. Los suplementos no son objetivos.
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { z } from 'zod'
 import {
   ALERGENO, DIETA, MOTIVO,
-  type Atributos, type PerfilBorrador, type PerfilInicialReq, type PreparacionCatalogo, type Regla,
+  type Atributos, type Nutrientes, type PerfilBorrador, type PerfilInicialReq, type PreparacionCatalogo, type Regla,
 } from '../../shared/contratos.js'
 import { ErrorNibble } from '../http.js'
 import { generarJSON } from './modelo.js'
-import { ATRIBUTOS, mensajePerfil, SISTEMA_PERFIL, VOCABULARIO } from './prompts/perfil.js'
+import { ATRIBUTOS, mensajePerfil, NUTRIENTES_OBJETIVO, SISTEMA_PERFIL, VOCABULARIO } from './prompts/perfil.js'
 import { normalizar } from './relato.js'
 
 // ---------- Entrada ----------
@@ -51,6 +53,17 @@ export const esquemaSalidaPerfil = z.object({
   })),
 })
 export type SalidaPerfil = z.infer<typeof esquemaSalidaPerfil>
+
+export const esquemaSalidaIndicacion = z.object({
+  objetivos: z.array(z.object({
+    nutriente: z.enum(NUTRIENTES_OBJETIVO),
+    valor: z.number(),
+    unidad: z.enum(['g', 'mg', 'ug', 'UI', 'otra']),          // como figura: la conversión la hace el código
+    cita: z.string(),
+    tipo: z.enum(['objetivo_diario', 'objetivo_semanal', 'suplemento', 'otro']),
+  })),
+})
+export type SalidaIndicacion = z.infer<typeof esquemaSalidaIndicacion>
 
 // ---------- Catálogo de preparaciones ----------
 let catalogo: PreparacionCatalogo[] | null = null
@@ -139,6 +152,75 @@ export function depurarPerfil(salida: SalidaPerfil, catalogo: Pick<PreparacionCa
     rechaza: unicos(rechaza, (r) => r.nombre),
     reglas: unicos(reglas, (r) => r.texto),
   }
+}
+
+// ---------- Objetivos de la indicación (código, nunca IA) ----------
+type NutrienteObjetivo = (typeof NUTRIENTES_OBJETIVO)[number]
+type Masa = 'g' | 'mg' | 'ug'
+
+/** La unidad de cada nutriente en el contrato (el sufijo del id). */
+const UNIDAD: Record<NutrienteObjetivo, Masa> = {
+  proteina_g: 'g', calcio_mg: 'mg', vitamina_d_ug: 'ug', hierro_mg: 'mg',
+  fibra_g: 'g', omega3_g: 'g', b12_ug: 'ug', vitamina_c_mg: 'mg',
+}
+const GRAMOS: Record<Masa, number> = { g: 1, mg: 1e-3, ug: 1e-6 }
+const UI_POR_UG_VITAMINA_D = 40 // 1 µg de vitamina D = 40 UI; las UI no valen para ningún otro de estos nutrientes
+
+/**
+ * Rango plausible de un objetivo diario para chicos de 1 a 18 años, en las unidades del contrato. Cubre con margen las
+ * referencias de §10.1 y queda por debajo de los topes (UL) del IOM. Afuera = error de lectura o de unidad.
+ */
+export const RANGO_OBJETIVO: Record<NutrienteObjetivo, [number, number]> = {
+  proteina_g: [5, 120],
+  calcio_mg: [300, 2500],
+  vitamina_d_ug: [5, 50],
+  hierro_mg: [3, 40],
+  fibra_g: [5, 50],
+  omega3_g: [0.1, 3],
+  b12_ug: [0.4, 10],
+  vitamina_c_mg: [10, 300],
+}
+
+// Si la cita habla de un producto, es un suplemento aunque el modelo diga otra cosa.
+const SUPLEMENTO = /\b(suplement\w*|gotas?|comprimidos?|capsulas?|jarabes?|ampollas?|tabletas?|pastillas?|grageas?|multivitaminic\w*)\b/
+
+export interface DescarteIndicacion {
+  nutriente: NutrienteObjetivo
+  motivo: 'suplemento' | 'no_es_objetivo_diario' | 'sin_cita' | 'unidad_invalida' | 'fuera_de_rango' | 'repetido'
+}
+
+/** valor en `unidad` → la unidad del contrato, o null si no se puede convertir. */
+function aUnidadDelContrato(nutriente: NutrienteObjetivo, valor: number, unidad: SalidaIndicacion['objetivos'][number]['unidad']): number | null {
+  if (unidad === 'otra') return null
+  const convertido = unidad === 'UI'
+    ? (nutriente === 'vitamina_d_ug' ? valor / UI_POR_UG_VITAMINA_D : null)
+    : (valor * GRAMOS[unidad]) / GRAMOS[UNIDAD[nutriente]]
+  return convertido === null ? null : Number(convertido.toPrecision(4)) // 1,3 g → 1300 mg, sin 1300.0000000000002
+}
+
+/**
+ * Lo que el código no le deja al modelo. Pura: la usan leerIndicacion() y los tests.
+ * - Un suplemento (por el tipo o por la cita) se descarta sin convertir: la app nunca sugiere suplementos y los
+ *   recetados se registran a mano en datos.suplementos.
+ * - Solo objetivos de ingesta diaria, con cita, en una unidad convertible y dentro de RANGO_OBJETIVO.
+ * - Un nutriente repetido: vale el primero.
+ */
+export function depurarIndicacion(salida: SalidaIndicacion): { objetivos: Partial<Nutrientes>; descartes: DescarteIndicacion[] } {
+  const objetivos: Partial<Nutrientes> = {}
+  const descartes: DescarteIndicacion[] = []
+  for (const o of salida.objetivos) {
+    const descartar = (motivo: DescarteIndicacion['motivo']) => descartes.push({ nutriente: o.nutriente, motivo })
+    if (o.tipo === 'suplemento' || SUPLEMENTO.test(normalizar(o.cita))) { descartar('suplemento'); continue }
+    if (o.tipo !== 'objetivo_diario') { descartar('no_es_objetivo_diario'); continue }
+    if (!o.cita.trim()) { descartar('sin_cita'); continue }
+    const valor = aUnidadDelContrato(o.nutriente, o.valor, o.unidad)
+    if (valor === null) { descartar('unidad_invalida'); continue }
+    const [min, max] = RANGO_OBJETIVO[o.nutriente]
+    if (!(valor >= min && valor <= max)) { descartar('fuera_de_rango'); continue }
+    if (o.nutriente in objetivos) { descartar('repetido'); continue }
+    objetivos[o.nutriente] = valor
+  }
+  return { objetivos, descartes }
 }
 
 // ---------- El perfil ----------

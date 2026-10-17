@@ -1,11 +1,15 @@
-// A8: perfil inicial. generarJSON va mockeado (sin keys ni red): se prueba lo que decide el código.
+// A8 y A12: perfil inicial y foto de la indicación. generarJSON va mockeado (sin keys ni red): se prueba lo que decide
+// el código.
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DatosBasicos, ErrorApi, PerfilBorrador, PerfilInicialReq, PreparacionCatalogo } from '../../shared/contratos.js'
 import { HEADER_STUB, type Handler } from '../http.js'
 import perfilInicialHandler from '../../api/perfil-inicial.js'
 import { generarJSON } from './modelo.js'
-import { depurarPerfil, extraerPerfil, fijarPreparaciones, preparaciones, type SalidaPerfil } from './perfil.js'
+import {
+  depurarIndicacion, depurarPerfil, extraerPerfil, fijarPreparaciones, preparaciones, RANGO_OBJETIVO,
+  type SalidaIndicacion, type SalidaPerfil,
+} from './perfil.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
 const mockJSON = vi.mocked(generarJSON)
@@ -151,6 +155,96 @@ describe('depurarPerfil', () => {
 
   it('nunca devuelve alergias ni objetivos del nutricionista', () => {
     expect(Object.keys(depurarPerfil(salida(), CATALOGO))).toEqual(['acepta', 'rechaza', 'reglas'])
+  })
+})
+
+// ---------- Indicación del nutricionista ----------
+type ObjetivoLLM = SalidaIndicacion['objetivos'][number]
+const objetivo = (o: Partial<ObjetivoLLM> & Pick<ObjetivoLLM, 'nutriente' | 'valor' | 'unidad'>): ObjetivoLLM =>
+  ({ cita: `${o.nutriente}: ${o.valor} ${o.unidad} por día`, tipo: 'objetivo_diario', ...o })
+
+describe('depurarIndicacion', () => {
+  it('convierte a las unidades del contrato: g → mg, mg → g, mcg → µg y vitamina D en UI (1 µg = 40 UI)', () => {
+    const { objetivos, descartes } = depurarIndicacion({ objetivos: [
+      objetivo({ nutriente: 'calcio_mg', valor: 1.3, unidad: 'g', cita: 'Calcio: 1,3 g/día' }),
+      objetivo({ nutriente: 'vitamina_d_ug', valor: 600, unidad: 'UI', cita: 'Vitamina D: 600 UI diarias con la alimentación' }),
+      objetivo({ nutriente: 'omega3_g', valor: 900, unidad: 'mg' }),
+      objetivo({ nutriente: 'b12_ug', valor: 1.8, unidad: 'ug', cita: 'B12 1,8 mcg' }),
+      objetivo({ nutriente: 'hierro_mg', valor: 10, unidad: 'mg' }),
+      objetivo({ nutriente: 'fibra_g', valor: 25, unidad: 'g' }),
+      objetivo({ nutriente: 'proteina_g', valor: 34000, unidad: 'mg' }),
+      objetivo({ nutriente: 'vitamina_c_mg', valor: 45, unidad: 'mg' }),
+    ] })
+    expect(objetivos).toEqual({
+      calcio_mg: 1300, vitamina_d_ug: 15, omega3_g: 0.9, b12_ug: 1.8, hierro_mg: 10, fibra_g: 25, proteina_g: 34, vitamina_c_mg: 45,
+    })
+    expect(descartes).toEqual([])
+  })
+
+  it('los suplementos no se convierten ni quedan, los marque el modelo o los delate la cita', () => {
+    const { objetivos, descartes } = depurarIndicacion({ objetivos: [
+      objetivo({ nutriente: 'vitamina_d_ug', valor: 400, unidad: 'UI', cita: 'Vitamina D 400 UI en gotas', tipo: 'objetivo_diario' }),
+      objetivo({ nutriente: 'hierro_mg', valor: 15, unidad: 'mg', cita: 'Sulfato ferroso 15 mg', tipo: 'suplemento' }),
+      objetivo({ nutriente: 'calcio_mg', valor: 500, unidad: 'mg', cita: '1 comprimido de calcio de 500 mg' }),
+      objetivo({ nutriente: 'b12_ug', valor: 2, unidad: 'ug', cita: 'Suplementar B12 2 µg' }),
+    ] })
+    expect(objetivos).toEqual({})
+    expect(descartes.map((d) => d.motivo)).toEqual(['suplemento', 'suplemento', 'suplemento', 'suplemento'])
+  })
+
+  it('solo objetivos de ingesta diaria y con cita', () => {
+    const { objetivos, descartes } = depurarIndicacion({ objetivos: [
+      objetivo({ nutriente: 'hierro_mg', valor: 70, unidad: 'mg', tipo: 'objetivo_semanal', cita: 'Hierro: 70 mg por semana' }),
+      objetivo({ nutriente: 'vitamina_d_ug', valor: 18, unidad: 'otra', tipo: 'otro', cita: '25-OH vitamina D: 18 ng/mL' }),
+      objetivo({ nutriente: 'calcio_mg', valor: 1000, unidad: 'mg', cita: '  ' }),
+      objetivo({ nutriente: 'fibra_g', valor: 20, unidad: 'g' }),
+    ] })
+    expect(objetivos).toEqual({ fibra_g: 20 })
+    expect(descartes.map((d) => [d.nutriente, d.motivo])).toEqual([
+      ['hierro_mg', 'no_es_objetivo_diario'], ['vitamina_d_ug', 'no_es_objetivo_diario'], ['calcio_mg', 'sin_cita'],
+    ])
+  })
+
+  it('UI solo para la vitamina D; una unidad desconocida no se convierte', () => {
+    const { objetivos, descartes } = depurarIndicacion({ objetivos: [
+      objetivo({ nutriente: 'vitamina_c_mg', valor: 45, unidad: 'UI' }),
+      objetivo({ nutriente: 'calcio_mg', valor: 3, unidad: 'otra', cita: 'Calcio: 3 porciones de lácteos' }),
+    ] })
+    expect(objetivos).toEqual({})
+    expect(descartes.map((d) => d.motivo)).toEqual(['unidad_invalida', 'unidad_invalida'])
+  })
+
+  it('descarta lo que queda fuera del rango plausible (errores de lectura o de unidad)', () => {
+    const { objetivos, descartes } = depurarIndicacion({ objetivos: [
+      objetivo({ nutriente: 'calcio_mg', valor: 1.3, unidad: 'mg' }),      // eran 1,3 g
+      objetivo({ nutriente: 'vitamina_d_ug', valor: 4000, unidad: 'UI' }), // 100 µg: por encima del tope
+      objetivo({ nutriente: 'hierro_mg', valor: 0, unidad: 'mg' }),
+      objetivo({ nutriente: 'proteina_g', valor: -20, unidad: 'g' }),
+      objetivo({ nutriente: 'b12_ug', valor: RANGO_OBJETIVO.b12_ug[1], unidad: 'ug' }), // el borde vale
+    ] })
+    expect(objetivos).toEqual({ b12_ug: RANGO_OBJETIVO.b12_ug[1] })
+    expect(descartes.map((d) => d.motivo)).toEqual(['fuera_de_rango', 'fuera_de_rango', 'fuera_de_rango', 'fuera_de_rango'])
+  })
+
+  it('un nutriente repetido: vale el primero', () => {
+    const { objetivos, descartes } = depurarIndicacion({ objetivos: [
+      objetivo({ nutriente: 'calcio_mg', valor: 1000, unidad: 'mg' }),
+      objetivo({ nutriente: 'calcio_mg', valor: 1.3, unidad: 'g' }),
+    ] })
+    expect(objetivos).toEqual({ calcio_mg: 1000 })
+    expect(descartes).toEqual([{ nutriente: 'calcio_mg', motivo: 'repetido' }])
+  })
+
+  it('los rangos cubren las referencias de §10.1 para todas las edades', () => {
+    const referencias = {
+      proteina_g: [13, 52], calcio_mg: [700, 1300], vitamina_d_ug: [15, 15], hierro_mg: [7, 15],
+      fibra_g: [19, 38], omega3_g: [0.7, 1.6], b12_ug: [0.9, 2.4], vitamina_c_mg: [15, 75],
+    } satisfies Record<keyof typeof RANGO_OBJETIVO, [number, number]>
+    for (const [n, [bajo, alto]] of Object.entries(referencias)) {
+      const [min, max] = RANGO_OBJETIVO[n as keyof typeof RANGO_OBJETIVO]
+      expect(min, n).toBeLessThanOrEqual(bajo)
+      expect(max, n).toBeGreaterThanOrEqual(alto)
+    }
   })
 })
 

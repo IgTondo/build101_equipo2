@@ -1,8 +1,10 @@
-// Prompt del perfil inicial (PLAN.md §7, A8): el relato de la familia → lo que acepta, lo que rechaza y sus reglas.
-// VOCABULARIO es lo que ve el modelo y, a la vez, contra lo que valida el código (server/ia/perfil.ts): no se desfasan.
+// Prompts del perfil inicial (PLAN.md §7, A8 y A12): el relato de la familia → lo que acepta, lo que rechaza y sus
+// reglas; la foto de la indicación del nutricionista → sus objetivos diarios.
+// VOCABULARIO y NUTRIENTES_OBJETIVO son lo que ve el modelo y, a la vez, contra lo que valida el código
+// (server/ia/perfil.ts): no se desfasan.
 import {
-  COCCION, COLOR, DISTRIBUCION, FORMA, GRUPO, MOTIVO, PLATO, PRESENTACION, SABOR, TEMPERATURA, TEXTURA,
-  type Atributos, type PreparacionCatalogo,
+  COCCION, COLOR, DISTRIBUCION, FORMA, GRUPO, MOTIVO, NUTRIENTE, PLATO, PRESENTACION, SABOR, TEMPERATURA, TEXTURA,
+  type Atributos, type Nutriente, type PreparacionCatalogo,
 } from '../../../shared/contratos.js'
 
 export const VOCABULARIO = {
@@ -46,4 +48,25 @@ export function mensajePerfil(entrada: {
 }): string {
   const catalogo = entrada.catalogo.map((p) => `${p.id}: ${p.nombre}`).join('\n')
   return `<chico>${entrada.nombre}, ${entrada.edad} años</chico>\n\n<catalogo>\n${catalogo}\n</catalogo>\n\n<relato>\n${entrada.texto}\n</relato>`
+}
+
+// ---------- Foto de la indicación del nutricionista (A12) ----------
+/** Los nutrientes que pueden tener objetivo: todos menos la energía, que se muestra sin meta (§1). */
+export const NUTRIENTES_OBJETIVO = NUTRIENTE.filter((n): n is Exclude<Nutriente, 'energia_kcal'> => n !== 'energia_kcal')
+
+export const SISTEMA_INDICACION = `Leés la foto de una indicación del nutricionista o del pediatra de un chico o una chica con autismo y selectividad alimentaria, y sacás los objetivos de ingesta diaria de nutrientes que dice. Respondé solo el JSON del schema.
+
+Nutrientes posibles (no hay otros): ${NUTRIENTES_OBJETIVO.join(', ')}. La energía (calorías) no va: en Nibble no tiene meta.
+
+Por cada objetivo escrito en la indicación:
+- nutriente.
+- valor: el número tal como figura, sin convertir (1,3 → 1.3).
+- unidad: la que figura, sin convertir: g, mg, ug (también si dice µg o mcg) o UI. Si es otra, otra.
+- cita: el texto de la indicación de donde lo sacaste, copiado tal cual.
+- tipo: objetivo_diario (cuánto tiene que comer por día con la comida), objetivo_semanal, suplemento (gotas, comprimidos, jarabes o cualquier producto o medicamento recetado, aunque sea de un nutriente: "vitamina D 400 UI en gotas" es suplemento) u otro (análisis de sangre, valores de laboratorio, porciones de alimentos o cualquier otra cosa).
+
+No inventes ni completes con valores de referencia: solo lo que está escrito. Si la foto no se lee o no es una indicación de nutrientes, devolvé la lista vacía.`
+
+export function mensajeIndicacion(entrada: { nombre: string; edad: number }): string {
+  return `Esta es la indicación para ${entrada.nombre}, de ${entrada.edad} años.`
 }
