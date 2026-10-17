@@ -127,6 +127,23 @@ describe('texto.ts: número-chequeo', () => {
     expect(numerosQueNoEstan(t, lineasHechos(uno))).toEqual([])
   })
 
+  it('sin comidas en la semana: no inventa período ni cobertura, y no llama al modelo', async () => {
+    const vacio: Progreso = {
+      ...PROGRESO, dias: [], exposiciones: [], alertas: [],
+      semana: { cobertura: Object.fromEntries(Object.keys(PROGRESO.semana.cobertura).map((k) => [k, 0])) as Progreso['semana']['cobertura'], faltan: [], energiaPromedioKcal: 0 },
+      grupos: PROGRESO.grupos.map((g) => ({ ...g, diasSinComer: null })),
+    }
+    const { hechos, lineas } = hechosResumen(vacio, PERFIL)
+    const t = textoPlantilla(hechos)
+    expect(t).toContain('no registró comidas en los últimos 7 días')
+    expect(t).not.toMatch(/0\/0|Ninguno por debajo|0 kcal/)
+    expect(numerosQueNoEstan(t, lineas)).toEqual([])
+    const redactor = vi.fn(async () => 'no debería llamarse')
+    const r = await redactarResumen(hechos, lineas, redactor)
+    expect(redactor).not.toHaveBeenCalled()
+    expect(r).toMatchObject({ fuente: 'plantilla', motivo: 'sin_comidas' })
+  })
+
   it('pulir saca el markdown y deja la aclaración una sola vez, al final', () => {
     const t = pulir(`**Repertorio:** acepta 6.\n${ACLARACION}\nAlgo más.`)
     expect(t).not.toContain('**')

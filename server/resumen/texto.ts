@@ -6,7 +6,7 @@
 // el cliente de Anthropic vive aislado acá para no pisar a la pista A.
 import Anthropic from '@anthropic-ai/sdk'
 import type { CodigoError } from '../../shared/contratos.js'
-import { DIAS_GRUPO_AUSENTE, fechaCorta, UMBRAL_FALTA, type Hechos } from './numeros.js'
+import { DIAS_GRUPO_AUSENTE, DIAS_SEMANA, fechaCorta, UMBRAL_FALTA, type Hechos } from './numeros.js'
 
 export const MODELO_RESUMEN = 'claude-haiku-5-5'
 export const ACLARACION = 'Valores aproximados, no es un diagnóstico.'
@@ -89,7 +89,24 @@ const periodoTexto = (desde: string, hasta: string) =>
   desde === hasta ? `del ${fechaCorta(hasta)}` : `del ${fechaCorta(desde)} al ${fechaCorta(hasta)}`
 const tendenciaTexto = (t: number) => (t === 0 ? 'igual que la semana anterior' : `${t > 0 ? '+' : ''}${t} respecto de la semana anterior`)
 
+/** Sin comidas en la semana no hay cobertura que informar: se dice eso y lo que sí se sabe (perfil y repertorio). */
+function textoSinComidas(h: Hechos): string {
+  const conDato = h.grupos.filter((g) => g.diasSinComer !== null)
+  const lineas = [
+    `Resumen de alimentación de ${h.nombre}${h.edad !== null ? ` (${h.edad} años)` : ''}: ` +
+      `la familia no registró comidas en los últimos ${DIAS_SEMANA} días, así que todavía no hay cobertura de nutrientes para informar.`,
+    '',
+    `Repertorio: acepta ${h.repertorio.aceptadas} ${h.repertorio.aceptadas === 1 ? 'preparación' : 'preparaciones'} y tiene ${h.repertorio.enProceso} en proceso.`,
+  ]
+  if (conDato.length) lineas.push(`Última vez de cada grupo: ${h.grupos.map((g) => `${g.nombre}, ${ultimaVez(g.diasSinComer)}`).join('; ')}.`)
+  if (h.alertas.length) lineas.push(`Señales de alerta: ${h.alertas.join(' ')}`)
+  if (h.alergias.length) lineas.push(`Alergias declaradas: ${h.alergias.join(', ')}.`)
+  lineas.push('', ACLARACION)
+  return lineas.join('\n')
+}
+
 export function textoPlantilla(h: Hechos): string {
+  if (!h.periodo.comidas) return textoSinComidas(h)
   const { conteo, comidas } = h.conducta
   const ausentes = h.grupos.filter((g) => g.ausente)
   const t = h.repertorio.tendencia
@@ -145,6 +162,7 @@ export async function redactarResumen(h: Hechos, lineas: string[], redactor: Red
     return { texto: textoPlantilla(h), fuente: 'plantilla', motivo, ms }
   }
   if (!redactor) return plantilla('sin_api_key')
+  if (!h.periodo.comidas) return plantilla('sin_comidas') // nada que redactar: no se gasta una llamada
 
   let texto: string
   try {

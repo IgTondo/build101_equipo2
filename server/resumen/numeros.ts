@@ -25,6 +25,8 @@ const DIETA_TEXTO: Record<Dieta, string> = { ninguna: 'sin dieta especial', sin_
 export const UMBRAL_FALTA = 70
 /** Un grupo cuenta como ausente si no aparece en 7 días o nunca se registró (§10.4). */
 export const DIAS_GRUPO_AUSENTE = 7
+/** La ventana del resumen. */
+export const DIAS_SEMANA = 7
 const MAX_EXPOSICIONES = 6
 
 export interface NutrienteHecho { nutriente: Nutriente; nombre: string; porcentaje: number }
@@ -94,7 +96,9 @@ export function lineasHechos(h: Hechos): string[] {
   const lineas = [
     `Chico: ${h.nombre}${h.edad !== null ? `, ${h.edad} años` : ''}.` +
       (h.alergias.length ? ` Alergias declaradas: ${h.alergias.join(', ')}.` : '') + (h.dieta ? ` Dieta: ${h.dieta}.` : ''),
-    `Período: del ${fechaCorta(h.periodo.desde)} al ${fechaCorta(h.periodo.hasta)} (${h.periodo.dias} días), ${h.periodo.comidas} comidas registradas por la familia.`,
+    h.periodo.comidas
+      ? `Período: del ${fechaCorta(h.periodo.desde)} al ${fechaCorta(h.periodo.hasta)} (${h.periodo.dias} días), ${h.periodo.comidas} comidas registradas por la familia.`
+      : `Período: los últimos ${DIAS_SEMANA} días, sin comidas registradas por la familia (no hay cobertura de nutrientes para calcular).`,
     `Repertorio: acepta ${h.repertorio.aceptadas} preparaciones (${conSigno(h.repertorio.tendencia)} respecto de la semana anterior) y tiene ${h.repertorio.enProceso} en proceso.`,
     `Grupos ausentes (${DIAS_GRUPO_AUSENTE} días o más sin comerlos): ${ausentes.length ? ausentes.map((g) => `${g.nombre} (${ultimaVez(g.diasSinComer)})`).join(', ') : 'ninguno'}.`,
     `Última vez que comió de cada grupo: ${h.grupos.map((g) => `${g.nombre}: ${ultimaVez(g.diasSinComer)}`).join('; ')}.`,
