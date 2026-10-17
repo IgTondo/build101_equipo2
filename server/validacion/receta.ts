@@ -268,7 +268,7 @@ const PROHIBIDAS: { patron: RegExp; motivo: string }[] = [
 
 // Mezclas por texto (nombre, pasos, presentación y transparencia), salvo que ya acepte esa presentación.
 const MEZCLAS: { patron: RegExp; presentacion: Presentacion; que: string }[] = [
-  { patron: /\b(guis\w*|estofad\w*|cazuela\w*)/, presentacion: 'mezclado', que: 'un guiso' },
+  { patron: /\b(guis(o|os|ito|itos|ado|ada|ados|adas)|estofad\w*|cazuela\w*)\b/, presentacion: 'mezclado', que: 'un guiso' },
   { patron: /\brellen\w*/, presentacion: 'mezclado', que: 'un relleno' },
   {
     patron: /\bsalsa (\w+ ){0,3}(por )?encima\b|\bpor encima (\w+ ){0,2}salsa\b|\b(cubr\w*|banad\w*|banal\w*|bana|banar|napad\w*|napa|napar) (en|con) (\w+ ){0,3}salsa\b/,

@@ -200,6 +200,10 @@ describe('validarReceta: presentación separada y sin mezclas', () => {
     expect(problemas(conPaso(paso), ctxQueso()).some((x) => x.includes('todavía no acepta mezclas'))).toBe(true)
   })
 
+  it('"guisantes" no es un guiso', () => {
+    expect(validarReceta(conPaso('Si tenés, sumá unos guisantes al costado.'), ctxQueso()).ok).toBe(true)
+  })
+
   it('"sin salsa por encima" y "las salsas van aparte" pasan', () => {
     expect(validarReceta(conTexto('presentacion', 'Separados, sin salsa por encima; si quiere ketchup, va aparte para mojar.'), ctxQueso()).ok).toBe(true)
   })
