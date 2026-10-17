@@ -286,17 +286,19 @@ const MEZCLAS: { patron: RegExp; presentacion: Presentacion; que: string }[] = [
 ]
 
 // Alérgenos nombrados en el nombre, los pasos o la transparencia (un rebozado con huevo que no está en la lista).
-// Solo palabras inequívocas: la lista de ingredientes ya se mira contra data/alimentos.json.
+// Ante la duda, se detecta: un falso positivo cuesta un reintento y un falso negativo, una alergia. Solo quedan afuera
+// los usos obvios que no son el alimento ("ideas claras", "las yemas de los dedos").
+const NO_ES_CLARA = '(?<!\\b(ideas|instrucciones|indicaciones|reglas|cosas|palabras|explicaciones|pautas|consignas|senales|muy|bien|mas|tan|bastante) )'
 const PALABRAS_ALERGENO: Record<Alergeno, RegExp> = {
-  huevo: /\b(huevos?|claras? (de huevo|batidas?|a punto)|yemas?(?! de (los|sus) dedos)|mayonesa|merengue)\b/,
-  leche: /\b(leche(?! de (almendras?|soja|arroz|avena|coco))|quesos?|manteca|yogur\w*|muzzarella|mozzarella|ricota|crema de leche)\b/,
-  gluten: /\b(trigo|pan rallado|harina (de trigo|comun|0+)|fideos(?! de (arroz|maiz))|cebada|centeno|pan (blanco|lactal|integral|de molde))\b/,
-  mani: /\b(mani|manies|cacahuates?)\b/,
-  frutos_secos: /\b(nuez|nueces|almendras?|avellanas?|castanas?|pistachos?|caju|anacardos?)\b/,
+  huevo: new RegExp(`\\b(huev\\w*|${NO_ES_CLARA}claras?|yemas?(?! de (los|sus) dedos)|mayonesa|merengue)\\b`),
+  leche: /\b(leche\w*|ques\w*|manteca|yogur\w*|muzza\w*|mozzarella|ricota|crema|lacteo\w*|chocolat\w*)\b/,
+  gluten: /\b(trigo|harina\w*|pan|panes|panificad\w*|fideos?|galletit\w*|avena|semola|cebada|centeno|(apanad|rebozad|empanad)\w*)\b/,
+  mani: /\b(mani|manies|cacahuat\w*)\b/,
+  frutos_secos: /\b(frutos secos|nuez|nueces|almendr\w*|avellan\w*|castanas?|pistach\w*|caju|anacard\w*|macadamia)\b/,
   soja: /\b(soja|tofu|edamame)\b/,
-  pescado: /\b(pescados?|merluza|atun|salmon|sardinas?|caballa|brotola|corvina|anchoas?)\b/,
-  mariscos: /\b(mariscos?|camaron\w*|langostin\w*|mejillon\w*|calamar\w*|pulpo|almejas?|cangrejos?)\b/,
-  sesamo: /\b(sesamo|tahini|tahina)\b/,
+  pescado: /\b(pescad\w*|merluza|atun|salmon|sardin\w*|caballa|brotola|corvina|anchoa\w*|bacalao|pejerrey|lenguado|abadejo|tilapia)\b/,
+  mariscos: /\b(marisco\w*|camaron\w*|langostin\w*|gambas?|mejillon\w*|calamar\w*|pulpo|almejas?|cangrejos?|ostras?|vieiras?|crustace\w*)\b/,
+  sesamo: /\b(sesamo|ajonjoli|tahin\w*)\b/,
 }
 
 function problemasDelTexto(r: Receta, ctx: ContextoValidacion): string[] {

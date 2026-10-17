@@ -151,6 +151,32 @@ describe('validarReceta: alergias (según data/alimentos.json)', () => {
     expect(problemas(conPaso(paso), ctxQueso()).some((x) => x.includes('alergia declarada a huevo'))).toBe(true)
   })
 
+  it.each([
+    'Batí 2 claras a nieve.',
+    'Agregá las claras.',
+    'Batí unas claras.',
+    'Pincelá con clara batida.',
+    'Usá un huevito chico.',
+  ])('las claras o el huevo con otra forma también: %s', (paso) => {
+    expect(problemas(conPaso(paso), ctxQueso()).some((x) => x.includes('alergia declarada a huevo'))).toBe(true)
+  })
+
+  it.each(['Seguí estas ideas claras.', 'Con instrucciones claras, es fácil.'])('"claras" como adjetivo no es huevo: %s', (paso) => {
+    expect(validarReceta(conPaso(paso), ctxQueso()).ok).toBe(true)
+  })
+
+  it.each([
+    ['gluten', 'Pasalos por harina.'],
+    ['gluten', 'Rallá un poco de pan.'],
+    ['gluten', 'Servilos apanados.'],
+    ['leche', 'Mojalos en leche de almendras.'],
+    ['leche', 'Agregá una cucharada de crema.'],
+    ['pescado', 'Usá pescadito blanco.'],
+  ])('detección amplia (%s): %s', (alergeno, paso) => {
+    const ctx = ctxQueso({ alergias: [alergeno as 'gluten' | 'leche' | 'pescado'] })
+    expect(problemas(conPaso(paso), ctx).some((x) => x.startsWith('En el paso 7') && x.includes(`alergia declarada a ${alergeno}`))).toBe(true)
+  })
+
   it('"las yemas de los dedos" no es huevo', () => {
     expect(validarReceta(conPaso('Apretá el pan rallado con las yemas de los dedos.'), ctxQueso()).ok).toBe(true)
   })
