@@ -21,7 +21,7 @@ const { datos, modelo, ms } = await generarJSON({
 const { texto } = await generarTexto({ tarea: 'resumen', partes: [{ tipo: 'texto', texto: '…' }] })
 ```
 
-Los errores son `ErrorIA` con `codigo` (`sin_clave`, `timeout`, `limite`, `json_invalido`, `rechazo`, `proveedor`, `entrada_invalida`); `estadoHttp(codigo)` da el status HTTP.
+Los errores son `ErrorIA`, que extiende `ErrorNibble` (`server/http.ts`): si el handler está envuelto en `manejar()`, sale solo como `ErrorApi` (`timeout`, `limite_proveedor`, `proveedor_caido`…). La causa fina (`sin_clave`, `json_invalido`, `rechazo`…) queda en `error.motivo` y en `detalle`.
 
 ## Decisiones
 
@@ -31,9 +31,8 @@ Los errores son `ErrorIA` con `codigo` (`sin_clave`, `timeout`, `limite`, `json_
 
 ## Bloqueado
 
-- **C1 no está en main** (sin `package.json`, `shared/contratos.ts` ni `api/`). Se desarrolla con un entorno local que no se commitea; los endpoints se conectan cuando llegue.
 - **No hay `.env.local` ni keys** (Anthropic, Groq, Cloudflare, Mongo). Todo se prueba con mocks; A1 queda listo para correr.
 
 ## Para avisar al grupo
 
-- (nada todavía)
+- `contratos:` `nombreIngles?: string` en `ItemDetectado` (7c7fed0). Aditivo: la visión lo devuelve solo cuando un ingrediente cae en `otro_<grupo>`.
