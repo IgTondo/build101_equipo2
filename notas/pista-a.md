@@ -16,6 +16,7 @@
 | A10 | `imagenPlato()`: prompt en inglés (cenital, separado, sin texto ni personas; plato con divisiones si una regla lo pide); **`/api/imagen-plato` real** | `server/ia/imagen-plato.ts` |
 | A12 (parte) | Foto de la indicación del nutricionista → `objetivosNutricionista`: se lee en paralelo con el relato; el código convierte unidades (vitamina D: 1 µg = 40 UI), descarta lo fuera de rango y **nunca convierte suplementos en objetivos** | `server/ia/perfil.ts` |
 | — | `limiteMs` en `generarJSON`/`generarTexto`: presupuesto total por llamada (reintentos incluidos), para no pasar los 60 s de Vercel; Whisper descarta las frases que inventa con silencio ("Subtítulos realizados por la comunidad de Amara.org"…) | `server/ia/modelo.ts`, `voz.ts` |
+| A12 | `eval-recetas.ts` (§11.3): 12 casos (Tomás y Lucía con `evidenciaDe()` de B sobre los sintéticos; Bruno, con leche y gluten, inventado y declarado). Mide la primera salida del LLM contra la validación (alergias, un solo cambio, lenguaje) y el resultado final, más el % que cubre ≥ 20% de lo que falta. "Más nutritiva" encuentra su candidato aunque no esté en el top 3 de la evidencia | `scripts/eval-recetas.ts`, `eval/recetas/`, `server/ia/candidato.ts` |
 | A11 | `eval-vision.ts` (Haiku y Sonnet) y `eval-voz.ts` (`--texto` sin Whisper); 8 fotos CC0 o de dominio público (`fuente: 'internet'`); 40 relatos del dataset sintético (`fuente: 'sintetico'`) | `scripts/eval-*.ts`, `scripts/eval/`, `eval/` |
 | — | `server/ia/catalogo.ts` (lee `data/alimentos.json`) y `ErrorIA` como `ErrorNibble` | `server/ia/` |
 
@@ -23,7 +24,7 @@ Tests: 434 en verde (6 salteados: los guardas de stub de los endpoints que ya so
 
 ## En curso (un worktree de Orca y una rama por carril; integra solo el coordinador)
 
-- **A12 (P2)**: eval de recetas (§11.3), con 12 casos sintéticos (3 perfiles con alergias × 4 nutrientes) porque `armarEvidencia()` de B todavía no existe; y `generarReceta()` con `limiteMs` para cortar a los ~55 s. Arrancó porque todo el P0/P1 de la pista A que no depende de B ya está en main.
+- **receta**: que el punto de partida de la cadena pueda ser una preparación que el chico comió y no está en el catálogo, siempre que la visión la haya visto con todos sus atributos (lo declarado incompleto se sigue descartando: no se afloja el conteo de cambios). Riesgo que cubre: un chico nuevo del modo jurado que termine en `sin_candidatos`.
 
 ## Cómo se usa `server/ia/` (para B y C)
 
@@ -57,8 +58,7 @@ Los errores son `ErrorIA`, que extiende `ErrorNibble` (`server/http.ts`): si el 
 ## Bloqueado
 
 - **No hay `.env.local` ni keys** (Anthropic, Groq, Cloudflare, Mongo): nada se probó en vivo. Con las keys, los endpoints de arriba ya responden de verdad; sin ellas, 502 `proveedor_caido` con `motivo: sin_clave`.
-- **"Más nutritiva"** puede mandar un `preparacionId` que no está entre los 3 candidatos de `armarEvidencia()`: hoy responde 400. En curso: buscarlo en la lista completa del recomendador (solo con lo que exporta B).
-- El validador todavía cuenta los cambios con su propia función; en curso: pasar a `cambios()` de `cadena.ts` (mismo criterio) para que el tablero y la receta cuenten igual.
+- El validador cuenta los cambios con `cambios()` de `cadena.ts` (0bf966c): el tablero y la receta cuentan igual.
 - `alimentos_fdc` en Mongo: `npx tsx scripts/usda.ts --subir` cuando haya `MONGODB_URI` (los CSV se bajan a `data/usda/`).
 - `nombreIngles`: la visión lo devuelve, pero nadie lo busca todavía en `alimentos_fdc` (es del registro, B).
 
