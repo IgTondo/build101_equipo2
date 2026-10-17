@@ -1,0 +1,1334 @@
+[
+  {
+    "id": "sint-tomas-01-sin-i1",
+    "fuente": "sintetico",
+    "relatoEscrito": "La milanesa: se la comió sin dejar nada. Los bastones de queso: ni los tocó, los dejó en el plato. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "papas fritas en bastones"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "milanesa de carne al horno (rebozada sin huevo)"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "bastones de queso horneados"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "nada"
+        }
+      ],
+      "sinMencion": [
+        "i1"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-02",
+    "fuente": "sintetico",
+    "relatoEscrito": "La hamburguesa: la sacó del plato, porque no le gusta cómo se siente en la boca. Las papas fritas: se las comió sin dejar nada. Pidió su comida de siempre.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "hamburguesa casera a la plancha"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "papas fritas en bastones"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "pidio_otra_cosa"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-03",
+    "fuente": "sintetico",
+    "relatoEscrito": "El arroz con pollo: lo sacó del plato, porque estaba todo junto con la salsa. Las tostadas: se las comió sin dejar nada. Se angustió y lloró un rato. Pidió su comida de siempre.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "arroz con pollo"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "tostadas de pan blanco"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "angustia",
+        "pidio_otra_cosa"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-04",
+    "fuente": "sintetico",
+    "relatoEscrito": "La leche chocolatada: se la comió sin dejar nada. Las galletitas: se las comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "leche chocolatada"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "galletitas de agua"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-05",
+    "fuente": "sintetico",
+    "relatoEscrito": "Las papas al horno: ni las tocó, las dejó en el plato, porque no le gusta cómo se siente en la boca. La milanesa: se la comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "papas al horno en cubos, blandas"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "milanesa de carne al horno (rebozada sin huevo)"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "nada"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-06-sin-i3",
+    "fuente": "sintetico",
+    "relatoEscrito": "Las papas fritas: se las comió sin dejar nada. Los bastones de queso: los tocó y los olió, pero no se los llevó a la boca. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "papas fritas en bastones"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "bastones de queso horneados"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "brócoli hervido"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "toco"
+        }
+      ],
+      "sinMencion": [
+        "i3"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-07",
+    "fuente": "sintetico",
+    "relatoEscrito": "Las papas al horno: se las comió sin dejar nada. La milanesa: la sacó del plato, porque estaba todo junto con la salsa. Se levantó varias veces de la mesa.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "papas al horno en bastones, crocantes"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "milanesa a la napolitana (sin huevo)"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "aparto"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "se_levanto"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-08",
+    "fuente": "sintetico",
+    "relatoEscrito": "La leche chocolatada: se la comió sin dejar nada. La manzana: comió unos bocados. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "leche chocolatada"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "manzana pelada en bastones"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "poco"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-09",
+    "fuente": "sintetico",
+    "relatoEscrito": "Los fideos: los sacó del plato, porque estaba todo junto con la salsa. Las papas fritas: se las comió sin dejar nada. Se levantó varias veces de la mesa. Pidió su comida de siempre.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "fideos con salsa de tomate"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "papas fritas en bastones"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "se_levanto",
+        "pidio_otra_cosa"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-10",
+    "fuente": "sintetico",
+    "relatoEscrito": "El pollo: lo sacó del plato, porque no le gusta cómo se siente en la boca. Las tostadas: se las comió sin dejar nada. Pidió su comida de siempre.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "pollo a la plancha"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "tostadas de pan blanco"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "pidio_otra_cosa"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-11-sin-i2",
+    "fuente": "sintetico",
+    "relatoEscrito": "Las papas al horno: se las comió sin dejar nada. Los bastones de queso: probó un bocadito y los dejó. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "papas al horno en bastones, crocantes"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "milanesa de carne al horno (rebozada sin huevo)"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "bastones de queso horneados"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "probo"
+        }
+      ],
+      "sinMencion": [
+        "i2"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-12",
+    "fuente": "sintetico",
+    "relatoEscrito": "El arroz con pollo: ni lo tocó, lo dejó en el plato. Las papas fritas: se las comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "arroz con pollo"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "papas fritas en bastones"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "nada"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-13-sin-i1",
+    "fuente": "sintetico",
+    "relatoEscrito": "La milanesa: comió más o menos la mitad. Los bastones de zanahoria: ni los tocó, los dejó en el plato. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "papa hervida en trozos"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "milanesa de carne al horno (rebozada sin huevo)"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "bastones de zanahoria horneados"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad"
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "nada"
+        }
+      ],
+      "sinMencion": [
+        "i1"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-14-sin-i2",
+    "fuente": "sintetico",
+    "relatoEscrito": "La leche chocolatada: se la comió sin dejar nada. La manzana: comió más o menos la mitad. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "leche chocolatada"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "galletitas de agua"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "manzana pelada en bastones"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "mitad"
+        }
+      ],
+      "sinMencion": [
+        "i2"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-15-sin-i3",
+    "fuente": "sintetico",
+    "relatoEscrito": "Las papas fritas: se las comió sin dejar nada. Los bastones de queso: comió unos bocados. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "papas fritas en bastones"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "bastones de queso horneados"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "bastones de zanahoria horneados"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "poco"
+        }
+      ],
+      "sinMencion": [
+        "i3"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-16",
+    "fuente": "sintetico",
+    "relatoEscrito": "La hamburguesa: la tocó y la olió, pero no se la llevó a la boca. Las papas fritas: se las comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "hamburguesa casera a la plancha"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "papas fritas en bastones"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "toco"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-17-sin-i2",
+    "fuente": "sintetico",
+    "relatoEscrito": "Las lentejas: ni las tocó, las dejó en el plato. Las papas fritas: se las comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "lentejas guisadas"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "milanesa de carne al horno (rebozada sin huevo)"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "papas fritas en bastones"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "nada"
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [
+        "i2"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-18",
+    "fuente": "sintetico",
+    "relatoEscrito": "Los fideos: ni los tocó, los dejó en el plato. Las tostadas: se las comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "fideos con salsa de tomate"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "tostadas de pan blanco"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "nada"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-19-sin-i1",
+    "fuente": "sintetico",
+    "relatoEscrito": "La milanesa: se la comió sin dejar nada. Los bastones de queso: comió más o menos la mitad. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "puré de papa"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "milanesa de carne al horno (rebozada sin huevo)"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "bastones de queso horneados"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "mitad"
+        }
+      ],
+      "sinMencion": [
+        "i1"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-tomas-20",
+    "fuente": "sintetico",
+    "relatoEscrito": "La leche chocolatada: comió más o menos la mitad. Las tostadas: se las comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "leche chocolatada"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "tostadas de pan blanco"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "mitad"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-01",
+    "fuente": "sintetico",
+    "relatoEscrito": "Los fideos: se los comió sin dejar nada. El puré de zapallo: ni lo tocó, lo dejó en el plato. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "fideos con manteca y queso rallado"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "puré de zapallo"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "nada"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-02",
+    "fuente": "sintetico",
+    "relatoEscrito": "El yogur: se lo comió sin dejar nada. Las galletitas: las tocó y las olió, pero no se las llevó a la boca. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "yogur de vainilla"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "galletitas de agua"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "toco"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-03-sin-i3",
+    "fuente": "sintetico",
+    "relatoEscrito": "El puré: se lo comió sin dejar nada. El pollo: comió más o menos la mitad. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "puré de papa"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "pollo hervido desmenuzado"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "brócoli hervido"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad"
+        }
+      ],
+      "sinMencion": [
+        "i3"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-04-sin-i1",
+    "fuente": "sintetico",
+    "relatoEscrito": "El pollo: comió más o menos la mitad. El puré: se lo comió sin dejar nada. Pidió su comida de siempre.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "papas fritas en bastones"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "pollo hervido desmenuzado"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "puré de papa"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad"
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [
+        "i1"
+      ],
+      "conducta": [
+        "pidio_otra_cosa"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-05",
+    "fuente": "sintetico",
+    "relatoEscrito": "El arroz con leche: se lo comió sin dejar nada. La banana: comió más o menos la mitad. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "arroz con leche"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "banana pisada"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-06",
+    "fuente": "sintetico",
+    "relatoEscrito": "Los fideos: se los comió sin dejar nada. El puré de zapallo: lo tocó y lo olió, pero no se lo llevó a la boca. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "fideos con manteca y queso rallado"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "puré de zapallo"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "toco"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-07",
+    "fuente": "sintetico",
+    "relatoEscrito": "El puré: se lo comió sin dejar nada. Las arvejas: las sacó del plato, porque dijo que lo verde no lo come. Se angustió y lloró un rato.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "puré de papa"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "arvejas enteras"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "aparto"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "angustia"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-08",
+    "fuente": "sintetico",
+    "relatoEscrito": "Las lentejas: ni las tocó, las dejó en el plato. Los fideos: se los comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "lentejas guisadas"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "fideos con manteca y queso rallado"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "nada"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-09",
+    "fuente": "sintetico",
+    "relatoEscrito": "El yogur: se lo comió sin dejar nada. La banana: se la comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "yogur de vainilla"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "banana pisada"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-10-sin-i1",
+    "fuente": "sintetico",
+    "relatoEscrito": "El puré de arvejas: comió más o menos la mitad. El pollo: comió unos bocados. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "puré de papa"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "arvejas en puré"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "pollo hervido desmenuzado"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad"
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "poco"
+        }
+      ],
+      "sinMencion": [
+        "i1"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-11",
+    "fuente": "sintetico",
+    "relatoEscrito": "Los fideos: se los comió sin dejar nada. El puré de zapallo: probó un bocadito y lo dejó. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "fideos con manteca y queso rallado"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "puré de zapallo"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "probo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-12-sin-i3",
+    "fuente": "sintetico",
+    "relatoEscrito": "El puré: se lo comió sin dejar nada. Las lentejas: las tocó y las olió, pero no se las llevó a la boca. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "puré de papa"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "lentejas guisadas"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "arroz con leche"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "toco"
+        }
+      ],
+      "sinMencion": [
+        "i3"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-13",
+    "fuente": "sintetico",
+    "relatoEscrito": "El puré de arvejas: se lo comió sin dejar nada. Los fideos: se los comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "arvejas en puré"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "fideos con manteca y queso rallado"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-14-sin-i2",
+    "fuente": "sintetico",
+    "relatoEscrito": "Las chauchas: las sacó del plato, porque dijo que lo verde no lo come. El pollo: comió más o menos la mitad. Se levantó varias veces de la mesa.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "chauchas hervidas"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "puré de papa"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "pollo hervido desmenuzado"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto"
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "mitad"
+        }
+      ],
+      "sinMencion": [
+        "i2"
+      ],
+      "conducta": [
+        "se_levanto"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-15",
+    "fuente": "sintetico",
+    "relatoEscrito": "El puré de zapallo: comió unos bocados. Los fideos: se los comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "puré de zapallo"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "fideos con manteca y queso rallado"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "poco"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-16",
+    "fuente": "sintetico",
+    "relatoEscrito": "El yogur: se lo comió sin dejar nada. Los bastones de zanahoria: ni los tocó, los dejó en el plato. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "yogur de vainilla"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "bastones de zanahoria horneados"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "nada"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-17-sin-i2",
+    "fuente": "sintetico",
+    "relatoEscrito": "Las lentejas: probó un bocadito y las dejó. El puré de arvejas: se lo comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "lentejas guisadas"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "puré de papa"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "arvejas en puré"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "probo"
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [
+        "i2"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-18",
+    "fuente": "sintetico",
+    "relatoEscrito": "El brócoli: lo sacó del plato, porque dijo que lo verde no lo come. Los fideos: se los comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "brócoli hervido"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "fideos con manteca y queso rallado"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "aparto"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-19-sin-i1",
+    "fuente": "sintetico",
+    "relatoEscrito": "El pollo: comió más o menos la mitad. El puré: se lo comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "puré de zapallo"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "pollo hervido desmenuzado"
+      },
+      {
+        "idTmp": "i3",
+        "preparacion": "puré de papa"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "mitad"
+        },
+        {
+          "itemIdTmp": "i3",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [
+        "i1"
+      ],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  },
+  {
+    "id": "sint-lucia-20",
+    "fuente": "sintetico",
+    "relatoEscrito": "El arroz con leche: se lo comió sin dejar nada. La banana: se la comió sin dejar nada. La comida fue tranquila.",
+    "items": [
+      {
+        "idTmp": "i1",
+        "preparacion": "arroz con leche"
+      },
+      {
+        "idTmp": "i2",
+        "preparacion": "banana pisada"
+      }
+    ],
+    "esperado": {
+      "respuestas": [
+        {
+          "itemIdTmp": "i1",
+          "cuanto": "todo"
+        },
+        {
+          "itemIdTmp": "i2",
+          "cuanto": "todo"
+        }
+      ],
+      "sinMencion": [],
+      "conducta": [
+        "tranquilo"
+      ]
+    }
+  }
+]

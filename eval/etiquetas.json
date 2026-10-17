@@ -1,0 +1,100 @@
+[
+  {
+    "archivo": "milanesa-papas-fritas.jpg",
+    "fuente": "internet",
+    "url": "https://commons.wikimedia.org/wiki/File:Milanesa_and_papas_fritas.JPG",
+    "autor": "Ypsilon from Finland",
+    "licencia": "CC0 1.0",
+    "descripcion": "Milanesa de carne con papas fritas en un restorán de Montevideo. Recortada para sacar la botella y el vaso del fondo; el platito de manteca de al lado no cuenta.",
+    "alimentos": [
+      { "alimentoId": "carne_vacuna", "textura": "crocante", "forma": "plano", "color": "marron" },
+      { "alimentoId": "papa", "textura": "crocante", "forma": "baston", "color": "amarillo", "coccion": "frito" }
+    ]
+  },
+  {
+    "archivo": "nuggets.jpg",
+    "fuente": "internet",
+    "url": "https://commons.wikimedia.org/wiki/File:Chicken_nuggets_on_a_plate.jpg",
+    "autor": "Jiafei Slay Queen",
+    "licencia": "CC0 1.0",
+    "descripcion": "Nueve nuggets de pollo en un plato playo, uno mordido. Sirve para el conteo (FNDDS trae el peso por nugget).",
+    "alimentos": [
+      { "alimentoId": "nuggets_pollo", "textura": "crocante", "forma": "trozos", "color": "amarillo", "coccion": "frito" }
+    ]
+  },
+  {
+    "archivo": "pollo-plancha-papas-fritas.jpg",
+    "fuente": "internet",
+    "url": "https://commons.wikimedia.org/wiki/File:Cafe_Caramel_Chicken_breast_and_French_Fries.jpg",
+    "autor": "Yotam Nachum",
+    "licencia": "CC0 1.0",
+    "descripcion": "Pechuga de pollo a la parrilla con hierbas y papas fritas en una canastita, sobre el mismo plato.",
+    "alimentos": [
+      { "alimentoId": "pollo", "textura": "jugoso", "forma": "plano", "color": "beige", "coccion": "plancha" },
+      { "alimentoId": "papa", "textura": "crocante", "forma": "baston", "color": "amarillo", "coccion": "frito" }
+    ]
+  },
+  {
+    "archivo": "arroz-blanco.jpg",
+    "fuente": "internet",
+    "url": "https://commons.wikimedia.org/wiki/File:Bowl_of_white_rice_01.jpg",
+    "autor": "Douglas Perkins",
+    "licencia": "CC0 1.0",
+    "descripcion": "Un bol de arroz blanco hervido, solo.",
+    "alimentos": [
+      { "alimentoId": "arroz", "textura": "blando", "forma": "granos", "color": "blanco", "coccion": "hervido" }
+    ]
+  },
+  {
+    "archivo": "carne-pure-arvejas.jpg",
+    "fuente": "internet",
+    "url": "https://commons.wikimedia.org/wiki/File:Ground_beef,_peas,_and_mashed_potatoes,_with_butter_and_black_pepper_-_Massachusetts.jpg",
+    "autor": "Daderot",
+    "licencia": "CC0 1.0",
+    "descripcion": "Carne picada a la plancha con pimienta, puré de papa con manteca y arvejas, separados pero tocándose.",
+    "alimentos": [
+      { "alimentoId": "carne_picada", "textura": "jugoso", "forma": "plano", "color": "marron", "coccion": "plancha" },
+      { "alimentoId": "papa", "textura": "cremoso", "forma": "pure", "color": "amarillo", "coccion": "hervido" },
+      { "alimentoId": "arvejas", "textura": "blando", "forma": "granos", "color": "verde", "coccion": "hervido" }
+    ]
+  },
+  {
+    "archivo": "fideos-bolognesa.jpg",
+    "fuente": "internet",
+    "url": "https://commons.wikimedia.org/wiki/File:Spaghetti_bolognaise_%C3%A0_Bouillon_Chartier_Grands_Boulevards_(ao%C3%BBt_2023).JPG",
+    "autor": "Benoît Prieur",
+    "licencia": "CC0 1.0",
+    "descripcion": "Spaghetti con salsa bolognesa por encima. La salsa con carne es parte del ítem (como fideos_con_salsa en el catálogo).",
+    "alimentos": [
+      { "alimentoId": "fideos", "textura": "blando", "forma": "trozos", "color": "rojo", "coccion": "hervido" }
+    ]
+  },
+  {
+    "archivo": "bandeja-escolar-manzana.jpg",
+    "fuente": "internet",
+    "url": "https://commons.wikimedia.org/wiki/File:Tray08_FullTray_2023_(52765596197).jpg",
+    "autor": "USDA (U.S. Department of Agriculture)",
+    "licencia": "Dominio público (PD-USGov-USDA)",
+    "descripcion": "Bandeja escolar con divisiones: ensalada de porotos blancos con espinaca, manzana en gajos con cáscara, tomates cherry asados, fideos penne con verduras y un cartón de leche.",
+    "alimentos": [
+      { "alimentoId": "porotos", "textura": "blando", "forma": "granos", "color": "mixto", "coccion": "hervido" },
+      { "alimentoId": "manzana", "textura": "crocante", "forma": "trozos", "color": "blanco", "coccion": "crudo" },
+      { "alimentoId": "tomate", "textura": "jugoso", "forma": "redondo", "color": "rojo", "coccion": "horno" },
+      { "alimentoId": "fideos", "textura": "blando", "forma": "trozos", "color": "mixto", "coccion": "hervido" },
+      { "alimentoId": "leche", "textura": "cremoso", "forma": "entero", "color": "blanco", "coccion": "listo" }
+    ]
+  },
+  {
+    "archivo": "milanesa-pollo-salsa-papas-arvejas.jpg",
+    "fuente": "internet",
+    "url": "https://commons.wikimedia.org/wiki/File:Chicken_Schnitzel_with_chips_%26_peas,_garlic_bread,_tea_-_IKEA_Southampton_2026-03-17.jpg",
+    "autor": "Andy Li",
+    "licencia": "CC0 1.0",
+    "descripcion": "Milanesa de pollo con salsa blanca por encima, papas fritas y arvejas. Recortada al plato principal (sin el pan de ajo ni el té).",
+    "alimentos": [
+      { "alimentoId": "pollo", "textura": "mixto", "forma": "plano", "color": "beige" },
+      { "alimentoId": "papa", "textura": "crocante", "forma": "baston", "color": "amarillo", "coccion": "frito" },
+      { "alimentoId": "arvejas", "textura": "blando", "forma": "granos", "color": "verde", "coccion": "hervido" }
+    ]
+  }
+]
