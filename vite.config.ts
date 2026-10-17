@@ -12,5 +12,9 @@ export default defineConfig({
     watch: { ignored: ['**/.claude/**'] },
   },
   // Los worktrees de los agentes (.claude/worktrees) tienen su propia copia del repo: no son tests de este.
-  test: { exclude: [...configDefaults.exclude, '.claude/**'] },
+  // Las keys de IA quedan vacías en los tests: ningún test llama a un modelo real aunque estén exportadas en la shell.
+  test: {
+    exclude: [...configDefaults.exclude, '.claude/**'],
+    env: { ANTHROPIC_API_KEY: '', GROQ_API_KEY: '', GEMINI_API_KEY: '', CLOUDFLARE_API_TOKEN: '' },
+  },
 })
