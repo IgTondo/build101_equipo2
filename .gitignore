@@ -9,3 +9,5 @@ data/usda/
 .DS_Store
 coverage/
 .claude/worktrees/
+.env*
+!.env.example
