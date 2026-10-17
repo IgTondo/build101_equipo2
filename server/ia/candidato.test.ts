@@ -22,11 +22,16 @@ describe('candidatoEn', () => {
   const evidencia = evidenciaDe(c, { nutriente: 'calcio_mg', hoy: HOY, ahora: AHORA })
   const enEvidencia = new Set(evidencia.candidatos.map((x) => x.preparacionId))
 
-  it('encuentra un candidato que no está entre los 3 de la evidencia', () => {
+  // Cada candidatoEn() recalcula la recomendación entera: se corta en el primero que aparece (con la suite en paralelo,
+  // recorrer el catálogo completo pasaba el timeout por defecto).
+  it('encuentra un candidato que no está entre los 3 de la evidencia', { timeout: 20_000 }, () => {
     expect(evidencia.candidatos).toHaveLength(3)
-    const fuera = [...c.catalogo.keys()].filter((id) => !enEvidencia.has(id))
-      .map((id) => candidatoEn(c, id, { nutriente: 'calcio_mg', hoy: HOY, ahora: AHORA }))
-      .find((x) => x !== undefined)
+    let fuera: ReturnType<typeof candidatoEn>
+    for (const id of c.catalogo.keys()) {
+      if (enEvidencia.has(id)) continue
+      fuera = candidatoEn(c, id, { nutriente: 'calcio_mg', hoy: HOY, ahora: AHORA })
+      if (fuera) break
+    }
     expect(fuera).toBeDefined()
     expect(fuera).toMatchObject({ cambio: expect.any(String), desdeId: expect.any(String), seMantiene: expect.any(Array) })
     expect(fuera?.aportePorcion.calcio_mg).toBeGreaterThan(0)
