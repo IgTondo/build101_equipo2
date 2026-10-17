@@ -3,7 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import type { Evidencia, Perfil } from '../../shared/contratos.js'
 import { ErrorNibble } from '../http.js'
 import {
-  ALIMENTOS, CANDIDATO_PAPAS, CANDIDATO_QUESO, EVIDENCIA, PERFIL_TOMAS, SALIDA_PAPAS, SALIDA_QUESO, preparacion,
+  ALIMENTOS, CANDIDATO_PAPAS, CANDIDATO_QUESO, EVIDENCIA, PERFIL_TOMAS, SALIDA_PAPAS, SALIDA_QUESO, prep, preparacion,
 } from '../validacion/ejemplos.js'
 import { calcularAporte } from '../validacion/receta.js'
 import { fijarAlimentos } from './catalogo.js'
@@ -223,6 +223,42 @@ describe('generarReceta', () => {
     const r = await pedir({ armarEvidencia: async () => ({ ...EVIDENCIA, candidatos: [raro, CANDIDATO_QUESO] }) })
     expect(r.preparacionBaseId).toBe('bastones_queso_horno')
     expect(llm).toHaveBeenCalledTimes(1)
+  })
+
+  it('sin `preparacion`, usa las del chico (deps.preparaciones): un alimento seguro observado fuera del catálogo sirve', async () => {
+    const caseras = { ...CANDIDATO_PAPAS, desdeId: 'papas_fritas_caseras', camino: { ...CANDIDATO_PAPAS.camino, desde: 'Papas fritas caseras' } }
+    const pedidas: string[] = []
+    responde(SALIDA_PAPAS)
+    const r = await pedir({
+      preparacion: undefined,
+      armarEvidencia: async () => ({ ...EVIDENCIA, candidatos: [caseras] }),
+      preparaciones: async (ninoId) => {
+        pedidas.push(ninoId)
+        return (id) => (id === 'papas_fritas_caseras' ? { ...prep('papas_fritas_baston'), id, nombre: 'Papas fritas caseras' } : preparacion(id))
+      },
+    })
+    expect(pedidas).toEqual(['tomas'])
+    expect(r.desde).toEqual({ preparacionId: 'papas_fritas_caseras', nombre: 'Papas fritas caseras' })
+    expect(r.validacion.ok).toBe(true)
+  })
+
+  it('si las del chico no lo tienen completo, el candidato se descarta como antes, sin llamar al LLM', async () => {
+    const caseras = { ...CANDIDATO_PAPAS, desdeId: 'papas_fritas_caseras' }
+    const e = await errorDe(pedir({
+      preparacion: undefined,
+      armarEvidencia: async () => ({ ...EVIDENCIA, candidatos: [caseras] }),
+      preparaciones: async () => preparacion,
+    }))
+    expect(e.codigo).toBe('sin_candidatos')
+    expect((e.detalle as { descartes: { problemas: string[] }[] }).descartes[0].problemas[0]).toContain('su alimento de partida (papas_fritas_caseras)')
+    expect(llm).not.toHaveBeenCalled()
+  })
+
+  it('con `preparacion`, deps.preparaciones no se llama', async () => {
+    let llamada = false
+    responde(SALIDA_QUESO)
+    await pedir({ preparaciones: async () => { llamada = true; return preparacion } })
+    expect(llamada).toBe(false)
   })
 
   it('pasados 30 s no arranca otra llamada: timeout', async () => {

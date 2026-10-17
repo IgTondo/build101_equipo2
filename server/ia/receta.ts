@@ -35,7 +35,10 @@ export const esquemaRecetaReq = z.object({
 export interface DepsReceta {
   armarEvidencia: (ninoId: string, nutriente?: Nutriente) => Promise<Evidencia>  // B · server/grafo/evidencia.ts
   perfil: (ninoId: string) => Promise<Perfil>          // B · el de GET /api/perfil: alergias, reglas con condiciones y lo que acepta
-  preparacion?: (id: string) => PreparacionCatalogo | undefined  // por defecto, preparacionCatalogo()
+  preparacion?: (id: string) => PreparacionCatalogo | undefined  // sync, para los tests y la eval; si está, gana
+  // Las del chico: el catálogo y lo que comió fuera de él, si está completo (preparacionesDe() de server/ia/candidato.ts).
+  // Sin ninguna de las dos, preparacionCatalogo().
+  preparaciones?: (ninoId: string) => Promise<(id: string) => PreparacionCatalogo | undefined>
   ahora?: () => number                                 // reloj, para los tests del tope de tiempo
   alIntentar?: (intento: IntentoReceta) => void        // cada salida del LLM con sus problemas, para la eval de recetas (A12)
   // La tarjeta "Más nutritiva" puede pedir un candidato que no está entre los 3 de la evidencia: se busca solo en ese
@@ -152,9 +155,13 @@ function registrar(datos: Record<string, unknown>, aviso = false) {
 // ---------- Orquestación ----------
 export async function generarReceta(req: RecetaReq, deps: DepsReceta): Promise<Receta> {
   const ahora = deps.ahora ?? Date.now
-  const preparacion = deps.preparacion ?? preparacionCatalogo
   const t0 = ahora()
-  const [paquete, perfil] = await Promise.all([deps.armarEvidencia(req.ninoId, req.nutriente), deps.perfil(req.ninoId)])
+  const [paquete, perfil, delNino] = await Promise.all([
+    deps.armarEvidencia(req.ninoId, req.nutriente),
+    deps.perfil(req.ninoId),
+    deps.preparacion ? undefined : deps.preparaciones?.(req.ninoId),
+  ])
+  const preparacion = deps.preparacion ?? delNino ?? preparacionCatalogo
   let evidencia = paquete
   const pedido = req.preparacionId
   if (pedido && deps.candidato && !evidencia.candidatos.some((c) => c.preparacionId === pedido)) {
