@@ -70,6 +70,22 @@ p { margin: 0 0 0.75rem; }
 .nb-vacio { text-align: center; }
 .nb-botones { display: flex; flex-direction: column; gap: 10px; }
 
+/* "Ver más": el detalle detrás de un <details>, para que cada bloque muestre solo lo principal. */
+.nb-ver-mas > summary {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+  color: var(--nb-primario); font-weight: 700; cursor: pointer; list-style: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.nb-ver-mas > summary::-webkit-details-marker { display: none; }
+.nb-ver-mas > summary::after {
+  content: ''; width: 7px; height: 7px; margin-top: -4px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(45deg); transition: transform 160ms ease-out, margin-top 160ms ease-out;
+}
+.nb-ver-mas[open] > summary::after { transform: rotate(-135deg); margin-top: 4px; }
+.nb-ver-mas > :not(summary) { text-wrap: pretty; }
+@media (prefers-reduced-motion: reduce) { .nb-ver-mas > summary::after { transition: none; } }
+
 /* Aviso global de datos de ejemplo (endpoints que todavía responden con fixture) */
 .nb-aviso-ejemplo {
   margin: 0; padding: 8px 12px; border-radius: var(--nb-radio-chico);

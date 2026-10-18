@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Progreso, Sugerencia } from '../../shared/contratos'
 import progresoFixture from '../../fixtures/progreso.json'
 import {
-  comidaRecienPorHora, comidasDelDia, elegirSugerencia, encaja, primeraFrase, proximaComida, rutaRecetaComida, sugerenciasDe,
+  comidaRecienPorHora, comidasDelDia, elegirSugerencia, encaja, lineaPorQue, primeraFrase, proximaComida, rutaRecetaComida, sugerenciasDe,
   type ComidaDelDia,
 } from './proximaComida'
 
@@ -112,6 +112,11 @@ describe('textos y rutas', () => {
   it('primeraFrase deja una línea', () => {
     expect(primeraFrase('Se parece a sus papas: cambia solo el ingrediente. Ya los vio 5 veces')).toBe('Se parece a sus papas: cambia solo el ingrediente.')
     expect(primeraFrase('La come 14 de cada 14 veces')).toBe('La come 14 de cada 14 veces.')
+  })
+
+  it('lineaPorQue deja lo principal en una línea', () => {
+    expect(lineaPorQue('Se parece a sus papas: cambia solo el ingrediente. Ya los vio 5 veces')).toBe('Se parece a sus papas.')
+    expect(lineaPorQue('La come 14 de cada 14 veces y aporta 232 mg de calcio por porción')).toBe('La come 14 de cada 14 veces y aporta 232 mg de calcio por porción.')
   })
 
   it('la receta lleva el candidato, el nutriente y la comida', () => {

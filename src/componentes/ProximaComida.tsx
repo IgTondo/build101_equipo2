@@ -3,7 +3,7 @@
 // servir otra cosa. Una sugerencia "segura" (algo que ya come) no abre receta: se muestra sin enlace.
 import { Link } from 'react-router-dom'
 import type { Nutriente, Progreso } from '../../shared/contratos'
-import { elegirSugerencia, primeraFrase, rutaRecetaComida, type ProximaComida } from '../lib/proximaComida'
+import { elegirSugerencia, lineaPorQue, rutaRecetaComida, type ProximaComida } from '../lib/proximaComida'
 import { Cargando } from './Estados'
 import './proxima-comida.css'
 
@@ -32,12 +32,12 @@ export function TarjetaProximaComida({ ninoId, proxima, progreso }: Props) {
     return (
       <section className="pc pc-quieta">
         {titulo}{cuando}
-        <p className="pc-porque">Todavía no tenemos una sugerencia. Con algunas comidas más registradas vamos a poder proponerte una.</p>
+        <p className="pc-porque">Todavía sin idea: registrá algunas comidas más.</p>
       </section>
     )
   }
 
-  const porQue = s.porQue ? <span className="pc-porque">{primeraFrase(s.porQue)}</span> : null
+  const porQue = s.porQue ? <span className="pc-porque">{lineaPorQue(s.porQue)}</span> : null
   if (s.tipo === 'segura') {
     return (
       <section className="pc pc-quieta">

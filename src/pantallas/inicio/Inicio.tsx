@@ -4,7 +4,7 @@
 // Un solo pedido a /api/progreso (7 días, con ?momento= de la próxima comida) y el perfil en paralelo, solo por el nombre.
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import type { Alerta } from '../../../shared/contratos'
+import { AvisoConsulta } from '../../componentes/AvisoConsulta'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { TarjetaProximaComida } from '../../componentes/ProximaComida'
@@ -57,21 +57,10 @@ export function Inicio() {
         <IconoCamara /> Registrar comida
       </Link>
 
-      {datos && datos.alertas.length > 0 && <Alertas alertas={datos.alertas} />}
+      {datos && <AvisoConsulta alertas={datos.alertas} />}
 
       <Link className="in-semana-link" to={{ pathname: '/tablero', search }}>Ver la semana</Link>
     </div>
-  )
-}
-
-/** Un aviso chico y calmo: derivar al profesional, sin alarmar (§10.4). */
-function Alertas({ alertas }: { alertas: Alerta[] }) {
-  return (
-    <section className="in-alertas" aria-label="Para comentar con su pediatra">
-      <ul>
-        {alertas.map((a, i) => <li key={`${a.tipo}-${i}`}>{a.texto}</li>)}
-      </ul>
-    </section>
   )
 }
 

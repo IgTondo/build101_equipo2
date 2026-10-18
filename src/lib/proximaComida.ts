@@ -125,6 +125,17 @@ export function primeraFrase(texto: string): string {
   return `${frase}.`
 }
 
+/**
+ * Una línea para la tarjeta de la próxima comida: la primera oración y, si tiene "dos puntos", lo de antes
+ * ("Se parece a sus papas al horno en bastones: cambia solo el ingrediente. Ya los vio…" → "Se parece a sus papas
+ * al horno en bastones."). El porqué completo está en la receta.
+ */
+export function lineaPorQue(texto: string): string {
+  const frase = primeraFrase(texto).replace(/\.$/, '')
+  const i = frase.indexOf(': ')
+  return `${i > 0 ? frase.slice(0, i) : frase}.`
+}
+
 /** La receta de la próxima comida: el candidato elegido, el nutriente que más falta y la comida. */
 export function rutaRecetaComida(ninoId: string, s: Sugerencia, momento: Principal, nutriente?: string): string {
   const p = new URLSearchParams({ nino: ninoId, preparacionId: s.candidato?.preparacionId ?? s.preparacionId })
