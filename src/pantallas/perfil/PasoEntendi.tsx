@@ -61,7 +61,6 @@ export function PasoEntendiendo({ texto, datos, alListo, alPedirDatos, alVolver 
   return (
     <div className="nb-tarjeta pf-progreso">
       <Cargando texto={ETAPAS[etapa]} />
-      <p className="pf-ayuda">Suele tardar unos segundos.</p>
     </div>
   )
 }
@@ -142,7 +141,6 @@ export function PasoEntendi({ borrador: b, setBorrador, alta, setAlta, extraidos
 
   return (
     <div className="pf-form">
-      <p>Esto es lo que entendimos. Revisalo y cambiá lo que no esté bien: vos lo conocés mejor que nadie.</p>
       {pendiente && <p className="pf-aviso-suave">No nos contaste {pendiente}. Completalo acá abajo.</p>}
 
       <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-datos">
@@ -193,7 +191,6 @@ export function PasoEntendi({ borrador: b, setBorrador, alta, setAlta, extraidos
 
         <fieldset className="pf-grupo">
           <legend>¿Algo de esto pasa con {nombre}?</legend>
-          <p className="pf-ayuda">Marcá solo lo que corresponda. Nos ayuda a avisarte cuándo conviene consultar.</p>
           <div className="pf-chips pf-chips-columna">
             {SENALES.map((s) => (
               <ChipAlternar key={s} activo={f.alertas.includes(s)} alTocar={() => cambiar('alertas', alternarSenal(f.alertas, s))}>
@@ -223,7 +220,7 @@ export function PasoEntendi({ borrador: b, setBorrador, alta, setAlta, extraidos
       <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-acepta">
         <h2 id="pf-t-acepta" ref={refTitulos.acepta} tabIndex={-1}>Lo que come seguro</h2>
         {b.acepta.length === 0 && (
-          <p className="pf-ayuda">No encontramos alimentos seguros en lo que contaste. Sumá al menos uno: es el punto de partida de lo que te vamos a sugerir.</p>
+          <p className="pf-ayuda">No encontramos alimentos seguros en lo que contaste. Sumá al menos uno.</p>
         )}
         <ul className="pf-lista">
           {b.acepta.map((a, i) => (
@@ -243,7 +240,7 @@ export function PasoEntendi({ borrador: b, setBorrador, alta, setAlta, extraidos
 
       <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-rechaza">
         <h2 id="pf-t-rechaza" ref={refTitulos.rechaza} tabIndex={-1}>Lo que por ahora no come</h2>
-        {b.rechaza.length === 0 && <p className="pf-ayuda">No mencionaste nada. Si hay algo, sumalo acá; si no, podés seguir.</p>}
+        {b.rechaza.length === 0 && <p className="pf-ayuda">No mencionaste nada. Es opcional.</p>}
         <ul className="pf-lista">
           {b.rechaza.map((r, i) => (
             <FilaRechaza
@@ -258,7 +255,7 @@ export function PasoEntendi({ borrador: b, setBorrador, alta, setAlta, extraidos
 
       <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-reglas">
         <h2 id="pf-t-reglas" ref={refTitulos.reglas} tabIndex={-1}>Sus reglas</h2>
-        {b.reglas.length === 0 && <p className="pf-ayuda">No encontramos reglas. Si las hay, como “que no se toquen”, sumalas.</p>}
+        {b.reglas.length === 0 && <p className="pf-ayuda">No encontramos reglas. Es opcional.</p>}
         <ul className="pf-lista">
           {b.reglas.map((r, i) => (
             <Fila key={`${i}:${clave(r.texto)}`} acciones={<BotonQuitar que={r.texto} alQuitar={() => quitando('reglas', quitarRegla(b, i))} />}>

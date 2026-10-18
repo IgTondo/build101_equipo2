@@ -29,7 +29,6 @@ export function Evolucion({ semanas, nutriente }: { semanas: Progreso['semanas']
   return (
     <section className="nb-tarjeta tb-seccion" aria-labelledby={`${id}-t`}>
       <h2 id={`${id}-t`}>Cómo viene</h2>
-      <p className="nb-suave tb-bajada">Cobertura de cada semana, de lo recomendado. El promedio cuenta cada nutriente hasta el 100%.</p>
       <div className="tb-multiples">
         {series.map((s) => <Columnas key={s.titulo} serie={s} etiquetas={etiquetas} />)}
       </div>

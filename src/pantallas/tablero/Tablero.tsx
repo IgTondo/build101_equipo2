@@ -82,7 +82,6 @@ export function Tablero() {
       <>
         <h1 className="tb-titulo">¿Está comiendo bien?</h1>
         <Vacio titulo="Todavía no hay comidas registradas">
-          <p className="nb-suave">Registrá la primera comida: con una foto y cómo le fue, acá vas a ver qué nutrientes le llegan y qué probar después.</p>
           <Link className="nb-boton" to={`/registrar${conNino}`}>Registrar la primera comida</Link>
         </Vacio>
       </>

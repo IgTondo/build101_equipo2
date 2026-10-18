@@ -86,9 +86,7 @@ export function PerfilNuevo() {
       <header className="pf-encabezado">
         {NUMERO[paso] > 0 && (
           <>
-            <p className="pf-paso nb-suave">
-              Paso <span className="nb-numero">{NUMERO[paso]}</span> de {TOTAL}
-            </p>
+            <p className="nb-oculto">Paso {NUMERO[paso]} de {TOTAL}</p>
             <div className="pf-barra" style={{ gridTemplateColumns: `repeat(${TOTAL}, 1fr)` }} aria-hidden="true">
               {Array.from({ length: TOTAL }, (_, i) => <span key={i} data-hecho={i < NUMERO[paso] || undefined} />)}
             </div>
@@ -99,10 +97,7 @@ export function PerfilNuevo() {
 
       {paso === 'bienvenida' && (
         <div className="pf-form pf-bienvenida">
-          <p className="pf-bajada">Con lo que nos cuentes, Nibble arma su perfil. Después lo corregís.</p>
-          <p className="nb-suave">
-            Contalo con tus palabras, como se lo contarías a su pediatra: en un audio de hasta 3 minutos o por escrito.
-          </p>
+          <p className="pf-bajada">Contalo como se lo contarías a su pediatra, en un audio de hasta 3 minutos o por escrito.</p>
           <button type="button" className="nb-boton" onClick={() => setPaso('relato')}>Empezar</button>
         </div>
       )}
@@ -117,7 +112,6 @@ export function PerfilNuevo() {
       )}
       {paso === 'datos' && (
         <>
-          <p>Para entender lo que contaste necesitamos primero sus datos básicos. Es un minuto.</p>
           <PasoDatos
             form={formManual} setForm={setFormManual} textoSeguir="Seguir" compacto
             alSeguir={(d) => { setDatosManuales(d); setPaso('entendiendo') }}

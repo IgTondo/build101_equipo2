@@ -79,7 +79,7 @@ export function PasoRelato({ texto, setTexto, alSeguir, alVolver }: Props) {
     <div className="pf-form">
       <section className="pf-guia" data-grabando={grabando || undefined} aria-labelledby={`${id}-guia`}>
         <h2 id={`${id}-guia`} className="pf-guia-titulo">Lo que nos sirve saber</h2>
-        <p className="pf-ayuda">En el orden que te salga. Lo que no cuentes te lo preguntamos después.</p>
+        <p className="pf-ayuda">En cualquier orden.</p>
         <ul className="pf-guia-lista">
           {GUIA_ALTA.map((item) => <li key={item}>{item}</li>)}
         </ul>
@@ -111,7 +111,7 @@ export function PasoRelato({ texto, setTexto, alSeguir, alVolver }: Props) {
                 <IconoMicrofono /> {hayTexto || noEntendido ? 'Grabar otro audio' : 'Contalo con tu voz'}
               </button>
               <p className="pf-ayuda">
-                Hasta {MAX_SEGUNDOS_ALTA / 60} minutos. {hayTexto ? 'Lo que grabes se suma al texto.' : 'Después podés corregir el texto.'}
+                Hasta {MAX_SEGUNDOS_ALTA / 60} minutos.{hayTexto && ' Lo que grabes se suma al texto.'}
               </p>
             </>
           )}
@@ -133,11 +133,10 @@ export function PasoRelato({ texto, setTexto, alSeguir, alVolver }: Props) {
 
       <div className="pf-campo">
         <label htmlFor={`${id}-texto`}>{sinMicrofono ? 'Contanos de tu hijo' : hayTexto ? 'Lo que contaste' : 'O escribilo acá'}</label>
-        <p id={`${id}-ayuda`} className="pf-ayuda">También funciona el dictado del teclado.</p>
         <textarea
           ref={refTexto} id={`${id}-texto`} className="pf-input pf-textarea" rows={8} value={texto}
           onChange={(e) => { setTexto(e.target.value); if (faltaTexto) setFaltaTexto(false) }}
-          aria-describedby={`${id}-ayuda${faltaTexto ? ` ${id}-error` : ''}`} aria-invalid={faltaTexto || undefined}
+          aria-describedby={faltaTexto ? `${id}-error` : undefined} aria-invalid={faltaTexto || undefined}
           placeholder="Por ejemplo: Se llama Ana, tiene 7 años. Come fideos con manteca…"
         />
         {faltaTexto && <p id={`${id}-error`} className="pf-error">Contanos un poco más para poder armar su perfil.</p>}

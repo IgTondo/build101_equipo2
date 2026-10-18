@@ -13,7 +13,6 @@
 
 /* Encabezado con el paso */
 .pf-encabezado { display: flex; flex-direction: column; gap: 6px; }
-.pf-paso { margin: 0; font-size: 0.9rem; }
 .pf-barra { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .pf-barra span { height: 6px; border-radius: var(--nb-radio-pastilla); background: var(--nb-borde); transition: background-color 200ms ease-out; }
 .pf-barra span[data-hecho] { background: var(--nb-marca); }

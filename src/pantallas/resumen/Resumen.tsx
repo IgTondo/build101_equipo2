@@ -75,7 +75,8 @@ export function Resumen() {
     <>
       <header className="rs-encabezado">
         <h1>Resumen para el nutricionista</h1>
-        <p className="nb-suave">Para llevar a la consulta o mandar por mensaje. {ACLARACION}</p>
+        {/* La aclaración va siempre; si el texto ya la trae, no se repite. */}
+        {!(estado.tipo === 'ok' && estado.datos.datos.texto.includes(ACLARACION)) && <p className="nb-suave">{ACLARACION}</p>}
       </header>
 
       {estado.tipo === 'cargando' && <Cargando texto="Armando el resumen de la semana…" />}
@@ -95,11 +96,11 @@ export function Resumen() {
             </p>
           </article>
           <BotonCopiar texto={estado.datos.datos.texto} destino={textoRef} />
-          <p className="rs-nota">Los números los calcula la app con las comidas que registraste; el texto se redacta usando solo esos números.</p>
+          <p className="rs-nota">El texto se redacta solo con los números de la app.</p>
         </>
       )}
 
-      <Link className="nb-boton nb-boton-secundario" to={{ pathname: '/tablero', search }}>Volver al tablero</Link>
+      <Link className="nb-boton nb-boton-secundario" to={{ pathname: '/tablero', search }}>Volver a la semana</Link>
     </>
   )
 }

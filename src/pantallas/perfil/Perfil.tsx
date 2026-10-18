@@ -83,7 +83,6 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
         {patrones.investigacion.length > 0 && (
           <>
             <h3>De la investigación</h3>
-            <p className="pf-ayuda">Son puntos de partida: se confirman o se descartan con sus propias comidas.</p>
             <ul className="pf-lista-simple">
               {patrones.investigacion.map((p, i) => <li key={i}>{textoParaPadres(p.texto)}</li>)}
             </ul>
@@ -98,9 +97,9 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
           <p className="nb-suave">Todavía no hay comidas registradas. <Link to={`/registrar${nino}`}>Registrá la primera</Link>.</p>
         ) : (
           <>
-            <GrupoPrep titulo="Acepta" ayuda="Lo que come con tranquilidad." lista={prep.acepta} />
-            <GrupoPrep titulo="En proceso" ayuda="Lo está explorando: cada vez que lo mira, lo toca o lo prueba es un avance." lista={prep.enProceso} />
-            <GrupoPrep titulo="Todavía no" ayuda="Por ahora no. Se puede volver a ofrecer más adelante, sin presión." lista={prep.todaviaNo} />
+            <GrupoPrep titulo="Acepta" lista={prep.acepta} />
+            <GrupoPrep titulo="En proceso" lista={prep.enProceso} />
+            <GrupoPrep titulo="Todavía no" lista={prep.todaviaNo} />
           </>
         )}
       </section>
@@ -113,12 +112,11 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
   )
 }
 
-function GrupoPrep({ titulo, ayuda, lista }: { titulo: string; ayuda: string; lista: PerfilT['preparaciones'] }) {
+function GrupoPrep({ titulo, lista }: { titulo: string; lista: PerfilT['preparaciones'] }) {
   if (!lista.length) return null
   return (
     <div className="pf-grupo-prep">
       <h3>{titulo} <span className="pf-cuenta nb-numero">{lista.length}</span></h3>
-      <p className="pf-ayuda">{ayuda}</p>
       <ul className="pf-prep">
         {lista.map((p) => (
           <li key={p.id}>

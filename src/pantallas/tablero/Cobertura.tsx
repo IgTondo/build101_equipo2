@@ -16,10 +16,6 @@ export function Cobertura({ semana, dia }: Props) {
   return (
     <section className="nb-tarjeta tb-seccion" aria-labelledby={`${idBase}-t`}>
       <h2 id={`${idBase}-t`}>Nutrientes de la semana</h2>
-      <p className="nb-suave tb-bajada">
-        Promedio de los últimos 7 días contra lo recomendado para su edad. Marcamos lo que está debajo del 70%.
-        Tocá un nutriente para ver el último día.
-      </p>
 
       <div className="tb-escala" aria-hidden="true">
         <span style={{ left: `${MARCA_100 * 100}%` }}>Lo recomendado</span>
@@ -67,7 +63,6 @@ export function Cobertura({ semana, dia }: Props) {
           <span className="tb-energia-nombre">Energía aproximada</span>
           <strong>{textoEnergia(semana.energiaPromedioKcal)}</strong>
         </p>
-        <p className="nb-suave tb-nota">Es un dato orientativo, sin meta: acá no se cuentan calorías.</p>
       </div>
     </section>
   )
@@ -84,7 +79,6 @@ function DetalleDia({ nutriente: n, dia }: { nutriente: Nutriente; dia: Cobertur
       <span className="nb-numero">{formatoNutriente(n, valor)}</span>
       <span className="nb-suave"> (entre {formatoNutriente(n, dia.consumido.min[n] ?? 0)} y {formatoNutriente(n, dia.consumido.max[n] ?? 0)})</span>
       {objetivo > 0 && <>, el <span className="nb-numero">{porcentaje(dia.cobertura[n] ?? 0)}</span> de {formatoNutriente(n, objetivo)} por día.</>}
-      <span className="tb-nota nb-suave"> Un día solo varía mucho: lo que vale es la semana.</span>
     </p>
   )
 }

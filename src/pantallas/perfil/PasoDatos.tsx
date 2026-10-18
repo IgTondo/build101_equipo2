@@ -94,7 +94,6 @@ export function PasoDatos({ form, setForm, alSeguir, textoSeguir = 'Seguir', com
 
       <fieldset className="pf-grupo">
         <legend>¿Algo de esto pasa con {nombre}?</legend>
-        <p className="pf-ayuda">Marcá solo lo que corresponda. Nos ayuda a avisarte cuándo conviene consultar.</p>
         <div className="pf-chips pf-chips-columna">
           {SENALES.map((s) => (
             <ChipAlternar key={s} activo={form.alertas.includes(s)} alTocar={() => cambiar('alertas', alternarSenal(form.alertas, s))}>

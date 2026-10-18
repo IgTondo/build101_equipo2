@@ -115,7 +115,6 @@ function VistaGrafo({ modelo, conNino }: { modelo: Modelo; conNino: string }) {
     <div className="gf">
       <header className="gf-encabezado">
         <h1>Cómo lo aprendimos</h1>
-        <p className="gf-explicacion">Cada comida que registrás suma líneas: así Nibble aprende qué le gusta y por qué.</p>
       </header>
 
       <section className="nb-tarjeta gf-tarjeta-lienzo" aria-label={`El grafo de ${nombre}`}>
@@ -152,7 +151,7 @@ function VistaGrafo({ modelo, conNino }: { modelo: Modelo; conNino: string }) {
               {cuenta.todaviaNo > 0 && <span><strong className="nb-numero">{cuenta.todaviaNo}</strong> todavía no</span>}
               <span><strong className="nb-numero">{cuenta.patrones}</strong> {cuenta.patrones === 1 ? 'patrón' : 'patrones'}</span>
             </p>
-            <p className="nb-suave gf-ayuda">Tocá un punto del grafo para ver qué sabemos de esa comida, de esa característica o de ese patrón.</p>
+            <p className="nb-suave gf-ayuda">Tocá un punto para ver el detalle.</p>
           </>
         )}
       </section>
@@ -228,7 +227,6 @@ function Detalle({ modelo, nodo, tituloRef, elegir }: { modelo: Modelo; nodo: No
             </ul>
           </>
         )}
-        <p className="gf-pie">La aceptación se recalcula con cada comida, y pesa más lo reciente.</p>
       </>
     )
   }
@@ -238,10 +236,8 @@ function Detalle({ modelo, nodo, tituloRef, elegir }: { modelo: Modelo; nodo: No
       <>
         <p className="gf-tipo">{nodo.investigacion ? 'De la investigación' : 'Patrón que encontramos'}</p>
         {titulo}
-        {nodo.apoyo ? (
+        {nodo.apoyo && (
           <p>Se cumplió en <strong className="nb-numero">{nodo.apoyo.n} de {nodo.apoyo.de}</strong> comidas en las que estuvo.</p>
-        ) : (
-          <p className="nb-suave">Es un punto de partida: se confirma o se descarta con sus propias comidas.</p>
         )}
         <h3>Se fija en</h3>
         <Chips lista={atributosDe(modelo, nodo.id)} elegir={elegir} />

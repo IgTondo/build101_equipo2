@@ -33,12 +33,12 @@ export function Repertorio({ aceptadas, enProceso, repertorioTendencia, grupos, 
             <TendenciaIcono diferencia={repertorioTendencia} />
             {textoTendencia(repertorioTendencia)}
           </p>
-          {enProceso > 0 && <p className="nb-suave tb-nota">Y {enProceso} en camino, que se le están ofreciendo.</p>}
+          {enProceso > 0 && <p className="nb-suave tb-nota">Y {enProceso} en camino.</p>}
         </div>
 
         {visibles.length > 0 && (
           <>
-            <h3 className="tb-subtitulo">Grupos de alimentos</h3>
+            <h3 className="tb-subtitulo">Última vez que comió de cada grupo</h3>
             {frase && <p className="tb-frase-grupo">{frase}.</p>}
             <ul className="tb-grupos">
               {visibles.map((g) => (
@@ -48,14 +48,12 @@ export function Repertorio({ aceptadas, enProceso, repertorioTendencia, grupos, 
                 </li>
               ))}
             </ul>
-            <p className="nb-suave tb-nota">La última vez que comió algo de cada grupo.</p>
           </>
         )}
       </section>
 
       <section className="nb-tarjeta tb-seccion" aria-labelledby={`${id}-e`}>
         <h2 id={`${id}-e`}>Alimentos nuevos en camino</h2>
-        <p className="nb-suave tb-bajada">Cada paso cuenta: dejarlo en el plato, tocarlo, probarlo. Suele hacer falta ofrecerlo de 8 a 15 veces.</p>
         {exposiciones.length === 0 ? (
           <p className="tb-vacio-chico">Todavía no hay alimentos nuevos en camino. Cuando le ofrezcas uno, acá vas a ver cómo avanza.</p>
         ) : (
