@@ -5,11 +5,12 @@ import type { Grupo } from '../../shared/contratos'
 import { glifoAlimento } from '../lib/alimentos'
 import { COLOR_GRUPO } from '../lib/colores'
 
+// El glifo ocupa cerca de la mitad del círculo: algunos emoji (el queso) dibujan ~1,3 veces su tamaño de fuente.
 const TAMANO = {
   sm: 'size-8 text-base',
   md: 'size-11 text-xl',
-  lg: 'size-14 text-3xl',
-  xl: 'size-20 text-5xl',
+  lg: 'size-14 text-[1.75rem]',
+  xl: 'size-20 text-[2.5rem]',
 } as const
 
 const EMOJI = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif'
