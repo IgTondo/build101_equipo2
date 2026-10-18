@@ -127,5 +127,7 @@ Hechos después (corrida 5, `variedad-5-otro-foco.md`: 11 principales en 11 fami
 | Nombres con la comparación ("Milanesa de arvejas al horno, crocante como la de lentejas") | prompt sin comparaciones y `limpiarNombre` sin gastar reintento | en main (7d5edd5) |
 | Casi nunca queso, ni pidiendo calcio | 3 por grupo entre los ricos (entran yogur, leche y queso) y los quesos de plato (muzzarella, fresco, ricota) pueden ser el principal. Simulado con calcio: de 0% a 17–33% en almuerzo y cena | en main (c1dbf5d) |
 | "Pizza con masa de fideos" | `claseDePreparacion`: pastas, masas y panes no son ricos ni se suman; cambiando el principal, solo por otro de su clase. Si no queda con qué cambiar, el foco suma | en main (b8e6ca2) |
-| Separar desayuno y merienda de almuerzo y cena, sin mezclar | franjas estrictas por preparación (no por la hora en que la comió); la fruta como postre es la única excepción | carril receta-foco, en curso |
-| Platos comunes, de cantina o restaurante | prompt y `server/ia/platos-comunes.ts` (tipos de plato por franja, nada hecho con otra preparación como base) | carril comida-comun, en curso |
+| Separar desayuno y merienda de almuerzo y cena, sin mezclar | franjas estrictas por preparación (no por la hora en que la comió); la fruta como postre es la única excepción | en main (a70f547, 50f1eea, 940b811) |
+| Platos comunes, de cantina o restaurante | prompt y `server/ia/platos-comunes.ts` (tipos de plato por franja, nada hecho con otra preparación como base) | en main (046ca0b, 495c2a6, c8271db); de los 55 nombres de las evals viejas rechaza 20, todos rarezas (cremas frías, chips de ñoquis, pizzetas de fideos, milanesa de yogur) |
+
+Falta: una corrida real de `scripts/eval-variedad.ts` con todo esto junto (franjas, platos comunes, quesos), que no se hizo por el cierre.
