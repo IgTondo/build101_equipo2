@@ -1,5 +1,5 @@
 // Funciones puras del tablero (C3): orden, escalas y textos. Sin React, para poder testearlas.
-import { MOTOR, type CoberturaDia, type ComidaResumen, type Grupo, type Motor, type Nutriente, type Nutrientes, type PatronVista, type Progreso } from '../../../shared/contratos'
+import { MOTOR, type CoberturaDia, type ComidaResumen, type Grupo, type Motor, type Nutriente, type Nutrientes, type Progreso } from '../../../shared/contratos'
 import { diaUruguay } from '../../lib/nino'
 import { NUTRIENTES_CON_META } from '../../lib/vocabulario'
 
@@ -65,18 +65,6 @@ export function fraseGrupoAusente(grupos: readonly { grupo: Grupo; diasSinComer:
 
 export function textoVeces(veces: number): string {
   return `Ofrecido ${veces} ${veces === 1 ? 'vez' : 'veces'} de 8 a 15`
-}
-
-export function nivelConfianza(confianza: number): 'alta' | 'media' | 'baja' {
-  if (confianza >= 0.8) return 'alta'
-  if (confianza >= 0.5) return 'media'
-  return 'baja'
-}
-
-/** Patrones: primero lo aprendido de sus comidas, después la investigación; dentro, por evidencia (apoyo × confianza). */
-export function ordenarPatrones(patrones: readonly PatronVista[]): PatronVista[] {
-  const peso = (p: PatronVista) => p.apoyo * p.confianza
-  return [...patrones].sort((a, b) => (a.fuente === b.fuente ? peso(b) - peso(a) : a.fuente === 'aprendido' ? -1 : 1))
 }
 
 export interface ComidaConDia extends ComidaResumen { dia: string }

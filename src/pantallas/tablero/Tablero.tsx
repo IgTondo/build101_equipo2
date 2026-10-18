@@ -1,6 +1,6 @@
 // C3 · Tablero "¿está comiendo bien?" (PLAN.md §1 y §9), de arriba hacia abajo: la frase y las alertas,
 // la cobertura semanal, el próximo paso (con el switch de recomendador de C14), la evolución,
-// repertorio + grupos + exposiciones, y lo que aprendimos + las últimas comidas. C9: cargando, error y vacío.
+// repertorio + grupos + exposiciones y las últimas comidas (lo que aprendimos va, simple, en el Perfil). C9: cargando, error y vacío.
 // Si los últimos 7 días no tienen comidas pero hay historial, se muestra la última semana con registros (`hasta`).
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -10,7 +10,7 @@ import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { diaUruguay, useNinoActivo } from '../../lib/nino'
 import { aErrorDeApi } from '../../lib/useApi'
-import { Aprendimos, UltimasComidas } from './Aprendimos'
+import { UltimasComidas } from './UltimasComidas'
 import { Cobertura } from './Cobertura'
 import { Evolucion } from './Evolucion'
 import { ProximoPaso } from './ProximoPaso'
@@ -129,7 +129,6 @@ export function Tablero() {
         exposiciones={p.exposiciones}
       />
 
-      <Aprendimos patrones={p.patrones} />
       <UltimasComidas dias={p.dias} />
 
       <nav className="tb-acciones" aria-label="Seguir">

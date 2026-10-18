@@ -163,12 +163,9 @@
 .tb-escalon-lleno { background: var(--nb-verde); box-shadow: none; }
 .tb-boton-chico { min-height: 48px; }
 
-/* ---------- Patrones y comidas ---------- */
-.tb-patrones, .tb-comidas { list-style: none; margin: 0; padding: 0; }
-.tb-patrones li { padding: 10px 0; border-bottom: 1px solid var(--nb-borde); }
-.tb-patrones li:last-child, .tb-comidas > li:last-child { border-bottom: 0; }
-.tb-patron-texto { margin: 0 0 4px; text-wrap: pretty; }
-.tb-patron-meta { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 0.85rem; }
+/* ---------- Últimas comidas ---------- */
+.tb-comidas { list-style: none; margin: 0; padding: 0; }
+.tb-comidas > li:last-child { border-bottom: 0; }
 .tb-comidas > li { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--nb-borde); }
 .tb-miniatura {
   flex: none; width: 56px; height: 56px; border-radius: var(--nb-radio-chico); object-fit: cover;

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import type { CoberturaDia, Nutrientes, PatronVista } from '../../../shared/contratos'
+import type { CoberturaDia, Nutrientes } from '../../../shared/contratos'
 import progreso from '../../../fixtures/progreso.json'
 import {
   coberturaPromedio, escalaBarra, etiquetaDia, fechaCorta, fraseGrupoAusente, hayComidas, leerMotor, MARCA_100,
-  nivelConfianza, ordenarNutrientes, ordenarPatrones, rutaReceta, srcMiniatura, textoDiasSinComer, textoEnergia,
+  ordenarNutrientes, rutaReceta, srcMiniatura, textoDiasSinComer, textoEnergia,
   diasEntre, gruposDesdeHoy, sumarDias, textoEvolucion, textoTendencia, textoVeces, ultimasComidas, ultimoDia, ultimoDiaConComidas, valorAtributo,
 } from './calculos'
 
@@ -62,12 +62,9 @@ describe('textos', () => {
     expect(fraseGrupoAusente([{ grupo: 'fruta', diasSinComer: 1 }, { grupo: 'otro', diasSinComer: 40 }])).toBeNull()
     expect(fraseGrupoAusente([{ grupo: 'lacteo', diasSinComer: null }])).toBeNull()
   })
-  it('exposiciones y confianza', () => {
+  it('exposiciones', () => {
     expect(textoVeces(1)).toBe('Ofrecido 1 vez de 8 a 15')
     expect(textoVeces(5)).toBe('Ofrecido 5 veces de 8 a 15')
-    expect(nivelConfianza(0.84)).toBe('alta')
-    expect(nivelConfianza(0.6)).toBe('media')
-    expect(nivelConfianza(0.4)).toBe('baja')
   })
   it('evolución en texto', () => {
     expect(textoEvolucion(0.32, 0.4)).toBe('Subió de 32% a 40%')
@@ -119,16 +116,6 @@ describe('motor y receta', () => {
     expect(rutaReceta('tomas', 'bastones_queso_horno', 'calcio_mg'))
       .toBe('/receta?nino=tomas&preparacionId=bastones_queso_horno&nutriente=calcio_mg')
     expect(rutaReceta('tomas', 'yogur', undefined, 'base')).toBe('/receta?nino=tomas&preparacionId=yogur&motor=base')
-  })
-})
-
-describe('ordenarPatrones', () => {
-  it('lo aprendido primero y, dentro, por evidencia (apoyo × confianza)', () => {
-    const r = ordenarPatrones(progreso.patrones as PatronVista[])
-    expect(r.at(-1)?.fuente).toBe('investigacion')
-    expect(r[0].texto).toBe('Lo crocante servido separado lo acepta')
-    const pesos = r.filter((p) => p.fuente === 'aprendido').map((p) => p.apoyo * p.confianza)
-    expect(pesos).toEqual([...pesos].sort((a, b) => b - a))
   })
 })
 

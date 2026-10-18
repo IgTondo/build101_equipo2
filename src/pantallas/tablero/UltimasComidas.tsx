@@ -1,36 +1,9 @@
-// Lo que aprendimos (patrones del grafo y de la investigación) y las últimas comidas registradas.
+// Las últimas comidas registradas. Lo que aprendimos del chico se muestra, simple, en el Perfil ("Lo que sabemos de…").
 import { useId } from 'react'
-import type { CoberturaDia, PatronVista } from '../../../shared/contratos'
+import type { CoberturaDia } from '../../../shared/contratos'
 import { diaUruguay } from '../../lib/nino'
-import { ESCALON, NOMBRE_MOMENTO, textoParaPadres } from '../../lib/vocabulario'
-import { etiquetaDia, mayuscula, nivelConfianza, ordenarPatrones, srcMiniatura, ultimasComidas } from './calculos'
-
-export function Aprendimos({ patrones }: { patrones: PatronVista[] }) {
-  const id = useId()
-  return (
-    <section className="nb-tarjeta tb-seccion" aria-labelledby={`${id}-t`}>
-      <h2 id={`${id}-t`}>Lo que aprendimos</h2>
-      {patrones.length === 0 ? (
-        <p className="tb-vacio-chico">Con cada comida que registres vamos a ir encontrando qué le gusta y qué no.</p>
-      ) : (
-        <ul className="tb-patrones">
-          {ordenarPatrones(patrones).map((p) => (
-            <li key={p.texto}>
-              <p className="tb-patron-texto">{textoParaPadres(p.texto)}</p>
-              <p className="tb-patron-meta nb-suave">
-                <span className="nb-chip">{p.fuente === 'aprendido' ? 'De sus comidas' : 'De la investigación'}</span>
-                <span>
-                  {p.fuente === 'aprendido' && <>Visto {p.apoyo} {p.apoyo === 1 ? 'vez' : 'veces'} · </>}
-                  Confianza {nivelConfianza(p.confianza)} <span className="nb-numero">({Math.round(p.confianza * 100)}%)</span>
-                </span>
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  )
-}
+import { ESCALON, NOMBRE_MOMENTO } from '../../lib/vocabulario'
+import { etiquetaDia, mayuscula, srcMiniatura, ultimasComidas } from './calculos'
 
 export function UltimasComidas({ dias }: { dias: CoberturaDia[] }) {
   const id = useId()
