@@ -17,4 +17,13 @@ describe('Hoy', () => {
     ] } as unknown as CoberturaDia
     expect(comidasRegistradas(dia)).toBe('Desayuno, almuerzo y merienda')
   })
+
+  it('si se repite una comida, la cuenta en vez de repetirla', () => {
+    const dia = { comidas: [
+      { momento: 'cena', fechaISO: '2026-10-17T21:30:00-03:00' },
+      { momento: 'almuerzo', fechaISO: '2026-10-17T12:30:00-03:00' },
+      { momento: 'cena', fechaISO: '2026-10-17T20:30:00-03:00' },
+    ] } as unknown as CoberturaDia
+    expect(comidasRegistradas(dia)).toBe('Almuerzo y 2 cenas')
+  })
 })
