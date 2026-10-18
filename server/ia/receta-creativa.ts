@@ -35,7 +35,7 @@ import { calcularAporte, cambiosEntre, problemasPorTipo, aplanar, type ContextoV
 import { alimentoPorId, alimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
 import { esPlatoPrincipal, vaEnLaComida } from './momentos.js'
-import { ajustarPorciones, armarPlatoCompleto, completarConLoQueCome, estructuraDe, problemasDelPlato } from './plato-completo.js'
+import { ajustarPorciones, armarPlatoCompleto, completarConLoQueCome, estructuraDe, problemasDelPlato, vaEnLaFranja } from './plato-completo.js'
 import { esquemaSalidaCreativa, promptRecetaCreativa, SISTEMA_RECETA_CREATIVA, type SalidaCreativa } from './prompts/receta-creativa.js'
 import { CORTE_MS, TOPE_NUEVA_LLAMADA_MS, coberturaDeLoQueFalta, sinAlergenos, type IntentoReceta } from './receta.js'
 
@@ -283,12 +283,16 @@ export function problemasDelFoco(receta: Receta, k: ConocimientoReceta, desde: P
 /**
  * v5.10 · Lo principal de lo nuevo (el ingrediente de más gramos) tiene que ir en esa comida: tostadas → ravioles pasa el
  * chequeo de grupo (los dos son cereales), pero los ravioles no son para el desayuno. En modo variedad, si nada del grupo
- * que pide va en esa comida (una verdura en el desayuno), manda el grupo: si no, ninguna receta pasaría.
+ * que pide va en esa comida (una verdura en el desayuno), manda el grupo: si no, ninguna receta pasaría. v5.10 · Por
+ * franja; la fruta entera de postre (rol verdura_fruta) va en las dos. Si el plato entero es de la otra franja (una
+ * milanesa en el desayuno), lo dice problemasDelPlato: acá no se repite.
  */
 export function problemasDelMomento(receta: Receta, k: Conocimiento): string[] {
   const m = k.momento
   const id = principal(receta.ingredientes)
-  if (!m || !id || vaEnLaComida(id, m)) return []
+  const rol = receta.platoCompleto?.componentes.find((c) => c.nuevo)?.rol
+  if (!m || !id || vaEnLaComida(id, m, 'principal', undefined, rol)) return []
+  if (receta.plato && !vaEnLaFranja({ id: receta.preparacionBaseId, nombre: receta.nombre, atributos: receta.plato.atributos, ingredientes: receta.ingredientes }, k, rol)) return []
   const g = k.variedad?.grupo
   if (g && alimentoPorId(id)?.grupo === g && !alimentos().some((a) => a.grupo === g && vaEnLaComida(a.id, m))) return []
   const [el] = ARTICULO[m]

@@ -526,17 +526,25 @@ describe('(v5.10) cada cosa en su comida, y un solo plato principal (server/ia/m
     ingredientes: [{ alimentoId: 'ravioles', gramos: 150 }, { alimentoId: 'manteca', gramos: 5 }, { alimentoId: 'queso_rallado', gramos: 10 }],
   }
 
-  it('en el desayuno nunca ravioles: lo principal de lo nuevo tiene que ir en esa comida (y el reintento lo lee)', () => {
+  it('(v5.10, franjas) ravioles + tostadas no pasan ni en el desayuno ni en la cena, y el problema se dice una vez', () => {
+    // En el desayuno: lo nuevo (los ravioles) es de almuerzo y cena
     const k = conSeguros(conocimiento({ momento: 'desayuno' }), 'tostadas')
     const kd = { ...k, foco: { desdeId: 'tostadas', modo: 'cambiar_principal' as const, nutriente: 'hierro_mg' as const } }
-    const r = completarCreativa({ ...RAVIOLES, desdeId: 'tostadas', atributos: atributosDe(tostadas) }, kd, tostadas)
-    const esperado = /^«Ravioles» no es para el desayuno: lo principal de «Ravioles de ricota con manteca» \(el ingrediente de más gramos\) tiene que ser algo que se come en el desayuno \(un lácteo/
-    expect(problemasDelMomento(r, kd)).toEqual([expect.stringMatching(esperado)])
-    expect(problemasCreativa(r, kd, tostadas, [])).toContainEqual(expect.stringMatching(esperado))
-    // Unas tostadas de pan integral sí son de desayuno; y en la cena, los ravioles van
-    const integrales = completarCreativa({ ...RAVIOLES, nombre: 'Tostadas de pan integral con queso', desdeId: 'tostadas', atributos: atributosDe(tostadas), ingredientes: [{ alimentoId: 'pan_integral', gramos: 50 }, { alimentoId: 'queso_muzzarella', gramos: 20 }] }, kd, tostadas)
-    expect(problemasDelMomento(integrales, kd)).toEqual([])
-    expect(problemasDelMomento(r, { ...kd, momento: 'cena' })).toEqual([])
+    const conTostadas = { ...RAVIOLES, desdeId: 'tostadas', atributos: atributosDe(tostadas), acompanamientos: [{ preparacionId: 'tostadas', rol: 'cereal_pan' as const, gramos: 40 }] }
+    const r = completarCreativa(conTostadas, kd, tostadas)
+    const enElDesayuno = problemasCreativa(r, kd, tostadas, [])
+    expect(enElDesayuno).toContainEqual(expect.stringMatching(/^«Ravioles de ricota con manteca» es de almuerzo y cena y esta comida es desayuno: lo nuevo tiene que ser de desayuno y merienda \(lácteos/))
+    expect(problemasDelMomento(r, kd)).toEqual([]) // ya lo dice el plato: no se repite
+    expect(enElDesayuno.join(' ')).not.toMatch(/no es para el desayuno/)
+    // Unas tostadas de pan integral sí son de desayuno
+    const integrales = completarCreativa({ ...conTostadas, nombre: 'Tostadas de pan integral con queso', acompanamientos: [], ingredientes: [{ alimentoId: 'pan_integral', gramos: 50 }, { alimentoId: 'queso_muzzarella', gramos: 20 }] }, kd, tostadas)
+    expect(problemasCreativa(integrales, kd, tostadas, []).join(' ')).not.toMatch(/es de almuerzo y cena|no es para/)
+
+    // En la cena: los ravioles van, sus tostadas no (ni las suma el código, aunque estén primeras en la lista)
+    const kc = conFoco(conSeguros(conocimiento(), 'tostadas'))
+    expect(otrosDe(completarCreativa(RAVIOLES, kc, papasHorno))).not.toContain('tostadas')
+    const enLaCena = completarCreativa({ ...RAVIOLES, acompanamientos: [{ preparacionId: 'tostadas', rol: 'guarnicion', gramos: 40 }, { preparacionId: 'bastones_zanahoria_horno', rol: 'verdura_fruta', gramos: 60 }] }, kc, papasHorno)
+    expect(problemasCreativa(enLaCena, kc, papasHorno, [])).toContainEqual(`«${tostadas.nombre}» es de desayuno y merienda: en cena no va, las comidas no se mezclan. Completá con lo que ya come de almuerzo y cena (un plato principal, su guarnición (papa, boniato, arroz, polenta, puré) y verduras; nada de desayuno o merienda (pan, tostadas, galletitas, cereales, leche, yogur ni licuados); la fruta entera, solo de postre).`)
   })
 
   it('cena con ravioles nuevos: nunca su pizza en el plato (ni la suma el código ni pasa si la elige el LLM)', () => {
@@ -664,5 +672,72 @@ describe('(v5.10) el nombre dice qué es el plato, sin compararlo con lo que ya 
     responde(PAPAS_CON_QUESO)
     await pedir()
     expect(promptDe(0)).toContain('El nombre dice qué es el plato nuevo, sin nombrar ni comparar con su «Papas al horno en bastones, crocantes» (eso va en porQue).')
+  })
+})
+
+describe('(v5.10) franjas: desayuno y merienda, almuerzo y cena, sin mezclar (server/ia/momentos.ts)', () => {
+  const prep = (id: string) => catalogo.get(id)!
+  const atributosDe = (p: PreparacionCatalogo): SalidaCreativa['atributos'] => ({ ...p.atributos, coccion: p.atributos.coccion ?? 'listo' })
+  const otrosDe = (r: ReturnType<typeof completarCreativa>) => r.platoCompleto!.componentes.filter((c) => !c.nuevo)
+  const conSeguros = (k: Conocimiento, ...ids: string[]): Conocimiento => ({ ...k, seguros: [...ids.map(prep), ...k.seguros.filter((x) => !ids.includes(x.id))] })
+  const deLaOtra = (franja: string) => new RegExp(`es de ${franja}`)
+
+  it('yogur y leche no entran en la cena: ni los suma el código ni pasan si los elige el LLM', () => {
+    const k = conFoco(conSeguros(conocimiento(), 'yogur_vainilla', 'leche_chocolatada'))
+    const r = completarCreativa({ ...PAPAS_CON_QUESO, acompanamientos: [] }, k, papasHorno)
+    for (const id of ['yogur_vainilla', 'leche_chocolatada']) expect(otrosDe(r).map((c) => c.preparacionId)).not.toContain(id)
+    const conYogur = completarCreativa({ ...PAPAS_CON_QUESO, acompanamientos: [...PAPAS_CON_QUESO.acompanamientos!, { preparacionId: 'yogur_vainilla', rol: 'lacteo', gramos: 120 }] }, k, papasHorno)
+    expect(problemasCreativa(conYogur, k, papasHorno, [])).toContainEqual(expect.stringMatching(/^«Yogur de vainilla[^»]*» es de desayuno y merienda: en cena no va, las comidas no se mezclan/))
+  })
+
+  it('en almuerzo y cena el cereal o pan no es pan: sus tostadas o galletitas no van ni de cereal_pan ni de guarnición', () => {
+    const k = conFoco(conSeguros(conocimiento(), 'tostadas', 'galletitas_agua'))
+    for (const rol of ['cereal_pan', 'guarnicion'] as const) {
+      const conPan = completarCreativa({ ...PAPAS_CON_QUESO, acompanamientos: [{ preparacionId: 'tostadas', rol, gramos: 40 }, { preparacionId: 'bastones_zanahoria_horno', rol: 'verdura_fruta', gramos: 60 }] }, k, papasHorno)
+      expect(problemasCreativa(conPan, k, papasHorno, []).join(' '), rol).toMatch(/es de desayuno y merienda: en cena no va/)
+    }
+    expect(otrosDe(completarCreativa({ ...PAPAS_CON_QUESO, acompanamientos: [] }, k, papasHorno)).map((c) => c.rol)).not.toContain('cereal_pan')
+  })
+
+  it('la fruta sí puede ser el postre de la cena: la que ya come completa el plato, aunque no sea un punto de partida', () => {
+    const base = conocimiento()
+    const banana = prep('banana_pisada')
+    // Sin una verdura que ya come para la cena: la fruta que acepta es su postre
+    const k: ConocimientoReceta = { ...base, aceptadas: [...base.aceptadas, banana], foco: FOCO_PAPAS, recientes: [] }
+    expect(k.seguros.map((p) => p.id)).not.toContain('banana_pisada')
+    const r = completarCreativa({ ...PAPAS_CON_QUESO, acompanamientos: [] }, k, papasHorno)
+    expect(otrosDe(r)).toContainEqual(expect.objectContaining({ preparacionId: 'banana_pisada', rol: 'verdura_fruta' }))
+    expect(problemasCreativa(r, k, papasHorno, []).join(' ')).not.toMatch(/es de desayuno y merienda|no está entre lo que ya come/)
+    // La elige el LLM de postre: pasa; de lácteo, no (no es la excepción)
+    const dePostre = completarCreativa({ ...PAPAS_CON_QUESO, acompanamientos: [{ preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 60 }, { preparacionId: 'banana_pisada', rol: 'verdura_fruta', gramos: 80 }] }, k, papasHorno)
+    expect(problemasCreativa(dePostre, k, papasHorno, []).join(' ')).not.toMatch(deLaOtra('desayuno y merienda'))
+    const deLacteo = completarCreativa({ ...PAPAS_CON_QUESO, acompanamientos: [{ preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 60 }, { preparacionId: 'banana_pisada', rol: 'lacteo', gramos: 80 }] }, k, papasHorno)
+    expect(problemasCreativa(deLacteo, k, papasHorno, []).join(' ')).toMatch(deLaOtra('desayuno y merienda'))
+  })
+
+  it('el plato nuevo también: una milanesa en el desayuno o un licuado en la cena no pasan (y con el plato elegido, igual)', () => {
+    const tostadas = prep('tostadas')
+    const kd: ConocimientoReceta = { ...conSeguros(conocimiento({ momento: 'desayuno' }), 'tostadas'), foco: { desdeId: 'tostadas', modo: 'cambiar_principal', nutriente: 'proteina_g' }, recientes: [] }
+    const MILANESA: SalidaCreativa = {
+      ...PAPAS_CON_QUESO, desdeId: 'tostadas', nombre: 'Milanesa de pollo al horno', atributos: atributosDe(tostadas), rol: 'principal', acompanamientos: [],
+      ingredientes: [{ alimentoId: 'pollo', gramos: 110 }, { alimentoId: 'pan_rallado', gramos: 25 }, { alimentoId: 'aceite_girasol', gramos: 5 }],
+    }
+    expect(problemasCreativa(completarCreativa(MILANESA, kd, tostadas), kd, tostadas, [])).toContainEqual(expect.stringMatching(/^«Milanesa de pollo al horno» es de almuerzo y cena y esta comida es desayuno: lo nuevo tiene que ser de desayuno y merienda/))
+
+    const LICUADO: SalidaCreativa = {
+      ...PAPAS_CON_QUESO, nombre: 'Licuado de banana y leche', rol: 'lacteo',
+      ingredientes: [{ alimentoId: 'leche', gramos: 180 }, { alimentoId: 'banana', gramos: 80 }, { alimentoId: 'azucar', gramos: 5 }],
+    }
+    expect(problemasCreativa(completarCreativa(LICUADO, kPapas(), papasHorno), kPapas(), papasHorno, [])).toContainEqual(expect.stringMatching(/^«Licuado de banana y leche» es de desayuno y merienda y esta comida es cena: lo nuevo tiene que ser de almuerzo y cena/))
+
+    // Con el plato elegido: su milanesa del catálogo en el desayuno no pasa
+    const milanesa = prep('milanesa_carne_horno')
+    const candidato = {
+      preparacionId: milanesa.id, nombre: milanesa.nombre, puntaje: 1, camino: { desde: tostadas.nombre, aceptacion: '8/8', atributos: [] },
+      desdeId: tostadas.id, cambio: 'ingrediente' as const, seMantiene: [], patrones: [], aportePorcion: {},
+    }
+    const elegido = { preparacion: milanesa, desde: tostadas, candidato }
+    const r = completarCreativa({ ...MILANESA, nombre: milanesa.nombre, ingredientes: milanesa.ingredientes }, kd, tostadas, elegido)
+    expect(problemasCreativa(r, kd, tostadas, [], undefined, elegido).join(' ')).toMatch(/es de almuerzo y cena y esta comida es desayuno/)
   })
 })
