@@ -2,11 +2,15 @@
 // la completa, según la comida. Un solo alimento nuevo: los demás componentes son cosas que acepta y que van en esa
 // comida (Conocimiento.seguros). El código arma el aporte del plato entero con la tabla y valida la estructura: cuántas
 // cosas, cuánta energía y cuánta proteína para esa comida, y que no haya dos principales.
+// v5.10 · Un solo plato principal por comida (server/ia/momentos.ts, esPlatoPrincipal: pastas, pizza, milanesas, nuggets,
+// hamburguesas, tartas, guisos, carnes), aunque venga de guarnición: salía la pizza al lado de los ravioles nuevos. El
+// cereal o pan del desayuno es pan, tostadas, galletitas o un cereal (esCerealOPan), nunca pizza ni pasta.
 import { CON_META } from '../nutricion/objetivos.js'
 import { NUTRIENTE, type ComponentePlato, type Momento, type Nutrientes, type PlatoCompleto, type PreparacionCatalogo, type RolPlato } from '../../shared/contratos.js'
 import { decimal } from '../aprendizaje/textos.js'
 import type { Conocimiento } from '../grafo/conocimiento.js'
 import { calcularAporte } from '../validacion/receta.js'
+import { esCerealOPan, esPlatoPrincipal } from './momentos.js'
 
 interface Estructura {
   componentes: [number, number]   // cuántas cosas en total, con lo nuevo
@@ -62,7 +66,9 @@ export function textoComidaCompleta(k: Conocimiento): string[] {
   return [
     `La receta es una COMIDA COMPLETA${k.momento ? ` para ${k.momento}` : ''}: ${e.plato}. Son de ${minimoComponentes(k)} a ${e.componentes[1]} cosas en total, contando lo nuevo${minimoComponentes(k) < e.componentes[0] ? ' (come pocas cosas: completá con lo que haya de la lista, sin sumar otro principal)' : ''}.`,
     `Lo nuevo es UNA de esas cosas (en almuerzo y cena, de preferencia el principal: un plato potente, no una guarnición chiquita). El resto se completa con lo que ya come de esta lista (preparacionId, grupo, porción típica):`,
-    ...k.seguros.map((p) => `- ${p.id}: ${p.nombre} · ${p.atributos.grupo} · ~${Math.round(porcionDe(p))} g`),
+    ...k.seguros.map((p) => `- ${p.id}: ${p.nombre} · ${p.atributos.grupo} · ~${Math.round(porcionDe(p))} g${esPlatoPrincipal(p) ? ' · plato principal' : ''}`),
+    // v5.10
+    `Un solo plato principal por comida: pastas, pizza, milanesas, nuggets, hamburguesas, tartas, guisos y carnes lo son aunque vayan al lado (si lo nuevo es uno, de la lista no va ninguno marcado "plato principal").${k.momento && !['almuerzo', 'cena'].includes(k.momento) ? ' El cereal o pan es pan, tostadas, galletitas o un cereal (avena, copos), nunca pizza ni pasta.' : ''}`,
     `El plato entero tiene que tener entre ${Math.round(e.energia[0] * kcal)} y ${Math.round(e.energia[1] * kcal)} kcal${e.proteina ? ` y al menos ${decimal(e.proteina * k.metaDiaria.proteina_g, 0)} g de proteína` : ''} (la app lo calcula con la tabla: ajustá los gramos de cada cosa).`,
   ]
 }
@@ -102,12 +108,18 @@ const ROL_DESAYUNO: Record<string, RolPlato> = {
  * en la cena. Saca lo que no está en su lista o vino sin gramos, y suma de sus alimentos seguros para esa comida lo que
  * falte: en almuerzo y cena un principal con proteína (si lo nuevo no lo es) y una verdura o fruta; después, lo que haya
  * hasta el mínimo. No repite el alimento del que parte lo nuevo si es del mismo tipo (puré con queso + su puré).
+ * v5.10 · Nunca suma un segundo plato principal (si lo nuevo es uno, como los ravioles, viene con rol principal), ni de
+ * guarnición ni de verdura; y el cereal o pan del desayuno es solo pan, tostadas, galletitas o un cereal.
  */
 export function completarConLoQueCome<T extends { preparacionId: string; rol: RolPlato; gramos: number }>(
   nuevo: { rol: RolPlato; grupo: string; desdeId?: string }, acompanamientos: readonly T[], k: Conocimiento,
 ): { preparacionId: string; rol: RolPlato; gramos: number }[] {
   const desayuno = k.momento === 'desayuno' || k.momento === 'merienda' || k.momento === 'colacion'
-  const rolDe = (grupo: string) => (desayuno ? ROL_DESAYUNO : ROL_POR_GRUPO)[grupo] ?? 'guarnicion'
+  const rolDe = (s: PreparacionCatalogo): RolPlato => {
+    if (esPlatoPrincipal(s)) return 'principal'
+    if (desayuno && s.atributos.grupo === 'cereal_almidon' && !esCerealOPan(s)) return 'guarnicion'
+    return (desayuno ? ROL_DESAYUNO : ROL_POR_GRUPO)[s.atributos.grupo] ?? 'guarnicion'
+  }
   const plato: { preparacionId: string; rol: RolPlato; gramos: number }[] = acompanamientos
     .filter((a, i, xs) => a.gramos > 0 && k.seguros.some((s) => s.id === a.preparacionId) && xs.findIndex((x) => x.preparacionId === a.preparacionId) === i)
     .map((a) => ({ preparacionId: a.preparacionId, rol: a.rol, gramos: a.gramos }))
@@ -119,21 +131,30 @@ export function completarConLoQueCome<T extends { preparacionId: string; rol: Ro
   }
   const tomar = (pred: (s: PreparacionCatalogo) => boolean) => disponibles.find((s) => !usados.has(s.id) && pred(s))
   const hayRol = (rol: RolPlato) => nuevo.rol === rol || plato.some((a) => a.rol === rol)
+  // v5.10 · Si ya hay un plato principal (lo nuevo o lo que eligió el LLM), no se suma otro
+  const esPrincipal = (id: string) => { const s = k.seguros.find((x) => x.id === id); return Boolean(s && esPlatoPrincipal(s)) }
+  const hayPrincipal = () => hayRol('principal') || plato.some((a) => esPrincipal(a.preparacionId))
+  const acompana = (s: PreparacionCatalogo) => !esPlatoPrincipal(s)
   if (!desayuno && k.momento) {
-    if (!hayRol('principal')) { const p = tomar((s) => s.atributos.grupo === 'proteina'); if (p) sumar(p, 'principal') }
-    if (!hayRol('verdura_fruta')) { const v = tomar((s) => s.atributos.grupo === 'verdura' || s.atributos.grupo === 'fruta'); if (v) sumar(v, 'verdura_fruta') }
-    if (!hayRol('guarnicion')) { const g = tomar((s) => s.atributos.grupo === 'cereal_almidon'); if (g) sumar(g, 'guarnicion') }
+    if (!hayPrincipal()) { const p = tomar((s) => s.atributos.grupo === 'proteina'); if (p) sumar(p, 'principal') }
+    if (!hayRol('verdura_fruta')) { const v = tomar((s) => (s.atributos.grupo === 'verdura' || s.atributos.grupo === 'fruta') && acompana(s)); if (v) sumar(v, 'verdura_fruta') }
+    if (!hayRol('guarnicion')) { const g = tomar((s) => s.atributos.grupo === 'cereal_almidon' && acompana(s)); if (g) sumar(g, 'guarnicion') }
   } else if (desayuno) {
-    for (const [rol, grupos] of [['lacteo', ['lacteo']], ['cereal_pan', ['cereal_almidon']], ['verdura_fruta', ['fruta', 'verdura']]] as const) {
+    const deRol: Record<'lacteo' | 'cereal_pan' | 'verdura_fruta', (s: PreparacionCatalogo) => boolean> = {
+      lacteo: (s) => s.atributos.grupo === 'lacteo' && acompana(s),
+      cereal_pan: esCerealOPan,
+      verdura_fruta: (s) => (s.atributos.grupo === 'fruta' || s.atributos.grupo === 'verdura') && acompana(s),
+    }
+    for (const rol of ['lacteo', 'cereal_pan', 'verdura_fruta'] as const) {
       if (plato.length + 1 >= estructuraDe(k.momento).componentes[1]) break
-      if (!hayRol(rol)) { const x = tomar((s) => (grupos as readonly string[]).includes(s.atributos.grupo)); if (x) sumar(x, rol) }
+      if (!hayRol(rol)) { const x = tomar(deRol[rol]); if (x) sumar(x, rol) }
     }
   }
   // Hasta el mínimo, con lo que haya que no sea otro principal
   while (plato.length + 1 < minimoComponentes(k)) {
-    const x = tomar((s) => s.atributos.grupo !== 'proteina' || !hayRol('principal'))
+    const x = tomar((s) => acompana(s) || !hayPrincipal())
     if (!x) break
-    sumar(x, rolDe(x.atributos.grupo))
+    sumar(x, rolDe(x))
   }
   return plato
 }
@@ -169,7 +190,7 @@ export function armarPlatoCompleto(
 /** Lo que hace que no sea una comida completa para esa comida. Cada problema vuelve al LLM en el reintento. */
 export function problemasDelPlato(
   plato: PlatoCompleto, acompanamientos: readonly { preparacionId: string; gramos: number }[], k: Conocimiento,
-  op: { elegido?: boolean } = {},
+  op: { elegido?: boolean; nuevo?: Pick<PreparacionCatalogo, 'nombre' | 'atributos' | 'ingredientes'> } = {},
 ): string[] {
   const p: string[] = []
   const e = estructuraDe(k.momento)
@@ -194,7 +215,24 @@ export function problemasDelPlato(
   if (!op.elegido && (k.momento === 'almuerzo' || k.momento === 'cena') && !sumaVerduraOFruta && nuevo && nuevo.rol !== 'principal') {
     p.push(`En ${k.momento} lo nuevo tiene que ser el principal, un plato potente (una proteína: carne, pollo, legumbres, queso…), no una ${NOMBRE_ROL[nuevo.rol]}. Partí de su principal (por ejemplo, su milanesa o sus nuggets) y que lo que ya come sea la guarnición y la verdura.`)
   }
-  if (plato.componentes.filter((c) => c.rol === 'principal').length > 1) p.push('Hay dos principales: lo que ya come completa el plato como guarnición, verdura o fruta, no como otro principal.')
+  // v5.10 · Un solo plato principal por comida, aunque venga de guarnición (la pizza al lado de los ravioles nuevos)
+  const prepDe = (c: ComponentePlato) => (c.nuevo ? op.nuevo : k.seguros.find((s) => s.id === c.preparacionId))
+  const principales = plato.componentes.filter((c) => {
+    const prep = prepDe(c)
+    return c.rol === 'principal' || Boolean(prep && esPlatoPrincipal(prep))
+  })
+  if (principales.length > 1) {
+    const deMas = principales.filter((c) => !c.nuevo)
+    p.push(`Hay dos platos principales (${principales.map((c) => `«${c.nombre}»`).join(' y ')}): una comida lleva uno solo. ${deMas.length < principales.length ? `Sacá ${deMas.map((c) => `«${c.nombre}»`).join(' y ')} y completá` : 'Lo que ya come completa el plato'} con una guarnición (papas, puré, arroz), una verdura o una fruta de lo que ya come, no con otro principal (pastas, pizza, milanesas, nuggets, hamburguesas, tartas, guisos o carnes).`)
+  }
+  // v5.10 · El cereal o pan de lo que ya come: pan, tostadas, galletitas o un cereal
+  const noSonPan = plato.componentes.filter((c) => {
+    const prep = prepDe(c)
+    return !c.nuevo && c.rol === 'cereal_pan' && prep && !esCerealOPan(prep)
+  })
+  if (noSonPan.length) {
+    p.push(`${noSonPan.map((c) => `«${c.nombre}»`).join(' y ')} no ${noSonPan.length === 1 ? 'es' : 'son'} el cereal o pan${para}: ese lugar es para pan, tostadas, galletitas o un cereal (avena, copos), nunca pizza ni pasta.`)
+  }
   const malGramos = acompanamientos.filter((a) => !(a.gramos >= 15 && a.gramos <= 350))
   if (malGramos.length) p.push(`Porciones fuera de lo razonable (de 15 a 350 g): ${malGramos.map((a) => `${a.preparacionId} ${a.gramos} g`).join(', ')}.`)
   const kcal = plato.aporte.energia_kcal

@@ -1,6 +1,7 @@
 // v5.4 · La receta creativa: la base de conocimiento de Tomás (dataset sintético, §10.5) y generarRecetaCreativa() con
 // generarJSON mockeado (ningún test llama a un modelo real).
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { PreparacionCatalogo } from '../../shared/contratos.js'
 import { cargarNino } from '../datos/cargar.js'
 import { alimentosPrueba, catalogoPrueba, comidasSinteticas, ninoDoc, sintetico } from '../datos/prueba/catalogos.js'
 import { conocimientoDe, type Conocimiento, type Foco } from '../grafo/conocimiento.js'
@@ -11,7 +12,9 @@ import { generarJSON } from './modelo.js'
 import type { SalidaCreativa } from './prompts/receta-creativa.js'
 import { calcularAporte } from '../validacion/receta.js'
 import { minimoComponentes } from './plato-completo.js'
-import { armarConocimientoReceta, completarCreativa, generarRecetaCreativa, problemasCreativa, problemasDeCalidad, textoSinSeguros, type ConocimientoReceta, type DepsRecetaCreativa } from './receta-creativa.js'
+import { armarConocimientoReceta, completarCreativa, generarRecetaCreativa, problemasCreativa, problemasDeCalidad, problemasDelMomento, textoSinSeguros, type ConocimientoReceta, type DepsRecetaCreativa } from './receta-creativa.js'
+import { alimentosCatalogo } from '../datos/catalogos.js'
+import { esPlatoPrincipal } from './momentos.js'
 import { CORTE_MS, TOPE_NUEVA_LLAMADA_MS } from './receta.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
@@ -39,7 +42,7 @@ const PAPAS_CON_QUESO: SalidaCreativa = {
   atributos: { ...papasHorno.atributos, coccion: 'horno' },
   imagen: { uno: 'cheesy oven fry', varios: 'cheesy oven fries', aspecto: 'oven-baked potato sticks with golden melted mozzarella on top' },
   rol: 'principal',
-  acompanamientos: [{ preparacionId: 'milanesa_carne_horno', rol: 'guarnicion', gramos: 130 }, { preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 60 }],
+  acompanamientos: [{ preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 60 }, { preparacionId: 'bastones_zanahoria_horno', rol: 'verdura_fruta', gramos: 60 }],
   ingredientes: [{ alimentoId: 'papa', gramos: 120 }, { alimentoId: 'queso_muzzarella', gramos: 35 }, { alimentoId: 'aceite_girasol', gramos: 5 }],
   pasos: ['Cortá las papas en bastones.', 'Pincelalas con aceite.', 'Horneá 25 minutos hasta que estén crocantes.', 'Poné una feta de muzzarella arriba y gratiná 3 minutos.'],
   porQue: 'Parte de sus papas al horno en bastones, que come siempre; cambia solo el ingrediente: se suma muzzarella, que aporta calcio.',
@@ -57,7 +60,11 @@ const PURE_CON_QUESO: SalidaCreativa = {
 // v5.10 · El foco de PAPAS_CON_QUESO: sus papas al horno con muzzarella sumada. El primer intento solo acepta el alimento
 // de partida y el ingrediente del foco, así que los tests que no son del foco lo fijan (y no dependen del sorteo).
 const FOCO_PAPAS: Foco = { desdeId: 'papas_horno_baston', modo: 'sumar_ingrediente', nutriente: 'calcio_mg', ingrediente: 'queso_muzzarella' }
-const conFoco = (k: Conocimiento, foco: Foco = FOCO_PAPAS, recientes: string[] = []): ConocimientoReceta => ({ ...k, foco, recientes })
+// v5.10 · Y con una verdura que ya come: la cena de PAPAS_CON_QUESO es lo nuevo + sus papas fritas + su zanahoria, sin su
+// milanesa (un solo plato principal por comida: antes pasaba con la milanesa "de guarnición")
+const zanahoria = catalogo.get('bastones_zanahoria_horno')!
+const conFoco = (k: Conocimiento, foco: Foco = FOCO_PAPAS, recientes: string[] = []): ConocimientoReceta =>
+  ({ ...k, seguros: [...k.seguros.filter((x) => x.id !== zanahoria.id), zanahoria], foco, recientes })
 const kPapas = () => conFoco(conocimiento())
 
 const responde = (...salidas: SalidaCreativa[]) => {
@@ -260,8 +267,8 @@ describe('(v5.7) la comida completa: lo nuevo + lo que ya come, equilibrado para
     const r = armar({})
     expect(r.platoCompleto?.componentes.map((c) => [c.preparacionId, c.nuevo, c.rol])).toEqual([
       ['nuevo_papas_al_horno_con_queso_gratinado', true, 'principal'],
-      ['milanesa_carne_horno', false, 'guarnicion'],
       ['papas_fritas_baston', false, 'guarnicion'],
+      ['bastones_zanahoria_horno', false, 'verdura_fruta'],
     ])
     expect(r.platoCompleto!.aporte.energia_kcal).toBeGreaterThan(r.aporte.energia_kcal)
     expect(r.platoCompleto!.aporte.proteina_g).toBeGreaterThan(r.aporte.proteina_g)
@@ -279,7 +286,7 @@ describe('(v5.7) la comida completa: lo nuevo + lo que ya come, equilibrado para
 
   it('la energía y la proteína del plato entero tienen que ser las de esa comida', () => {
     // Lo que ya come se ajusta solo a las calorías de la comida (sin gastar un reintento)
-    const chico = [{ preparacionId: 'milanesa_carne_horno', rol: 'guarnicion' as const, gramos: 15 }, { preparacionId: 'papas_fritas_baston', rol: 'guarnicion' as const, gramos: 15 }]
+    const chico = [{ preparacionId: 'papas_fritas_baston', rol: 'guarnicion' as const, gramos: 15 }, { preparacionId: 'bastones_zanahoria_horno', rol: 'verdura_fruta' as const, gramos: 15 }]
     const r = armar({ acompanamientos: chico })
     expect(r.platoCompleto!.componentes.filter((c) => !c.nuevo).every((c) => c.gramos > 15)).toBe(true)
     expect(problemasCreativa(r, k(), papasHorno, []).join(' ')).not.toMatch(/kcal/)
@@ -290,7 +297,7 @@ describe('(v5.7) la comida completa: lo nuevo + lo que ya come, equilibrado para
 
   it('un solo principal y solo cosas que ya come', () => {
     const dos = [{ preparacionId: 'milanesa_carne_horno', rol: 'principal' as const, gramos: 120 }, { preparacionId: 'papas_fritas_baston', rol: 'guarnicion' as const, gramos: 60 }]
-    expect(problemas({ rol: 'principal', acompanamientos: dos }).join(' ')).toMatch(/Hay dos principales/)
+    expect(problemas({ rol: 'principal', acompanamientos: dos }).join(' ')).toMatch(/Hay dos platos principales/)
     // En la cena lo nuevo es el principal (pedido de la familia: platos potentes), no una guarnición
     expect(problemas({ rol: 'guarnicion', acompanamientos: dos }).join(' ')).toMatch(/En cena lo nuevo tiene que ser el principal/)
     const ajeno = [{ preparacionId: 'brocoli_hervido', rol: 'verdura_fruta' as const, gramos: 60 }, { preparacionId: 'milanesa_carne_horno', rol: 'principal' as const, gramos: 120 }]
@@ -402,7 +409,7 @@ describe('(v5.10) el foco es obligatorio en el primer intento; lo que ya usó ha
       desdeId: 'papas_fritas_baston',
       nombre: 'Bastones de boniato fritos con queso rallado',
       atributos: { ...papasFritas.atributos, color: 'naranja', coccion: 'frito' },
-      acompanamientos: [{ preparacionId: 'milanesa_carne_horno', rol: 'guarnicion', gramos: 130 }, { preparacionId: 'papas_horno_baston', rol: 'guarnicion', gramos: 60 }],
+      acompanamientos: [{ preparacionId: 'papas_horno_baston', rol: 'guarnicion', gramos: 60 }, { preparacionId: 'bastones_zanahoria_horno', rol: 'verdura_fruta', gramos: 60 }],
       pasos: ['Pelá el boniato y cortalo en bastones como sus papas.', 'Secalos bien.', 'Freílos hasta que estén crocantes.', 'Espolvoreá el queso rallado y serví.'],
     }
     const conocimientoCon = (...focos: Foco[]) => {
@@ -498,5 +505,87 @@ describe('(v5.10) las recetas que ya vio llegan al conocimiento (para el ingredi
     vi.mocked(cargarNino).mockResolvedValueOnce(cargado)
     await armarConocimientoReceta('tomas', { momento: 'cena', anteriores: ['Medallones de ricota'] })
     expect(vi.mocked(conocimientoDe)).toHaveBeenLastCalledWith(cargado, { momento: 'cena', anteriores: ['Medallones de ricota'] })
+  })
+})
+
+describe('(v5.10) cada cosa en su comida, y un solo plato principal (server/ia/momentos.ts)', () => {
+  // Los ravioles no están en el fixture de alimentos: los del catálogo real
+  beforeAll(() => fijarAlimentos([...alimentos.values(), alimentosCatalogo().get('ravioles')!]))
+  afterAll(() => fijarAlimentos([...alimentos.values()]))
+  const prep = (id: string) => catalogo.get(id)!
+  const tostadas = prep('tostadas')
+  const milanesa = prep('milanesa_carne_horno')
+  const conSeguros = (k: Conocimiento, ...ids: string[]): ConocimientoReceta => ({ ...k, seguros: [...ids.map(prep), ...k.seguros.filter((x) => !ids.includes(x.id))], recientes: [] })
+  const atributosDe = (p: PreparacionCatalogo): SalidaCreativa['atributos'] => ({ ...p.atributos, coccion: p.atributos.coccion ?? 'listo' })
+  const otrosDe = (r: ReturnType<typeof completarCreativa>) => r.platoCompleto!.componentes.filter((c) => !c.nuevo).map((c) => c.preparacionId)
+  const RAVIOLES: SalidaCreativa = {
+    ...PAPAS_CON_QUESO,
+    nombre: 'Ravioles de ricota con manteca',
+    rol: 'guarnicion', // el LLM lo pone de guarnición: igual es el plato principal
+    acompanamientos: [],
+    ingredientes: [{ alimentoId: 'ravioles', gramos: 150 }, { alimentoId: 'manteca', gramos: 5 }, { alimentoId: 'queso_rallado', gramos: 10 }],
+  }
+
+  it('en el desayuno nunca ravioles: lo principal de lo nuevo tiene que ir en esa comida (y el reintento lo lee)', () => {
+    const k = conSeguros(conocimiento({ momento: 'desayuno' }), 'tostadas')
+    const kd = { ...k, foco: { desdeId: 'tostadas', modo: 'cambiar_principal' as const, nutriente: 'hierro_mg' as const } }
+    const r = completarCreativa({ ...RAVIOLES, desdeId: 'tostadas', atributos: atributosDe(tostadas) }, kd, tostadas)
+    const esperado = /^«Ravioles» no es para el desayuno: lo principal de «Ravioles de ricota con manteca» \(el ingrediente de más gramos\) tiene que ser algo que se come en el desayuno \(un lácteo/
+    expect(problemasDelMomento(r, kd)).toEqual([expect.stringMatching(esperado)])
+    expect(problemasCreativa(r, kd, tostadas, [])).toContainEqual(expect.stringMatching(esperado))
+    // Unas tostadas de pan integral sí son de desayuno; y en la cena, los ravioles van
+    const integrales = completarCreativa({ ...RAVIOLES, nombre: 'Tostadas de pan integral con queso', desdeId: 'tostadas', atributos: atributosDe(tostadas), ingredientes: [{ alimentoId: 'pan_integral', gramos: 50 }, { alimentoId: 'queso_muzzarella', gramos: 20 }] }, kd, tostadas)
+    expect(problemasDelMomento(integrales, kd)).toEqual([])
+    expect(problemasDelMomento(r, { ...kd, momento: 'cena' })).toEqual([])
+  })
+
+  it('cena con ravioles nuevos: nunca su pizza en el plato (ni la suma el código ni pasa si la elige el LLM)', () => {
+    // La pizza primero en la lista: antes, el código la tomaba de guarnición
+    const k = conFoco(conSeguros(conocimiento(), 'pizza_muzzarella'))
+    const r = completarCreativa(RAVIOLES, k, papasHorno)
+    expect(r.platoCompleto!.componentes[0]).toMatchObject({ nuevo: true, rol: 'principal' })
+    expect(otrosDe(r)).not.toContain('pizza_muzzarella')
+    expect(otrosDe(r)).not.toContain('milanesa_carne_horno')
+    expect(otrosDe(r).length).toBeGreaterThan(0)
+    expect(problemasCreativa(r, k, papasHorno, []).join(' ')).not.toMatch(/dos platos principales/)
+
+    const conPizza = { ...RAVIOLES, acompanamientos: [{ preparacionId: 'pizza_muzzarella', rol: 'guarnicion' as const, gramos: 100 }, { preparacionId: 'bastones_zanahoria_horno', rol: 'verdura_fruta' as const, gramos: 60 }] }
+    const conLaPizza = completarCreativa(conPizza, k, papasHorno)
+    const pizza = prep('pizza_muzzarella').nombre
+    expect(problemasCreativa(conLaPizza, k, papasHorno, [])).toContainEqual(expect.stringContaining(`Hay dos platos principales («Ravioles de ricota con manteca» y «${pizza}»): una comida lleva uno solo. Sacá «${pizza}» y completá con una guarnición`))
+  })
+
+  it('milanesa nueva: ningún otro principal (ni nuggets, ni hamburguesa, ni pizza, ni fideos)', () => {
+    const principales = ['nuggets_pollo_horno', 'hamburguesa_casera', 'pizza_muzzarella', 'fideos_con_salsa']
+    const k = conFoco(conSeguros(conocimiento(), ...principales), { desdeId: 'milanesa_carne_horno', modo: 'cambiar_principal', nutriente: 'proteina_g', ingrediente: 'pollo' })
+    const MILANESA_POLLO: SalidaCreativa = {
+      ...PAPAS_CON_QUESO,
+      desdeId: 'milanesa_carne_horno',
+      nombre: 'Milanesa de pollo al horno',
+      atributos: atributosDe(milanesa),
+      acompanamientos: [],
+      ingredientes: [{ alimentoId: 'pollo', gramos: 110 }, { alimentoId: 'pan_rallado', gramos: 25 }, { alimentoId: 'leche', gramos: 20 }, { alimentoId: 'aceite_girasol', gramos: 5 }],
+    }
+    const r = completarCreativa(MILANESA_POLLO, k, milanesa)
+    expect(otrosDe(r).length).toBeGreaterThanOrEqual(2)
+    for (const id of otrosDe(r)) expect(esPlatoPrincipal(prep(id)), id).toBe(false)
+    expect(problemasCreativa(r, k, milanesa, []).join(' ')).not.toMatch(/dos platos principales/)
+
+    const conNuggets = completarCreativa({ ...MILANESA_POLLO, acompanamientos: [{ preparacionId: 'nuggets_pollo_horno', rol: 'guarnicion', gramos: 80 }, { preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 60 }] }, k, milanesa)
+    expect(problemasCreativa(conNuggets, k, milanesa, [])).toContainEqual(expect.stringMatching(/^Hay dos platos principales \(«Milanesa de pollo al horno» y «Nuggets de pollo/))
+  })
+
+  it('el cereal o pan del desayuno es pan, tostadas o galletitas: nunca su pizza', () => {
+    const k = { ...conSeguros(conocimiento({ momento: 'merienda' }), 'pizza_muzzarella', 'tostadas', 'yogur_vainilla'), foco: { desdeId: 'yogur_vainilla', modo: 'sumar_ingrediente' as const, nutriente: 'calcio_mg' as const } }
+    const yogur = prep('yogur_vainilla')
+    const YOGUR: SalidaCreativa = {
+      ...PAPAS_CON_QUESO, desdeId: 'yogur_vainilla', nombre: 'Yogur de vainilla con banana pisada', atributos: atributosDe(yogur), rol: 'lacteo', acompanamientos: [],
+      ingredientes: [{ alimentoId: 'yogur', gramos: 150 }, { alimentoId: 'banana', gramos: 50 }],
+    }
+    const r = completarCreativa(YOGUR, k, yogur)
+    expect(r.platoCompleto!.componentes.find((c) => c.rol === 'cereal_pan')?.preparacionId).toBe('tostadas')
+    expect(otrosDe(r)).not.toContain('pizza_muzzarella')
+    const conPizza = completarCreativa({ ...YOGUR, acompanamientos: [{ preparacionId: 'pizza_muzzarella', rol: 'cereal_pan', gramos: 60 }] }, k, yogur)
+    expect(problemasCreativa(conPizza, k, yogur, [])).toContainEqual(`«${prep('pizza_muzzarella').nombre}» no es el cereal o pan para merienda: ese lugar es para pan, tostadas, galletitas o un cereal (avena, copos), nunca pizza ni pasta.`)
   })
 })

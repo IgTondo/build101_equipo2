@@ -17,7 +17,9 @@
 // v5.10 · Hasta 3 intentos: si el primero no pasa, el segundo no relaja el mismo foco: pide otro (el conocimiento evita
 // el alimento de partida y el ingrediente del primero) y también es estricto. Solo si tampoco pasa y no se pasó de
 // TOPE_NUEVA_LLAMADA_MS, el tercero relaja, con los problemas del segundo. Con el plato elegido, el primero y el reintento.
-import type { Alergeno, Candidato, Evidencia, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Receta, RecetaReq } from '../../shared/contratos.js'
+// v5.10 · Lo principal de lo nuevo va en esa comida (server/ia/momentos.ts: nunca ravioles en el desayuno) y, si lo nuevo
+// es un plato principal (pastas, pizza, milanesas…), es el principal de la comida: lo que ya come no suma otro.
+import type { Alergeno, Candidato, Evidencia, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Receta, RecetaReq, RolPlato } from '../../shared/contratos.js'
 import { alimentosProhibidos, limpiarOtras } from '../alergias.js'
 import { DIMENSIONES, cambios, principal } from '../aprendizaje/cadena.js'
 import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, TEXTO_CAMBIO, decimal, slug } from '../aprendizaje/textos.js'
@@ -29,7 +31,8 @@ import { CON_META } from '../nutricion/objetivos.js'
 import { calcularAporte, cambiosEntre, problemasPorTipo, aplanar, type ContextoValidacion } from '../validacion/receta.js'
 import { alimentoPorId, alimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
-import { ajustarPorciones, armarPlatoCompleto, completarConLoQueCome, problemasDelPlato } from './plato-completo.js'
+import { esPlatoPrincipal, vaEnLaComida } from './momentos.js'
+import { ajustarPorciones, armarPlatoCompleto, completarConLoQueCome, estructuraDe, problemasDelPlato } from './plato-completo.js'
 import { esquemaSalidaCreativa, promptRecetaCreativa, SISTEMA_RECETA_CREATIVA, type SalidaCreativa } from './prompts/receta-creativa.js'
 import { CORTE_MS, TOPE_NUEVA_LLAMADA_MS, coberturaDeLoQueFalta, sinAlergenos, type IntentoReceta } from './receta.js'
 
@@ -165,6 +168,8 @@ export function completarCreativa(salida: SalidaCreativa, k: ConocimientoReceta,
     ? { ...elegido.preparacion, nombre: salida.nombre.trim() || elegido.preparacion.nombre, ingredientes: salida.ingredientes.map(({ alimentoId, gramos }) => ({ alimentoId, gramos })) }
     : platoDe(salida)
   const difs = cambiosEntre(desde, base)
+  // v5.10 · Si lo nuevo es un plato principal (unos ravioles, una milanesa), es el principal de la comida, lo declare o no
+  const rol: RolPlato = esPlatoPrincipal(base) ? 'principal' : salida.rol
   const ingredientes = salida.ingredientes.map(({ alimentoId, gramos }) => ({ alimentoId, nombre: alimentoPorId(alimentoId)?.nombre ?? alimentoId, gramos }))
   const aporte = calcularAporte(ingredientes)
   // En modo variedad no hay nutriente pedido: se muestra al que más aporta (v5.5)
@@ -201,8 +206,8 @@ export function completarCreativa(salida: SalidaCreativa, k: ConocimientoReceta,
     evidencia,
     plato: { atributos: elegido ? { ...salida.atributos, ...elegido.preparacion.atributos, coccion: elegido.preparacion.atributos.coccion ?? salida.atributos.coccion } : salida.atributos, imagen: salida.imagen },
     platoCompleto: armarPlatoCompleto(
-      { preparacion: base, rol: salida.rol, aporte },
-      ajustarPorciones(aporte.energia_kcal, completarConLoQueCome({ rol: salida.rol, grupo: base.atributos.grupo, desdeId: desde.id }, salida.acompanamientos ?? [], k), k),
+      { preparacion: base, rol, aporte },
+      ajustarPorciones(aporte.energia_kcal, completarConLoQueCome({ rol, grupo: base.atributos.grupo, desdeId: desde.id }, salida.acompanamientos ?? [], k), k),
       k,
     ),
     objetivo: k.variedad ? { tipo: 'variedad', ...k.variedad } : { tipo: 'nutriente', nutriente: n }, // v5.5
@@ -237,6 +242,22 @@ export function problemasDelFoco(receta: Receta, k: ConocimientoReceta, desde: P
     if (repetidos.length) p.push(`Ya usó ${repetidos.map(nombre).join(' y ')} hace poco (está en las recetas que vio la familia): sumale otro alimento.`)
   }
   return p
+}
+
+/**
+ * v5.10 · Lo principal de lo nuevo (el ingrediente de más gramos) tiene que ir en esa comida: tostadas → ravioles pasa el
+ * chequeo de grupo (los dos son cereales), pero los ravioles no son para el desayuno. En modo variedad, si nada del grupo
+ * que pide va en esa comida (una verdura en el desayuno), manda el grupo: si no, ninguna receta pasaría.
+ */
+export function problemasDelMomento(receta: Receta, k: Conocimiento): string[] {
+  const m = k.momento
+  const id = principal(receta.ingredientes)
+  if (!m || !id || vaEnLaComida(id, m)) return []
+  const g = k.variedad?.grupo
+  if (g && alimentoPorId(id)?.grupo === g && !alimentos().some((a) => a.grupo === g && vaEnLaComida(a.id, m))) return []
+  const [el] = ARTICULO[m]
+  const comida = `${el} ${NOMBRE_MOMENTO[m]}`
+  return [`«${alimentoPorId(id)?.nombre ?? id}» no es para ${comida}: lo principal de «${receta.nombre}» (el ingrediente de más gramos) tiene que ser algo que se come en ${comida} (${estructuraDe(m).plato}). Partí de algo que ya come en ${comida} y cambiá su ingrediente por otro de esa comida.`]
 }
 
 /**
@@ -280,14 +301,14 @@ export function problemasCreativa(
   if (igual) p.push(`«${receta.nombre}» es lo mismo que «${igual.nombre}», que ya come: proponé un plato nuevo.`)
   // v5.9 · Con el plato elegido no se pide que sea otro (repetir la exposición está bien): sí que sea ESE plato
   if (!elegido && anteriores.some((a) => normal(a) === normal(receta.nombre))) p.push(`«${receta.nombre}» ya lo vio la familia: proponé un plato distinto.`)
-  if (!elegido) p.push(...problemasDelFoco(receta, k, desde, relajado)) // v5.10
+  if (!elegido) p.push(...problemasDelFoco(receta, k, desde, relajado), ...problemasDelMomento(receta, k)) // v5.10
   if (elegido) {
     const esperado = principal(elegido.preparacion.ingredientes)
     const tiene = principal(receta.ingredientes)
     if (esperado && tiene !== esperado) p.push(`La receta es de «${elegido.preparacion.nombre}»: su ingrediente principal (el de más gramos) tiene que ser ${alimentoPorId(esperado)?.nombre ?? esperado}, y en la tuya es ${tiene ? alimentoPorId(tiene)?.nombre ?? tiene : 'ninguno'}.`)
   }
   // v5.7 · La comida completa: estructura, energía y proteína del plato entero
-  if (receta.platoCompleto) p.push(...problemasDelPlato(receta.platoCompleto, acompanamientos ?? receta.platoCompleto.componentes.filter((c) => !c.nuevo), k, { elegido: Boolean(elegido) }))
+  if (receta.platoCompleto) p.push(...problemasDelPlato(receta.platoCompleto, acompanamientos ?? receta.platoCompleto.componentes.filter((c) => !c.nuevo), k, { elegido: Boolean(elegido), nuevo: base }))
   return p
 }
 

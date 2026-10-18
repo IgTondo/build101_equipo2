@@ -183,8 +183,11 @@ describe('generarRecetaCreativa en modo variedad', () => {
   })
 
   it('en modo nutriente el objetivo es el nutriente', async () => {
-    const k = conFoco(conocimiento({}, cargadoDe('tomas', 1)), FOCO_PAPAS)
-    responde({ ...PAPAS_CON_QUESO, nutriente: 'calcio_mg', rol: 'principal', acompanamientos: [{ preparacionId: 'milanesa_carne_horno', rol: 'guarnicion', gramos: 110 }, { preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 50 }] })
+    // v5.10 · Con una verdura que ya come: la cena es lo nuevo + sus papas fritas + su zanahoria (un solo plato principal)
+    const zanahoria = catalogo.get('bastones_zanahoria_horno')!
+    const tomasReal = conocimiento({}, cargadoDe('tomas', 1))
+    const k = conFoco({ ...tomasReal, seguros: [...tomasReal.seguros, zanahoria] }, FOCO_PAPAS)
+    responde({ ...PAPAS_CON_QUESO, nutriente: 'calcio_mg', rol: 'principal', acompanamientos: [{ preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 50 }, { preparacionId: 'bastones_zanahoria_horno', rol: 'verdura_fruta', gramos: 60 }] })
     const r = await pedir(k)
     expect(r.objetivo).toEqual({ tipo: 'nutriente', nutriente: 'calcio_mg' })
     expect(r.evidencia.nutriente).toBe('calcio_mg')
