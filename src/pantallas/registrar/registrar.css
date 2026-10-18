@@ -162,7 +162,7 @@
 .rg-guardar { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
 
 /* ---------- Resultado ---------- */
-.rg-guardado h1 { margin-bottom: 4px; }
+.rg-guardado { margin: 0; }
 .rg-alerta { border-left: 4px solid var(--nb-acento); }
 .rg-alerta ul, .rg-aprendi { margin: 0 0 8px; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
 .rg-nutrientes { margin: 8px 0; display: grid; grid-template-columns: 1fr; }
@@ -181,3 +181,12 @@
   .rg *, .rg *::before, .rg *::after { transition-duration: 0ms !important; animation: none !important; }
   .rg .nb-boton:active:not(:disabled) { transform: none; }
 }
+
+/* v5.1 */
+.rg-opcional { font-family: var(--nb-font-texto); font-weight: 400; font-size: 0.9rem; color: var(--nb-texto-suave); }
+.rg-nutrientes-dos { grid-template-columns: 1fr 1fr; column-gap: 20px; }
+.rg-nutrientes-dos .rg-nutriente { flex-direction: column; gap: 0; padding: 6px 0; }
+.rg-nutrientes-dos .rg-nutriente dt { font-size: 0.88rem; color: var(--nb-texto-suave); }
+.rg-nutrientes-dos .rg-nutriente dd { text-align: left; }
+.rg-final { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.rg-final .rg-boton-texto { align-self: center; }

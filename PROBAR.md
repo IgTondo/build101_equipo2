@@ -22,11 +22,12 @@ No hay que instalar nada, y es la única forma de probar la cámara y el micróf
 Tiene que entender 5 cosas que acepta, 2 que rechaza (puré por la textura, arroz con pollo por estar mezclado) y la regla "nada mezclado".
 
 ### B · Registrar una comida (el ciclo principal)
-1. **Registrar** → sacale una foto a un plato de verdad (la del catering sirve).
+1. En el inicio, **Registrar comida** (ya viene marcada la comida que corresponde por la hora) → sacale una foto a un plato de verdad (la del catering sirve).
 2. Tienen que aparecer los alimentos con sus **cajas** sobre la foto. Podés renombrar, borrar o cambiar la porción.
 3. **¿Cómo le fue?** → **Contame cómo le fue** y hablá, por ejemplo: *"Las papas se las comió todas; la milanesa la probó y la dejó; estuvo tranquilo"*. Los botones se marcan solos y cada uno muestra la frase que dijiste. Lo que no nombraste queda sin marcar.
-4. **Guardar** → nutrientes con su rango y **"Qué aprendí"**.
-5. **Ver cómo viene** → el tablero tiene que mostrar la comida en "Últimas comidas" ("Hoy · Cena").
+4. **Guardar** → nutrientes con su rango, **"Qué aprendí"** y al final la **próxima comida** (después del almuerzo, "Para la cena").
+5. **Volver al inicio** → "Hoy" tiene que contar la comida (las barras del día y "Desayuno y almuerzo") y el botón grande sugiere la comida que sigue. Tocalo: abre la receta "Para la cena".
+6. **Semana** (abajo) → el tablero completo tiene que mostrar la comida en "Últimas comidas" ("Hoy · Almuerzo").
 
 ### C · Tablero, receta, grafo y resumen (con datos ya cargados)
 Los chicos sintéticos del dataset (§10.5, simulación declarada) tienen 20 comidas cada uno:

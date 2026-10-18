@@ -2,10 +2,12 @@
 // "¿cómo le fue?" (voz o botones) → guardar → resultado. Una sola pantalla con una máquina de pasos.
 // Nada se guarda sin que el padre confirme (§9).
 import { useEffect, useRef, useState } from 'react'
-import { MOMENTO, type Momento, type RegistrarComidaRes } from '../../../shared/contratos'
+import { useSearchParams } from 'react-router-dom'
+import { MOMENTO, type Momento, type RegistrarComidaReq, type RegistrarComidaRes } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { diaUruguay, useNinoActivo } from '../../lib/nino'
+import { guardarUltimaComida } from '../../lib/proximaComida'
 import { aErrorDeApi } from '../../lib/useApi'
 import { NOMBRE_MOMENTO } from '../../lib/vocabulario'
 import { ChipsConducta, EscaleraItem, PreguntaIA } from './Escalera'
@@ -13,7 +15,7 @@ import { estaMovida, prepararFoto, type FotoLista } from './imagen'
 import { FotoConCajas, ListaItems } from './Items'
 import {
   analisisEditado, aplicarRelato, armarRegistro, borradorInicial, faltanMarcar, horaUruguay, itemsVivos,
-  marcarCuanto, marcarMotivo, momentoPorHora, preguntasVivas, puedeGuardar, type Borrador, type ItemEdit,
+  marcarCuanto, marcarMotivo, momentoDeUrl, momentoPorHora, preguntasVivas, puedeGuardar, type Borrador, type ItemEdit,
 } from './modelo'
 import { NotaDeVoz } from './NotaDeVoz'
 import { Resultado } from './Resultado'
@@ -28,7 +30,7 @@ type Paso =
   | { tipo: 'sin_comida' }
   | { tipo: 'items' }
   | { tipo: 'como' }
-  | { tipo: 'resultado'; res: RegistrarComidaRes }
+  | { tipo: 'resultado'; res: RegistrarComidaRes; req: RegistrarComidaReq }
 
 function IconoCamara() {
   return (
@@ -41,8 +43,11 @@ function IconoCamara() {
 
 export function Registrar() {
   const ninoId = useNinoActivo()
+  const [params] = useSearchParams()
+  // La comida que acaba de terminar: la manda el inicio en ?momento= (v5.1); si no, por la hora.
+  const momentoInicial = () => momentoDeUrl(params.get('momento')) ?? momentoPorHora(horaUruguay())
   const [paso, setPaso] = useState<Paso>({ tipo: 'foto' })
-  const [momento, setMomento] = useState<Momento>(() => momentoPorHora(horaUruguay()))
+  const [momento, setMomento] = useState<Momento>(momentoInicial)
   const [foto, setFoto] = useState<FotoLista | null>(null)
   const [errorFoto, setErrorFoto] = useState<string | null>(null)
   const [borrador, setBorrador] = useState<Borrador | null>(null)
@@ -119,7 +124,8 @@ export function Registrar() {
     try {
       const res = await api.registrarComida(req, senal)
       if (senal.aborted) return
-      setPaso({ tipo: 'resultado', res })
+      guardarUltimaComida(ninoId, { id: res.comidaId, dia: req.dia, momento: req.momento, fechaISO: req.fechaISO })
+      setPaso({ tipo: 'resultado', res, req })
     } catch (e) {
       if (!senal.aborted) setErrorGuardar(aErrorDeApi(e))
     } finally {
@@ -152,7 +158,6 @@ export function Registrar() {
       {paso.tipo === 'foto' && (
         <section className="rg-paso" aria-labelledby="rg-t-foto">
           <h1 id="rg-t-foto" tabIndex={-1} data-foco>Registrar una comida</h1>
-          <p className="nb-suave">Sacale una foto al plato que le serviste. Después nos contás cómo le fue.</p>
           <fieldset className="rg-grupo">
             <legend className="rg-leyenda">¿Qué comida es?</legend>
             <div className="rg-chips">
@@ -223,7 +228,6 @@ export function Registrar() {
       {paso.tipo === 'items' && borrador && foto && (
         <section className="rg-paso" aria-labelledby="rg-t-items">
           <h1 id="rg-t-items" tabIndex={-1} data-foco>¿Esto le serviste?</h1>
-          <p className="nb-suave">Corregí lo que no esté bien. Nada se guarda hasta que lo confirmes.</p>
           <FotoConCajas src={foto.dataUrl} items={borrador.items} original={borrador.analisis.items} />
           <ListaItems items={borrador.items} original={borrador.analisis.items} alCambiar={cambiarItem} />
           {itemsVivos(borrador).length === 0 ? (
@@ -252,7 +256,7 @@ export function Registrar() {
         />
       )}
 
-      {paso.tipo === 'resultado' && <Resultado res={paso.res} alOtra={otra} />}
+      {paso.tipo === 'resultado' && <Resultado ninoId={ninoId} res={paso.res} req={paso.req} alOtra={otra} />}
     </div>
   )
 }
@@ -275,10 +279,6 @@ function PasoComo({ ninoId, borrador, setBorrador, guardando, errorGuardar, alGu
   return (
     <section className="rg-paso" aria-labelledby="rg-t-como">
       <h1 id="rg-t-como" tabIndex={-1} data-foco>¿Cómo le fue?</h1>
-      <p className="nb-suave">
-        Contalo con una nota de voz y marcamos los botones por vos, o tocalos directamente.
-        Lo dejó en el plato, lo tocó, lo probó: todo cuenta.
-      </p>
 
       <NotaDeVoz
         ninoId={ninoId}
@@ -309,8 +309,7 @@ function PasoComo({ ninoId, borrador, setBorrador, guardando, errorGuardar, alGu
 
       {preguntas.length > 0 && (
         <section className="nb-tarjeta rg-preguntas" aria-labelledby="rg-t-preg">
-          <h2 id="rg-t-preg">Unas preguntas</h2>
-          <p className="rg-pista">Nos ayudan a entender mejor el plato. Son opcionales.</p>
+          <h2 id="rg-t-preg">Unas preguntas <span className="rg-opcional">(opcionales)</span></h2>
           {preguntas.map((p) => (
             <PreguntaIA
               key={p.id}
