@@ -1,6 +1,10 @@
+import { cn } from 'cn'
+import { FlaskConical } from 'lucide-react'
 import { useEffect, useSyncExternalStore } from 'react'
-import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
+import { Link, Route, Routes, useLocation } from 'react-router-dom'
 import { ConNino } from './componentes/ConNino'
+import { NavInferior } from './componentes/NavInferior'
+import { TransicionPantalla } from './componentes/TransicionPantalla'
 import { avisoStubs } from './lib/api'
 import { useNino } from './lib/nino'
 import { Estado } from './pantallas/Estado'
@@ -16,11 +20,6 @@ import { Tablero } from './pantallas/tablero/Tablero'
 // Cada pantalla vive en su carpeta de src/pantallas/. La navegación conserva ?nino= (§9). Las que necesitan un chico
 // activo van dentro de <ConNino>: sin chico (la primera vez, §5.2) se va al alta por voz y no se muestra la navegación.
 // v5.1: registrar se abre desde los botones del inicio (la ruta /registrar sigue igual).
-const NAV = [
-  { a: '/', texto: 'Inicio' },
-  { a: '/tablero', texto: 'Semana' },
-  { a: '/perfil', texto: 'Perfil' },
-]
 
 // Cómo se llama cada endpoint para el padre, en el aviso de datos de ejemplo.
 const QUE_ES: Record<string, string> = {
@@ -36,8 +35,9 @@ function AvisoDatosDeEjemplo() {
   if (!lista.length) return null
   const partes = lista.map((e) => QUE_ES[e] ?? e)
   return (
-    <p className="nb-aviso-ejemplo" role="note">
-      <strong>Datos de ejemplo.</strong> Todavía no está conectado: {partes.join(', ')}.
+    <p className="flex items-start gap-2.5 rounded-2xl border border-dashed border-input bg-muted px-3.5 py-2.5 text-sm text-musgo" role="note">
+      <FlaskConical className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      <span><strong className="text-pino">Datos de ejemplo.</strong> Todavía no está conectado: {partes.join(', ')}.</span>
     </p>
   )
 }
@@ -51,35 +51,31 @@ export function App() {
   const navSearch = nino ? `?${new URLSearchParams({ nino, ...(motor ? { motor } : {}) })}` : ''
   useEffect(() => avisoStubs.limpiar(), [pathname])
   return (
-    <div className="nb-app">
-      <header className="nb-cabecera">
-        <Link to={{ pathname: '/', search: navSearch }} aria-label="Nibble, inicio">
-          <img src="/nibble-logo.svg" alt="Nibble" height={32} />
+    <div className="mx-auto flex min-h-dvh w-full max-w-[560px] flex-col">
+      <header className="flex items-center px-5 pt-[max(14px,env(safe-area-inset-top))] pb-1">
+        <Link to={{ pathname: '/', search: navSearch }} aria-label="Nibble, inicio" className="-mx-1.5 rounded-xl px-1.5 py-1">
+          <img src="/nibble-logo.svg" alt="Nibble" className="h-8 w-auto" />
         </Link>
       </header>
-      <main className="nb-contenido">
+      <main className={cn('flex flex-1 flex-col gap-4 px-4 pt-2', hayNino ? 'pb-32' : 'pb-12')}>
         <AvisoDatosDeEjemplo />
-        <Routes>
-          <Route element={<ConNino />}>
-            <Route path="/" element={<Inicio />} />
-            <Route path="/registrar" element={<Registrar />} />
-            <Route path="/tablero" element={<Tablero />} />
-            <Route path="/perfil" element={<Perfil />} />
-            <Route path="/receta" element={<Receta />} />
-            <Route path="/resumen" element={<Resumen />} />
-          </Route>
-          <Route path="/perfil/nuevo" element={<PerfilNuevo />} />
-          <Route path="/estado" element={<Estado />} />
-          <Route path="*" element={<Pendiente titulo="No encontramos esta página" />} />
-        </Routes>
+        <TransicionPantalla>
+          <Routes>
+            <Route element={<ConNino />}>
+              <Route path="/" element={<Inicio />} />
+              <Route path="/registrar" element={<Registrar />} />
+              <Route path="/tablero" element={<Tablero />} />
+              <Route path="/perfil" element={<Perfil />} />
+              <Route path="/receta" element={<Receta />} />
+              <Route path="/resumen" element={<Resumen />} />
+            </Route>
+            <Route path="/perfil/nuevo" element={<PerfilNuevo />} />
+            <Route path="/estado" element={<Estado />} />
+            <Route path="*" element={<Pendiente titulo="No encontramos esta página" />} />
+          </Routes>
+        </TransicionPantalla>
       </main>
-      {hayNino && (
-        <nav className="nb-nav" aria-label="Principal">
-          {NAV.map((n) => (
-            <NavLink key={n.a} to={{ pathname: n.a, search: navSearch }} end={n.a === '/'}>{n.texto}</NavLink>
-          ))}
-        </nav>
-      )}
+      {hayNino && <NavInferior search={navSearch} />}
     </div>
   )
 }

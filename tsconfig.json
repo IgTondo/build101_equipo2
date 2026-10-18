@@ -11,7 +11,9 @@
     "noEmit": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    // Solo para la CLI de shadcn/ui (lee el alias de acá); el front lo usa desde tsconfig.app.json.
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": ["api", "server", "shared", "scripts/**/*.ts", "test", "vite.config.ts"]
 }

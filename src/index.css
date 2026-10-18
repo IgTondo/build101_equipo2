@@ -1,0 +1,192 @@
+/*
+ * Tema de la app: Tailwind v4 + shadcn/ui sobre la marca (brand/GUIA.md). Dirección visual en notas/ui-rediseno.md.
+ * El fondo de la app es BLANCO: la Crema queda para piezas de marca (pitch, impresos), no para la pantalla.
+ * Colores: los de marca más dos familias con significado, los grupos de alimentos y los momentos del día.
+ */
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+:root {
+  /* Marca (brand/tokens/nibble.css) */
+  --nb-verde: #3E9A68;         /* Verde Nibble: logo, rellenos, destacados (no para texto chico) */
+  --nb-verde-hondo: #2E7D52;   /* botones, links, texto verde: 5,0:1 con texto blanco */
+  --nb-verde-noche: #236140;   /* hover y presionado; texto verde sobre Brote (6,6:1) */
+  --nb-pino: #2F5C4B;          /* texto principal (7,6:1 sobre blanco) */
+  --nb-musgo: #5A6E64;         /* texto secundario (5,4:1 sobre blanco) */
+  --nb-hoja: #A6DDB9;          /* rellenos suaves, selección */
+  --nb-brote: #EDF7F0;         /* superficies teñidas */
+  --nb-blanco: #FFFFFF;
+  --nb-zapallo: #F0A673;       /* acento cálido: lo que falta, gráficos, ilustración. NUNCA texto sobre claro */
+  --nb-zapallo-claro: #FDEBDD;
+
+  /* Grupos de alimentos (Grupo de shared/contratos.ts): el color dice de qué grupo es, nunca "bien" o "mal" */
+  --nb-grupo-cereal: #E8B04A;    --nb-grupo-cereal-claro: #FCF1D8;
+  --nb-grupo-proteina: #D9577F;  --nb-grupo-proteina-claro: #FBE6ED;
+  --nb-grupo-verdura: #3E9A68;   --nb-grupo-verdura-claro: #E3F3E9;
+  --nb-grupo-fruta: #EE8F4E;     --nb-grupo-fruta-claro: #FDEADC;
+  --nb-grupo-lacteo: #5FA8D3;    --nb-grupo-lacteo-claro: #E4F1F9;
+  --nb-grupo-otro: #8FA39A;      --nb-grupo-otro-claro: #EEF3F0;
+
+  /* Momentos del día (Momento): el cielo de cada comida */
+  --nb-momento-desayuno: #F2B84B;  --nb-momento-desayuno-claro: #FEF3DA;
+  --nb-momento-almuerzo: #F0A673;  --nb-momento-almuerzo-claro: #FDEBDD;
+  --nb-momento-merienda: #7CC59A;  --nb-momento-merienda-claro: #E6F5EC;
+  --nb-momento-cena: #3D5A80;      --nb-momento-cena-claro: #E5ECF5;
+  --nb-momento-colacion: #E8B04A;  --nb-momento-colacion-claro: #FCF1D8;
+
+  /* Roles viejos (--nb-*): los siguen usando las pantallas con CSS propio hasta que se migren */
+  --nb-fondo: var(--nb-blanco);
+  --nb-superficie: var(--nb-blanco);
+  --nb-superficie-suave: var(--nb-brote);
+  --nb-texto: var(--nb-pino);
+  --nb-texto-suave: var(--nb-musgo);
+  --nb-primario: var(--nb-verde-hondo);
+  --nb-primario-hover: var(--nb-verde-noche);
+  --nb-sobre-primario: var(--nb-blanco);
+  --nb-marca: var(--nb-verde);
+  --nb-acento: var(--nb-zapallo);
+  --nb-borde: #E1EAE4;
+  --nb-font-titulos: 'Nunito', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  --nb-font-texto: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --nb-radio: 20px;
+  --nb-radio-chico: 12px;
+  --nb-radio-pastilla: 999px;
+  --nb-sombra: 0 1px 2px rgb(22 53 42 / 0.05);
+
+  /* shadcn/ui */
+  --background: var(--nb-blanco);
+  --foreground: var(--nb-pino);
+  --card: var(--nb-blanco);
+  --card-foreground: var(--nb-pino);
+  --popover: var(--nb-blanco);
+  --popover-foreground: var(--nb-pino);
+  --primary: var(--nb-verde-hondo);
+  --primary-foreground: var(--nb-blanco);
+  --secondary: var(--nb-brote);
+  --secondary-foreground: var(--nb-verde-noche);
+  --muted: #F3F7F4;
+  --muted-foreground: var(--nb-musgo);
+  --accent: var(--nb-brote);
+  --accent-foreground: var(--nb-verde-noche);
+  --destructive: #B3402A;
+  --border: #E1EAE4;
+  --input: #D3E2D8;
+  --ring: var(--nb-verde);
+  --radius: 1rem;
+  --chart-1: var(--nb-verde);
+  --chart-2: var(--nb-zapallo);
+  --chart-3: var(--nb-grupo-lacteo);
+  --chart-4: var(--nb-grupo-cereal);
+  --chart-5: var(--nb-grupo-proteina);
+}
+
+@theme inline {
+  /* shadcn/ui */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Marca como utilidades: bg-brote, text-musgo, fill-zapallo, bg-grupo-fruta-claro, text-momento-cena… */
+  --color-verde: var(--nb-verde);
+  --color-verde-hondo: var(--nb-verde-hondo);
+  --color-verde-noche: var(--nb-verde-noche);
+  --color-pino: var(--nb-pino);
+  --color-musgo: var(--nb-musgo);
+  --color-hoja: var(--nb-hoja);
+  --color-brote: var(--nb-brote);
+  --color-zapallo: var(--nb-zapallo);
+  --color-zapallo-claro: var(--nb-zapallo-claro);
+  --color-grupo-cereal: var(--nb-grupo-cereal);
+  --color-grupo-cereal-claro: var(--nb-grupo-cereal-claro);
+  --color-grupo-proteina: var(--nb-grupo-proteina);
+  --color-grupo-proteina-claro: var(--nb-grupo-proteina-claro);
+  --color-grupo-verdura: var(--nb-grupo-verdura);
+  --color-grupo-verdura-claro: var(--nb-grupo-verdura-claro);
+  --color-grupo-fruta: var(--nb-grupo-fruta);
+  --color-grupo-fruta-claro: var(--nb-grupo-fruta-claro);
+  --color-grupo-lacteo: var(--nb-grupo-lacteo);
+  --color-grupo-lacteo-claro: var(--nb-grupo-lacteo-claro);
+  --color-grupo-otro: var(--nb-grupo-otro);
+  --color-grupo-otro-claro: var(--nb-grupo-otro-claro);
+  --color-momento-desayuno: var(--nb-momento-desayuno);
+  --color-momento-desayuno-claro: var(--nb-momento-desayuno-claro);
+  --color-momento-almuerzo: var(--nb-momento-almuerzo);
+  --color-momento-almuerzo-claro: var(--nb-momento-almuerzo-claro);
+  --color-momento-merienda: var(--nb-momento-merienda);
+  --color-momento-merienda-claro: var(--nb-momento-merienda-claro);
+  --color-momento-cena: var(--nb-momento-cena);
+  --color-momento-cena-claro: var(--nb-momento-cena-claro);
+  --color-momento-colacion: var(--nb-momento-colacion);
+  --color-momento-colacion-claro: var(--nb-momento-colacion-claro);
+
+  /* Tipografía de marca: Atkinson Hyperlegible Next para leer (y para los números), Nunito para titular */
+  --font-sans: var(--nb-font-texto);
+  --font-titulo: var(--nb-font-titulos);
+
+  /* Escala para leer con el celular en la mano, en la cocina: la base es 17 px (marca), no 16 */
+  --text-xs: 0.8125rem;   --text-xs--line-height: 1.35;
+  --text-sm: 0.9375rem;   --text-sm--line-height: 1.4;
+  --text-base: 1.0625rem; --text-base--line-height: 1.5;
+  --text-lg: 1.1875rem;   --text-lg--line-height: 1.4;
+  --text-xl: 1.375rem;    --text-xl--line-height: 1.25;
+  --text-2xl: 1.625rem;   --text-2xl--line-height: 1.18;
+  --text-3xl: 2rem;       --text-3xl--line-height: 1.1;
+  --text-4xl: 2.5rem;     --text-4xl--line-height: 1.04;
+  --text-5xl: 3.25rem;    --text-5xl--line-height: 1;
+
+  /* Sombras con tinte verde, no el gris de siempre. Solo para lo que flota (la barra, el protagonista) */
+  --shadow-flotante: 0 12px 32px -14px rgb(35 97 64 / 0.38), 0 2px 6px -2px rgb(35 97 64 / 0.14);
+  --shadow-suave: 0 1px 2px rgb(22 53 42 / 0.05), 0 8px 20px -12px rgb(22 53 42 / 0.16);
+
+  --ease-salida: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* El mordisco del logo (la muesca de la n) como forma: se lo come de la esquina de arriba a la derecha.
+   Solo en la superficie protagonista de una pantalla. La máscara recorta también la sombra: si hace falta,
+   ponele `drop-shadow-*` al padre. Tamaño: mordisco (28 px) o [--mordisco:20px]. */
+@utility mordisco {
+  --mordisco: 28px;
+  mask: radial-gradient(circle var(--mordisco) at calc(100% - var(--mordisco) * 0.18) calc(var(--mordisco) * 0.18), #0000 97%, #000 100%);
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+  body {
+    @apply min-h-dvh bg-background font-sans text-base text-foreground antialiased;
+    font-feature-settings: 'calt' 1;
+  }
+  h1, h2, h3, h4 { @apply font-titulo text-foreground; font-weight: 800; text-wrap: balance; }
+  :focus-visible { outline: 3px solid var(--nb-verde); outline-offset: 2px; }
+  ::selection { background: var(--nb-hoja); color: var(--nb-pino); }
+  /* Números de nutrientes: cifras de igual ancho para que las columnas no bailen */
+  .nb-numero { font-variant-numeric: tabular-nums; }
+}
