@@ -301,4 +301,13 @@ describe('sintéticos × comidas (por progresoDe, ?momento=)', () => {
     expect(con.plato?.momento).toBe('cena')
     expect([con.frase, con.dias, con.semana, con.alertas]).toEqual([sin.frase, sin.dias, sin.semana, sin.alertas])
   })
+
+  it('el día cero (sin ningún registro) apunta en el orden de §1, no a la proteína', () => {
+    const cero = Object.fromEntries(Object.keys({
+      energia_kcal: 0, proteina_g: 0, calcio_mg: 0, vitamina_d_ug: 0, hierro_mg: 0, fibra_g: 0, omega3_g: 0, b12_ug: 0, vitamina_c_mg: 0,
+    }).map((k) => [k, 0])) as never
+    const candidatos = nutrientesCandidatos({ hoy: undefined, faltan: [], coberturaSemana: cero } as never)
+    expect(candidatos[0]).toBe('calcio_mg')
+    expect(candidatos.at(-1)).toBe('proteina_g')
+  })
 })

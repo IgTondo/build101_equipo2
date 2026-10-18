@@ -65,7 +65,12 @@ export function nutrientesCandidatos(e: Pick<EntradaPlato, 'hoy' | 'faltan' | 'c
     const ordenados = ordenPrioridad(e.coberturaSemana).filter((n) => hoy.has(n))
     if (ordenados.length) return ordenados
   }
-  return e.faltan.length ? [...e.faltan] : [menorCobertura(e.coberturaSemana)]
+  if (e.faltan.length) return [...e.faltan]
+  // Sin ningún registro todavía (el día cero, recién dado de alta): todo está en 0 y "el de menor cobertura" sería
+  // el primero de la lista (la proteína). Se usa el orden de §1, sin poner primero la vitamina C: sin datos no
+  // sabemos que le falte.
+  const sinDatos = Object.values(e.coberturaSemana).every((v) => !v)
+  return sinDatos ? ordenPrioridad({ vitamina_c_mg: 1 }) : [menorCobertura(e.coberturaSemana)]
 }
 
 /**

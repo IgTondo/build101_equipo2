@@ -99,8 +99,9 @@ describe('modeloTarjeta', () => {
     expect(modeloTarjeta('tomas', { ...fixture, plato: vacio }, 'merienda')).toEqual({ tipo: 'vacio', texto: lineaVacio('merienda') })
   })
 
-  it('sin plato (B todavía no lo manda): la sugerencia sola de la v5.2, con su receta', () => {
-    const m = modeloTarjeta('tomas', fixture, 'cena')
+  it('sin plato: la sugerencia sola de la v5.2, con su receta', () => {
+    const { plato: _plato, ...sinPlato } = fixture
+    const m = modeloTarjeta('tomas', sinPlato, 'cena')
     expect(m.tipo).toBe('sugerencia')
     expect(m.tipo === 'sugerencia' && m.nombre).toBe('Bastones de queso horneados')
     expect(m.tipo === 'sugerencia' && m.porQue).toBe('Se parece a sus papas al horno en bastones.')
