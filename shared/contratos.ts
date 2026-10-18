@@ -181,7 +181,10 @@ export interface Sugerencia {            // v4 · las tres opciones del tablero:
   aporte: Partial<Nutrientes>            // por porción
   porQue: string                         // plantilla, sin LLM: "La come 8 de cada 8 veces" · "Se parece a sus papas fritas: cambia solo el ingrediente"
   candidato?: Candidato                  // en un_paso y mas_nutritiva; abre la receta
+  grupo?: Grupo                          // v5.1 · el grupo de la preparación: la pantalla elige la que encaja con la próxima comida
 }
+// v5.1 · la próxima comida (PLAN §9, "La pantalla principal"): desayuno → almuerzo → cena → desayuno; la merienda y la
+// colación llevan a la principal que sigue. /api/progreso acepta ?momento= para que B ordene las sugerencias para esa comida.
 
 // ---------- Perfil ----------
 export interface DatosBasicos {
@@ -252,6 +255,7 @@ export interface RecetaReq {             // C1
   ninoId: string
   nutriente?: Nutriente                  // por defecto, el primero de semana.faltan
   preparacionId?: string                 // C1 · el candidato elegido en una tarjeta de sugerencia (Candidato.preparacionId); si no viene, el mejor de armarEvidencia()
+  momento?: Momento                      // v5.1 · la comida para la que es (la próxima comida, PLAN §9)
 }
 export interface Receta {
   nombre: string; preparacionBaseId: string           // el candidato del catálogo sobre el que se escribe la receta

@@ -1,6 +1,6 @@
 # Plan de implementación · build 101 · Nibble
 
-> v4 · sábado 17/10 · v2 (15:05): reenfocada en el objetivo (mejorar la alimentación del chico) e integrando el research `Selectividad alimentaria en niños autistas… .md`. Reemplaza la v1 de las 14:45. **v3: stack de costo casi cero (§4.1).** **v4 (después de la charla con el mentor): cocción como atributo, cita textual en cada respuesta, capas de datos y motores enchufables (§4.3), tres sugerencias en el tablero y dataset sintético de 2 chicos (§10.5).** **v5 (17/10, noche): alta desde cero por voz (§5.2) y se descarta el modo jurado.** Lo nuevo o cambiado en los contratos lleva `// v2`, `// v3`, `// v4` o `// v5`.
+> v4 · sábado 17/10 · v2 (15:05): reenfocada en el objetivo (mejorar la alimentación del chico) e integrando el research `Selectividad alimentaria en niños autistas… .md`. Reemplaza la v1 de las 14:45. **v3: stack de costo casi cero (§4.1).** **v4 (después de la charla con el mentor): cocción como atributo, cita textual en cada respuesta, capas de datos y motores enchufables (§4.3), tres sugerencias en el tablero y dataset sintético de 2 chicos (§10.5).** **v5 (17/10, noche): alta desde cero por voz (§5.2) y se descarta el modo jurado. v5.1: el día se organiza en comidas (§9, "La pantalla principal"): cada registro sugiere la próxima comida.** Lo nuevo o cambiado en los contratos lleva `// v2`, `// v3`, `// v4` o `// v5`.
 > **Regla de oro:** antes de las 18:15 tiene que andar en el deploy, desde un celular, el ciclo **después de comer: foto + cómo le fue → análisis → grafo → tablero**. Todo lo demás viene después y, si no llega, se declara como pendiente.
 
 ---
@@ -19,7 +19,7 @@
 | **2. Entender** | La visión reconoce alimentos, porción, gramos, atributos sensoriales y distribución en el plato. La voz se transcribe (Whisper) y se convierte en respuestas por alimento. Los nutrientes salen de una **tabla real (USDA)** | IA multimodal y de voz + código para los números |
 | **3. Aprender** | La comida entra al **grafo de conocimiento del chico**: aceptación de cada preparación, exposiciones, patrones combinados ("acepta lo crocante si está separado"). El perfil se amplía con cada registro | Código propio sobre Neo4j |
 | **4. Mostrar** | **Tablero: ¿está comiendo bien?** Cobertura semanal de nutrientes, calorías aproximadas, evolución, repertorio, grupos que faltan, exposiciones en curso y señales de alerta | Código |
-| **5. Actuar** | **Recetas con food chaining**: parten de un alimento que ya acepta, cambian una sola cosa y apuntan al nutriente que más falta. Traen la **imagen de cómo servirlas**. Lo que se sirve se registra con el paso 1 y el ciclo sigue | GraphRAG + LLM + generación de imagen, validado por código |
+| **5. Actuar** | (v5.1) **La próxima comida**: al guardar, la app sugiere la receta de la comida que sigue (desayuno → almuerzo → cena). Food chaining: parte de un alimento que ya acepta, cambia una sola cosa y apunta al nutriente que más falta, con la **imagen de cómo servirla**. El padre la cocina o hace otra cosa; lo que sirva se registra con el paso 1 y el ciclo sigue | GraphRAG + LLM + generación de imagen, validado por código |
 
 **Tres pistas en paralelo, cada una dueña de sus carpetas:**
 
@@ -405,7 +405,10 @@ export interface Sugerencia {            // v4 · las tres opciones del tablero:
   aporte: Partial<Nutrientes>            // por porción
   porQue: string                         // plantilla, sin LLM: "La come 8 de cada 8 veces" · "Se parece a sus papas fritas: cambia solo el ingrediente"
   candidato?: Candidato                  // en un_paso y mas_nutritiva; abre la receta
+  grupo?: Grupo                          // v5.1 · el grupo de la preparación: la pantalla elige la que encaja con la próxima comida
 }
+// v5.1 · la próxima comida (PLAN §9, "La pantalla principal"): desayuno → almuerzo → cena → desayuno; la merienda y la
+// colación llevan a la principal que sigue. /api/progreso acepta ?momento= para que B ordene las sugerencias para esa comida.
 
 // ---------- Perfil ----------
 export interface DatosBasicos {
@@ -467,7 +470,7 @@ export interface Evidencia {             // armarEvidencia(ninoId, nutriente?) e
   candidatos: Candidato[]; reglas: string[]; alergias: Alergeno[]
   texto: string                          // ~20 líneas: lo ÚNICO que ve el LLM
 }
-// POST /api/receta (A) { ninoId, nutriente? } → Receta
+// POST /api/receta (A) { ninoId, nutriente?, preparacionId?, momento? } → Receta · v5.1: momento = la comida para la que es
 export interface Receta {
   nombre: string; preparacionBaseId: string           // el candidato del catálogo sobre el que se escribe la receta
   desde: { preparacionId: string; nombre: string }   // v2 · su alimento seguro (el punto de partida de la cadena)
@@ -725,7 +728,15 @@ Observación = un ítem de una comida: `{ prepId, atributos (8, con la cocción)
 
 **"¿Cómo le fue?" en la pantalla Registrar:** arriba, un botón grande "Contame cómo le fue" (voz). Abajo, por cada ítem, los 7 botones de la escalera (§5.1) y, por comida, los chips de conducta. Con voz, la IA los marca y el padre solo corrige. Sin voz, se tocan los botones. Nunca se guarda sin que el padre confirme.
 
-**Tablero, de arriba hacia abajo:**
+**La pantalla principal (v5.1).** El día se organiza en comidas: el padre registra cada comida al terminarla y la app le sugiere la siguiente.
+1. **Hoy:** cómo viene en nutrientes en el día (se actualiza con cada comida registrada) y una línea de la semana.
+2. **Próxima comida** (botón grande): "Para el almuerzo" + la sugerencia con su porqué (sin LLM). Al tocarla se genera la receta (§7) para esa comida. Es una sugerencia: el padre puede servir otra cosa.
+3. **Registrar comida**.
+4. Abajo, el acceso al detalle de la semana (el tablero completo).
+
+La próxima comida es la principal que sigue a la última registrada hoy: desayuno → almuerzo → cena → desayuno del día siguiente (merienda y colación llevan a la principal que sigue). Sin comidas hoy, la que corresponde por la hora. Al guardar una comida, la pantalla de resultado termina con la tarjeta de la próxima comida.
+
+**Tablero completo (el detalle de la semana), de arriba hacia abajo:**
 1. **La frase** de "¿está comiendo bien?" (§1) y el banner de alertas, si hay ("conviene consultar a su pediatra o nutricionista").
 2. **Cobertura semanal** por nutriente (barras contra el objetivo; la del día, como detalle al tocar). Energía aproximada como dato, sin meta.
 3. **Próximo paso:** (v4) tres tarjetas con las `sugerencias`: *Va a gustarle* (segura), *Un pasito* ("Probá bastones de queso: se parecen a sus papas fritas") y *Más nutritiva*. Cada una dice su porqué, y las dos últimas abren la receta. Si `sugerencias` no llegó, una sola tarjeta con el `proximoPaso`.
