@@ -9,7 +9,7 @@ import { cero } from '../nutricion/calcular.js'
 import { objetivosPara } from '../nutricion/objetivos.js'
 import { type EstadoPrep, estadoDe } from './aceptacion.js'
 import { calcularEstado } from './estado.js'
-import { type EntradaPlato, armarPlato } from './plato.js'
+import { type EntradaPlato, armarPlato, nutrientesCandidatos } from './plato.js'
 
 // ---------- Un mundo chico, con números redondos ----------
 const nutr = (x: Partial<Nutrientes>): Nutrientes => ({ ...cero(), ...x })
@@ -188,7 +188,39 @@ describe('cubre y el nutriente', () => {
 
   it('con tope 1, aunque lo que falta sea casi nada', () => {
     expect(armarPlato(entrada({ hoy: hoyCon({ calcio_mg: 990 }, ['calcio_mg']) })).cubre).toBe(1)
-    expect(armarPlato(entrada({ hoy: hoyCon({ calcio_mg: 5000 }, ['vitamina_d_ug', 'calcio_mg']) })).cubre).toBe(0)
+    expect(armarPlato(entrada({ hoy: hoyCon({ calcio_mg: 5000 }, ['calcio_mg']) })).cubre).toBe(1)
+  })
+})
+
+describe('el nutriente del plato: el orden de §1 y que el plato le sirva (cubre ≥ 15%)', () => {
+  const conFuenteC = nutr({ calcio_mg: 0.4, vitamina_d_ug: 0.2, vitamina_c_mg: 0.8 })
+
+  it('candidatos: lo que falta hoy, en el orden de §1 (no por cobertura); sin comidas hoy, semana.faltan tal cual', () => {
+    const hoy = hoyCon({}, ['vitamina_d_ug', 'vitamina_c_mg', 'omega3_g', 'calcio_mg'])
+    expect(nutrientesCandidatos({ hoy, faltan: [], coberturaSemana: conFuenteC })).toEqual(['calcio_mg', 'vitamina_d_ug', 'omega3_g', 'vitamina_c_mg'])
+    // casi sin vitamina C en la semana (< 30%), la vitamina C va primera (como en semana.faltan)
+    expect(nutrientesCandidatos({ hoy, faltan: [], coberturaSemana: nutr({}) })[0]).toBe('vitamina_c_mg')
+    expect(nutrientesCandidatos({ faltan: ['fibra_g', 'b12_ug'], coberturaSemana: conFuenteC })).toEqual(['fibra_g', 'b12_ug'])
+    expect(nutrientesCandidatos({ hoy: { ...hoy!, comidas: [] }, faltan: ['fibra_g'], coberturaSemana: conFuenteC })).toEqual(['fibra_g'])
+  })
+
+  it('el primero del orden si su plato cubre al menos el 15%: calcio antes que vitamina C, aunque la C esté más baja hoy', () => {
+    // Calcio: 130 mg sobre 260 que faltan = 0,5
+    const p = armarPlato(entrada({ coberturaSemana: conFuenteC, hoy: hoyCon({ calcio_mg: 740 }, ['vitamina_c_mg', 'calcio_mg']) }))
+    expect([p.nutriente, p.cubre]).toEqual(['calcio_mg', 0.5])
+  })
+
+  it('si no llega al 15%, prueba el siguiente: calcio 13% → vitamina D 0% → vitamina C 40% (las papas)', () => {
+    const p = armarPlato(entrada({ coberturaSemana: conFuenteC, hoy: hoyCon({}, ['vitamina_d_ug', 'vitamina_c_mg', 'calcio_mg']) }))
+    expect([p.nutriente, p.cubre]).toEqual(['vitamina_c_mg', 0.4])
+    expect(p.seguros[0]?.preparacionId).toBe('papas_fritas') // ordenado por el nutriente elegido
+  })
+
+  it('si ninguno llega, el plato del primero', () => {
+    const p = armarPlato(entrada({ coberturaSemana: conFuenteC, hoy: hoyCon({}, ['omega3_g', 'vitamina_d_ug']) }))
+    expect([p.nutriente, p.cubre]).toEqual(['vitamina_d_ug', 0])
+    // sin comidas hoy: calcio (13%) y vitamina D (0%) de la semana → queda el calcio
+    expect(armarPlato(entrada()).nutriente).toBe('calcio_mg')
   })
 })
 
@@ -213,18 +245,22 @@ function cargado(id: 'tomas' | 'lucia') {
 const MOMENTOS = ['desayuno', 'almuerzo', 'merienda', 'cena'] as const
 
 describe('sintéticos × comidas (por progresoDe, ?momento=)', () => {
+  // seguros | pasito | nutriente cubre (alimentos-prueba.json; contra Mongo, con data/alimentos.json, cambian algunos)
   const TABLA: Record<'tomas' | 'lucia', Record<(typeof MOMENTOS)[number], string>> = {
     tomas: {
-      desayuno: 'tostadas + leche_chocolatada | tostadas_queso',
-      almuerzo: 'papas_fritas_baston + milanesa_carne_horno | bastones_queso_horno',
-      merienda: 'galletitas_agua + leche_chocolatada | tostadas_queso', // rota las tostadas: la última merienda fue chocolatada con tostadas
-      cena: 'papas_fritas_baston + milanesa_carne_horno | bastones_queso_horno',
+      desayuno: 'leche_chocolatada + tostadas | tostadas_queso | calcio_mg 0.58',
+      almuerzo: 'milanesa_carne_horno + papas_fritas_baston | bastones_queso_horno | calcio_mg 0.26',
+      merienda: 'leche_chocolatada + galletitas_agua | tostadas_queso | calcio_mg 0.51', // rota las tostadas: la última merienda fue chocolatada con tostadas
+      cena: 'milanesa_carne_horno + papas_fritas_baston | bastones_queso_horno | calcio_mg 0.26',
     },
     lucia: {
-      desayuno: 'yogur_vainilla + banana_pisada | frutilla_pisada',
-      almuerzo: 'fideos_manteca_queso + pollo_desmenuzado | —', // nada a un cambio para el almuerzo: sin pasito
-      merienda: 'yogur_vainilla + banana_pisada | frutilla_pisada', // rota el arroz con leche (la última merienda)
-      cena: 'fideos_manteca_queso + pollo_desmenuzado | —',
+      // casi sin vitamina C en la semana: va primera
+      desayuno: 'banana_pisada + yogur_vainilla | frutilla_pisada | vitamina_c_mg 1',
+      // rota el puré de papa (estuvo en el último almuerzo) y la vitamina C ya no llega al 15%: calcio y vitamina D
+      // tampoco, el hierro sí. Nada a un cambio para el almuerzo: sin pasito
+      almuerzo: 'fideos_manteca_queso + pollo_desmenuzado | — | hierro_mg 0.29',
+      merienda: 'banana_pisada + yogur_vainilla | frutilla_pisada | vitamina_c_mg 1',
+      cena: 'pure_papa + pollo_desmenuzado | — | vitamina_c_mg 0.4',
     },
   }
 
@@ -235,7 +271,7 @@ describe('sintéticos × comidas (por progresoDe, ?momento=)', () => {
       const plato = p.plato
       expect(plato, momento).toBeDefined()
       if (!plato) continue
-      expect(`${plato.seguros.map((x) => x.preparacionId).join(' + ')} | ${plato.pasito?.preparacionId ?? '—'}`, `${id} ${momento}`).toBe(TABLA[id][momento])
+      expect(`${plato.seguros.map((x) => x.preparacionId).join(' + ')} | ${plato.pasito?.preparacionId ?? '—'} | ${plato.nutriente} ${plato.cubre}`, `${id} ${momento}`).toBe(TABLA[id][momento])
       expect(plato.momento).toBe(momento)
       // el pasito es la sugerencia un_paso del mismo progreso (la misma tarjeta que el tablero)
       if (plato.pasito) expect(plato.pasito).toEqual(p.sugerencias?.find((x) => x.tipo === plato.pasito?.tipo))

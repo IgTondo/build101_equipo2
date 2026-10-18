@@ -1388,8 +1388,8 @@
         }
       }
     },
-    "nutriente": "vitamina_d_ug",
-    "cubre": 0.01,
-    "porQue": "Lo que ya come para la cena, y un pasito nuevo, en porción chica."
+    "nutriente": "calcio_mg",
+    "cubre": 0.35,
+    "porQue": "Lo que ya come para la cena, y un pasito hacia el calcio."
   }
 }

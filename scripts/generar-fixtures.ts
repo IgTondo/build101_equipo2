@@ -371,38 +371,45 @@ const progreso: Progreso = {
 // ---------- v5.3 · El plato de la cena (Progreso.plato con ?momento=cena, PLAN §5.3) ----------
 // Las mismas reglas que server/aprendizaje/plato.ts, con la tabla de acá: lo seguro es lo que acepta, que el catálogo
 // anota para la cena (los `momentos` están en data/preparaciones.json), sin huevo ni nada mezclado (su regla), uno por
-// grupo, ordenado por p × aporte al nutriente que más le falta hoy; el pasito es la sugerencia un_paso, en porción chica.
-// Solo va en fixtures/progreso.json: /api/resumen pide el progreso sin momento, así que el resumen no lo trae.
+// grupo, ordenado por p × aporte al nutriente; el pasito es la sugerencia un_paso, en porción chica. El nutriente: lo
+// que falta hoy, en el orden de §1, el primero cuyo plato cubre al menos el 15% de lo que falta hoy (si ninguno, el
+// primero). Solo va en fixtures/progreso.json: /api/resumen pide el progreso sin momento, así que el resumen no lo trae.
 const MOMENTOS = new Map(leer<PreparacionCatalogo[]>('data/preparaciones.json').map((p) => [p.id, p.momentos ?? []]))
-const NUTRIENTE_HOY: Nutriente = faltanDia(coberturaDia(HOY).cobertura)[0] ?? NUTRIENTE_OBJ
+const HOY_COB = coberturaDia(HOY)
+const ORDEN_PRIORIDAD: Nutriente[] = coberturaSem.vitamina_c_mg < 0.3 ? ['vitamina_c_mg', ...PRIORIDAD] : [...PRIORIDAD, 'vitamina_c_mg']
+const CANDIDATOS_CENA = ORDEN_PRIORIDAD.filter((n) => HOY_COB.faltan.includes(n))
 const ULTIMA_CENA = new Set(COMIDAS.filter((c) => c.momento === 'cena' && c.dia <= HOY).at(-1)?.analisis.items.map((i) => i.preparacionId) ?? [])
-const opcionesCena = [...ACEPT.entries()]
-  .filter(([id, e]) => estadoDe(e) === 'acepta' && MOMENTOS.get(id)?.includes('cena') && prep(id).atributos.presentacion !== 'mezclado' &&
-    !prep(id).ingredientes.some((i) => i.alimentoId.includes('huevo')))
-  .map(([id, e]) => ({ id, e, grupo: prep(id).atributos.grupo, ap: aportePorcion(id) }))
-  .sort((a, b) => b.e.p * b.ap[NUTRIENTE_HOY] - a.e.p * a.ap[NUTRIENTE_HOY] || b.e.p - a.e.p || a.id.localeCompare(b.id))
-const segurosCena = opcionesCena.filter((o, i) => opcionesCena.findIndex((x) => x.grupo === o.grupo) === i).slice(0, 3)
-// Si lo seguro se repite entero respecto de la última cena, rota uno (del mismo grupo)
-if (segurosCena.length && segurosCena.every((o) => ULTIMA_CENA.has(o.id))) {
-  const ultimo = segurosCena.at(-1)
-  const otra = opcionesCena.find((o) => o.grupo === ultimo?.grupo && !ULTIMA_CENA.has(o.id))
-  if (otra) segurosCena[segurosCena.length - 1] = otra
-}
 const pasitoCena = sugerencias.find((s) => s.tipo === 'un_paso')
-const faltaHoyCena = Math.max(OBJETIVO[NUTRIENTE_HOY] - coberturaDia(HOY).consumido.valor[NUTRIENTE_HOY], 1e-6)
-const aporteCena = segurosCena.reduce((t, o) => t + o.ap[NUTRIENTE_HOY], 0) + (pasitoCena ? aportePorcion(pasitoCena.preparacionId)[NUTRIENTE_HOY] * PORCION.chica : 0)
-const platoCena: PlatoComida = {
-  momento: 'cena',
-  seguros: segurosCena.map((o): ItemPlato => ({
-    preparacionId: o.id, nombre: prep(o.id).nombre, porcion: 'mediana', grupo: o.grupo, aporte: o.ap,
-    porQue: `La come ${o.e.comio} de cada ${o.e.veces} veces${o.ap[NUTRIENTE_HOY] >= 0.1 * OBJETIVO[NUTRIENTE_HOY] ? ` y aporta ${NOMBRE_NUTRIENTE[NUTRIENTE_HOY]}` : ''}.`,
-  })),
-  ...(pasitoCena ? { pasito: pasitoCena } : {}),
-  nutriente: NUTRIENTE_HOY,
-  cubre: redondear(Math.min(1, aporteCena / faltaHoyCena)),
-  porQue: `Lo que ya come para la cena, y un pasito ${pasitoCena && aportePorcion(pasitoCena.preparacionId)[NUTRIENTE_HOY] * PORCION.chica >= 0.05 * OBJETIVO[NUTRIENTE_HOY]
-    ? `hacia ${['calcio_mg', 'hierro_mg', 'omega3_g'].includes(NUTRIENTE_HOY) ? 'el' : 'la'} ${NOMBRE_NUTRIENTE[NUTRIENTE_HOY]}` : 'nuevo, en porción chica'}.`,
+function platoCenaPara(n: Nutriente): PlatoComida {
+  const opciones = [...ACEPT.entries()]
+    .filter(([id, e]) => estadoDe(e) === 'acepta' && MOMENTOS.get(id)?.includes('cena') && prep(id).atributos.presentacion !== 'mezclado' &&
+      !prep(id).ingredientes.some((i) => i.alimentoId.includes('huevo')))
+    .map(([id, e]) => ({ id, e, grupo: prep(id).atributos.grupo, ap: aportePorcion(id) }))
+    .sort((a, b) => b.e.p * b.ap[n] - a.e.p * a.ap[n] || b.e.p - a.e.p || a.id.localeCompare(b.id))
+  const seguros = opciones.filter((o, i) => opciones.findIndex((x) => x.grupo === o.grupo) === i).slice(0, 3)
+  // Si lo seguro se repite entero respecto de la última cena, rota uno (del mismo grupo)
+  if (seguros.length && seguros.every((o) => ULTIMA_CENA.has(o.id))) {
+    const ultimo = seguros.at(-1)
+    const otra = opciones.find((o) => o.grupo === ultimo?.grupo && !ULTIMA_CENA.has(o.id))
+    if (otra) seguros[seguros.length - 1] = otra
+  }
+  const delPasito = pasitoCena ? aportePorcion(pasitoCena.preparacionId)[n] * PORCION.chica : 0
+  const falta = Math.max(OBJETIVO[n] - HOY_COB.consumido.valor[n], 1e-6)
+  return {
+    momento: 'cena',
+    seguros: seguros.map((o): ItemPlato => ({
+      preparacionId: o.id, nombre: prep(o.id).nombre, porcion: 'mediana', grupo: o.grupo, aporte: o.ap,
+      porQue: `La come ${o.e.comio} de cada ${o.e.veces} veces${o.ap[n] >= 0.1 * OBJETIVO[n] ? ` y aporta ${NOMBRE_NUTRIENTE[n]}` : ''}.`,
+    })),
+    ...(pasitoCena ? { pasito: pasitoCena } : {}),
+    nutriente: n,
+    cubre: redondear(Math.min(1, (seguros.reduce((t, o) => t + o.ap[n], 0) + delPasito) / falta)),
+    porQue: `Lo que ya come para la cena, y un pasito ${pasitoCena && delPasito >= 0.05 * OBJETIVO[n]
+      ? `hacia ${['calcio_mg', 'hierro_mg', 'omega3_g'].includes(n) ? 'el' : 'la'} ${NOMBRE_NUTRIENTE[n]}` : 'nuevo, en porción chica'}.`,
+  }
 }
+const platosCena = (CANDIDATOS_CENA.length ? CANDIDATOS_CENA : [NUTRIENTE_OBJ]).map(platoCenaPara)
+const platoCena: PlatoComida = platosCena.find((p) => p.cubre >= 0.15) ?? platosCena[0] ?? platoCenaPara(NUTRIENTE_OBJ)
 const progresoConPlato: Progreso = { ...progreso, plato: platoCena }
 
 // ---------- La comida de ejemplo: el almuerzo del 16/10 (analizar → relato → registrar) ----------

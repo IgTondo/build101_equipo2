@@ -3,7 +3,7 @@
 import type {
   CoberturaDia, Grupo, ItemPlato, Momento, Nutriente, Nutrientes, PlatoComida, PreparacionCatalogo, Sugerencia,
 } from '../../shared/contratos.js'
-import { aporte, escalar, redondearParcial } from '../nutricion/calcular.js'
+import { aporte, escalar, ordenPrioridad, redondearParcial } from '../nutricion/calcular.js'
 import type { EstadoPrep } from './aceptacion.js'
 import { type EntradaCadena, esSegura, reglaQueViola } from './cadena.js'
 import { FACTOR_PORCION } from './escalera.js'
@@ -30,6 +30,8 @@ export const MAX_SEGUROS = 2
 const APORTE_DESTACADO = 0.1
 /** "Un pasito hacia el calcio" si el pasito, en porción chica, aporta al menos el 5% del objetivo del día. */
 const APORTE_PASITO = 0.05
+/** El plato se arma para el primer nutriente (en el orden de §1) del que cubre al menos esto de lo que falta hoy. */
+export const CUBRE_MINIMO = 0.15
 /** Para no dividir por cero cuando hoy ya casi no le falta nada de ese nutriente. */
 const EPSILON = 1e-6
 
@@ -53,10 +55,17 @@ interface Opcion {
   valor: number // p × aporte al nutriente ÷ objetivo
 }
 
-/** El nutriente del plato: el que más le falta hoy; sin comidas hoy, el de la semana (como el recomendador). */
-export function nutrienteDelPlato(e: Pick<EntradaPlato, 'hoy' | 'faltan' | 'coberturaSemana'>): Nutriente {
-  const hoy = e.hoy && e.hoy.comidas.length > 0 ? e.hoy.faltan[0] : undefined
-  return hoy ?? e.faltan[0] ?? menorCobertura(e.coberturaSemana)
+/**
+ * Los nutrientes candidatos del plato, en el orden de prioridad de §1: lo que le falta hoy (si hay comidas hoy) o, si
+ * no, lo que falta en la semana (`semana.faltan`, que ya viene en ese orden). Sin nada que falte, el de menor cobertura.
+ */
+export function nutrientesCandidatos(e: Pick<EntradaPlato, 'hoy' | 'faltan' | 'coberturaSemana'>): Nutriente[] {
+  if (e.hoy && e.hoy.comidas.length > 0) {
+    const hoy = new Set(e.hoy.faltan)
+    const ordenados = ordenPrioridad(e.coberturaSemana).filter((n) => hoy.has(n))
+    if (ordenados.length) return ordenados
+  }
+  return e.faltan.length ? [...e.faltan] : [menorCobertura(e.coberturaSemana)]
 }
 
 /**
@@ -147,8 +156,8 @@ function elegirPasito(sugerencias: readonly Sugerencia[], seguros: ReadonlySet<s
   return undefined
 }
 
-export function armarPlato(e: EntradaPlato): PlatoComida {
-  const n = nutrienteDelPlato(e)
+/** El plato armado para un nutriente: lo seguro ordenado por su aporte a ese nutriente, el pasito y cuánto cubre. */
+function platoPara(e: EntradaPlato, n: Nutriente): PlatoComida {
   const opciones = opcionesSeguras(e, n)
   const { platos, rotado } = rotar(elegirVariado(opciones, e.momento), opciones, new Set(e.ultima ?? []))
   const seguros = platos.map((o) => aItem(o, n, e.objetivo, o.prep.id === rotado, e.momento))
@@ -176,4 +185,19 @@ export function armarPlato(e: EntradaPlato): PlatoComida {
       : `Lo que ya come ${para}.`
 
   return { momento: e.momento, seguros, ...(pasito ? { pasito } : {}), nutriente: n, cubre, porQue }
+}
+
+/**
+ * Prueba los nutrientes candidatos en el orden de §1 y se queda con el primero cuyo plato cubre al menos el 15% de lo
+ * que falta hoy (que el plato le sirva de verdad a ese nutriente); si ninguno llega, el plato del primero.
+ */
+export function armarPlato(e: EntradaPlato): PlatoComida {
+  const candidatos = nutrientesCandidatos(e)
+  let primero: PlatoComida | null = null
+  for (const n of candidatos) {
+    const plato = platoPara(e, n)
+    if (plato.cubre >= CUBRE_MINIMO) return plato
+    primero ??= plato
+  }
+  return primero ?? platoPara(e, menorCobertura(e.coberturaSemana))
 }
