@@ -26,11 +26,11 @@ import { calcularAporte, cambiosEntre, problemasPorTipo, aplanar, type ContextoV
 import { alimentoPorId, alimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
 import { ajustarPorciones, armarPlatoCompleto, completarConLoQueCome, problemasDelPlato } from './plato-completo.js'
-import { esquemaSalidaCreativa, promptRecetaCreativa, SISTEMA_RECETA_CREATIVA, type ConocimientoV510, type SalidaCreativa } from './prompts/receta-creativa.js'
+import { esquemaSalidaCreativa, promptRecetaCreativa, SISTEMA_RECETA_CREATIVA, type SalidaCreativa } from './prompts/receta-creativa.js'
 import { CORTE_MS, TOPE_NUEVA_LLAMADA_MS, coberturaDeLoQueFalta, sinAlergenos, type IntentoReceta } from './receta.js'
 
 /** v5.8 · La base de conocimiento con sus otras alergias, como las escribió el padre (Conocimiento no las trae). */
-export type ConocimientoReceta = ConocimientoV510 & { alergiasOtras?: string[] }
+export type ConocimientoReceta = Conocimiento & { alergiasOtras?: string[] }
 
 /**
  * La base de conocimiento del chico (armarConocimiento) más sus otras alergias: lo que usa api/receta.ts. v5.10 · Con

@@ -5,13 +5,13 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import { grupoSinComer, sinComer } from '../aprendizaje/textos.js'
 import { alimentosPrueba, catalogoPrueba, comidasSinteticas, ninoDoc, sintetico, type SinteticoId } from '../datos/prueba/catalogos.js'
 import { progresoDe } from '../datos/tablero.js'
-import { conocimientoDe, type Conocimiento } from '../grafo/conocimiento.js'
+import { conocimientoDe, type Conocimiento, type Foco } from '../grafo/conocimiento.js'
 import { escalar } from '../nutricion/calcular.js'
 import { CON_META, objetivosPara } from '../nutricion/objetivos.js'
 import { grupoParaVariedad, variedadDe } from '../nutricion/progreso.js'
 import { fijarAlimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
-import type { FocoV510, SalidaCreativa } from './prompts/receta-creativa.js'
+import type { SalidaCreativa } from './prompts/receta-creativa.js'
 import { generarRecetaCreativa, type ConocimientoReceta } from './receta-creativa.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
@@ -61,9 +61,9 @@ const PAPAS_CON_QUESO: SalidaCreativa = {
 
 // v5.10 · El primer intento solo acepta el alimento de partida y el ingrediente del foco: los tests de la receta lo fijan
 // (el de ZANAHORIA_FRITA en modo variedad, el de PAPAS_CON_QUESO en modo nutriente) y no dependen del sorteo
-const FOCO_ZANAHORIA: FocoV510 = { desdeId: 'papas_fritas_baston', modo: 'cambiar_principal', grupo: 'verdura', ingrediente: 'zanahoria' }
-const FOCO_PAPAS: FocoV510 = { desdeId: 'papas_horno_baston', modo: 'sumar_ingrediente', nutriente: 'calcio_mg', ingrediente: 'queso_muzzarella' }
-const conFoco = (k: Conocimiento, foco: FocoV510 = FOCO_ZANAHORIA, recientes: string[] = []): ConocimientoReceta => ({ ...k, foco, recientes })
+const FOCO_ZANAHORIA: Foco = { desdeId: 'papas_fritas_baston', modo: 'cambiar_principal', grupo: 'verdura', ingrediente: 'zanahoria' }
+const FOCO_PAPAS: Foco = { desdeId: 'papas_horno_baston', modo: 'sumar_ingrediente', nutriente: 'calcio_mg', ingrediente: 'queso_muzzarella' }
+const conFoco = (k: Conocimiento, foco: Foco = FOCO_ZANAHORIA, recientes: string[] = []): ConocimientoReceta => ({ ...k, foco, recientes })
 
 const responde = (...salidas: SalidaCreativa[]) => {
   for (const datos of salidas) llm.mockResolvedValueOnce({ datos, modelo: 'claude-sonnet-5-5', ms: 10, reintentos: 0 })

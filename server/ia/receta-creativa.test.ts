@@ -3,12 +3,12 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cargarNino } from '../datos/cargar.js'
 import { alimentosPrueba, catalogoPrueba, comidasSinteticas, ninoDoc, sintetico } from '../datos/prueba/catalogos.js'
-import { conocimientoDe, type Conocimiento } from '../grafo/conocimiento.js'
+import { conocimientoDe, type Conocimiento, type Foco } from '../grafo/conocimiento.js'
 import { ErrorNibble } from '../http.js'
 import { objetivosPara } from '../nutricion/objetivos.js'
 import { fijarAlimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
-import type { FocoV510, SalidaCreativa } from './prompts/receta-creativa.js'
+import type { SalidaCreativa } from './prompts/receta-creativa.js'
 import { calcularAporte } from '../validacion/receta.js'
 import { minimoComponentes } from './plato-completo.js'
 import { armarConocimientoReceta, completarCreativa, generarRecetaCreativa, problemasCreativa, problemasDeCalidad, textoSinSeguros, type ConocimientoReceta } from './receta-creativa.js'
@@ -55,8 +55,8 @@ const PURE_CON_QUESO: SalidaCreativa = {
 
 // v5.10 · El foco de PAPAS_CON_QUESO: sus papas al horno con muzzarella sumada. El primer intento solo acepta el alimento
 // de partida y el ingrediente del foco, así que los tests que no son del foco lo fijan (y no dependen del sorteo).
-const FOCO_PAPAS: FocoV510 = { desdeId: 'papas_horno_baston', modo: 'sumar_ingrediente', nutriente: 'calcio_mg', ingrediente: 'queso_muzzarella' }
-const conFoco = (k: Conocimiento, foco: FocoV510 = FOCO_PAPAS, recientes: string[] = []): ConocimientoReceta => ({ ...k, foco, recientes })
+const FOCO_PAPAS: Foco = { desdeId: 'papas_horno_baston', modo: 'sumar_ingrediente', nutriente: 'calcio_mg', ingrediente: 'queso_muzzarella' }
+const conFoco = (k: Conocimiento, foco: Foco = FOCO_PAPAS, recientes: string[] = []): ConocimientoReceta => ({ ...k, foco, recientes })
 const kPapas = () => conFoco(conocimiento())
 
 const responde = (...salidas: SalidaCreativa[]) => {
@@ -318,7 +318,7 @@ describe('(v5.10) el foco es obligatorio en el primer intento; lo que ya usó ha
     pasos: ['Pelá el boniato y cortalo en bastones como sus papas.', 'Pincelalos con aceite.', 'Horneá 25 minutos hasta que estén crocantes.', 'Espolvoreá el queso rallado y gratiná 3 minutos.'],
     porQue: 'Parte de sus papas al horno en bastones, que come siempre; cambia solo el ingrediente principal: boniato, gratinado con queso rallado, que aporta calcio.',
   }
-  const cambiarA = (ingrediente: string): FocoV510 => ({ desdeId: 'papas_horno_baston', modo: 'cambiar_principal', nutriente: 'calcio_mg', ingrediente })
+  const cambiarA = (ingrediente: string): Foco => ({ desdeId: 'papas_horno_baston', modo: 'cambiar_principal', nutriente: 'calcio_mg', ingrediente })
   const schemaDe = (llamada: number) => llm.mock.calls[llamada]![0].schema as { safeParse: (x: unknown) => { success: boolean } }
   const errorDe = (p: Promise<unknown>) => p.then(() => null, (x: unknown) => x as ErrorNibble)
 

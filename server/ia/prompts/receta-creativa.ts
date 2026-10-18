@@ -9,7 +9,7 @@
 // principal o cuál se suma); en el reintento se relaja. Y ve los ingredientes que ya usó hace poco, para no repetirlos.
 import { z } from 'zod'
 import { COCCION, COLOR, FORMA, GRUPO, PRESENTACION, ROL_PLATO, SABOR, TEMPERATURA, TEXTURA, type Nutriente } from '../../../shared/contratos.js'
-import type { Conocimiento, Foco, Modo } from '../../grafo/conocimiento.js'
+import type { Conocimiento, Modo } from '../../grafo/conocimiento.js'
 import { NOMBRE_GRUPO } from '../../aprendizaje/textos.js'
 import { alimentoPorId } from '../catalogo.js'
 import { minimoComponentes, textoComidaCompleta } from '../plato-completo.js'
@@ -46,13 +46,6 @@ La comida completa (v5.7): no es un plato suelto, es la comida entera para esa c
 Reglas:
 ${REGLAS_COMUNES_RECETA}`
 
-/**
- * v5.10 · Lo que suma el carril foco-ricos a la base (server/grafo/conocimiento.ts), opcional acá hasta que se integre:
- * el ingrediente sorteado que el plato nuevo TIENE que usar (Foco.ingrediente) y los alimentos que aparecen en los nombres
- * de las recetas que la familia ya vio (Conocimiento.recientes).
- */
-export type FocoV510 = Foco & { ingrediente?: string }
-export type ConocimientoV510 = Conocimiento & { foco: FocoV510; recientes?: string[] }
 
 /**
  * La salida del LLM. Como en la receta del catálogo, sin rangos ni largos: los valida el código. v5.5 · Sin nutrientes
@@ -83,7 +76,7 @@ export function esquemaSalidaCreativa(alimentoIds: string[], seguroIds: string[]
 export type SalidaCreativa = z.infer<ReturnType<typeof esquemaSalidaCreativa>>
 
 export interface DatosPromptCreativa {
-  conocimiento: ConocimientoV510
+  conocimiento: Conocimiento
   ingredientes: { alimentoId: string; nombre: string }[] // del catálogo, sin genéricos ni alérgenos del chico
   anteriores: string[]                                   // las recetas que ya vio para esta comida
   anterior?: { salida: SalidaCreativa; problemas: string[] } // para el reintento
@@ -118,7 +111,7 @@ function cambioCon(modo: Modo, id: string): string {
  * ingrediente sorteado. En el primer intento el alimento de partida y el ingrediente son obligatorios (el schema solo
  * acepta ese desdeId); en el reintento puede elegir otro alimento seguro u otro ingrediente, sin repetir lo que ya usó.
  */
-function textoFoco(k: ConocimientoV510, desde: Conocimiento['seguros'][number] | undefined, reintento: boolean): string {
+function textoFoco(k: Conocimiento, desde: Conocimiento['seguros'][number] | undefined, reintento: boolean): string {
   const { foco } = k
   const ing = foco.ingrediente
   const obligatorio = `Es lo que pide la app: no partas de otro alimento seguro${ing ? ' ni cambies de ingrediente' : ''}.`
