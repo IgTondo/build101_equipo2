@@ -28,6 +28,8 @@
 | C11 / C12 | README para el jurado y guion del pitch (`pitch/guion.md`) |
 | C13 | Grafo del chico en `/grafo` (sobre `GET /api/perfil?vista=grafo`; sin Mongo, `fixtures/perfil-grafo.json`) |
 
+**Cómo probar:** ver [`PROBAR.md`](../PROBAR.md).
+
 **Integración con B real (17/10):** con Mongo en memoria, `MOTOR_GRAFO=mongo` y los sintéticos cargados, todas las pantallas funcionan contra B. **El CP2 pasa:** perfil nuevo → tablero vacío → registrar (real) → el tablero cambia. Solo se simularon los endpoints de IA (no hay keys).
 
 ## Pendiente
@@ -50,6 +52,9 @@
 9. Si el padre renombra un ítem llega `preparacionId: null` (B ya lo acepta); las reglas escritas a mano llegan con `condiciones: []`.
 
 ## Para A
+
+- **A8b (PLAN §5.2) es lo que falta para el alta por voz.** La pantalla ya manda `POST /api/perfil-inicial` con `{ texto }` solo; hoy responde 400 (`datos` obligatorio) y la app cae en la transición (pide nombre, edad y sexo y reenvía). Con A8b: `datos` opcional en el contrato y en el esquema, y la respuesta con `datos: DatosExtraidos` (cada valor con su `cita` literal; la app descarta lo que no la traiga) y `faltan`. Probado en producción con el audio de Tomás: el borrador ya sale idéntico a `data/sinteticos/tomas.json`.
+- **Whisper con silencio:** un audio casi mudo devolvió `"Gracias. Gracias."` con 200. Tendría que ser 422 `audio_no_entendido` (`server/ia/voz.ts`, el filtro de frases que Whisper inventa).
 
 - **Prueba en producción (17/10):** visión 5,8 s, relato 1,8 s, transcripción 1,8 s, receta 9,5 s (validación OK sin reintentos), imagen 3,0 s, resumen 8,7 s por LLM. Todo con una llamada por función.
 - **Visión:** con `sint-tomas` (alérgico al huevo), la foto de milanesa con papas devolvió `milanesa_carne_con_huevo`. Su milanesa conocida es `milanesa_carne_horno` (sin huevo): con el contexto del chico, conviene preferir su preparación conocida y preguntar si duda.
