@@ -182,7 +182,8 @@ describe('recientesDe', () => {
   const de = (...nombres: string[]) => recientesDe(nombres, alimentos)
 
   it('palabras completas, sin mayúsculas ni tildes, contra el nombre y los alias', () => {
-    expect(de('Pizzetas de porotos y muzzarella')).toEqual(['porotos', 'queso_muzzarella'])
+    const porotos = [...alimentos.keys()].filter((id) => familia(id) === 'porotos') // "porotos" nombra a la familia
+    expect(new Set(de('Pizzetas de porotos y muzzarella'))).toEqual(new Set([...porotos, 'queso_muzzarella']))
     expect(de('Arbolitos de BRÓCOLI gratinados')).toEqual(['brocoli'])
     expect(de('Panqueques de banana')).toEqual(['panqueques', 'banana']) // "pan" no está en "panqueques" (que es un alimento del catálogo)
   })

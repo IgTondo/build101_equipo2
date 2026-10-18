@@ -91,7 +91,7 @@ export const GOLOSINAS_Y_ULTRAPROCESADOS: ReadonlySet<string> = new Set([
   // Masa y cereal de paquete: el hierro y la vitamina D se los agregan, el plato no es eso
   'prepizza', 'cereal_fortificado',
   // Solo para rebozar o ligar: no son un alimento del plato
-  'pan_rallado', 'harina_trigo', 'harina_maiz', 'harina_arroz', 'harina_integral', // v5.10 · la polenta es `polenta`
+  'pan_rallado', 'harina_trigo', 'harina_maiz', 'harina_arroz', 'harina_integral', 'harina_garbanzo', // v5.10 · la polenta es `polenta`
 ])
 
 /** v5.10 · La familia de un alimento, el primer tramo del id: queso_rallado, queso_dambo y queso_muzzarella son queso. */
