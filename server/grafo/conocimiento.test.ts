@@ -13,7 +13,7 @@ import { fijarAfinidades, type ParAfinidad } from '../ia/afinidades.js'
 import { vaEnLaComida } from '../ia/momentos.js'
 import { escalar } from '../nutricion/calcular.js'
 import {
-  ACOMPANAMIENTOS, GOLOSINAS_Y_ULTRAPROCESADOS, GRUPOS_PARA_CAMBIAR, afinidadConPlato, conDatos, conocimientoDe, contextoAfinidad, familia, recientesDe,
+  ACOMPANAMIENTOS, GOLOSINAS_Y_ULTRAPROCESADOS, GRUPOS_PARA_CAMBIAR, afinidadConPlato, claseDePreparacion, conDatos, conocimientoDe, contextoAfinidad, familia, recientesDe,
   tipoDePlato, vecesDelTipo, type Conocimiento, type Foco,
 } from './conocimiento.js'
 
@@ -468,6 +468,14 @@ describe('conocimientoDe: cambiando el principal, del mismo grupo o de uno que p
   const cambiando = (momento: Momento, desde: number, c = valentina) =>
     N.flatMap((n) => [0, 0.3, 0.6, 0.9].map((r) => conocimiento({ momento, nutriente: n, azar: enOrden(desde, 0.1, 0, r) }, c).foco))
   const grupos = (focos: Foco[]) => new Set(focos.flatMap((f) => (f.ingrediente ? [alimentos.get(f.ingrediente)!.grupo] : [])))
+  /** Los que cambian el principal desde `desdeId`; los otros, sin con qué cambiarlo, suman un ingrediente a su plato. */
+  const soloCambiando = (focos: Foco[], desdeId: string) => {
+    for (const f of focos) {
+      expect(f.desdeId).toBe(desdeId)
+      if (f.modo !== 'cambiar_principal') expect(f).toMatchObject({ modo: 'sumar_ingrediente', ingrediente: expect.any(String) })
+    }
+    return focos.filter((f) => f.modo === 'cambiar_principal')
+  }
   beforeEach(() => {
     vi.spyOn(console, 'info').mockImplementation(() => {}) // los que caen al sorteo sin afinidad
   })
@@ -486,8 +494,7 @@ describe('conocimientoDe: cambiando el principal, del mismo grupo o de uno que p
   it('desde su leche chocolatada, un lácteo: nunca ravioles ni tofu (tampoco sin datos de afinidad)', { timeout: 60_000 }, () => {
     for (const datos of [null, [] as ParAfinidad[]]) {
       fijarAfinidades(datos)
-      const focos = cambiando('desayuno', 0.05)
-      for (const f of focos) expect(f).toMatchObject({ desdeId: 'leche_chocolatada', modo: 'cambiar_principal' })
+      const focos = soloCambiando(cambiando('desayuno', 0.05), 'leche_chocolatada')
       expect(focos.filter((f) => f.ingrediente).length).toBeGreaterThan(0)
       expect([...grupos(focos)]).toEqual(['lacteo'])
       for (const id of ['ravioles', 'tofu']) expect(focos.map((f) => f.ingrediente)).not.toContain(id)
@@ -497,8 +504,7 @@ describe('conocimientoDe: cambiando el principal, del mismo grupo o de uno que p
   it('(v5.10) en el desayuno, desde sus tostadas, nunca ravioles ni otra pasta: solo lo que va en el desayuno (server/ia/momentos.ts)', { timeout: 60_000 }, () => {
     const tomas = cargado('tomas')
     for (const momento of ['desayuno', 'merienda'] as Momento[]) {
-      const focos = cambiando(momento, 0.05, tomas)
-      for (const f of focos) expect(f).toMatchObject({ desdeId: 'tostadas', modo: 'cambiar_principal' })
+      const focos = soloCambiando(cambiando(momento, 0.05, tomas), 'tostadas')
       const salen = focos.flatMap((f) => (f.ingrediente ? [f.ingrediente] : []))
       expect(salen.length).toBeGreaterThan(0)
       for (const id of salen) {
@@ -512,8 +518,7 @@ describe('conocimientoDe: cambiando el principal, del mismo grupo o de uno que p
   })
 
   it('desde sus papas fritas pueden salir boniato o zanahoria (cereal o verdura), nunca lino', { timeout: 60_000 }, () => {
-    const focos = [...cambiando('cena', 0.85), ...cambiando('cena', 0.05, cargado('tomas'))]
-    for (const f of focos) expect(f).toMatchObject({ desdeId: 'papas_fritas_baston', modo: 'cambiar_principal' })
+    const focos = soloCambiando([...cambiando('cena', 0.85), ...cambiando('cena', 0.05, cargado('tomas'))], 'papas_fritas_baston')
     const salen = focos.map((f) => f.ingrediente)
     expect(salen.some((id) => id === 'boniato' || id === 'zanahoria')).toBe(true)
     expect(salen).not.toContain('semillas_lino')
@@ -527,6 +532,25 @@ describe('conocimientoDe: cambiando el principal, del mismo grupo o de uno que p
     expect(grupos(focos)).toContain('proteina')
     // Además de una proteína, un queso de plato (bastones de muzzarella, medallones de ricota); un yogur o una leche, no
     for (const f of focos) if (f.ingrediente && alimentos.get(f.ingrediente)!.grupo !== 'proteina') expect(esQuesoDePlato(f.ingrediente), f.ingrediente).toBe(true)
+  })
+
+  it('una pasta, una masa o un pan no son el ingrediente de otro plato: ni ricos, ni sumados, ni por otra clase', { timeout: 60_000 }, () => {
+    for (const n of NUTRIENTE) for (const id of ricosDe(porNutriente.get(n)!, n)) expect(claseDePreparacion(id), `${n}: ${id}`).toBeUndefined()
+    for (const momento of ['cena', 'desayuno', 'merienda'] as Momento[]) {
+      for (const s of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+        for (const c of [valentina, cargado('tomas')]) {
+          const k = conocimiento({ momento, nutriente: 'calcio_mg', azar: conSemilla(s) }, c)
+          const clase = k.foco.ingrediente ? claseDePreparacion(k.foco.ingrediente) : undefined
+          if (!clase) continue
+          // Solo cambiando el principal por otro de su clase: de sus fideos a unos ñoquis, del pan blanco al integral
+          expect(k.foco.modo, `${momento} ${s}: ${k.foco.ingrediente}`).toBe('cambiar_principal')
+          expect(claseDePreparacion(principalDe(k) ?? ''), `${momento} ${s}: ${k.foco.ingrediente}`).toBe(clase)
+        }
+      }
+    }
+    expect(claseDePreparacion('noquis')).toBe('pasta')
+    expect(claseDePreparacion('pan_integral')).toBe('pan')
+    expect(claseDePreparacion('papa')).toBeUndefined()
   })
 
   it('pidiendo calcio, el queso sale: de principal en la cena y sumado en el desayuno, nunca el rallado de principal', { timeout: 60_000 }, () => {

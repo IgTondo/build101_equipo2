@@ -129,6 +129,20 @@ const MIN_PORCION_PRINCIPAL_G = 40 // v5.10 · "un plato cuyo principal es lino"
 const QUESOS_DE_PLATO = new Set(['queso', 'ricota'])
 const MIN_PORCION_QUESO_G = 25
 /**
+ * v5.10 · Los alimentos que ya son una preparación (una pasta, una masa, un pan, un puré) y su clase. Son el plato tal
+ * cual (fideos con salsa, panqueques con dulce de leche), no el ingrediente con el que se rehace otro: de ahí salían
+ * "pizzetas de fideos", "chips de ñoquis" y "crackers de panqueque". No son ricos de ningún nutriente ni se suman a un
+ * plato; cambiando el principal, solo por otro de su misma clase (de sus fideos a unos ñoquis, del pan blanco al integral).
+ * Primero el id y después la familia.
+ */
+const CLASE_DE_PREPARACION: Readonly<Record<string, string>> = {
+  fideos: 'pasta', noquis: 'pasta', ravioles: 'pasta',
+  prepizza: 'prepizza', tortilla_trigo: 'tortilla_trigo', panqueques: 'panqueques', // de su pizza, panqueques no
+  pan: 'pan', galletitas: 'pan', galletas: 'pan', grisines: 'pan',
+  pure_papa: 'pure', papas_fritas: 'papas_fritas', arroz_con_leche: 'arroz_con_leche', choclo_cremoso: 'choclo_cremoso',
+}
+export const claseDePreparacion = (id: string): string | undefined => CLASE_DE_PREPARACION[id] ?? CLASE_DE_PREPARACION[familia(id)]
+/**
  * v5.10 · Cambiando el principal, de qué grupos puede ser el nuevo según el grupo del principal de su plato: un lácteo
  * por otro, una fruta por otra, una proteína por otra (las legumbres son proteína); papas por boniato o por bastones de
  * zanahoria (food chaining clásico) y al revés. Del grupo otro, ninguno. Sin esto salían "ravioles en un licuado".
@@ -269,7 +283,7 @@ export function conocimientoDe(
   }
   const ricosEn = (n: Nutriente): OpcionNutriente['ricos'] => {
     const porPorcion = porPorcionEn(n)
-    const todos = unoPorFamilia(n)
+    const todos = unoPorFamilia(n, (id) => !claseDePreparacion(id))
     // De más a menos, con el tope por grupo y hasta `recientes` de los recientes
     const conTope = (recientes: number) => {
       const porGrupo = new Map<Grupo, number>()
@@ -346,41 +360,54 @@ export function conocimientoDe(
     if (variedad?.grupo || !grupoDelPrincipal) return true
     return GRUPOS_PARA_CAMBIAR[grupoDelPrincipal].includes(a.grupo) || (queso && grupoDelPrincipal === 'proteina')
   }
-  const cambia = modo === 'cambiar_principal'
-  // v5.10 · Y que vaya en esta comida: cambiando el principal, como lo principal de un plato (tostadas → ravioles pasa el
-  // chequeo de grupo, pero los ravioles no van en el desayuno); sumado, también donde va su grupo (queso en sus tostadas)
-  const enLaComida = (id: string) => vaEnLaComida(id, op.momento, cambia ? 'principal' : 'sumado', c.alimentos.get(id)?.grupo)
-  const posible = (id: string) =>
-    !esReciente.has(id) && !deSuPlato.has(id) && !rechazaGrupo(c.alimentos.get(id)?.grupo) && (!cambia || puedeSerPrincipal(id)) && enLaComida(id)
-  // Cambiando el principal, los que más aportan entre los que pueden reemplazarlo (no solo los 8 ricos de la lista, que
-  // tienen como mucho 3 por grupo: desde sus papas fritas quedaban pocos cereales y verduras). De cada familia, el mejor
-  // de los que pueden: en el desayuno la muzzarella no va de principal, pero el queso fresco sí
-  const candidatosSi = (ok: (id: string) => boolean) => variedad
-    ? delGrupo.filter(ok)
-    : !foco.nutriente
-      ? []
-      : cambia
-        ? unoPorFamilia(foco.nutriente, posible).map((a) => a.id).filter(ok).slice(0, MAX_RICOS)
-        : (nutrientes.find((x) => x.nutriente === foco.nutriente)?.ricos ?? []).map((r) => r.alimentoId).filter(ok)
-  // v5.10 · Sin los que pide evitar el reintento; si eran los únicos, se ignora (y queda en el log)
-  const sinEvitarIngrediente = candidatosSi((id) => posible(id) && !evitarIngrediente.has(id))
-  const candidatos = sinEvitarIngrediente.length || !evitarIngrediente.size ? sinEvitarIngrediente : candidatosSi(posible)
-  if (candidatos.length && !sinEvitarIngrediente.length) evitado('ingrediente', evitarIngrediente)
-  const base = candidatos.map((_, i) => (variedad ? 1 : candidatos.length - i))
-  // v5.10 · El peso se multiplica por lo que combina con su plato. Cambiando el principal, solo entre los que combinan
-  // (con uno alcanza); sumando, si hay al menos MIN_AFINES. Si no (o sin datos de afinidad), el sorteo por lugar entre los
-  // posibles (cambiando el principal, del mismo grupo o uno compatible, nunca de otro), y queda en el log.
-  const conQue = contextoAfinidad(desde, modo)
-  const afinidad = candidatos.map((id) => afinidadConPlato(id, conQue))
-  const combinan = candidatos.flatMap((_, i) => (afinidad[i]! > 0 ? [i] : []))
-  const porAfinidad = combinan.length >= (cambia ? 1 : MIN_AFINES)
-  const ingrediente = porAfinidad
-    ? elegirConPesos(combinan.map((i) => candidatos[i]!), combinan.map((i) => base[i]! * afinidad[i]!), azar)
-    : elegirConPesos(candidatos, base, azar)
-  if (ingrediente) foco.ingrediente = ingrediente
-  if (!porAfinidad && desde && candidatos.length > 1) {
-    console.info(JSON.stringify({ evento: 'foco_sin_afinidad', desdeId, modo, conQue, candidatos: candidatos.length, combinan: combinan.length, ingrediente }))
+  // v5.10 · El ingrediente del foco cambiando el principal o sumando. Si cambiando no queda ninguno (de sus tostadas en el
+  // desayuno, sin pastas ni masas), se suma a su plato: sus tostadas con queso
+  const claseDeSuPrincipal = suPrincipal ? claseDePreparacion(suPrincipal) : undefined
+  const sortearIngrediente = (cambia: boolean): string | undefined => {
+    // v5.10 · Y que vaya en esta comida: cambiando el principal, como lo principal de un plato (tostadas → ravioles pasa el
+    // chequeo de grupo, pero los ravioles no van en el desayuno); sumado, también donde va su grupo (queso en sus tostadas)
+    const enLaComida = (id: string) => vaEnLaComida(id, op.momento, cambia ? 'principal' : 'sumado', c.alimentos.get(id)?.grupo)
+    // v5.10 · Una preparación (CLASE_DE_PREPARACION) entra solo cambiando el principal por otro de su clase
+    const comoIngrediente = (id: string) => { const clase = claseDePreparacion(id); return !clase || (cambia && clase === claseDeSuPrincipal) }
+    const posible = (id: string) =>
+      !esReciente.has(id) && !deSuPlato.has(id) && !rechazaGrupo(c.alimentos.get(id)?.grupo) && (!cambia || puedeSerPrincipal(id)) && enLaComida(id) &&
+      comoIngrediente(id)
+    // Cambiando el principal, los que más aportan entre los que pueden reemplazarlo (no solo los 8 ricos de la lista, que
+    // tienen como mucho 3 por grupo: desde sus papas fritas quedaban pocos cereales y verduras). De cada familia, el mejor
+    // de los que pueden: en el desayuno la muzzarella no va de principal, pero el queso fresco sí
+    const candidatosSi = (ok: (id: string) => boolean) => variedad
+      ? delGrupo.filter(ok)
+      : !foco.nutriente
+        ? []
+        : cambia
+          ? unoPorFamilia(foco.nutriente, posible).map((a) => a.id).filter(ok).slice(0, MAX_RICOS)
+          : (nutrientes.find((x) => x.nutriente === foco.nutriente)?.ricos ?? []).map((r) => r.alimentoId).filter(ok)
+    // v5.10 · Sin los que pide evitar el reintento; si eran los únicos, se ignora (y queda en el log)
+    const sinEvitarIngrediente = candidatosSi((id) => posible(id) && !evitarIngrediente.has(id))
+    const candidatos = sinEvitarIngrediente.length || !evitarIngrediente.size ? sinEvitarIngrediente : candidatosSi(posible)
+    if (candidatos.length && !sinEvitarIngrediente.length) evitado('ingrediente', evitarIngrediente)
+    const base = candidatos.map((_, i) => (variedad ? 1 : candidatos.length - i))
+    // v5.10 · El peso se multiplica por lo que combina con su plato. Cambiando el principal, solo entre los que combinan
+    // (con uno alcanza); sumando, si hay al menos MIN_AFINES. Si no (o sin datos de afinidad), el sorteo por lugar entre los
+    // posibles (cambiando el principal, del mismo grupo o uno compatible, nunca de otro), y queda en el log.
+    const conQue = contextoAfinidad(desde, cambia ? 'cambiar_principal' : 'sumar_ingrediente')
+    const afinidad = candidatos.map((id) => afinidadConPlato(id, conQue))
+    const combinan = candidatos.flatMap((_, i) => (afinidad[i]! > 0 ? [i] : []))
+    const porAfinidad = combinan.length >= (cambia ? 1 : MIN_AFINES)
+    const ingrediente = porAfinidad
+      ? elegirConPesos(combinan.map((i) => candidatos[i]!), combinan.map((i) => base[i]! * afinidad[i]!), azar)
+      : elegirConPesos(candidatos, base, azar)
+    if (!porAfinidad && desde && candidatos.length > 1) {
+      console.info(JSON.stringify({ evento: 'foco_sin_afinidad', desdeId, modo: cambia ? 'cambiar_principal' : 'sumar_ingrediente', conQue, candidatos: candidatos.length, combinan: combinan.length, ingrediente }))
+    }
+    return ingrediente
   }
+  let ingrediente = sortearIngrediente(modo === 'cambiar_principal')
+  if (!ingrediente && modo === 'cambiar_principal' && !variedad && desde) {
+    ingrediente = sortearIngrediente(false)
+    if (ingrediente) foco.modo = modo = 'sumar_ingrediente'
+  }
+  if (ingrediente) foco.ingrediente = ingrediente
   // v5.10 · Las combinaciones probadas del principal de su plato, para que el LLM arme algo que combine
   const combinaciones = suPrincipal
     ? afines(conDatos(suPrincipal), MAX_COMBINACIONES, (id) => { const a = c.alimentos.get(id); return Boolean(a && paraLoNuevo(a)) }).map((x) => x.alimentoId)
