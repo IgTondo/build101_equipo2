@@ -8,7 +8,7 @@ import { ErrorNibble } from '../http.js'
 import { objetivosPara } from '../nutricion/objetivos.js'
 import { fijarAlimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
-import type { SalidaCreativa } from './prompts/receta-creativa.js'
+import type { FocoV510, SalidaCreativa } from './prompts/receta-creativa.js'
 import { calcularAporte } from '../validacion/receta.js'
 import { minimoComponentes } from './plato-completo.js'
 import { armarConocimientoReceta, completarCreativa, generarRecetaCreativa, problemasCreativa, problemasDeCalidad, textoSinSeguros, type ConocimientoReceta } from './receta-creativa.js'
@@ -53,6 +53,12 @@ const PURE_CON_QUESO: SalidaCreativa = {
   atributos: { ...PAPAS_CON_QUESO.atributos, textura: 'cremoso', forma: 'pure' },
 }
 
+// v5.10 · El foco de PAPAS_CON_QUESO: sus papas al horno con muzzarella sumada. El primer intento solo acepta el alimento
+// de partida y el ingrediente del foco, así que los tests que no son del foco lo fijan (y no dependen del sorteo).
+const FOCO_PAPAS: FocoV510 = { desdeId: 'papas_horno_baston', modo: 'sumar_ingrediente', nutriente: 'calcio_mg', ingrediente: 'queso_muzzarella' }
+const conFoco = (k: Conocimiento, foco: FocoV510 = FOCO_PAPAS, recientes: string[] = []): ConocimientoReceta => ({ ...k, foco, recientes })
+const kPapas = () => conFoco(conocimiento())
+
 const responde = (...salidas: SalidaCreativa[]) => {
   for (const datos of salidas) llm.mockResolvedValueOnce({ datos, modelo: 'claude-sonnet-5-5', ms: 10, reintentos: 0 })
 }
@@ -60,7 +66,7 @@ const promptDe = (llamada: number) => {
   const parte = llm.mock.calls[llamada]![0].partes[0]!
   return parte.tipo === 'texto' ? parte.texto : ''
 }
-const pedir = (anteriores?: string[], k = conocimiento()) =>
+const pedir = (anteriores?: string[], k: ConocimientoReceta = kPapas()) =>
   generarRecetaCreativa({ ninoId: 'tomas', momento: 'cena', ...(anteriores ? { anteriores } : {}) }, { conocimiento: async () => k })
 
 beforeAll(() => fijarAlimentos([...alimentos.values()]))
@@ -156,7 +162,7 @@ describe('generarRecetaCreativa', () => {
 })
 
 describe('(v5.8) sus otras alergias y sin alimento seguro para esta comida', () => {
-  const conOtras = (...alergiasOtras: string[]): ConocimientoReceta => ({ ...conocimiento(), alergiasOtras })
+  const conOtras = (...alergiasOtras: string[]): ConocimientoReceta => ({ ...kPapas(), alergiasOtras })
 
   it('el LLM las lee abajo del chico, y lo que alcanzan no está en la lista ni en el schema', async () => {
     responde(PAPAS_CON_QUESO)
@@ -236,7 +242,7 @@ describe('(v5.6) calidad: el corazón de la app no puede ser una receta pobre', 
 })
 
 describe('(v5.7) la comida completa: lo nuevo + lo que ya come, equilibrado para esa comida', () => {
-  const k = () => conocimiento()
+  const k = kPapas
   const armar = (s: Partial<SalidaCreativa>) => completarCreativa({ ...PAPAS_CON_QUESO, ...s }, k(), papasHorno)
   const problemas = (s: Partial<SalidaCreativa>) => problemasCreativa(armar(s), k(), papasHorno, [], { ...PAPAS_CON_QUESO, ...s }.acompanamientos)
 
@@ -301,10 +307,86 @@ describe('(v5.8) repertorio chico: el plato se completa con lo que haya', () => 
   })
 })
 
+describe('(v5.10) el foco es obligatorio en el primer intento; lo que ya usó hace poco, nunca', () => {
+  // De sus papas al horno a bastones de boniato con queso rallado: cambia solo el ingrediente principal
+  const BONIATO: SalidaCreativa = {
+    ...PAPAS_CON_QUESO,
+    nombre: 'Bastones de boniato al horno con queso rallado',
+    atributos: { ...papasHorno.atributos, color: 'naranja', coccion: 'horno' },
+    imagen: { uno: 'sweet potato fry', varios: 'sweet potato fries', aspecto: 'orange sweet potato sticks shaped exactly like French fries, oven-baked until crispy, with grated cheese' },
+    ingredientes: [{ alimentoId: 'boniato', gramos: 120 }, { alimentoId: 'queso_rallado', gramos: 15 }, { alimentoId: 'aceite_girasol', gramos: 5 }],
+    pasos: ['Pelá el boniato y cortalo en bastones como sus papas.', 'Pincelalos con aceite.', 'Horneá 25 minutos hasta que estén crocantes.', 'Espolvoreá el queso rallado y gratiná 3 minutos.'],
+    porQue: 'Parte de sus papas al horno en bastones, que come siempre; cambia solo el ingrediente principal: boniato, gratinado con queso rallado, que aporta calcio.',
+  }
+  const cambiarA = (ingrediente: string): FocoV510 => ({ desdeId: 'papas_horno_baston', modo: 'cambiar_principal', nutriente: 'calcio_mg', ingrediente })
+  const schemaDe = (llamada: number) => llm.mock.calls[llamada]![0].schema as { safeParse: (x: unknown) => { success: boolean } }
+  const errorDe = (p: Promise<unknown>) => p.then(() => null, (x: unknown) => x as ErrorNibble)
+
+  it('el prompt nombra el ingrediente del foco: el principal, o el que se suma', async () => {
+    responde(BONIATO)
+    const r = await pedir(undefined, conFoco(conocimiento(), cambiarA('boniato')))
+    expect(promptDe(0)).toContain('Esta vez: partí de «Papas al horno en bastones, crocantes» (papas_horno_baston), cambiá el ingrediente principal: el ingrediente principal (el de más gramos) es «Boniato cocido» (boniato); mantené')
+    expect(promptDe(0)).toContain('Es lo que pide la app: no partas de otro alimento seguro ni cambies de ingrediente.')
+    expect(r.validacion.reintentos).toBe(0)
+    responde(PAPAS_CON_QUESO)
+    await pedir()
+    expect(promptDe(1)).toContain('mantené su plato y sumale «Queso muzzarella» (queso_muzzarella), sin cambiar nada más')
+    expect(llm).toHaveBeenCalledTimes(2)
+  })
+
+  it('el schema del primer intento solo acepta el alimento de partida del foco; el del reintento, todos sus seguros', async () => {
+    responde(BONIATO, BONIATO)
+    await pedir(undefined, conFoco(conocimiento(), cambiarA('zapallo')))
+    const deSusFritas = { ...BONIATO, desdeId: 'papas_fritas_baston' }
+    expect(schemaDe(0).safeParse(BONIATO).success).toBe(true)
+    expect(schemaDe(0).safeParse(deSusFritas).success).toBe(false)
+    expect(schemaDe(1).safeParse(deSusFritas).success).toBe(true)
+    // Los acompañamientos salen de todo lo que come seguro, en los dos intentos
+    const conSusFritas = { ...BONIATO, acompanamientos: [{ preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 60 }] }
+    expect(schemaDe(0).safeParse(conSusFritas).success).toBe(true)
+  })
+
+  it('otro principal no pasa en el primer intento y sí en el reintento (el foco se relaja y queda en el log)', async () => {
+    responde(BONIATO, BONIATO)
+    const r = await pedir(undefined, conFoco(conocimiento(), cambiarA('zapallo')))
+    expect(llm).toHaveBeenCalledTimes(2)
+    expect(promptDe(1)).toContain('Esta vez el ingrediente principal (el de más gramos) tiene que ser Zapallo cocido (zapallo), y en «Bastones de boniato al horno con queso rallado» es Boniato cocido')
+    expect(promptDe(1)).toContain('Si así no se puede cumplir alguna regla o el mínimo del nutriente, elegí otro alimento seguro, otro ingrediente rico en calcio u otro nutriente de la lista.')
+    expect(r.nombre).toBe(BONIATO.nombre)
+    expect(r.validacion).toEqual({ ok: true, problemas: [], reintentos: 1 })
+    expect(vi.mocked(console.info)).toHaveBeenCalledWith(expect.stringMatching(/"resultado":"foco_relajado","intento":1/))
+  })
+
+  it('sumar_ingrediente: el primer intento tiene que llevarlo; en el reintento puede sumar otro, pero no uno que ya usó', () => {
+    const foco = { ...FOCO_PAPAS, ingrediente: 'queso_rallado' }
+    const k = conFoco(conocimiento(), foco)
+    const receta = completarCreativa(PAPAS_CON_QUESO, k, papasHorno)
+    expect(problemasCreativa(receta, k, papasHorno, [])).toEqual(['Esta vez a su «Papas al horno en bastones, crocantes» hay que sumarle Queso rallado (queso_rallado), y «Papas al horno con queso gratinado» no lo lleva.'])
+    expect(problemasCreativa(receta, k, papasHorno, [], undefined, undefined, true)).toEqual([])
+    const yaUso = conFoco(conocimiento(), foco, ['queso_muzzarella'])
+    expect(problemasCreativa(receta, yaUso, papasHorno, [], undefined, undefined, true)).toEqual(['Ya usó Queso muzzarella hace poco (está en las recetas que vio la familia): sumale otro alimento.'])
+  })
+
+  it('un principal que ya usó hace poco no pasa nunca: ni en el primer intento ni en el reintento', async () => {
+    const k = conFoco(conocimiento(), cambiarA('zapallo'), ['boniato'])
+    responde(BONIATO, BONIATO)
+    const e = await errorDe(pedir(['Bastones de boniato fritos'], k))
+    expect(e?.codigo).toBe('sin_candidatos')
+    const yaUso = 'Ya usó Boniato cocido hace poco (está en las recetas que vio la familia): el ingrediente principal de «Bastones de boniato al horno con queso rallado» tiene que ser otro.'
+    expect(promptDe(1)).toContain(yaUso)
+    expect((e?.detalle as { problemas: string[] }).problemas).toContain(yaUso)
+    expect(promptDe(0)).toContain('Ya usó hace poco (ninguno puede ser el ingrediente principal): «Boniato cocido» (boniato).')
+    // Con el foco cumplido también: el ingrediente sorteado no salva un principal repetido
+    const conBoniato = conFoco(conocimiento(), cambiarA('boniato'), ['boniato'])
+    expect(problemasCreativa(completarCreativa(BONIATO, conBoniato, papasHorno), conBoniato, papasHorno, [])).toEqual([yaUso])
+  })
+
+})
+
 describe('(v5.10) las recetas que ya vio llegan al conocimiento (para el ingrediente del foco y los recientes)', () => {
   it('llegan a deps.conocimiento (las últimas 10), y armarConocimientoReceta las pasa a conocimientoDe', async () => {
     const vistas = Array.from({ length: 12 }, (_, i) => `Receta ${i + 1}`)
-    const deps = vi.fn(async () => conocimiento())
+    const deps = vi.fn(async () => kPapas())
     responde(PAPAS_CON_QUESO)
     await generarRecetaCreativa({ ninoId: 'tomas', momento: 'cena', nutriente: 'calcio_mg', anteriores: vistas }, { conocimiento: deps })
     expect(deps).toHaveBeenCalledWith('tomas', { nutriente: 'calcio_mg', momento: 'cena', anteriores: vistas.slice(-10) })

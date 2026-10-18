@@ -4,17 +4,21 @@
 // declara y el ingrediente de más gramos, y valida alergias, reglas, mezclas, lenguaje y aporte (validacion/receta.ts).
 // v5.5 · Modo variedad (no le falta ningún nutriente): sin nutriente (`nutriente: null` en el schema) ni mínimo; si la
 // base nombra un grupo, el plato tiene que ser de ese grupo.
+// v5.10 · El LLM ignoraba el foco (le pedíamos partir del pollo desmenuzado y elegía igual su milanesa): en el primer
+// intento el schema solo acepta el alimento de partida del foco y el prompt nombra el ingrediente sorteado (cuál es el
+// principal o cuál se suma); en el reintento se relaja. Y ve los ingredientes que ya usó hace poco, para no repetirlos.
 import { z } from 'zod'
 import { COCCION, COLOR, FORMA, GRUPO, PRESENTACION, ROL_PLATO, SABOR, TEMPERATURA, TEXTURA, type Nutriente } from '../../../shared/contratos.js'
-import type { Conocimiento, Modo } from '../../grafo/conocimiento.js'
+import type { Conocimiento, Foco, Modo } from '../../grafo/conocimiento.js'
 import { NOMBRE_GRUPO } from '../../aprendizaje/textos.js'
+import { alimentoPorId } from '../catalogo.js'
 import { minimoComponentes, textoComidaCompleta } from '../plato-completo.js'
 import { NOMBRE_NUTRIENTE, REGLAS_COMUNES_RECETA } from './receta.js'
 
 export const SISTEMA_RECETA_CREATIVA = `Sos cocinero y especialista en food chaining para familias de chicos con autismo y selectividad alimentaria. La app te da todo lo que sabe del chico (lo que come seguro con sus atributos, lo que rechaza y por qué, lo que se le está ofreciendo, los patrones que encontró y las reglas de la familia). Con eso inventás UN plato nuevo, casero y rico, que lo acerque a un nutriente que le falta o, si no le falta ninguno, que le sume variedad. La idea es que coma mejor y más variado: nada de repetir lo que ya come ni lo que la familia ya vio.
 
 Cómo inventar el plato (food chaining):
-- Partí de UNO de sus alimentos seguros (desdeId) y cambiá UNA sola cosa. Dos caminos:
+- Partí de UNO de sus alimentos seguros (desdeId) y cambiá UNA sola cosa. Si la app te dice de cuál partir y qué ingrediente usar ("Esta vez: …"), es lo que pide: cumplilo. Dos caminos:
   a) cambiar el ingrediente principal y mantener todo lo demás igual que su alimento seguro: misma forma, textura, sabor, temperatura y cocción (de sus papas fritas en bastones a bastones de polenta con queso, fritos y crocantes; de su milanesa a una milanesa de lentejas, al horno como la suya);
   b) su mismo plato con un ALIMENTO sumado que aporta el nutriente (un lácteo, una verdura, una legumbre, una carne…), sin cambiar forma, textura, sabor, temperatura ni cocción (sus tostadas con queso fundido y un toque de orégano, sus papas al horno con costra de queso rallado y pan rallado). Una grasa, un aceite o un dulce nunca es el cambio.
 - Declarás los atributos del plato nuevo con el vocabulario de la app. Tienen que ser los reales del plato: la app los compara con los de su alimento seguro y cuenta los cambios (forma, textura, sabor, temperatura, cocción e ingrediente principal, que es el de más gramos). Más de un cambio no pasa.
@@ -43,13 +47,22 @@ Reglas:
 ${REGLAS_COMUNES_RECETA}`
 
 /**
- * La salida del LLM. Como en la receta del catálogo, sin rangos ni largos: los valida el código. v5.5 · Sin nutrientes
- * (modo variedad), `nutriente` es null: el nutriente que se muestra lo elige el código por el aporte.
+ * v5.10 · Lo que suma el carril foco-ricos a la base (server/grafo/conocimiento.ts), opcional acá hasta que se integre:
+ * el ingrediente sorteado que el plato nuevo TIENE que usar (Foco.ingrediente) y los alimentos que aparecen en los nombres
+ * de las recetas que la familia ya vio (Conocimiento.recientes).
  */
-export function esquemaSalidaCreativa(alimentoIds: string[], seguroIds: string[], nutrientes: Nutriente[]) {
+export type FocoV510 = Foco & { ingrediente?: string }
+export type ConocimientoV510 = Conocimiento & { foco: FocoV510; recientes?: string[] }
+
+/**
+ * La salida del LLM. Como en la receta del catálogo, sin rangos ni largos: los valida el código. v5.5 · Sin nutrientes
+ * (modo variedad), `nutriente` es null: el nutriente que se muestra lo elige el código por el aporte. v5.10 · `desdeIds`:
+ * de qué alimentos seguros puede partir (en el primer intento, solo el del foco); los acompañamientos, de todos.
+ */
+export function esquemaSalidaCreativa(alimentoIds: string[], seguroIds: string[], nutrientes: Nutriente[], desdeIds: string[] = seguroIds) {
   const alimentoId = alimentoIds.length ? z.enum(alimentoIds as [string, ...string[]]) : z.string()
   return z.object({
-    desdeId: z.enum(seguroIds as [string, ...string[]]),
+    desdeId: z.enum(desdeIds as [string, ...string[]]),
     nutriente: nutrientes.length ? z.enum(nutrientes as [Nutriente, ...Nutriente[]]) : z.null(),
     nombre: z.string(),
     atributos: z.object({
@@ -70,7 +83,7 @@ export function esquemaSalidaCreativa(alimentoIds: string[], seguroIds: string[]
 export type SalidaCreativa = z.infer<ReturnType<typeof esquemaSalidaCreativa>>
 
 export interface DatosPromptCreativa {
-  conocimiento: Conocimiento
+  conocimiento: ConocimientoV510
   ingredientes: { alimentoId: string; nombre: string }[] // del catálogo, sin genéricos ni alérgenos del chico
   anteriores: string[]                                   // las recetas que ya vio para esta comida
   anterior?: { salida: SalidaCreativa; problemas: string[] } // para el reintento
@@ -90,24 +103,48 @@ const MODO_TEXTO: Record<Modo, string> = {
   sumar_ingrediente: 'mantené su plato y sumale un ingrediente que aporte el nutriente, sin cambiar nada más',
 }
 
-/** Qué pide el foco: el nutriente, o (v5.5) la variedad, con el grupo si hay uno que menos come. */
-function textoFoco(k: Conocimiento, desde: Conocimiento['seguros'][number] | undefined): string {
+/** v5.10 · Un alimento como lo ve el LLM: el nombre del catálogo y su id. */
+const conNombre = (id: string) => `«${alimentoPorId(id)?.nombre ?? id}» (${id})`
+
+/** v5.10 · El cambio con el ingrediente que sorteó el código, sin ambigüedad: cuál es el principal o cuál se suma. */
+function cambioCon(modo: Modo, id: string): string {
+  return modo === 'cambiar_principal'
+    ? `cambiá el ingrediente principal: el ingrediente principal (el de más gramos) es ${conNombre(id)}; ${MANTENE}`
+    : `mantené su plato y sumale ${conNombre(id)}, sin cambiar nada más`
+}
+
+/**
+ * Qué pide el foco: el nutriente, o (v5.5) la variedad, con el grupo si hay uno que menos come. v5.10 · Con el
+ * ingrediente sorteado. En el primer intento el alimento de partida y el ingrediente son obligatorios (el schema solo
+ * acepta ese desdeId); en el reintento puede elegir otro alimento seguro u otro ingrediente, sin repetir lo que ya usó.
+ */
+function textoFoco(k: ConocimientoV510, desde: Conocimiento['seguros'][number] | undefined, reintento: boolean): string {
   const { foco } = k
+  const ing = foco.ingrediente
+  const obligatorio = `Es lo que pide la app: no partas de otro alimento seguro${ing ? ' ni cambies de ingrediente' : ''}.`
+  const sinRepetir = k.recientes?.length ? ', sin repetir lo que ya usó hace poco' : ''
   if (!k.variedad || foco.nutriente) {
     const n = NOMBRE_NUTRIENTE[foco.nutriente ?? k.nutrientes[0]!.nutriente]
-    return desde
-      ? `Esta vez: partí de «${desde.nombre}» (${desde.id}), ${MODO_TEXTO[foco.modo]}, y apuntá a ${n}. Si así no se puede cumplir alguna regla o el mínimo del nutriente, elegí otro alimento seguro u otro nutriente de la lista.`
-      : `Esta vez apuntá a ${n}.`
+    if (!desde) return `Esta vez apuntá a ${n}.`
+    const salida = reintento
+      ? `Si así no se puede cumplir alguna regla o el mínimo del nutriente, elegí otro alimento seguro${ing ? `, otro ingrediente rico en ${n}` : ''} u otro nutriente de la lista${sinRepetir}.`
+      : `${obligatorio} Si así no llega al mínimo del nutriente, ${ing ? `subí los gramos de ${conNombre(ing)} o ` : ''}elegí otro nutriente de la lista.`
+    return `Esta vez: partí de «${desde.nombre}» (${desde.id}), ${ing ? cambioCon(foco.modo, ing) : MODO_TEXTO[foco.modo]}, y apuntá a ${n}. ${salida}`
   }
   const g = foco.grupo
-  const cambio = g
-    ? `cambiá el ingrediente principal por uno de ${NOMBRE_GRUPO[g]} y ${MANTENE}`
-    : foco.modo === 'sumar_ingrediente' ? 'mantené su plato y sumale un ingrediente nuevo para él, sin cambiar nada más' : MODO_TEXTO[foco.modo]
+  const cambio = ing
+    ? cambioCon(foco.modo, ing)
+    : g
+      ? `cambiá el ingrediente principal por uno de ${NOMBRE_GRUPO[g]} y ${MANTENE}`
+      : foco.modo === 'sumar_ingrediente' ? 'mantené su plato y sumale un ingrediente nuevo para él, sin cambiar nada más' : MODO_TEXTO[foco.modo]
   const objetivo = g ? `para sumar variedad: el plato tiene que ser del grupo ${g}` : 'para sumar variedad: algo nuevo a un solo cambio de lo que ya come'
+  const salida = reintento
+    ? `Si así no se puede cumplir alguna regla, elegí otro alimento seguro${ing ? ` u otro ingrediente${g ? ` de ${NOMBRE_GRUPO[g]}` : ''}` : ''}${sinRepetir}.`
+    : obligatorio
   return [
     desde ? `Esta vez: partí de «${desde.nombre}» (${desde.id}), ${cambio}, ${objetivo}.` : `Esta vez, ${objetivo}.`,
     'No le falta ningún nutriente: no hay mínimo y devolvé nutriente: null.',
-    ...(desde ? ['Si así no se puede cumplir alguna regla, elegí otro alimento seguro.'] : []),
+    ...(desde ? [salida] : []),
   ].join(' ')
 }
 
@@ -117,11 +154,13 @@ export function promptRecetaCreativa(d: DatosPromptCreativa): string {
   const e = d.elegido
   const foco = e
     ? `Lo nuevo YA LO ELIGIÓ la app: «${e.preparacion.nombre}» (${e.preparacion.id}), a un solo cambio de su «${e.desde.nombre}» (cambia ${e.cambio}). No inventes otro plato: escribí la receta de ESTE (elaborada y rica, que dé ganas), con su ingrediente principal (${[...e.preparacion.ingredientes].sort((a, b) => b.gramos - a.gramos)[0]?.alimentoId ?? 'el del catálogo'}) como el de más gramos; ingredientes de referencia: ${e.preparacion.ingredientes.map((i) => `${i.alimentoId} ${i.gramos} g`).join(', ')}. desdeId es ${e.desde.id}. Si es una guarnición (un puré, unas papas, una verdura), rol guarnicion o verdura_fruta, y el principal de la comida es algo que ya come. Lo nuevo solo NO es una comida: completala con ${Math.max(1, minimoComponentes(k) - 1)} o más cosas de la lista de lo que ya come (un principal potente si lo nuevo no lo es, y una verdura o fruta si come alguna).`
-    : textoFoco(k, desde)
+    : textoFoco(k, desde, Boolean(d.anterior))
   const lineas = ['Base de conocimiento del chico (lo único que sabés de él):', k.texto, '', foco, '', ...textoComidaCompleta(k)]
   if (d.anteriores.length && !e) {
     lineas.push('', 'La familia ya vio estas recetas: proponé un plato distinto a todas (otro ingrediente principal u otra idea):', ...d.anteriores.map((n) => `- ${n}`))
   }
+  // v5.10 · Lo que ya usó hace poco no puede ser el ingrediente principal (la validación lo rechaza en los dos intentos)
+  if (k.recientes?.length && !e) lineas.push(`Ya usó hace poco (ninguno puede ser el ingrediente principal): ${k.recientes.map(conNombre).join(', ')}.`)
   lineas.push('', 'Ingredientes que podés usar (alimentoId: nombre):', ...d.ingredientes.map((i) => `- ${i.alimentoId}: ${i.nombre}`))
   if (d.anterior) {
     lineas.push(

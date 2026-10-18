@@ -11,8 +11,8 @@ import { CON_META, objetivosPara } from '../nutricion/objetivos.js'
 import { grupoParaVariedad, variedadDe } from '../nutricion/progreso.js'
 import { fijarAlimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
-import type { SalidaCreativa } from './prompts/receta-creativa.js'
-import { generarRecetaCreativa } from './receta-creativa.js'
+import type { FocoV510, SalidaCreativa } from './prompts/receta-creativa.js'
+import { generarRecetaCreativa, type ConocimientoReceta } from './receta-creativa.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
 const llm = vi.mocked(generarJSON)
@@ -59,6 +59,12 @@ const PAPAS_CON_QUESO: SalidaCreativa = {
   presentacion: 'Separado, dos bastones con queso al lado de sus papas fritas, sin tocarse.',
 }
 
+// v5.10 · El primer intento solo acepta el alimento de partida y el ingrediente del foco: los tests de la receta lo fijan
+// (el de ZANAHORIA_FRITA en modo variedad, el de PAPAS_CON_QUESO en modo nutriente) y no dependen del sorteo
+const FOCO_ZANAHORIA: FocoV510 = { desdeId: 'papas_fritas_baston', modo: 'cambiar_principal', grupo: 'verdura', ingrediente: 'zanahoria' }
+const FOCO_PAPAS: FocoV510 = { desdeId: 'papas_horno_baston', modo: 'sumar_ingrediente', nutriente: 'calcio_mg', ingrediente: 'queso_muzzarella' }
+const conFoco = (k: Conocimiento, foco: FocoV510 = FOCO_ZANAHORIA, recientes: string[] = []): ConocimientoReceta => ({ ...k, foco, recientes })
+
 const responde = (...salidas: SalidaCreativa[]) => {
   for (const datos of salidas) llm.mockResolvedValueOnce({ datos, modelo: 'claude-sonnet-5-5', ms: 10, reintentos: 0 })
 }
@@ -66,7 +72,7 @@ const promptDe = (llamada: number) => {
   const parte = llm.mock.calls[llamada]![0].partes[0]!
   return parte.tipo === 'texto' ? parte.texto : ''
 }
-const pedir = (k = conocimiento()) => generarRecetaCreativa({ ninoId: 'tomas', momento: 'cena' }, { conocimiento: async () => k })
+const pedir = (k: ConocimientoReceta = conFoco(conocimiento())) => generarRecetaCreativa({ ninoId: 'tomas', momento: 'cena' }, { conocimiento: async () => k })
 
 beforeAll(() => fijarAlimentos([...alimentos.values()]))
 afterAll(() => fijarAlimentos(null))
@@ -172,11 +178,24 @@ describe('generarRecetaCreativa en modo variedad', () => {
   })
 
   it('en modo nutriente el objetivo es el nutriente', async () => {
-    const k = conocimiento({}, cargadoDe('tomas', 1))
+    const k = conFoco(conocimiento({}, cargadoDe('tomas', 1)), FOCO_PAPAS)
     responde({ ...PAPAS_CON_QUESO, nutriente: 'calcio_mg', rol: 'principal', acompanamientos: [{ preparacionId: 'milanesa_carne_horno', rol: 'guarnicion', gramos: 110 }, { preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 50 }] })
     const r = await pedir(k)
     expect(r.objetivo).toEqual({ tipo: 'nutriente', nutriente: 'calcio_mg' })
     expect(r.evidencia.nutriente).toBe('calcio_mg')
+  })
+
+  it('(v5.10) el ingrediente del foco es el de ese grupo: el prompt lo nombra y otro solo pasa en el reintento', async () => {
+    responde(ZANAHORIA_FRITA)
+    await pedir()
+    expect(promptDe(0)).toContain('cambiá el ingrediente principal: el ingrediente principal (el de más gramos) es «Zanahoria» (zanahoria); mantené la forma, la textura, el sabor, la temperatura y la cocción, para sumar variedad: el plato tiene que ser del grupo verdura.')
+    expect(promptDe(0)).toContain('Es lo que pide la app: no partas de otro alimento seguro ni cambies de ingrediente.')
+
+    responde(ZANAHORIA_FRITA, ZANAHORIA_FRITA)
+    const r = await pedir(conFoco(conocimiento(), { ...FOCO_ZANAHORIA, ingrediente: 'zapallo' }))
+    expect(promptDe(2)).toContain('tiene que ser Zapallo cocido (zapallo), y en «Bastones de zanahoria fritos» es Zanahoria')
+    expect(promptDe(2)).toContain('Si así no se puede cumplir alguna regla, elegí otro alimento seguro u otro ingrediente de verdura.')
+    expect(r.validacion.reintentos).toBe(1)
   })
 })
 

@@ -10,6 +10,10 @@
 // v5.8 · Sus otras alergias (DatosBasicos.alergiasOtras, "kiwi", "colorante rojo"): los alimentos que alcanzan
 // (server/alergias.ts) no están en la lista de ingredientes ni en el schema, el LLM las lee en la base de conocimiento y
 // la validación rechaza un ingrediente que alcancen o un texto que las nombre.
+// v5.10 · Variedad: las recetas que ya vio (`anteriores`) llegan al conocimiento, que sortea un ingrediente para el foco
+// (Foco.ingrediente) y dice qué alimentos ya usó (Conocimiento.recientes). En el primer intento el foco es obligatorio:
+// el schema solo acepta su alimento de partida y la validación pide su ingrediente (el principal, o sumado); en el
+// reintento se relaja a cualquier seguro y cualquier ingrediente. Nunca, en ninguno, un principal que ya usó hace poco.
 import type { Alergeno, Candidato, Evidencia, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Receta, RecetaReq } from '../../shared/contratos.js'
 import { alimentosProhibidos, limpiarOtras } from '../alergias.js'
 import { DIMENSIONES, cambios, principal } from '../aprendizaje/cadena.js'
@@ -22,11 +26,11 @@ import { calcularAporte, cambiosEntre, problemasPorTipo, aplanar, type ContextoV
 import { alimentoPorId, alimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
 import { ajustarPorciones, armarPlatoCompleto, completarConLoQueCome, problemasDelPlato } from './plato-completo.js'
-import { esquemaSalidaCreativa, promptRecetaCreativa, SISTEMA_RECETA_CREATIVA, type SalidaCreativa } from './prompts/receta-creativa.js'
+import { esquemaSalidaCreativa, promptRecetaCreativa, SISTEMA_RECETA_CREATIVA, type ConocimientoV510, type SalidaCreativa } from './prompts/receta-creativa.js'
 import { CORTE_MS, TOPE_NUEVA_LLAMADA_MS, coberturaDeLoQueFalta, sinAlergenos, type IntentoReceta } from './receta.js'
 
 /** v5.8 · La base de conocimiento con sus otras alergias, como las escribió el padre (Conocimiento no las trae). */
-export type ConocimientoReceta = Conocimiento & { alergiasOtras?: string[] }
+export type ConocimientoReceta = ConocimientoV510 & { alergiasOtras?: string[] }
 
 /**
  * La base de conocimiento del chico (armarConocimiento) más sus otras alergias: lo que usa api/receta.ts. v5.10 · Con
@@ -191,11 +195,45 @@ export function completarCreativa(salida: SalidaCreativa, k: ConocimientoReceta,
   }
 }
 
-/** Lo que valida la receta del catálogo, más lo propio de un plato inventado. */
+/**
+ * v5.10 · Lo que pide el foco sorteado. Primer intento: su ingrediente es el principal (cambiar_principal) o está sumado
+ * (sumar_ingrediente). Reintento (`relajado`): puede ser otro, pero lo sumado no puede ser algo que ya usó hace poco. En
+ * los dos, el ingrediente principal no puede ser uno de los recientes.
+ */
+export function problemasDelFoco(receta: Receta, k: ConocimientoReceta, desde: PreparacionCatalogo, relajado: boolean): string[] {
+  const p: string[] = []
+  const { modo, ingrediente } = k.foco
+  const recientes = new Set(k.recientes ?? [])
+  const nombre = (id: string) => alimentoPorId(id)?.nombre ?? id
+  const tiene = principal(receta.ingredientes)
+  if (ingrediente && !relajado) {
+    if (modo === 'cambiar_principal' && tiene !== ingrediente) {
+      p.push(`Esta vez el ingrediente principal (el de más gramos) tiene que ser ${nombre(ingrediente)} (${ingrediente}), y en «${receta.nombre}» es ${tiene ? nombre(tiene) : 'ninguno'}: armá el plato con ${nombre(ingrediente)} como lo que más pesa.`)
+    }
+    if (modo === 'sumar_ingrediente' && !receta.ingredientes.some((i) => i.alimentoId === ingrediente)) {
+      p.push(`Esta vez a su «${desde.nombre}» hay que sumarle ${nombre(ingrediente)} (${ingrediente}), y «${receta.nombre}» no lo lleva.`)
+    }
+  }
+  if (tiene && recientes.has(tiene)) {
+    p.push(`Ya usó ${nombre(tiene)} hace poco (está en las recetas que vio la familia): el ingrediente principal de «${receta.nombre}» tiene que ser otro.`)
+  }
+  if (ingrediente && relajado && modo === 'sumar_ingrediente') {
+    const deSuPlato = new Set(desde.ingredientes.map((i) => i.alimentoId))
+    const repetidos = receta.ingredientes.map((i) => i.alimentoId).filter((id) => id !== tiene && !deSuPlato.has(id) && !ACOMPANAMIENTOS.has(id) && recientes.has(id))
+    if (repetidos.length) p.push(`Ya usó ${repetidos.map(nombre).join(' y ')} hace poco (está en las recetas que vio la familia): sumale otro alimento.`)
+  }
+  return p
+}
+
+/**
+ * Lo que valida la receta del catálogo, más lo propio de un plato inventado. v5.10 · Sin el plato elegido, también lo
+ * que pide el foco (problemasDelFoco): `relajado` en el reintento.
+ */
 export function problemasCreativa(
   receta: Receta, k: ConocimientoReceta, desde: PreparacionCatalogo, anteriores: readonly string[],
   acompanamientos?: readonly { preparacionId: string; gramos: number }[],
   elegido?: Elegido,
+  relajado = false,
 ): string[] {
   // Con el plato elegido, la preparación del catálogo (con su fortificadaDe: "la versión fortificada" es un cambio válido)
   const base: PreparacionCatalogo = elegido
@@ -228,6 +266,7 @@ export function problemasCreativa(
   if (igual) p.push(`«${receta.nombre}» es lo mismo que «${igual.nombre}», que ya come: proponé un plato nuevo.`)
   // v5.9 · Con el plato elegido no se pide que sea otro (repetir la exposición está bien): sí que sea ESE plato
   if (!elegido && anteriores.some((a) => normal(a) === normal(receta.nombre))) p.push(`«${receta.nombre}» ya lo vio la familia: proponé un plato distinto.`)
+  if (!elegido) p.push(...problemasDelFoco(receta, k, desde, relajado)) // v5.10
   if (elegido) {
     const esperado = principal(elegido.preparacion.ingredientes)
     const tiene = principal(receta.ingredientes)
@@ -260,7 +299,10 @@ export async function generarRecetaCreativa(req: RecetaReq, deps: DepsRecetaCrea
     .filter((a) => sinAlergenos(a.id, alergias) && !prohibidos.has(a.id))
     .map((a) => ({ alimentoId: a.id, nombre: a.nombre }))
   const kPrompt = otras.length ? { ...k, texto: textoConOtrasAlergias(k.texto, otras) } : k
-  const schema = esquemaSalidaCreativa(ingredientes.map((i) => i.alimentoId), elegido ? [elegido.desde.id] : k.seguros.map((s) => s.id), k.nutrientes.map((x) => x.nutriente))
+  const alimentoIds = ingredientes.map((i) => i.alimentoId)
+  const seguroIds = elegido ? [elegido.desde.id] : k.seguros.map((s) => s.id)
+  // v5.10 · Si el alimento de partida del foco no está entre los seguros, el foco no se puede cumplir: relajado desde el principio
+  const focoPosible = !elegido && seguroIds.includes(k.foco.desdeId)
 
   let anterior: { salida: SalidaCreativa; problemas: string[] } | undefined
   for (let intento = 0; intento < 2; intento++) {
@@ -268,6 +310,11 @@ export async function generarRecetaCreativa(req: RecetaReq, deps: DepsRecetaCrea
       registrar({ ninoId: req.ninoId, resultado: 'sin_tiempo', intento, ms: ahora() - t0 }, true)
       throw new ErrorNibble('timeout', 'Tardamos demasiado en armar una receta segura. ¿Probás de nuevo?')
     }
+    // v5.10 · Primer intento: solo el alimento de partida del foco. Reintento: cualquier seguro, para no terminar en
+    // sin_candidatos por un foco imposible
+    const relajado = intento > 0 || !focoPosible
+    if (relajado && !elegido) registrar({ ninoId: req.ninoId, resultado: 'foco_relajado', intento, foco: k.foco, ...(anterior ? { problemas: anterior.problemas } : {}) })
+    const schema = esquemaSalidaCreativa(alimentoIds, seguroIds, k.nutrientes.map((x) => x.nutriente), relajado ? seguroIds : [k.foco.desdeId])
     const desdeLlamada = ahora()
     const { datos } = await generarJSON({
       tarea: 'receta',
@@ -281,7 +328,7 @@ export async function generarRecetaCreativa(req: RecetaReq, deps: DepsRecetaCrea
     })
     const desde = elegido ? elegido.desde : k.seguros.find((s) => s.id === datos.desdeId)!
     const receta = completarCreativa(datos, k, desde, elegido)
-    const problemas = problemasCreativa(receta, k, desde, anteriores, receta.platoCompleto?.componentes.filter((c) => !c.nuevo) ?? datos.acompanamientos, elegido)
+    const problemas = problemasCreativa(receta, k, desde, anteriores, receta.platoCompleto?.componentes.filter((c) => !c.nuevo) ?? datos.acompanamientos, elegido, relajado)
     deps.alIntentar?.({ llamada: intento + 1, preparacionId: receta.preparacionBaseId, reintento: intento > 0, salida: datos, problemas, ms: ahora() - desdeLlamada })
     if (problemas.length === 0) {
       registrar({ ninoId: req.ninoId, nombre: receta.nombre, desde: desde.id, cambio: receta.cambio, nutriente: receta.evidencia.nutriente, objetivo: receta.objetivo, foco: k.foco, llamadas: intento + 1, ms: ahora() - t0 })
