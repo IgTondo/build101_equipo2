@@ -175,7 +175,7 @@ export function Registrar() {
           <button type="button" className="nb-boton nb-boton-secundario" onClick={() => galeria.current?.click()}>
             Elegir de la galería
           </button>
-          <p className="rg-pista">Mejor desde arriba, con buena luz y el plato entero a la vista.</p>
+          <p className="rg-pista">Desde arriba, con el plato entero.</p>
           {errorFoto && <div className="nb-tarjeta nb-aviso" role="alert"><p>{errorFoto}</p></div>}
         </section>
       )}
@@ -191,7 +191,7 @@ export function Registrar() {
         <section className="rg-paso" aria-labelledby="rg-t-movida">
           <h1 id="rg-t-movida" tabIndex={-1} data-foco>La foto salió movida</h1>
           <img className="rg-previa" src={foto.dataUrl} alt="La foto que sacaste" />
-          <p>Con una foto más nítida reconocemos mejor la comida. Si no se puede, seguimos con esta.</p>
+          <p>Con una más nítida la reconocemos mejor.</p>
           <button type="button" className="nb-boton" onClick={sacarOtra}>Sacar otra</button>
           <button type="button" className="nb-boton nb-boton-secundario" onClick={() => void analizar(foto)}>Usar igual</button>
         </section>
@@ -217,7 +217,7 @@ export function Registrar() {
         <section className="rg-paso" aria-labelledby="rg-t-sin">
           <div className="nb-tarjeta nb-vacio">
             <h1 id="rg-t-sin" tabIndex={-1} data-foco>No encontramos comida en la foto</h1>
-            <p className="nb-suave">Puede pasar si el plato quedó cortado o con poca luz. ¿Probás con otra, desde arriba?</p>
+            <p className="nb-suave">¿Probás con otra, desde arriba y con luz?</p>
           </div>
           {foto && <img className="rg-previa" src={foto.dataUrl} alt="La foto que sacaste" />}
           <button type="button" className="nb-boton" onClick={sacarOtra}>Sacar otra foto</button>

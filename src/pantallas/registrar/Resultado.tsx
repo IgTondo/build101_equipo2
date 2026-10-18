@@ -1,25 +1,28 @@
-// Resultado del registro (C2, PLAN v5.1): alertas si hay, "Qué aprendí", lo que aportó la comida (con rangos) y, al
-// final, la próxima comida calculada con la que se acaba de registrar. Se vuelve a pedir el progreso después de
+// Resultado del registro (C2, PLAN v5.1): alertas si hay (una línea), "Qué aprendí" (dos líneas cortas, el resto en
+// "Ver más"), lo que aportó la comida (plegado, con rangos) y, al final, la próxima comida calculada con la que se acaba
+// de registrar. Se vuelve a pedir el progreso después de
 // guardar, así la sugerencia y el "Hoy" del inicio ya la cuentan. La energía va como dato, sin meta (§1). Las alertas
 // derivan al profesional, sin alarmar.
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Rango, RegistrarComidaReq, RegistrarComidaRes } from '../../../shared/contratos'
+import { AvisoConsulta } from '../../componentes/AvisoConsulta'
 import { ErrorConReintento } from '../../componentes/Estados'
 import { TarjetaProximaComida } from '../../componentes/ProximaComida'
 import { api } from '../../lib/api'
 import { comidasDelDia, horaUruguay, proximaComida } from '../../lib/proximaComida'
 import { useApi } from '../../lib/useApi'
 import { NOMBRE_NUTRIENTE, NUTRIENTES_CON_META, textoParaPadres } from '../../lib/vocabulario'
-import { rangoLegible } from './modelo'
+import { aprendiCorto, rangoLegible } from './modelo'
 
-/** "Qué aprendí" corto: lo más nuevo primero, como mucho tres líneas. */
-const MAX_APRENDI = 3
+/** "Qué aprendí" corto: lo más nuevo primero, dos líneas a la vista. */
+const MAX_APRENDI = 2
 
+/** Plegado: es un dato para quien lo quiera ver (la cobertura del día está en el inicio). */
 function Nutrientes({ rango }: { rango: Rango }) {
   return (
-    <section className="nb-tarjeta" aria-labelledby="rg-nutrientes">
-      <h2 id="rg-nutrientes">Lo que aportó esta comida</h2>
+    <details className="nb-tarjeta nb-ver-mas rg-plegable">
+      <summary>Lo que aportó esta comida</summary>
       <dl className="rg-nutrientes rg-nutrientes-dos">
         {NUTRIENTES_CON_META.map((n) => (
           <div key={n} className="rg-nutriente">
@@ -32,7 +35,7 @@ function Nutrientes({ rango }: { rango: Rango }) {
         Energía: <span className="nb-numero">{rangoLegible('energia_kcal', rango.min.energia_kcal, rango.max.energia_kcal)}</span>
       </p>
       <p className="rg-pista">Valores aproximados.</p>
-    </section>
+    </details>
   )
 }
 
@@ -61,22 +64,22 @@ export function Resultado({ ninoId, res, req, alOtra }: Props) {
     <>
       <h1 id="rg-guardado" className="rg-guardado" tabIndex={-1} data-foco>Comida guardada</h1>
 
-      {res.alertas.length > 0 && (
-        <section className="nb-tarjeta rg-alerta" aria-labelledby="rg-alertas">
-          <h2 id="rg-alertas">Algo para comentar con su pediatra</h2>
-          <ul>
-            {res.alertas.map((a, i) => <li key={`${a.tipo}-${i}`}>{a.texto}</li>)}
-          </ul>
-          <p className="nb-suave">No es un diagnóstico: conviene consultarlo con su pediatra o nutricionista.</p>
-        </section>
-      )}
+      <AvisoConsulta alertas={res.alertas} />
 
       {res.aprendi.length > 0 && (
         <section className="nb-tarjeta" aria-labelledby="rg-aprendi">
           <h2 id="rg-aprendi">Qué aprendí</h2>
           <ul className="rg-aprendi">
-            {res.aprendi.slice(0, MAX_APRENDI).map((a, i) => <li key={`${a.tipo}-${i}`}>{textoParaPadres(a.texto)}</li>)}
+            {res.aprendi.slice(0, MAX_APRENDI).map((a, i) => <li key={`${a.tipo}-${i}`}>{aprendiCorto(textoParaPadres(a.texto))}</li>)}
           </ul>
+          {res.aprendi.some((a, i) => i >= MAX_APRENDI || aprendiCorto(textoParaPadres(a.texto)) !== textoParaPadres(a.texto)) && (
+            <details className="nb-ver-mas rg-aprendi-mas">
+              <summary>Ver más</summary>
+              <ul className="rg-aprendi">
+                {res.aprendi.map((a, i) => <li key={`${a.tipo}-${i}`}>{textoParaPadres(a.texto)}</li>)}
+              </ul>
+            </details>
+          )}
         </section>
       )}
 

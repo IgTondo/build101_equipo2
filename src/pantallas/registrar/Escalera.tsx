@@ -11,7 +11,7 @@ const mayuscula = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 function aliento(c: Cuanto): string | null {
   if (c === 'nada') return 'Que esté en el plato ya es un avance.'
   if (c === 'toco' || c === 'probo') return `${mayuscula(ESCALON[c])}: cada paso cuenta.`
-  if (c === 'aparto') return 'Está bien, queda anotado. Se puede volver a ofrecer otro día, sin presión.'
+  if (c === 'aparto') return 'Queda anotado. Otro día se vuelve a ofrecer, sin presión.'
   return null
 }
 
@@ -86,8 +86,7 @@ export function ChipsConducta({ marcadas, deIA, alCambiar }: {
   return (
     <div className="nb-tarjeta">
     <fieldset className="rg-conducta">
-      <legend className="rg-leyenda">¿Cómo estuvo en la mesa?</legend>
-      <p className="rg-pista">Podés marcar varias, o ninguna.</p>
+      <legend className="rg-leyenda">¿Cómo estuvo en la mesa? <span className="rg-opcional">(opcional)</span></legend>
       <div className="rg-chips">
         {CONDUCTA.map((c) => {
           const on = marcadas.includes(c)
@@ -104,7 +103,7 @@ export function ChipsConducta({ marcadas, deIA, alCambiar }: {
           )
         })}
       </div>
-      {deIA.length > 0 && <p className="rg-pista"><span className="rg-insignia">De tu nota</span> lo resaltado salió de lo que contaste.</p>}
+      {deIA.length > 0 && <p className="rg-pista"><span className="rg-insignia">De tu nota</span> lo resaltado.</p>}
     </fieldset>
     </div>
   )

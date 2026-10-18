@@ -117,7 +117,7 @@ export function NotaDeVoz({ ninoId, analisis, alRelato, transcripcion }: Props) 
               <p id={`${id}-ayuda`} className="rg-pista">
                 {grabador.estado === 'pidiendo'
                   ? 'Pidiendo permiso para usar el micrófono…'
-                  : `Hasta ${MAX_SEGUNDOS} segundos. Por ejemplo: "el puré lo dejó en el plato, la milanesa la probó".`}
+                  : `Hasta ${MAX_SEGUNDOS} segundos. Ej.: «el puré lo dejó, la milanesa la probó».`}
               </p>
             </>
           )}
@@ -170,7 +170,7 @@ export function NotaDeVoz({ ninoId, analisis, alRelato, transcripcion }: Props) 
 
           {fase === 'listo' && (
             <p className="rg-listo" role="status">
-              Listo: marcamos lo que contaste. Revisalo abajo y corregí lo que haga falta.
+              Listo: marcamos lo que contaste. Revisalo abajo.
             </p>
           )}
           {transcripcion && fase === 'listo' && (

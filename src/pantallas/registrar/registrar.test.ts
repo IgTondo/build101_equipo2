@@ -6,7 +6,7 @@ import relatoFixture from '../../../fixtures/relato-comida.json'
 import { aGrises, estaMovida, medidas, UMBRAL_MOVIDA, varianzaLaplaciano } from './imagen'
 import {
   analisisEditado, aplicarRelato, armarRegistro, borradorInicial, esDeIA, faltanMarcar, horaUruguay,
-  marcarCuanto, marcarMotivo, momentoPorHora, preguntasVivas, puedeGuardar, rangoLegible, type Borrador,
+  aprendiCorto, marcarCuanto, marcarMotivo, momentoPorHora, preguntasVivas, puedeGuardar, rangoLegible, type Borrador,
 } from './modelo'
 
 const analisis = analisisFixture as AnalisisComida
@@ -167,5 +167,14 @@ describe('rangoLegible', () => {
   it('muestra min–max con la unidad y colapsa si es igual', () => {
     expect(rangoLegible('calcio_mg', 63, 131)).toBe('63–131 mg')
     expect(rangoLegible('vitamina_c_mg', 0, 0)).toBe('0 mg')
+  })
+})
+
+describe('aprendiCorto', () => {
+  it('saca los paréntesis y el "Cada paso cuenta." del final', () => {
+    expect(aprendiCorto('Bastones de queso horneados: 5.ª exposición. Esta vez comió la mitad (antes, como mucho un poco). Cada paso cuenta.'))
+      .toBe('Bastones de queso horneados: 5.ª exposición. Esta vez comió la mitad.')
+    expect(aprendiCorto('Lo crocante servido separado lo acepta (lo comió 36 de 41 veces).')).toBe('Lo crocante servido separado lo acepta.')
+    expect(aprendiCorto('Milanesa: le está gustando más (comió todo).')).toBe('Milanesa: le está gustando más.')
   })
 })
