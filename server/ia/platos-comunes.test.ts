@@ -8,7 +8,7 @@ import { conocimientoDe, type Foco } from '../grafo/conocimiento.js'
 import { objetivosPara } from '../nutricion/objetivos.js'
 import { fijarAlimentos } from './catalogo.js'
 import { EJEMPLOS_DE_PLATOS, PLATOS_COMUNES, franjaDe, problemasDePlatoComun, tipoDelNombre } from './platos-comunes.js'
-import type { SalidaCreativa } from './prompts/receta-creativa.js'
+import { promptRecetaCreativa, SISTEMA_RECETA_CREATIVA, type SalidaCreativa } from './prompts/receta-creativa.js'
 import { completarCreativa, problemasCreativa } from './receta-creativa.js'
 
 describe('tipoDelNombre', () => {
@@ -158,5 +158,27 @@ describe('en la receta creativa', () => {
 
   it('si el nombre no dice qué es el plato, el problema es ese (no se suma el de plato común)', () => {
     expect(problemas('Crocantes como las suyas').join('\n')).not.toMatch(/plato común/)
+  })
+
+  it('el sistema pide un plato común de cantina, bar o restaurante, sin preparaciones como base ni formas raras', () => {
+    expect(SISTEMA_RECETA_CREATIVA).toContain('Es un plato común en Uruguay, de los que se venden en una cantina escolar, un bar o un restaurante común')
+    expect(SISTEMA_RECETA_CREATIVA).toContain('Ser común manda sobre ser nutritivo')
+    expect(SISTEMA_RECETA_CREATIVA).toContain('a) el mismo plato común con otro ingrediente principal, uno que se use de verdad en ese plato')
+    expect(SISTEMA_RECETA_CREATIVA).toContain('Nunca un plato hecho con otra preparación como base o como forma (pizza con masa de fideos, chips de ñoquis, crackers de panqueque')
+    // Los ejemplos ya no enseñan formas raras
+    expect(SISTEMA_RECETA_CREATIVA).not.toMatch(/medallones de lentejas|bastones de polenta con queso|chips de boniato|nuggets de ricota|milanesa de arvejas/i)
+  })
+
+  it('el foco pide el plato común con su ingrediente; si es una preparación, servida como siempre; en el reintento, ser común manda', () => {
+    const prompt = (foco: Foco, reintento = false) => promptRecetaCreativa({
+      conocimiento: k(foco), ingredientes: [], anteriores: [],
+      ...(reintento ? { anterior: { salida: PAPAS_CON_QUESO, problemas: ['x'] } } : {}),
+    })
+    expect(prompt(FOCO)).toContain('Que sea un plato común de cantina, bar o restaurante (sus fideos con salsa bolognesa, sus papas al horno gratinadas con queso), con «Queso muzzarella» (queso_muzzarella) como se usa de verdad: nunca una forma rara para un alimento ni otra preparación como base.')
+    expect(prompt(FOCO)).not.toMatch(/Ser común manda: si así no sale/)
+    const aPan: Foco = { desdeId: 'papas_horno_baston', modo: 'cambiar_principal', nutriente: 'calcio_mg', ingrediente: 'pan_integral' }
+    expect(prompt(aPan)).toContain('(de milanesa de carne a milanesa de pollo o de berenjena, de tarta de jamón y queso a tarta de zapallitos)')
+    expect(prompt(aPan)).toContain('ya es una preparación: el plato nuevo es esa preparación servida como siempre (ñoquis con salsa, tostadas de pan integral), nunca su «Papas al horno en bastones, crocantes» rehecho con ella.')
+    expect(prompt(FOCO, true)).toContain('Ser común manda: si así no sale un plato común, elegí otro ingrediente.')
   })
 })

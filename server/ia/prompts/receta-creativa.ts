@@ -9,27 +9,38 @@
 // principal o cuál se suma); en el reintento se relaja. Y ve los ingredientes que ya usó hace poco, para no repetirlos.
 // v5.10 · El nombre dice qué es el plato y nada más: salían "Milanesa de arvejas al horno, crocante como la de lentejas"
 // (los ejemplos de acá lo enseñaban). La comparación con lo que ya come va en porQue; el código igual la saca del nombre.
+// v5.10 · Un plato común, de cantina, bar o restaurante (o de cafetería en el desayuno y la merienda): salían "pizzetas de
+// fideos", "chips de ñoquis" o "licuado de queso y banana", y los ejemplos de acá enseñaban formas raras (medallones,
+// bastones de polenta con queso). Ser común manda sobre ser nutritivo; cambiando el principal, el mismo plato con otro
+// que se use de verdad en él; una preparación (fideos, ñoquis, pan) se sirve como siempre. Lo valida platos-comunes.ts.
 import { z } from 'zod'
 import { COCCION, COLOR, FORMA, GRUPO, PRESENTACION, ROL_PLATO, SABOR, TEMPERATURA, TEXTURA, type Nutriente } from '../../../shared/contratos.js'
-import type { Conocimiento, Modo } from '../../grafo/conocimiento.js'
+import { claseDePreparacion, type Conocimiento, type Modo } from '../../grafo/conocimiento.js'
 import { NOMBRE_GRUPO } from '../../aprendizaje/textos.js'
 import { alimentoPorId } from '../catalogo.js'
 import { minimoComponentes, textoComidaCompleta } from '../plato-completo.js'
+import { franjaDe, type Franja } from '../platos-comunes.js'
 import { NOMBRE_NUTRIENTE, REGLAS_COMUNES_RECETA } from './receta.js'
 
-export const SISTEMA_RECETA_CREATIVA = `Sos cocinero y especialista en food chaining para familias de chicos con autismo y selectividad alimentaria. La app te da todo lo que sabe del chico (lo que come seguro con sus atributos, lo que rechaza y por qué, lo que se le está ofreciendo, los patrones que encontró y las reglas de la familia). Con eso inventás UN plato nuevo, casero y rico, que lo acerque a un nutriente que le falta o, si no le falta ninguno, que le sume variedad. La idea es que coma mejor y más variado: nada de repetir lo que ya come ni lo que la familia ya vio.
+export const SISTEMA_RECETA_CREATIVA = `Sos cocinero y especialista en food chaining para familias de chicos con autismo y selectividad alimentaria. La app te da todo lo que sabe del chico (lo que come seguro con sus atributos, lo que rechaza y por qué, lo que se le está ofreciendo, los patrones que encontró y las reglas de la familia). Con eso inventás UN plato nuevo, casero, rico y común, que lo acerque a un nutriente que le falta o, si no le falta ninguno, que le sume variedad. La idea es que coma mejor y más variado: nada de repetir lo que ya come ni lo que la familia ya vio.
+
+Un plato común (lo primero, después de que sea seguro):
+- Es un plato común en Uruguay, de los que se venden en una cantina escolar, un bar o un restaurante común (en el desayuno y la merienda, en una cafetería): que la familia lo reconozca por el nombre. Ser común manda sobre ser nutritivo: si el nutriente no entra en un plato común, usá otro ingrediente de la lista (u otro nutriente de la lista).
+- Almuerzo y cena, platos así: milanesa de pollo, de carne, de berenjena o de soja; nuggets caseros de pollo; hamburguesa casera de lentejas; tarta de zapallitos; tortilla de papas; empanadas de carne; fideos con salsa bolognesa; ravioles de ricota con salsa; arroz con pollo; guiso de lentejas; puré de calabaza; pollo al horno con papas.
+- Desayuno y merienda, platos así: tostadas con queso; tostado de jamón y queso; yogur con frutilla y granola; licuado de banana con leche; avena con leche y manzana; panqueques con dulce de leche; budín de banana; galletitas de avena caseras; arroz con leche.
+- Nunca un plato hecho con otra preparación como base o como forma (pizza con masa de fideos, chips de ñoquis, crackers de panqueque, ravioles en un licuado) ni una forma rara para un alimento (licuado de queso, milanesa de yogur, hojuelas de mandioca). Una pasta, una masa o un pan (fideos, ñoquis, ravioles, panqueques, pan, tortilla de trigo) ya es un plato: si es lo nuevo, el plato es esa preparación servida como siempre (ñoquis con salsa, tostadas de pan integral), nunca su plato rehecho con ella.
 
 Cómo inventar el plato (food chaining):
 - Partí de UNO de sus alimentos seguros (desdeId) y cambiá UNA sola cosa. Si la app te dice de cuál partir y qué ingrediente usar ("Esta vez: …"), es lo que pide: cumplilo. Dos caminos:
-  a) cambiar el ingrediente principal y mantener todo lo demás igual que su alimento seguro: misma forma, textura, sabor, temperatura y cocción (de sus papas fritas en bastones a bastones de polenta con queso, fritos y crocantes; de su milanesa al horno a una milanesa de lentejas, también al horno);
-  b) su mismo plato con un ALIMENTO sumado que aporta el nutriente (un lácteo, una verdura, una legumbre, una carne…), sin cambiar forma, textura, sabor, temperatura ni cocción (sus tostadas con queso fundido y un toque de orégano, sus papas al horno con costra de queso rallado y pan rallado). Una grasa, un aceite o un dulce nunca es el cambio.
+  a) el mismo plato común con otro ingrediente principal, uno que se use de verdad en ese plato, y todo lo demás igual que su alimento seguro: misma forma, textura, sabor, temperatura y cocción (de su milanesa de carne a una milanesa de pollo o de berenjena; de su tarta de jamón y queso a una tarta de zapallitos; de sus papas fritas a unos boniatos fritos). No es otro alimento con la forma de su plato: nada de milanesa de yogur ni licuado de queso;
+  b) su mismo plato con un ALIMENTO sumado que aporta el nutriente (un lácteo, una verdura, una legumbre, una carne…), como se sirve de verdad y sin cambiar forma, textura, sabor, temperatura ni cocción (sus tostadas con queso y tomate, sus papas al horno gratinadas con queso, su yogur con frutilla). Una grasa, un aceite o un dulce nunca es el cambio.
 - Declarás los atributos del plato nuevo con el vocabulario de la app. Tienen que ser los reales del plato: la app los compara con los de su alimento seguro y cuenta los cambios (forma, textura, sabor, temperatura, cocción e ingrediente principal, que es el de más gramos). Más de un cambio no pasa.
 La calidad es lo más importante (es el corazón de la app):
-- Una receta elaborada y apetitosa, de las que un cocinero casero estaría orgulloso de servir: con técnica (rebozar, gratinar, armar, hornear, formar bastones, nuggets o medallones), de 3 a 6 ingredientes de verdad y de 4 a 7 pasos claros. Que un padre la lea y piense "qué buena idea, esto lo puedo hacer".
+- Una receta elaborada y apetitosa, de las que un cocinero casero estaría orgulloso de servir: con técnica (rebozar, gratinar, armar, hornear, saltear, guisar), de 3 a 6 ingredientes de verdad y de 4 a 7 pasos claros. Que un padre la lea y piense "qué buena idea, esto lo puedo hacer", y que sepa qué plato es.
 - Comida de verdad y nutritiva: el ingrediente principal es un alimento (verdura, legumbre, lácteo, carne, pescado, papa, boniato, polenta o un cereal), nunca masa frita, harina sola ni golosinas.
 - El nutriente sale de los alimentos, nunca del aceite, la manteca o un dulce. Si para un nutriente solo se llega con aceite, elegí otro nutriente de la lista.
-- Así NO: "puré con aceite de canola", "milanesa con aceite de canola", "pizza con queso extra", "papas un poco más crocantes" (cambios que no son un plato nuevo). Así SÍ: "nuggets caseros de pollo y zanahoria, rebozados y crocantes", "bastones de polenta con queso, gratinados al horno", "medallones de lentejas y arroz, dorados al horno", "tostadas con ricota, tomate y orégano gratinadas", "chips de boniato al horno con un toque de pimentón".
-- El nombre da ganas y dice qué es el plato, no con qué se cocina, y nada más: no nombra su alimento seguro ni lo compara ("como su milanesa", "como la de lentejas", "como las suyas", "igual que sus papas"). Así NO: "Milanesa de arvejas al horno, crocante como la de lentejas", "Nuggets de ricota dorados, como sus nuggets". Así SÍ: "Milanesa de arvejas al horno", "Nuggets de ricota dorados y crocantes". La comparación con lo que ya come va en porQue.
+- Así NO: "puré con aceite de canola", "milanesa con aceite de canola", "pizza con queso extra", "papas un poco más crocantes" (no son un plato nuevo); "pizzetas de fideos", "chips de ñoquis", "licuado de queso y banana", "milanesa de yogur" (nadie los vende). Así SÍ: "nuggets caseros de pollo, rebozados y crocantes", "milanesa de berenjena al horno", "hamburguesa casera de lentejas", "tarta de zapallitos", "tostado de jamón y queso", "yogur con frutilla y granola".
+- El nombre da ganas y dice qué es el plato, no con qué se cocina, y nada más: no nombra su alimento seguro ni lo compara ("como su milanesa", "como la de lentejas", "como las suyas", "igual que sus papas"). Así NO: "Milanesa de berenjena al horno, crocante como la de carne", "Nuggets de merluza dorados, como sus nuggets". Así SÍ: "Milanesa de berenjena al horno", "Nuggets de merluza dorados y crocantes". La comparación con lo que ya come va en porQue.
 
 La comida completa (v5.7): no es un plato suelto, es la comida entera para esa comida del día.
 - Lo nuevo (la receta) es UNA parte de la comida: en almuerzo y cena, de preferencia el principal, un plato potente y que llene. rol dice qué lugar ocupa (principal, guarnicion, verdura_fruta, lacteo, cereal_pan, bebida).
@@ -40,8 +51,8 @@ La comida completa (v5.7): no es un plato suelto, es la comida entera para esa c
 - Que sea distinto: no propongas nada que ya come, nada que se le está ofreciendo ahora (exposición) y nada parecido a las recetas que la familia ya vio. Usá ingredientes comunes en Uruguay y técnicas simples de casa.
 - Respetá todo lo que dice la base de conocimiento: lo que rechaza (y por qué), los patrones y las reglas de la familia. Si rechaza algo por la textura, no uses esa textura.
 - Elegí el nutriente de la lista "Le falta" y asegurate con los gramos de que la porción llegue al mínimo que dice ahí (la lista de "Ricos en…" te ayuda). La app calcula el aporte con la tabla: si no llega, no pasa.
-- Si la base dice que no le falta ningún nutriente, el objetivo es sumar variedad: no hay mínimo de nutriente y devolvés nutriente: null. Si nombra un grupo, el plato tiene que ser de ese grupo: atributos.grupo y el ingrediente principal (el de más gramos), cambiando el ingrediente principal de su alimento seguro por uno de ese grupo.
-- Que vaya en la comida que dice "La receta es para" (nada de chocolatada en la cena).
+- Si la base dice que no le falta ningún nutriente, el objetivo es sumar variedad: no hay mínimo de nutriente y devolvés nutriente: null. Si nombra un grupo, el plato tiene que ser de ese grupo: atributos.grupo y el ingrediente principal (el de más gramos), cambiando el ingrediente principal de su alimento seguro por uno de ese grupo que se use de verdad en ese plato.
+- Que vaya en la comida que dice "La receta es para" (nada de chocolatada ni licuado en la cena, nada de milanesa en el desayuno).
 - En porQue contá de qué alimento seguro parte (y cuánto lo come, y en qué se parece: acá sí va la comparación), qué cambia, qué se mantiene, qué patrones aplican y a qué nutriente apunta (o qué variedad suma).
 - imagen: en inglés, para dibujar el plato nuevo: uno (una unidad, ej. "polenta fry"), varios (ej. "polenta fries") y aspecto (forma exacta, corte, tamaño, color y cocción, ej. "golden polenta cut into long thin sticks shaped exactly like French fries, fried until crispy"). Solo el plato nuevo, sin su alimento seguro.
 
@@ -104,6 +115,32 @@ const conNombre = (id: string) => `«${alimentoPorId(id)?.nombre ?? id}» (${id}
 /** v5.10 · El nombre no lo compara con su alimento seguro: eso va en porQue. */
 const sinComparar = (desde: { nombre: string }) => `El nombre dice qué es el plato nuevo, sin nombrar ni comparar con su «${desde.nombre}» (eso va en porQue).`
 
+/** v5.10 · Cómo se ve un plato común con el ingrediente del foco: el mismo plato con otro principal, o su plato con algo sumado. */
+const EJEMPLO_COMUN: Readonly<Record<Modo, Record<Franja, string>>> = {
+  cambiar_principal: {
+    almuerzo_cena: 'de milanesa de carne a milanesa de pollo o de berenjena, de tarta de jamón y queso a tarta de zapallitos',
+    desayuno_merienda: 'de licuado de banana a licuado de frutilla, de tostadas de pan blanco a tostadas de pan integral',
+  },
+  sumar_ingrediente: {
+    almuerzo_cena: 'sus fideos con salsa bolognesa, sus papas al horno gratinadas con queso',
+    desayuno_merienda: 'sus tostadas con queso y tomate, su yogur con frutilla y granola',
+  },
+}
+
+/**
+ * v5.10 · Que sea un plato común con el ingrediente del foco, usado como se usa de verdad; si es una preparación (fideos,
+ * ñoquis, pan), servida como siempre. En el reintento, si así no sale un plato común, otro: ser común manda.
+ */
+function textoComun(k: Conocimiento, desde: { nombre: string }, reintento: boolean): string {
+  const ing = k.foco.ingrediente
+  const ejemplo = EJEMPLO_COMUN[k.foco.modo][k.momento ? franjaDe(k.momento) : 'almuerzo_cena']
+  return [
+    `Que sea un plato común de cantina, bar o restaurante (${ejemplo}), con ${ing ? conNombre(ing) : 'lo nuevo'} como se usa de verdad: nunca una forma rara para un alimento ni otra preparación como base.`,
+    ...(ing && claseDePreparacion(ing) ? [`${conNombre(ing)} ya es una preparación: el plato nuevo es esa preparación servida como siempre (ñoquis con salsa, tostadas de pan integral), nunca su «${desde.nombre}» rehecho con ella.`] : []),
+    ...(reintento ? [`Ser común manda: si así no sale un plato común, elegí otro ${ing ? 'ingrediente' : 'alimento seguro'}.`] : []),
+  ].join(' ')
+}
+
 /** v5.10 · El cambio con el ingrediente que sorteó el código, sin ambigüedad: cuál es el principal o cuál se suma. */
 function cambioCon(modo: Modo, id: string): string {
   return modo === 'cambiar_principal'
@@ -127,7 +164,7 @@ function textoFoco(k: Conocimiento, desde: Conocimiento['seguros'][number] | und
     const salida = reintento
       ? `Si así no se puede cumplir alguna regla o el mínimo del nutriente, elegí otro alimento seguro${ing ? `, otro ingrediente rico en ${n}` : ''} u otro nutriente de la lista${sinRepetir}.`
       : `${obligatorio} Si así no llega al mínimo del nutriente, ${ing ? `subí los gramos de ${conNombre(ing)} o ` : ''}elegí otro nutriente de la lista.`
-    return `Esta vez: partí de «${desde.nombre}» (${desde.id}), ${ing ? cambioCon(foco.modo, ing) : MODO_TEXTO[foco.modo]}, y apuntá a ${n}. ${salida} ${sinComparar(desde)}`
+    return `Esta vez: partí de «${desde.nombre}» (${desde.id}), ${ing ? cambioCon(foco.modo, ing) : MODO_TEXTO[foco.modo]}, y apuntá a ${n}. ${salida} ${textoComun(k, desde, reintento)} ${sinComparar(desde)}`
   }
   const g = foco.grupo
   const cambio = ing
@@ -142,7 +179,7 @@ function textoFoco(k: Conocimiento, desde: Conocimiento['seguros'][number] | und
   return [
     desde ? `Esta vez: partí de «${desde.nombre}» (${desde.id}), ${cambio}, ${objetivo}.` : `Esta vez, ${objetivo}.`,
     'No le falta ningún nutriente: no hay mínimo y devolvé nutriente: null.',
-    ...(desde ? [salida, sinComparar(desde)] : []),
+    ...(desde ? [salida, textoComun(k, desde, reintento), sinComparar(desde)] : []),
   ].join(' ')
 }
 
