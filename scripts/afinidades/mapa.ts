@@ -7,6 +7,7 @@
 //  - chicken_broth, beef_broth: el caldo no es el pollo ni la carne (daría pollo–arroz por un risotto).
 //  - grape_juice y tomato_juice: el primero es vino o aceto (anda con olive_oil, garlic, basil), el segundo, bebida.
 //  - turkey (no es pollo), smoked_salmon (bagels con queso crema, no salmón), cured_pork (jamón crudo, panceta).
+//  - cayenne (junta ají, chile y pimentón) y pepper (genérico: pimienta o ají); black_pepper sí es la pimienta.
 // Notas: cane_molasses es el azúcar (Ahn lo representa así: anda con wheat, butter, egg y vanilla), wheat es la
 // harina y macaroni la pasta seca. El dataset no tiene espinaca, acelga, chauchas (green beans) ni ricota: cottage
 // cheese es lo más cercano a la ricota y es lo que usan sus lasañas.
@@ -111,19 +112,28 @@ export const MAPA: Record<string, readonly string[]> = {
   butter: ['manteca'],
   cane_molasses: ['azucar'],
   honey: ['miel'],
-  cocoa: ['chocolate', 'cacao_azucarado'],
+  cocoa: ['chocolate', 'cacao_azucarado', 'cacao_amargo'],
   cacao: ['chocolate'],
   potato_chip: ['papas_chips'],
 
-  // Del catálogo que viene (carril de ingredientes): se ignoran hasta que el id exista
+  // Del catálogo que viene (carril de ingredientes): se ignoran hasta que el id exista. Los condimentos, con los ids de
+  // server/ia/condimentos.ts de ese carril.
   garlic: ['ajo'],
   parsley: ['perejil'],
   basil: ['albahaca'],
   oregano: ['oregano'],
   cinnamon: ['canela'],
   vanilla: ['vainilla'],
+  cumin: ['comino'],
+  nutmeg: ['nuez_moscada'],
+  thyme: ['tomillo'],
+  bay: ['laurel'],
+  turmeric: ['curcuma'],
+  rosemary: ['romero'],
+  black_pepper: ['pimienta'],
+  vinegar: ['vinagre'],
+  lemon_juice: ['jugo_limon'],
   lemon: ['limon'],
-  lemon_juice: ['limon'],
   avocado: ['palta'],
   mushroom: ['champinon'],
   celery: ['apio'],
