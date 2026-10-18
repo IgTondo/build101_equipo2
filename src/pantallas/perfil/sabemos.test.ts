@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { PatronVista, Perfil } from '../../../shared/contratos'
 import perfilFixture from '../../../fixtures/perfil.json'
-import { fraseParaPadres, loQueNotamos, loQueSabemos } from './sabemos'
+import { fraseParaPadres, loQueNotamos, loQueSabemos, sinAclaracion } from './sabemos'
 
 const perfil = perfilFixture as Perfil
 const patron = (texto: string, resultado: PatronVista['resultado'], apoyo = 3, confianza = 0.5, fuente: PatronVista['fuente'] = 'aprendido'): PatronVista =>
@@ -28,6 +28,13 @@ describe('fraseParaPadres', () => {
 
   it('si no reconoce la frase, igual saca "rechaza"', () => {
     expect(fraseParaPadres('Las texturas mixtas suelen rechazarse')).toBe('Las texturas mixtas suelen costar')
+  })
+})
+
+describe('sinAclaracion', () => {
+  it('deja lo principal en una línea', () => {
+    expect(sinAclaracion('Todavía no le gusta lo blando, aunque sea un alimento que acepta en otra textura')).toBe('Todavía no le gusta lo blando')
+    expect(sinAclaracion('Le gusta lo crocante servido separado')).toBe('Le gusta lo crocante servido separado')
   })
 })
 

@@ -59,6 +59,11 @@ export function loQueNotamos(patrones: readonly PatronVista[], max = MAX_NOTAMOS
   return elegidos.map((p) => fraseParaPadres(p.texto))
 }
 
+/** Una línea por cosa: "Todavía no le gusta lo blando, aunque sea un alimento que acepta…" → "Todavía no le gusta lo blando". */
+export function sinAclaracion(frase: string): string {
+  return frase.replace(/,\s*(aunque|incluso|sobre todo|salvo)\b.*$/i, '').trim()
+}
+
 export interface LoQueSabemos {
   leGusta: Preparacion[]
   leGustaMas: number
@@ -72,6 +77,6 @@ export function loQueSabemos(perfil: Pick<Perfil, 'preparaciones' | 'patrones'>)
     leGusta: acepta.slice(0, MAX_LE_GUSTA),
     leGustaMas: Math.max(acepta.length - MAX_LE_GUSTA, 0),
     probando: enProceso.slice(0, MAX_PROBANDO),
-    notamos: loQueNotamos(perfil.patrones),
+    notamos: loQueNotamos(perfil.patrones).map(sinAclaracion),
   }
 }

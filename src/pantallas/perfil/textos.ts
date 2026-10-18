@@ -15,8 +15,8 @@ export const NOMBRE_SENAL: Record<Senal, string> = {
 }
 
 /** §10.4 · `declarada` y `dieta_eliminacion`: se avisa con calma, sin alarmar. */
-export const AVISO_DECLARADA = 'Gracias por contarlo. Recomendamos consultar a un profesional: su pediatra o nutricionista puede acompañarlos.'
-export const AVISO_DIETA = 'En esta dieta, el calcio y la vitamina D se vuelven prioridad. Conviene que la supervise un profesional.'
+export const AVISO_DECLARADA = 'Gracias por contarlo. Consultá a su pediatra o nutricionista.'
+export const AVISO_DIETA = 'En esta dieta, calcio y vitamina D son prioridad. Que la supervise un profesional.'
 
 export const anios = (edad: number) => (edad === 1 ? '1 año' : `${edad} años`)
 

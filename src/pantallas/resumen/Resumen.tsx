@@ -55,8 +55,8 @@ function BotonCopiar({ texto, destino }: { texto: string; destino: RefObject<HTM
         {estado === 'copiado' ? 'Copiado' : 'Copiar'}
       </button>
       <p className="rs-copiar-aviso" role="status" aria-live="polite">
-        {estado === 'copiado' && 'Copiado. Ya lo podés pegar en un mensaje o un correo.'}
-        {estado === 'seleccionado' && 'Seleccionamos el texto: copialo desde el menú del celular.'}
+        {estado === 'copiado' && 'Listo para pegar.'}
+        {estado === 'seleccionado' && 'Texto seleccionado: copialo desde el menú.'}
       </p>
     </div>
   )
@@ -85,18 +85,14 @@ export function Resumen() {
         : <ErrorConReintento error={estado.error} reintentar={estado.reintentar} />)}
       {estado.tipo === 'ok' && (
         <>
-          <article className="nb-tarjeta rs-tarjeta" aria-labelledby="rs-titulo">
-            <div className="rs-meta">
-              <h2 id="rs-titulo" className="rs-titulo">Semana de alimentación</h2>
-              {estado.datos.stub && <span className="nb-chip rs-chip">Datos de ejemplo</span>}
-            </div>
+          {/* Copiar primero: es para lo que se abre la pantalla. El aviso global ya dice si son datos de ejemplo. */}
+          <BotonCopiar texto={estado.datos.datos.texto} destino={textoRef} />
+          <article className="nb-tarjeta rs-tarjeta" aria-label="Resumen de la semana">
             <div ref={textoRef} className="rs-texto">{estado.datos.datos.texto}</div>
             <p className="rs-fecha">
-              Generado el <time dateTime={estado.datos.datos.generadoISO}>{fechaLegible(estado.datos.datos.generadoISO)}</time>
+              <time dateTime={estado.datos.datos.generadoISO}>{fechaLegible(estado.datos.datos.generadoISO)}</time>
             </p>
           </article>
-          <BotonCopiar texto={estado.datos.datos.texto} destino={textoRef} />
-          <p className="rs-nota">El texto se redacta solo con los números de la app.</p>
         </>
       )}
 
