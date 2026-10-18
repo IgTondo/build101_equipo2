@@ -1,6 +1,6 @@
 // Lógica pura del perfil (C6): el formulario de datos básicos (lo usa "Esto entendí" y, hasta A8b, PasoDatos), las ediciones de "Esto entendí" y el armado
 // de CrearPerfilReq. Sin React, para poder testearla (borrador.test.ts).
-import { ALERGENO, type Alergeno, type CrearPerfilReq, type DatosBasicos, type Dieta, type Motivo, type PatronVista, type Perfil, type PerfilBorrador } from '../../../shared/contratos'
+import { ALERGENO, type Alergeno, type CrearPerfilReq, type DatosBasicos, type Dieta, type Motivo, type Perfil, type PerfilBorrador } from '../../../shared/contratos'
 
 export type Senal = DatosBasicos['alertas'][number]
 export const SENALES: readonly Senal[] = ['bajo_peso', 'arcadas_vomitos', 'menos_15_alimentos']
@@ -181,20 +181,4 @@ export function agruparPreparaciones(lista: Preparacion[]) {
   }
 }
 
-export function separarPatrones(lista: PatronVista[]) {
-  const orden = (a: PatronVista, b: PatronVista) => b.confianza - a.confianza
-  return {
-    aprendidos: lista.filter((p) => p.fuente === 'aprendido').sort(orden),
-    investigacion: lista.filter((p) => p.fuente === 'investigacion').sort(orden),
-  }
-}
-
 export const textoVeces = (n: number) => (n === 1 ? '1 vez' : `${n} veces`)
-/** Lo que contó el padre al crear el perfil todavía no pasó por el plato (veces = 0): no se dice "0 veces". */
-export const textoEnElPlato = (n: number) => (n > 0 ? `${textoVeces(n)} en el plato` : 'Según lo que contaste')
-
-export function textoConfianza(c: number): string {
-  if (c >= 0.75) return 'Bastante claro'
-  if (c >= 0.5) return 'Probable'
-  return 'Por confirmar'
-}

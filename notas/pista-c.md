@@ -20,7 +20,7 @@
 | C1 | Scaffold, contratos + `ErrorApi`, 12 stubs con `x-nibble-stub: 1`, fixtures, API local, CI |
 | C2 + C5 + C9 | Registrar: foto, foto movida, ítems con cajas, "¿cómo le fue?" con voz o texto, guardar, resultado |
 | C3 + C14 | Tablero completo + switch grafo/base. Si la semana de hoy está vacía y hay historial, pide `hasta` con la última comida |
-| C6 | (v5) Alta desde cero por voz (`/perfil/nuevo`, §5.2): bienvenida → audio de hasta 3 min con la guía → texto editable → "Esto entendí" con citas, alergias a confirmar tocándolas y lo que falta → crear → registrar. Sin chico activo, las pantallas van al alta. Vista del perfil con "Agregar otro chico" |
+| C6 | (v5) Alta desde cero por voz (`/perfil/nuevo`, §5.2): bienvenida → audio de hasta 3 min con la guía → texto editable → "Esto entendí" con citas, alergias a confirmar tocándolas y lo que falta → crear → registrar. Sin chico activo, las pantallas van al alta. Vista del perfil con "Lo que sabemos de <nombre>" (le gusta, está probando, lo que notamos), sin "Agregar otro chico" |
 | C10 | Descartado en la v5: se sacó el modo jurado (`?demo=1`, relato de ejemplo, QR, avisos de "perfil de ejemplo") |
 | C7 | Receta con food chaining e imagen aparte |
 | C8 | `/api/resumen`: números de `obtenerProgreso` y `obtenerPerfil` de B (fixtures sin Mongo), texto por Claude Haiku con chequeo de números, plantilla de respaldo |

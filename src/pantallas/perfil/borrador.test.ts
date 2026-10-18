@@ -5,7 +5,7 @@ import tomas from '../../../data/sinteticos/tomas.json'
 import perfilFixture from '../../../fixtures/perfil.json'
 import {
   agregarAcepta, agregarRechaza, agregarRegla, agruparPreparaciones, alternarAlergia, armarCrearPerfilReq, cambiarMotivo,
-  formDesde, formVacio, leerNumero, quitarAcepta, quitarRegla, renombrarAcepta, separarPatrones, sumarNota, textoEnElPlato, textoVeces, validarDatos,
+  formDesde, formVacio, leerNumero, quitarAcepta, quitarRegla, renombrarAcepta, sumarNota, textoVeces, validarDatos,
 } from './borrador'
 
 const borradorTomas = tomas.borrador as PerfilBorrador
@@ -110,17 +110,9 @@ describe('vista del perfil', () => {
     expect(agruparPreparaciones([{ id: 'x', nombre: 'X', estado: 'rechaza', puntaje: 0, veces: 2 }]).todaviaNo).toHaveLength(1)
   })
 
-  it('separa lo aprendido de la investigación', () => {
-    const p = separarPatrones(perfil.patrones)
-    expect(p.investigacion).toHaveLength(1)
-    expect(p.aprendidos.every((x) => x.fuente === 'aprendido')).toBe(true)
-  })
-
   it('cuenta veces en singular y plural', () => {
     expect(textoVeces(1)).toBe('1 vez')
     expect(textoVeces(14)).toBe('14 veces')
-    expect(textoEnElPlato(0)).toBe('Según lo que contaste')
-    expect(textoEnElPlato(3)).toBe('3 veces en el plato')
   })
 })
 

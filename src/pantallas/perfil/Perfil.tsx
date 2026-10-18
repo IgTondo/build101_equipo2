@@ -1,14 +1,15 @@
-// Perfil del chico activo (C6): datos, reglas, lo que aprendimos y sus preparaciones por estado.
-// Hacia el padre nunca se dice "rechaza": el estado 'rechaza' se muestra como "Todavía no".
+// Perfil del chico activo (C6): datos, reglas y "Lo que sabemos de <nombre>" (le gusta, está probando, lo que notamos).
+// Sin grafo ni números de confianza (C13). Hacia el padre nunca se dice "rechaza".
 import { Link } from 'react-router-dom'
 import type { Perfil as PerfilT } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { api } from '../../lib/api'
-import { RUTA_ALTA, useNinoActivo } from '../../lib/nino'
+import { useNinoActivo } from '../../lib/nino'
 import { useApi } from '../../lib/useApi'
-import { NOMBRE_ALERGENO, textoParaPadres } from '../../lib/vocabulario'
-import { agruparPreparaciones, separarPatrones, textoConfianza, textoEnElPlato } from './borrador'
+import { NOMBRE_ALERGENO } from '../../lib/vocabulario'
+import { textoVeces } from './borrador'
+import { loQueSabemos } from './sabemos'
 import { anios, AVISO_DECLARADA, AVISO_DIETA, NOMBRE_DIETA, NOMBRE_SENAL } from './textos'
 import './perfil.css'
 
@@ -26,8 +27,6 @@ export function Perfil() {
 
 function VistaPerfil({ perfil }: { perfil: PerfilT }) {
   const { ninoId, datos, reglas } = perfil
-  const prep = agruparPreparaciones(perfil.preparaciones)
-  const patrones = separarPatrones(perfil.patrones)
   const nino = `?nino=${encodeURIComponent(ninoId)}`
 
   return (
@@ -59,6 +58,8 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
         )}
       </section>
 
+      <LoQueSabemos nombre={datos.nombre} perfil={perfil} nino={nino} />
+
       <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-reglas">
         <h2 id="pf-t-reglas">Sus reglas</h2>
         {reglas.length
@@ -66,64 +67,48 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
           : <p className="nb-suave">Todavía no hay reglas anotadas.</p>}
       </section>
 
-      <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-patrones">
-        <h2 id="pf-t-patrones">Lo que aprendimos</h2>
-        {patrones.aprendidos.length > 0 ? (
-          <ul className="pf-lista-simple">
-            {patrones.aprendidos.map((p, i) => (
-              <li key={i}>
-                {textoParaPadres(p.texto)}
-                <span className="pf-meta">{textoConfianza(p.confianza)} · en <span className="nb-numero">{p.apoyo}</span> {p.apoyo === 1 ? 'comida' : 'comidas'}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="nb-suave">Con cada comida que registres vamos a ir encontrando sus patrones.</p>
-        )}
-        {patrones.investigacion.length > 0 && (
-          <>
-            <h3>De la investigación</h3>
-            <ul className="pf-lista-simple">
-              {patrones.investigacion.map((p, i) => <li key={i}>{textoParaPadres(p.texto)}</li>)}
-            </ul>
-          </>
-        )}
-      </section>
-
-      <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-prep">
-        <h2 id="pf-t-prep">Sus comidas</h2>
-        {perfil.preparaciones.length === 0 ? (
-          <p className="nb-suave">Todavía no hay comidas registradas. <Link to={`/registrar${nino}`}>Registrá la primera</Link>.</p>
-        ) : (
-          <>
-            <GrupoPrep titulo="Acepta" lista={prep.acepta} />
-            <GrupoPrep titulo="En proceso" lista={prep.enProceso} />
-            <GrupoPrep titulo="Todavía no" lista={prep.todaviaNo} />
-          </>
-        )}
-      </section>
-
       <div className="pf-botones">
         <Link className="nb-boton" to={`/resumen${nino}`}>Resumen para el nutricionista</Link>
-        <Link className="nb-boton nb-boton-secundario" to={RUTA_ALTA}>Agregar otro chico</Link>
       </div>
     </div>
   )
 }
 
-function GrupoPrep({ titulo, lista }: { titulo: string; lista: PerfilT['preparaciones'] }) {
-  if (!lista.length) return null
+function LoQueSabemos({ nombre, perfil, nino }: { nombre: string; perfil: PerfilT; nino: string }) {
+  const { leGusta, leGustaMas, probando, notamos } = loQueSabemos(perfil)
+  const vacio = !leGusta.length && !probando.length && !notamos.length
   return (
-    <div className="pf-grupo-prep">
-      <h3>{titulo} <span className="pf-cuenta nb-numero">{lista.length}</span></h3>
-      <ul className="pf-prep">
-        {lista.map((p) => (
-          <li key={p.id}>
-            <span>{p.nombre}</span>
-            <span className="pf-meta nb-numero">{textoEnElPlato(p.veces)}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <section className="nb-tarjeta pf-seccion pf-sabemos" aria-labelledby="pf-t-sabemos">
+      <h2 id="pf-t-sabemos">Lo que sabemos de {nombre}</h2>
+      {vacio && <p className="nb-suave">Todavía no hay comidas registradas. <Link to={`/registrar${nino}`}>Registrá la primera</Link>.</p>}
+      {leGusta.length > 0 && (
+        <div className="pf-bloque">
+          <h3>Le gusta</h3>
+          <ul className="pf-gusta">
+            {leGusta.map((p) => <li key={p.id}>{p.nombre}</li>)}
+            {leGustaMas > 0 && <li className="pf-gusta-mas">y <span className="nb-numero">{leGustaMas}</span> más</li>}
+          </ul>
+        </div>
+      )}
+      {probando.length > 0 && (
+        <div className="pf-bloque">
+          <h3>Está probando</h3>
+          <ul className="pf-prep">
+            {probando.map((p) => (
+              <li key={p.id}>
+                <span>{p.nombre}</span>
+                {p.veces > 0 && <span className="pf-meta nb-numero">{textoVeces(p.veces)}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {notamos.length > 0 && (
+        <div className="pf-bloque">
+          <h3>Lo que notamos</h3>
+          <ul className="pf-lista-simple">{notamos.map((t) => <li key={t}>{t}</li>)}</ul>
+        </div>
+      )}
+    </section>
   )
 }
