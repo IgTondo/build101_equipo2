@@ -11,7 +11,7 @@
 - **La red de la sede bloquea los puertos de las bases** (27017 y 7687; también SSH, el 22: para pushear, `git -c url."https://github.com/".insteadOf="git@github.com:" push`). Los scripts que hablan directo con Mongo o Neo4j (`seed-grafo.ts`, `cargar-sinteticos.ts`, `usda.ts --subir`) no corren desde acá: hace falta otra red (hotspot del celular). Lo que sí anda es cargar por la API de producción.
 - **Datos en producción:** `sint-tomas` y `sint-lucia` (los sintéticos de §10.5, simulación declarada), cargados por la API con los algoritmos reales de B. Falta el seed del grafo y `alimentos_fdc` (sin red; no bloquean: la receta real funcionó).
 - **MongoDB Atlas (B2):** https://vercel.com/integrations/mongodbatlas sobre el proyecto `nibble`, o el `MONGODB_URI` de un cluster Free (permitir 0.0.0.0/0, §13). **Si Neo4j no está listo, pasar `MOTOR_GRAFO=mongo`.**
-- **Antes de la demo:** crear al Tomás de la demo con id `tomas` (`crearPerfil({ ninoId: 'tomas', … })`): la app lo abre por defecto (`NINO_DEMO` en `src/lib/nino.ts`). Sin eso, la primera apertura sin `?nino` muestra "No encontramos este perfil".
+- **Antes de la demo:** crear al Tomás de la demo con id `tomas` (`crearPerfil({ ninoId: 'tomas', … })`) y abrir una vez `/?nino=tomas` en el celular de la demo (queda en `localStorage`). Desde la v5 la app ya no abre a Tomás por defecto: sin chico activo va al alta por voz (`/perfil/nuevo`).
 
 ## Hecho (en main)
 
@@ -20,7 +20,8 @@
 | C1 | Scaffold, contratos + `ErrorApi`, 12 stubs con `x-nibble-stub: 1`, fixtures, API local, CI |
 | C2 + C5 + C9 | Registrar: foto, foto movida, ítems con cajas, "¿cómo le fue?" con voz o texto, guardar, resultado |
 | C3 + C14 | Tablero completo + switch grafo/base. Si la semana de hoy está vacía y hay historial, pide `hasta` con la última comida |
-| C6 + C10 | Perfil inicial, vista del perfil y modo jurado (`/perfil/nuevo?demo=1`) |
+| C6 | (v5) Alta desde cero por voz (`/perfil/nuevo`, §5.2): bienvenida → audio de hasta 3 min con la guía → texto editable → "Esto entendí" con citas, alergias a confirmar tocándolas y lo que falta → crear → registrar. Sin chico activo, las pantallas van al alta. Vista del perfil con "Agregar otro chico" |
+| C10 | Descartado en la v5: se sacó el modo jurado (`?demo=1`, relato de ejemplo, QR, avisos de "perfil de ejemplo") |
 | C7 | Receta con food chaining e imagen aparte |
 | C8 | `/api/resumen`: números de `obtenerProgreso` y `obtenerPerfil` de B (fixtures sin Mongo), texto por Claude Haiku con chequeo de números, plantilla de respaldo |
 | C9 | Aviso global "Datos de ejemplo" mientras un endpoint siga en stub; 404 de un chico inexistente con un estado calmo |
@@ -33,7 +34,7 @@
 
 - **C4:** probar en iPhone y Android con las keys cargadas (cámara, HEIC, micrófono, `audio/mp4`) y calibrar `UMBRAL_MOVIDA` (hoy 60) con fotos reales.
 - **C8:** pasar `server/resumen/texto.ts` a `generarTexto` de `server/ia/modelo.ts` (A4 ya está).
-- **C12:** diapositivas y QR (esperan las evals y la URL final).
+- **C12:** diapositivas (esperan las evals).
 - **Fixtures:** `scripts/generar-fixtures.ts` puede leer `data/alimentos.json` y usar un segundo candidato válido (`leche_chocolatada → yogur_bebible`, cambia el ingrediente), pero los tests de A (`server/ia/receta.test.ts`, `server/validacion/receta.test.ts`, `server/ia/prompts/receta.test.ts`) tienen fijados los números del fixture actual. Lo hacemos juntos con A cuando convenga.
 
 ## Para B

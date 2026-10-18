@@ -42,7 +42,7 @@ Celular (React + Vite) ──► Vercel Functions (api/*, 12) ──► server/
 |---|---|---|
 | Visión del plato | Claude Haiku 5.5 | Alimentos, gramos, atributos, cajas y preguntas cuando duda |
 | Relato | Whisper large-v3-turbo (Groq) + Claude Haiku 5.5 | Nota de voz → respuestas por alimento con su cita; si no lo nombró, no se inventa |
-| Perfil inicial | Claude Haiku 5.5 | Relato del padre → lo que acepta, lo que rechaza y sus reglas, que el padre confirma |
+| Perfil inicial (alta por voz) | Whisper + Claude Haiku 5.5 | Un audio del padre → sus datos (cada uno con la frase de la que salió), lo que acepta, lo que rechaza y sus reglas, que el padre confirma; las alergias solo se guardan si el padre las toca |
 | Receta | Claude Sonnet 5.5 | Escribe la receta **solo** con los candidatos que le pasa el grafo (~20 líneas de evidencia) |
 | Imagen de cómo servir | FLUX.1 schnell (Cloudflare Workers AI) | Ilustración del plato: su alimento seguro y el nuevo, separados |
 | Resumen | Claude Haiku 5.5 | Redacta con los números que calculó el código; si menciona un número que no está, se usa la plantilla |
