@@ -9,9 +9,13 @@
 // sumar variedad: el grupo que menos come (variedadDe, nutricion/progreso.ts) o, si come de todos, algo nuevo a un cambio.
 // Sin nutrientes que cumplir (`nutrientes` vacío, sin mínimo); con grupo, el foco cambia el ingrediente principal por uno
 // de ese grupo (sumar un ingrediente no cambia el grupo del plato).
-import type { Alergeno, Dieta, Grupo, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Presentacion, Regla, Variedad } from '../../shared/contratos.js'
+// v5.10 · Variedad de recetas: los "Ricos en X" van uno por familia (un solo queso) y sin golosinas ni ultraprocesados,
+// el foco trae el ingrediente que el plato nuevo TIENE que usar (sorteado entre esos ricos o entre los del grupo) y lo
+// que ya usó en las recetas que vio la familia (`anteriores`) no se repite: sale de los ricos y del sorteo.
+import type { Alergeno, Alimento, Dieta, Grupo, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Presentacion, Regla, Variedad } from '../../shared/contratos.js'
 import { NUTRIENTE } from '../../shared/contratos.js'
-import { APORTE_MINIMO, esAncla, esSegura } from '../aprendizaje/cadena.js'
+import { alimentosProhibidos, limpiarOtras, normalizar } from '../alergias.js'
+import { APORTE_MINIMO, esAncla, esSegura, principal } from '../aprendizaje/cadena.js'
 import { calcularEstado } from '../aprendizaje/estado.js'
 import { menorCobertura } from '../aprendizaje/recomendador.js'
 import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, decimal, grupoSinComer, lista, porciento } from '../aprendizaje/textos.js'
@@ -46,13 +50,20 @@ export interface Conocimiento {
   coberturas: Record<Nutriente, { coberturaSemana: number; faltaHoy: number }> // v5.5 · de todos: la evidencia del nutriente que se muestra
   metaDiaria: Nutrientes // v5.5 · el objetivo diario del chico
   foco: Foco
+  recientes: string[] // v5.10 · alimentoIds que aparecen en los nombres de `anteriores` (las recetas que ya vio la familia), sin acompañamientos ni rellenos
   texto: string // lo que ve el LLM
 }
 
 export const MODO = ['cambiar_principal', 'sumar_ingrediente'] as const
 export type Modo = (typeof MODO)[number]
 /** En modo nutriente trae `nutriente`; en modo variedad (v5.5) no, y trae `grupo` si hay uno que menos come. */
-export interface Foco { desdeId: string; modo: Modo; nutriente?: Nutriente; grupo?: Grupo }
+export interface Foco {
+  desdeId: string; modo: Modo; nutriente?: Nutriente; grupo?: Grupo
+  ingrediente?: string // v5.10 · alimentoId sorteado que el plato nuevo TIENE que usar: en 'cambiar_principal', como
+                       // ingrediente principal (el de más gramos); en 'sumar_ingrediente', sumado. Sale de los ricos del
+                       // nutriente del foco (o, en modo variedad con grupo, de los alimentos de ese grupo), sin los
+                       // recientes y sin los ingredientes del alimento de partida. Puede faltar si no hay ninguno posible.
+}
 
 /**
  * v5.6 · Lo que acompaña pero no es el plato: grasas, dulces y aderezos. No cuentan como "rico en" un nutriente (el
@@ -63,6 +74,27 @@ export const ACOMPANAMIENTOS: ReadonlySet<string> = new Set([
   'mayonesa', 'ketchup', 'cacao_azucarado',
 ])
 
+/**
+ * v5.10 · Lo que no puede ser "lo nuevo" de una receta para que coma mejor, aunque sea rico en un nutriente: no va en los
+ * "Ricos en X" ni sale sorteado como ingrediente del foco (el LLM igual los puede usar, de la lista de ingredientes).
+ * Antes, "Ricos en calcio" traía chocolate y pan rallado, y omega-3 sugería galletitas, nuggets, papas chips y medialuna.
+ */
+export const GOLOSINAS_Y_ULTRAPROCESADOS: ReadonlySet<string> = new Set([
+  // Golosinas, postres y masas dulces
+  'chocolate', 'alfajor', 'bizcochuelo', 'helado', 'postre_lacteo', 'galletitas_dulces', 'galletitas_avena', 'medialuna',
+  // Snacks y galletitas o grisines de paquete: el omega-3 y el hierro les vienen del aceite y de la harina fortificada
+  'papas_chips', 'galletitas_agua', 'galletitas_integrales', 'grisines',
+  // Carnes procesadas, rebozados comerciales y fiambres: la versión casera (pollo, carne, merluza) es la que suma
+  'salchicha', 'hamburguesa_comercial', 'nuggets_pollo', 'palitos_pescado', 'chorizo', 'jamon',
+  // Masa y cereal de paquete: el hierro y la vitamina D se los agregan, el plato no es eso
+  'prepizza', 'cereal_fortificado',
+  // Solo para rebozar o ligar: no son un alimento del plato
+  'pan_rallado', 'harina_trigo',
+])
+
+/** v5.10 · La familia de un alimento, el primer tramo del id: queso_rallado, queso_dambo y queso_muzzarella son queso. */
+export const familia = (id: string): string => id.split('_')[0]!
+
 const UNIDAD: Record<Nutriente, string> = {
   energia_kcal: 'kcal', proteina_g: 'g', calcio_mg: 'mg', vitamina_d_ug: 'µg', hierro_mg: 'mg', fibra_g: 'g', omega3_g: 'g', b12_ug: 'µg', vitamina_c_mg: 'mg',
 }
@@ -70,6 +102,45 @@ const UNIDAD: Record<Nutriente, string> = {
 const MODOS_FOCO: Modo[] = ['cambiar_principal', 'cambiar_principal', 'cambiar_principal', 'sumar_ingrediente']
 const MAX_NUTRIENTES = 3
 const MAX_RICOS = 8
+const MIN_RICOS = 3 // v5.10 · si sacar los recientes deja menos, vuelven los que más aportan
+const MIN_LETRAS_ALIAS = 4 // v5.10 · "pan" o "res" aparecen en todo: los alias más cortos no cuentan para los recientes
+
+/** v5.10 · Ni un genérico otro_<grupo> ni uno de alimentos_fdc (fdc_…, sin alérgenos curados ni en la lista del LLM). */
+const esCurado = (id: string) => !id.startsWith('otro_') && !id.startsWith('fdc_')
+
+/**
+ * v5.10 · Los alimentos que identifican las recetas que ya vio la familia: los que aparecen en sus nombres, en palabras
+ * completas y sin mayúsculas ni tildes, por el nombre o los alias de cada alimento curado, o por la familia cuando nombra
+ * a varios ("costra de queso" son todos los quesos). El término más largo va primero y se consume: "dulce de leche" no es
+ * leche. Los acompañamientos, las golosinas y los rellenos (pan rallado, harina, aceite) no identifican el plato: no
+ * cuentan. Lo que viene después de "como su(s)" es el alimento seguro al que se parece, no lo que lleva: en "Medallones
+ * de ricota crocantes, como sus nuggets" está la ricota, no los nuggets.
+ */
+export function recientesDe(anteriores: readonly string[], alimentos: ReadonlyMap<string, Alimento>): string[] {
+  const textos = anteriores.map((n) => ` ${normalizar(n).replace(/(^| )como sus?( .*)?$/, '')} `).filter((t) => t.trim())
+  if (!textos.length) return []
+  const curados = [...alimentos.values()].filter((a) => esCurado(a.id))
+  const porFamilia = new Map<string, number>()
+  for (const a of curados) porFamilia.set(familia(a.id), (porFamilia.get(familia(a.id)) ?? 0) + 1)
+  const terminos = new Map<string, string[]>() // término → los alimentos que nombra
+  const sumar = (t: string, id: string) => terminos.set(t, [...(terminos.get(t) ?? []), id])
+  for (const a of curados) {
+    sumar(normalizar(a.nombre), a.id)
+    for (const x of a.alias.map(normalizar)) if (x.replace(/ /g, '').length >= MIN_LETRAS_ALIAS) sumar(x, a.id)
+    const f = familia(a.id)
+    if (f.length >= MIN_LETRAS_ALIAS && (porFamilia.get(f) ?? 0) > 1) sumar(f, a.id)
+  }
+  const deMasLargo = [...terminos].filter(([t]) => t).sort(([a], [b]) => b.length - a.length)
+  const aparecen = new Set<string>()
+  for (let texto of textos) {
+    for (const [t, ids] of deMasLargo) {
+      if (!texto.includes(` ${t} `)) continue
+      for (const id of ids) aparecen.add(id)
+      texto = texto.split(` ${t} `).join(' | ')
+    }
+  }
+  return curados.filter((a) => aparecen.has(a.id) && !ACOMPANAMIENTOS.has(a.id) && !GOLOSINAS_Y_ULTRAPROCESADOS.has(a.id)).map((a) => a.id)
+}
 
 const atributosEnTexto = (p: PreparacionCatalogo) => {
   const a = p.atributos
@@ -78,7 +149,7 @@ const atributosEnTexto = (p: PreparacionCatalogo) => {
 
 export function conocimientoDe(
   c: Cargado,
-  op: { nutriente?: Nutriente; momento?: Momento; motor?: Motor; hoy?: string; ahora?: Date; azar?: () => number } = {},
+  op: { nutriente?: Nutriente; momento?: Momento; motor?: Motor; hoy?: string; ahora?: Date; azar?: () => number; anteriores?: string[] } = {},
 ): Conocimiento {
   const azar = op.azar ?? Math.random
   const hoy = op.hoy ?? hoyUruguay(op.ahora)
@@ -86,7 +157,14 @@ export function conocimientoDe(
   const sem = semana(estado.comidas, hoy, c.objetivo)
   const delDia = coberturaDia(hoy, estado.comidas, c.objetivo).consumido.valor
   const d = c.nino.datos
-  const sinAlergenos = (id: string) => (c.alimentos.get(id)?.alergenos ?? []).every((x) => !d.alergias.includes(x))
+  // v5.10 · Como el schema del LLM (receta-creativa.ts): su dieta cuenta como alergia y sus otras alergias, también
+  const alergias = [...d.alergias, ...(d.dieta === 'sin_gluten_caseina' ? (['gluten', 'leche'] as const) : [])]
+  const prohibidos = alimentosProhibidos(limpiarOtras(d.alergiasOtras), c.alimentos)
+  const sinAlergenos = (id: string) => !prohibidos.has(id) && (c.alimentos.get(id)?.alergenos ?? []).every((x) => !alergias.includes(x))
+  // v5.10 · Lo que puede ser "lo nuevo" de una receta: un alimento curado, que no sea un acompañamiento ni una golosina
+  const paraLoNuevo = (a: Alimento) => esCurado(a.id) && !ACOMPANAMIENTOS.has(a.id) && !GOLOSINAS_Y_ULTRAPROCESADOS.has(a.id) && sinAlergenos(a.id)
+  const recientes = recientesDe(op.anteriores ?? [], c.alimentos)
+  const esReciente = new Set(recientes)
   const preparacion = (id: string) => {
     const p = c.catalogo.get(id)
     if (p) return p
@@ -121,15 +199,26 @@ export function conocimientoDe(
     faltaHoy: Math.round(Math.max(0, c.objetivo[n] - delDia[n]) * 10) / 10,
   }])) as Conocimiento['coberturas']
   const aElegir = variedad ? [] : elegibles.length ? elegibles : [faltan[0] ?? menorCobertura(sem.cobertura)]
+  // v5.10 · Los ricos: de más a menos aporte, el que más aporta de cada familia y sin los recientes (si quedan menos de
+  // MIN_RICOS, vuelven los recientes que más aportan)
+  const ricosEn = (n: Nutriente): OpcionNutriente['ricos'] => {
+    const porFamilia = new Map<string, Alimento>()
+    for (const a of [...c.alimentos.values()].filter((a) => paraLoNuevo(a) && a.por100g[n] > 0).sort((a, b) => b.por100g[n] - a.por100g[n])) {
+      if (!porFamilia.has(familia(a.id))) porFamilia.set(familia(a.id), a)
+    }
+    const todos = [...porFamilia.values()]
+    const aSumar = MIN_RICOS - todos.filter((a) => !esReciente.has(a.id)).length
+    const vuelven = new Set(todos.filter((a) => esReciente.has(a.id)).slice(0, Math.max(0, aSumar)))
+    return todos
+      .filter((a) => !esReciente.has(a.id) || vuelven.has(a))
+      .slice(0, MAX_RICOS)
+      .map((a) => ({ alimentoId: a.id, nombre: a.nombre, por100g: a.por100g[n] }))
+  }
   const nutrientes: OpcionNutriente[] = aElegir.map((n) => ({
     nutriente: n,
     ...coberturas[n],
     minimo: Math.round(APORTE_MINIMO * c.objetivo[n] * 100) / 100,
-    ricos: [...c.alimentos.values()]
-      .filter((a) => !a.id.startsWith('otro_') && !ACOMPANAMIENTOS.has(a.id) && a.por100g[n] > 0 && sinAlergenos(a.id))
-      .sort((a, b) => b.por100g[n] - a.por100g[n])
-      .slice(0, MAX_RICOS)
-      .map((a) => ({ alimentoId: a.id, nombre: a.nombre, por100g: a.por100g[n] })),
+    ricos: ricosEn(n),
   }))
 
   // El foco, al azar: el alimento seguro entre los que van en esta comida, el modo y el nutriente (el primero pesa doble).
@@ -137,11 +226,34 @@ export function conocimientoDe(
   const paraFoco = seguros
   const elegir = <T>(xs: readonly T[]): T | undefined => xs[Math.min(xs.length - 1, Math.floor(azar() * xs.length))]
   const porNutriente = nutrientes.map((x) => x.nutriente)
-  const desdeId = elegir(paraFoco)?.p.id ?? ''
-  const modo = elegir(MODOS_FOCO) ?? 'cambiar_principal'
+  let desde = elegir(paraFoco)?.p
+  const sorteado = elegir(MODOS_FOCO) ?? 'cambiar_principal'
+  let modo: Modo = variedad?.grupo ? 'cambiar_principal' : sorteado
+  // v5.10 · Sumando un ingrediente, el principal del plato nuevo sigue siendo el de su plato: si ya lo usó hace poco, se
+  // parte de otro alimento seguro o, si todos lo tienen reciente, se cambia el principal
+  const principalReciente = (p: PreparacionCatalogo) => esReciente.has(principal(p.ingredientes) ?? '')
+  if (modo === 'sumar_ingrediente' && desde && principalReciente(desde)) {
+    const otro = elegir(paraFoco.filter((x) => !principalReciente(x.p)))?.p
+    if (otro) desde = otro
+    else modo = 'cambiar_principal'
+  }
+  const desdeId = desde?.id ?? ''
   const foco: Foco = variedad
-    ? { desdeId, modo: variedad.grupo ? 'cambiar_principal' : modo, ...(variedad.grupo ? { grupo: variedad.grupo } : {}) }
+    ? { desdeId, modo, ...(variedad.grupo ? { grupo: variedad.grupo } : {}) }
     : { desdeId, modo, nutriente: elegir([porNutriente[0], ...porNutriente].filter((n) => n !== undefined)) ?? nutrientes[0]!.nutriente }
+
+  // v5.10 · El ingrediente que el plato nuevo tiene que usar: entre los ricos del nutriente del foco (los que más aportan
+  // pesan más) o, en modo variedad con grupo, entre los de ese grupo. Ni lo que ya lleva su plato, ni lo reciente, ni un
+  // grupo que sus reglas rechazan ("No come verduras": la espinaca es rica en calcio, pero ese plato no pasa).
+  const delGrupo = variedad?.grupo ? [...c.alimentos.values()].filter((a) => a.grupo === variedad.grupo && paraLoNuevo(a)).map((a) => a.id) : []
+  const deSuPlato = new Set(desde?.ingredientes.map((i) => i.alimentoId) ?? [])
+  const rechazaGrupo = (g: Grupo | undefined) =>
+    c.nino.reglas.some((r) => r.efecto === 'rechaza' && r.condiciones.length > 0 && r.condiciones.every((x) => x.tipo === 'grupo' && x.valor === g))
+  const posible = (id: string) => !esReciente.has(id) && !deSuPlato.has(id) && !rechazaGrupo(c.alimentos.get(id)?.grupo)
+  const ingrediente = variedad
+    ? elegir(delGrupo.filter(posible))
+    : elegirPesado((nutrientes.find((x) => x.nutriente === foco.nutriente)?.ricos ?? []).map((r) => r.alimentoId).filter(posible), azar)
+  if (ingrediente) foco.ingrediente = ingrediente
 
   const rechaza = estados.filter((s) => s.estado === 'rechaza' || (s.declarada === 'rechaza' && s.estado !== 'acepta'))
   const enExposicion = estados.filter((s) => s.estado === 'en_proceso' && s.veces >= 1 && s.declarada !== 'rechaza')
@@ -153,9 +265,8 @@ export function conocimientoDe(
     ...(op.momento ? [`La receta es para: ${op.momento}.`] : []),
     'Lo que come seguro (los puntos de partida posibles; id: nombre · textura, forma, sabor, temperatura, cocción, presentación · ingrediente principal · cuánto lo come):',
     ...seguros.map(({ p, s }) => {
-      const principal = [...p.ingredientes].sort((a, b) => b.gramos - a.gramos)[0]?.alimentoId ?? 'sin dato'
       const cuanto = s.veces > 0 ? `comió ${s.comio} de ${s.veces}` : 'según contó la familia'
-      return `- ${p.id}: ${p.nombre} · ${atributosEnTexto(p)} · ${principal} · ${cuanto}`
+      return `- ${p.id}: ${p.nombre} · ${atributosEnTexto(p)} · ${principal(p.ingredientes) ?? 'sin dato'} · ${cuanto}`
     }),
     ...(otras.length ? [`También come (no sirven de punto de partida para esta comida): ${otras.map((x) => x.p.nombre).join(' · ')}.`] : []),
     `Lo que rechaza o todavía le cuesta: ${rechaza.map((s) => {
@@ -166,11 +277,12 @@ export function conocimientoDe(
     `Patrones del grafo: ${estado.patrones.slice(0, 8).map((p) => `${p.texto} (confianza ${decimal(p.confianza)})`).join(' · ') || 'todavía pocos datos'}.`,
     `Reglas de la familia: ${c.nino.reglas.length ? c.nino.reglas.map((r) => r.texto).join(' · ') : 'ninguna'}.`,
     ...(variedad
-      ? lineasVariedad(variedad, [...c.alimentos.values()].filter((a) => a.grupo === variedad.grupo && !a.id.startsWith('otro_') && sinAlergenos(a.id)).map((a) => a.id))
+      ? lineasVariedad(variedad, delGrupo)
       : [
           'Le falta (elegí uno):',
           ...nutrientes.map((x) => `- ${x.nutriente} (${NOMBRE_NUTRIENTE[x.nutriente]}): esta semana cubre ${porciento(x.coberturaSemana)}; hoy le faltan ${decimal(x.faltaHoy, 0)} ${UNIDAD[x.nutriente]}. La porción tiene que aportar al menos ${decimal(x.minimo, 1)} ${UNIDAD[x.nutriente]}. Ricos en ${NOMBRE_NUTRIENTE[x.nutriente]}: ${x.ricos.map((r) => `${r.alimentoId} (${decimal(r.por100g, 1)} ${UNIDAD[x.nutriente]}/100 g)`).join(', ')}.`),
         ]),
+    ...(recientes.length ? [`Ya usó hace poco (no los repitas como ingrediente principal): ${recientes.join(', ')}.`] : []), // v5.10
     ...(ideas.length ? [`Ideas del catálogo del grafo, solo como referencia (podés inventar otra): ${ideas.map((i) => (variedad ? i.nombre : `${i.nombre} (${NOMBRE_NUTRIENTE[i.nutriente]})`)).join(' · ')}.`] : []),
   ]
 
@@ -189,8 +301,19 @@ export function conocimientoDe(
     coberturas,
     metaDiaria: c.objetivo,
     foco,
+    recientes,
     texto: lineas.join('\n'),
   }
+}
+
+/** v5.10 · Uno al azar, pesando más los primeros: de n, el primero pesa n, el segundo n − 1 … y el último 1. */
+function elegirPesado<T>(xs: readonly T[], azar: () => number): T | undefined {
+  let r = azar() * ((xs.length * (xs.length + 1)) / 2)
+  for (const [i, x] of xs.entries()) {
+    r -= xs.length - i
+    if (r < 0) return x
+  }
+  return xs.at(-1)
 }
 
 /** v5.5 · Lo que ve el LLM en modo variedad: no le falta ningún nutriente; el grupo que menos come y con qué alimentos. */
@@ -205,6 +328,8 @@ function lineasVariedad(v: Variedad, delGrupo: string[]): string[] {
   ]
 }
 
-export async function armarConocimiento(ninoId: string, op: { nutriente?: Nutriente; momento?: Momento; motor?: Motor } = {}): Promise<Conocimiento> {
+export async function armarConocimiento(
+  ninoId: string, op: { nutriente?: Nutriente; momento?: Momento; motor?: Motor; anteriores?: string[] } = {},
+): Promise<Conocimiento> {
   return conocimientoDe(await cargarNino(ninoId), op)
 }
