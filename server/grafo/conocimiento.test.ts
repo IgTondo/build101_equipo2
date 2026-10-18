@@ -3,7 +3,7 @@
 // Mongo: Valentina del dataset sintético (§10.5) con los catálogos reales, como la cargaría cargarNino().
 // v5.10 · Y el sorteo pesado por las afinidades (server/ia/afinidades.ts): con pares de ejemplo (fijarAfinidades) y, donde
 // se dice, con data/afinidades.json.
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MOMENTO, NUTRIENTE, type Momento, type Nutriente } from '../../shared/contratos.js'
 import { principal } from '../aprendizaje/cadena.js'
 import { alimentosCatalogo, preparacionesCatalogo } from '../datos/catalogos.js'
@@ -33,6 +33,8 @@ const ricosDe = (k: Conocimiento, n: Nutriente) => k.nutrientes.find((x) => x.nu
 const deSuPlato = (k: Conocimiento) => k.seguros.find((p) => p.id === k.foco.desdeId)?.ingredientes.map((i) => i.alimentoId) ?? []
 const principalDe = (k: Conocimiento, id = k.foco.desdeId) => principal(k.seguros.find((p) => p.id === id)?.ingredientes ?? [])
 const noIdentifican = (id: string) => ACOMPANAMIENTOS.has(id) || GOLOSINAS_Y_ULTRAPROCESADOS.has(id)
+/** Lo que puede ser el principal de un plato nuevo: ni frutos secos ni semillas (grupo otro), y una porción de 40 g o más. */
+const puedeSerPrincipal = (id: string) => alimentos.get(id)!.grupo !== 'otro' && alimentos.get(id)!.porcionMedianaG >= 40
 const AZARES = [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 0.99]
 /** Un azar con semilla (congruencial lineal): cada llamada da otro número, y la misma semilla, la misma secuencia. */
 /** Un azar que da estos números en orden (y después repite el último): el sorteo es desde, modo, nutriente e ingrediente. */
@@ -303,7 +305,8 @@ describe('conocimientoDe: el ingrediente del foco combina con lo que queda de su
   /** El sorteo de antes de las afinidades: por lugar entre los ricos posibles (de n, el primero pesa n … el último 1). */
   const porLugar = (k: Conocimiento, a: number) => {
     const plato = deSuPlato(k)
-    const xs = ricosDe(k, k.foco.nutriente!).filter((id) => !plato.includes(id) && alimentos.get(id)?.grupo !== 'verdura') // "No come verduras"
+    const xs = ricosDe(k, k.foco.nutriente!).filter((id) => !plato.includes(id) && alimentos.get(id)?.grupo !== 'verdura' // "No come verduras"
+      && (k.foco.modo !== 'cambiar_principal' || puedeSerPrincipal(id)))
     let r = (a * xs.length * (xs.length + 1)) / 2
     for (const [i, x] of xs.entries()) {
       r -= xs.length - i
@@ -399,5 +402,34 @@ describe('conocimientoDe: el ingrediente del foco combina con lo que queda de su
       expect(alimentos.has(id), id).toBe(true)
       expect(noIdentifican(id) || (alimentos.get(id)?.alergenos ?? []).includes('pescado'), id).toBe(false)
     }
+  })
+})
+
+describe('conocimientoDe: cambiando el principal, el ingrediente tiene que poder ser el plato', () => {
+  // Sin afinidades, para ver solo esto
+  beforeAll(() => fijarAfinidades([]))
+  afterAll(() => fijarAfinidades(null))
+  const R = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
+  const omega3 = (modo: number) => R.map((r) => conocimiento({ momento: 'desayuno', nutriente: 'omega3_g', azar: enOrden(0.6, modo, 0, r) }).foco)
+
+  it('en cambiar_principal, ni frutos secos ni semillas ni una porción de menos de 40 g, aunque estén entre los ricos', { timeout: 30_000 }, () => {
+    const ricos = ricosDe(conocimiento({ momento: 'desayuno', nutriente: 'omega3_g' }), 'omega3_g')
+    expect(ricos).toEqual(expect.arrayContaining(['semillas_lino', 'nueces']))
+    for (const f of omega3(0.1)) {
+      expect(f.modo).toBe('cambiar_principal')
+      expect(puedeSerPrincipal(f.ingrediente!), f.ingrediente).toBe(true)
+    }
+    for (const momento of ['almuerzo', 'cena'] as Momento[]) {
+      for (const a of AZARES) {
+        const f = conocimiento({ momento, azar: () => a }).foco
+        if (f.modo === 'cambiar_principal' && f.ingrediente) expect(puedeSerPrincipal(f.ingrediente), `${momento} ${a}: ${f.ingrediente}`).toBe(true)
+      }
+    }
+  })
+
+  it('en sumar_ingrediente sí van (un puñado de nueces o semillas de lino sumado a su plato)', { timeout: 30_000 }, () => {
+    const focos = omega3(0.9)
+    for (const f of focos) expect(f.modo).toBe('sumar_ingrediente')
+    expect(focos.some((f) => !puedeSerPrincipal(f.ingrediente!))).toBe(true)
   })
 })

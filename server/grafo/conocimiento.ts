@@ -113,6 +113,7 @@ const MAX_NUTRIENTES = 3
 const MAX_RICOS = 8
 const MIN_RICOS = 3 // v5.10 · si sacar los recientes deja menos, vuelven los que más aportan
 const MAX_RICOS_POR_GRUPO = 2 // v5.10 · que no sean todos lácteos: entran leches y yogures, y no solo quesos
+const MIN_PORCION_PRINCIPAL_G = 40 // v5.10 · "un plato cuyo principal es lino" no sirve: 10 g no son un plato
 const MIN_LETRAS_ALIAS = 4 // v5.10 · "pan" o "res" aparecen en todo: los alias más cortos no cuentan para los recientes
 const MIN_AFINES = 2 // v5.10 · con menos candidatos que combinen con su plato, el sorteo no mira la afinidad
 const MAX_COMBINACIONES = 6 // v5.10 · las "combinaciones probadas" del principal que ve el LLM
@@ -272,7 +273,14 @@ export function conocimientoDe(
   const deSuPlato = new Set(desde?.ingredientes.map((i) => i.alimentoId) ?? [])
   const rechazaGrupo = (g: Grupo | undefined) =>
     c.nino.reglas.some((r) => r.efecto === 'rechaza' && r.condiciones.length > 0 && r.condiciones.every((x) => x.tipo === 'grupo' && x.valor === g))
-  const posible = (id: string) => !esReciente.has(id) && !deSuPlato.has(id) && !rechazaGrupo(c.alimentos.get(id)?.grupo)
+  // v5.10 · Cambiando el principal, el ingrediente tiene que poder ser el plato: ni frutos secos ni semillas (grupo otro)
+  // ni lo que se come de a poco (porción de menos de 40 g). Sumados, sí van.
+  const puedeSerPrincipal = (id: string) => {
+    const a = c.alimentos.get(id)
+    return Boolean(a) && a!.grupo !== 'otro' && a!.porcionMedianaG >= MIN_PORCION_PRINCIPAL_G
+  }
+  const posible = (id: string) =>
+    !esReciente.has(id) && !deSuPlato.has(id) && !rechazaGrupo(c.alimentos.get(id)?.grupo) && (modo !== 'cambiar_principal' || puedeSerPrincipal(id))
   const candidatos = variedad ? delGrupo.filter(posible) : (nutrientes.find((x) => x.nutriente === foco.nutriente)?.ricos ?? []).map((r) => r.alimentoId).filter(posible)
   const base = candidatos.map((_, i) => (variedad ? 1 : candidatos.length - i))
   // v5.10 · El peso se multiplica por lo que combina con su plato; si hay al menos MIN_AFINES que combinan, solo entre
