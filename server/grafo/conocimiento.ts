@@ -93,6 +93,7 @@ export const GOLOSINAS_Y_ULTRAPROCESADOS: ReadonlySet<string> = new Set([
   'refresco', 'jugo_envasado', 'barra_cereal',
   // Snacks y galletitas o grisines de paquete: el omega-3 y el hierro les vienen del aceite y de la harina fortificada
   'papas_chips', 'galletitas_agua', 'galletitas_integrales', 'grisines', 'pororo',
+  'papas_fritas', // v5.10 · su omega-3 es el aceite de la fritura: salía "cambiá su licuado por papas fritas"; la papa es `papa`
   // Carnes procesadas, rebozados comerciales y fiambres: la versión casera (pollo, carne, merluza) es la que suma
   'salchicha', 'hamburguesa_comercial', 'nuggets_pollo', 'palitos_pescado', 'chorizo', 'jamon',
   // Masa y cereal de paquete: el hierro y la vitamina D se los agregan, el plato no es eso

@@ -118,7 +118,7 @@ describe('conocimientoDe: los ricos en cada nutriente', () => {
     expect(ricosDe(calcio, 'calcio_mg')).not.toContain('chocolate')
     expect(ricosDe(calcio, 'calcio_mg')).not.toContain('pan_rallado')
     const omega3 = ricosDe(porNutriente.get('omega3_g')!, 'omega3_g')
-    for (const id of ['galletitas_integrales', 'galletitas_agua', 'nuggets_pollo', 'papas_chips', 'medialuna']) expect(omega3).not.toContain(id)
+    for (const id of ['galletitas_integrales', 'galletitas_agua', 'nuggets_pollo', 'papas_chips', 'papas_fritas', 'medialuna']) expect(omega3).not.toContain(id)
   })
 })
 
