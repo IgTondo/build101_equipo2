@@ -5,7 +5,7 @@ import { useSearchParams } from 'react-router-dom'
 
 const CLAVE = 'nibble:nino'
 
-/** El alta desde cero por voz (C6, §5.2): la primera vez y "Agregar otro chico". */
+/** El alta desde cero por voz (C6, §5.2): la primera vez (sin chico) o si el chico guardado ya no existe. */
 export const RUTA_ALTA = '/perfil/nuevo'
 
 function leerGuardado(): string | null {
