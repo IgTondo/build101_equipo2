@@ -1,9 +1,4 @@
 /* C7 · Receta. Mobile first; usa los tokens de brand/tokens/nibble.css. Prefijo rc-. */
-.rc-oculto {
-  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-}
-
 /* ---------- Elegir el nutriente ---------- */
 .rc-elegir { display: flex; flex-direction: column; gap: 12px; }
 .rc-elegir h1, .rc-progreso h1, .rc-titulo { text-wrap: balance; }
@@ -23,11 +18,8 @@
   -webkit-tap-highlight-color: transparent;
 }
 .rc-opcion input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
-.rc-opcion-pct { font-size: 0.85rem; color: var(--nb-texto-suave); }
 .rc-opcion:has(input:checked) { background: var(--nb-primario); border-color: var(--nb-primario); color: var(--nb-sobre-primario); font-weight: 700; }
-.rc-opcion:has(input:checked) .rc-opcion-pct { color: var(--nb-sobre-primario); }
 .rc-opcion:has(input:focus-visible) { outline: 3px solid var(--nb-marca); outline-offset: 2px; }
-.rc-nota { font-size: 0.85rem; color: var(--nb-texto-suave); margin: 10px 0 0; text-wrap: pretty; }
 
 /* ---------- Progreso por etapas ---------- */
 .rc-progreso { display: flex; flex-direction: column; gap: 12px; }
@@ -43,20 +35,13 @@
 .rc-etapas li[data-estado='hecha']::before { background: var(--nb-marca); border-color: var(--nb-marca); }
 
 /* ---------- La tarjeta ---------- */
-.rc-tarjeta { display: flex; flex-direction: column; gap: 20px; padding: 0 0 16px; overflow: hidden; }
-.rc-tarjeta > :not(.rc-cadena) { margin-inline: 16px; }
+.rc-tarjeta { display: flex; flex-direction: column; gap: 18px; }
+.rc-cabeza { display: flex; flex-direction: column; gap: 8px; }
 .rc-titulo { margin: 0; }
+.rc-para { margin: 0; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--nb-primario); }
 
-.rc-cadena {
-  margin: 0; padding: 14px 16px;
-  background: var(--nb-superficie-suave); border-bottom: 1px solid var(--nb-borde);
-  display: flex; flex-direction: column; gap: 4px; font-size: 0.95rem;
-}
-/* En el celular, una fila por dato; en pantallas anchas, en una línea: "Parte de: … · Cambia: … · Se mantiene: …". */
-@media (min-width: 480px) {
-  .rc-cadena { flex-direction: row; flex-wrap: wrap; column-gap: 6px; }
-  .rc-cadena > div + div::before { content: '·'; margin-right: 6px; color: var(--nb-texto-suave); }
-}
+/* "Parte de: … · Cambia: …", dos datos cortos debajo del nombre. */
+.rc-cadena { margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: 0.95rem; }
 .rc-cadena dt { display: inline; color: var(--nb-texto-suave); }
 .rc-cadena dt::after { content: ':'; margin-right: 4px; }
 .rc-cadena dd { display: inline; margin: 0; font-weight: 700; }
@@ -66,17 +51,32 @@
 .rc-seccion p:last-child { margin-bottom: 0; }
 .rc-h2-nota { font: 400 0.85rem var(--nb-font-texto); color: var(--nb-texto-suave); }
 
-.rc-camino {
-  font-size: 0.92rem; padding: 10px 12px; border-radius: var(--nb-radio-chico);
-  background: var(--nb-superficie-suave);
+.rc-mas > summary { margin-bottom: -8px; }
+.rc-mas[open] > summary { margin-bottom: 2px; }
+.rc-mas p { margin: 0; font-size: 0.95rem; }
+
+/* Cómo ofrecerlo: una línea siempre a la vista (sin presión, §9). */
+.rc-ofrecer {
+  padding: 12px 14px; border-radius: var(--nb-radio-chico);
+  background: var(--nb-superficie-suave); border-left: 4px solid var(--nb-marca);
 }
-.rc-camino-rotulo { font-weight: 700; }
-.rc-patrones { margin: 8px 0 0; padding-left: 20px; font-size: 0.92rem; color: var(--nb-texto-suave); }
+.rc-ofrecer-linea { margin: 0; font-size: 1.05rem; font-weight: 700; text-wrap: pretty; }
 
 .rc-aporte { margin-bottom: 8px; }
 .rc-aporte-valor { font: 800 1.5rem var(--nb-font-titulos); color: var(--nb-primario); }
-.rc-barra { height: 8px; border-radius: var(--nb-radio-pastilla); background: var(--nb-superficie-suave); overflow: hidden; margin-bottom: 8px; }
+.rc-barra { height: 8px; border-radius: var(--nb-radio-pastilla); background: var(--nb-superficie-suave); overflow: hidden; margin-bottom: 8px; box-shadow: inset 0 0 0 1px var(--nb-borde); }
 .rc-barra span { display: block; height: 100%; border-radius: inherit; background: var(--nb-marca); }
+.rc-cubre { color: var(--nb-texto-suave); }
+
+/* Lo largo, plegado: un renglón por bloque. */
+.rc-plegables { display: flex; flex-direction: column; border-top: 1px solid var(--nb-borde); }
+.rc-plegable { border-bottom: 1px solid var(--nb-borde); }
+.rc-plegable > summary { width: 100%; justify-content: space-between; min-height: 48px; color: var(--nb-texto); }
+.rc-plegable > :not(summary) { margin: 0 0 10px; font-size: 0.95rem; }
+.rc-camino {
+  padding: 10px 12px; border-radius: var(--nb-radio-chico); background: var(--nb-superficie-suave);
+}
+.rc-patrones { padding-left: 20px; color: var(--nb-texto-suave); }
 
 .rc-ingredientes { list-style: none; margin: 0; padding: 0; }
 .rc-ingredientes li {
@@ -90,7 +90,7 @@
 .rc-pasos li { padding-left: 4px; text-wrap: pretty; }
 .rc-pasos li::marker { font-weight: 700; color: var(--nb-primario); }
 
-.rc-figura { margin: 12px 0 0; }
+.rc-figura { margin: 0; }
 .rc-imagen-marco {
   position: relative; aspect-ratio: 1 / 1; border-radius: var(--nb-radio-chico); overflow: hidden;
   background: var(--nb-superficie-suave);
@@ -112,13 +112,7 @@
 .rc-imagen-error p { margin-bottom: 8px; }
 .rc-boton-chico { min-height: 44px; display: inline-flex; }
 
-.rc-ofrecer {
-  padding: 14px 16px; border-radius: var(--nb-radio-chico);
-  background: var(--nb-superficie-suave); border-left: 4px solid var(--nb-marca);
-}
-.rc-ofrecer p { font-size: 1.05rem; }
-
-.rc-validada { font-size: 0.85rem; color: var(--nb-texto-suave); margin-bottom: 0; }
+.rc-validada { font-size: 0.85rem; color: var(--nb-texto-suave); margin: -6px 0 0; }
 .rc-problemas { font-size: 0.92rem; padding: 12px; border-radius: var(--nb-radio-chico); border: 1px solid var(--nb-borde); }
 .rc-problemas ul { margin: 0; padding-left: 20px; }
 
@@ -132,6 +126,3 @@
   .rc-acciones .nb-boton:active { transform: none; }
   .rc-imagen-marco img, .rc-etapas li, .rc-etapas li::before { transition: none; }
 }
-
-/* v5.1 · "Para el almuerzo": la comida para la que es la receta */
-.rc-para { margin: 0 0 -14px; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--nb-primario); }

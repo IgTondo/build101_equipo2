@@ -113,7 +113,7 @@ export function Receta() {
   const alTablero = <Link className="nb-boton nb-boton-secundario" to={volverA}>{momento ? 'Volver al inicio' : 'Volver a la semana'}</Link>
 
   if (pedido.tipo === 'pidiendo') {
-    const etapas = [nombre ? `Buscando en el grafo de ${nombre}…` : 'Buscando en su grafo…', 'Escribiendo la receta…', 'Validando alergias…']
+    const etapas = [nombre ? `Mirando lo que ya come ${nombre}…` : 'Mirando lo que ya come…', 'Escribiendo la receta…', 'Revisando alergias…']
     return (
       <section className="nb-tarjeta rc-progreso" aria-labelledby="rc-progreso-titulo">
         <h1 id="rc-progreso-titulo">Preparando una receta{para ? ` ${para}` : ''}</h1>
@@ -144,7 +144,7 @@ export function Receta() {
     return (
       <>
         <Vacio titulo={`Todavía no encontramos un paso chico para ${nutriente ? nutrienteEnFrase(nutriente) : 'lo que le falta'}`}>
-          <p className="nb-suave">Registrá algunas comidas más: con cada una aprendemos qué le gusta y aparecen nuevas ideas.</p>
+          <p className="nb-suave">Registrá algunas comidas más y aparecen nuevas ideas.</p>
           <Link className="nb-boton" to={{ pathname: '/registrar', search: volverA.search }}>Registrar una comida</Link>
         </Vacio>
         <div className="rc-acciones">
