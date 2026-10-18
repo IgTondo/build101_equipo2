@@ -88,7 +88,6 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
             </ul>
           </>
         )}
-        <p><Link to={`/grafo${nino}`}>Ver cómo lo aprendimos</Link></p>
       </section>
 
       <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-prep">

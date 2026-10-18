@@ -4,7 +4,6 @@ import { ConNino } from './componentes/ConNino'
 import { avisoStubs } from './lib/api'
 import { useNino } from './lib/nino'
 import { Estado } from './pantallas/Estado'
-import { Grafo } from './pantallas/grafo/Grafo'
 import { Inicio } from './pantallas/inicio/Inicio'
 import { Pendiente } from './pantallas/Pendiente'
 import { Perfil } from './pantallas/perfil/Perfil'
@@ -66,7 +65,6 @@ export function App() {
             <Route path="/registrar" element={<Registrar />} />
             <Route path="/tablero" element={<Tablero />} />
             <Route path="/perfil" element={<Perfil />} />
-            <Route path="/grafo" element={<Grafo />} />
             <Route path="/receta" element={<Receta />} />
             <Route path="/resumen" element={<Resumen />} />
           </Route>

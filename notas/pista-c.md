@@ -26,7 +26,7 @@
 | C8 | `/api/resumen`: números de `obtenerProgreso` y `obtenerPerfil` de B (fixtures sin Mongo), texto por Claude Haiku con chequeo de números, plantilla de respaldo |
 | C9 | Aviso global "Datos de ejemplo" mientras un endpoint siga en stub; 404 de un chico inexistente con un estado calmo |
 | C11 / C12 | README para el jurado y guion del pitch (`pitch/guion.md`) |
-| C13 | Grafo del chico en `/grafo` (sobre `GET /api/perfil?vista=grafo`; sin Mongo, `fixtures/perfil-grafo.json`) |
+| C13 | **Sacado de la vista del padre**: ya no hay `/grafo` ni `react-force-graph-2d`. Lo que sabemos del chico se muestra simple en el Perfil (le gusta, está probando, lo que notamos). Para el pitch, captura de Neo4j. `GET /api/perfil?vista=grafo` y `fixtures/perfil-grafo.json` quedan en el back |
 
 **Cómo probar:** ver [`PROBAR.md`](../PROBAR.md).
 
@@ -51,7 +51,7 @@
 5. `/api/progreso?motor=base` devuelve las mismas tres sugerencias que `grafo` (solo cambia `probAcepta`): en la demo el switch no muestra diferencia.
 6. `server/datos/cargar.ts:19`: el mensaje de error del 404 incluye el id del chico.
 7. `server/datos/validar.ts` (`item()`) descarta `nombreIngles`; si se va a buscar en `alimentos_fdc` al registrar, hay que conservarlo.
-8. Grafo (`vista=grafo`): mandar `confianza` y `apoyo` en las props de los patrones (hoy C los saca del texto "(n de m)").
+8. ~~Grafo (`vista=grafo`)~~ (ya no lo usa el front, se sacó `/grafo`): mandar `confianza` y `apoyo` en las props de los patrones (hoy C los saca del texto "(n de m)").
 9. Si el padre renombra un ítem llega `preparacionId: null` (B ya lo acepta); las reglas escritas a mano llegan con `condiciones: []`.
 
 ## Para A

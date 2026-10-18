@@ -29,14 +29,14 @@ Tiene que entender 5 cosas que acepta, 2 que rechaza (puré por la textura, arro
 5. **Volver al inicio** → "Hoy" tiene que contar la comida (las barras del día y "Desayuno y almuerzo") y el botón grande sugiere la comida que sigue. Tocalo: abre la receta "Para la cena".
 6. **Semana** (abajo) → el tablero completo tiene que mostrar la comida en "Últimas comidas" ("Hoy · Almuerzo").
 
-### C · Tablero, receta, grafo y resumen (con datos ya cargados)
+### C · Tablero, receta, perfil y resumen (con datos ya cargados)
 Los chicos sintéticos del dataset (§10.5, simulación declarada) tienen 20 comidas cada uno:
 - **Tablero:** https://nibble-eight-vert.vercel.app/tablero?nino=sint-tomas (y `sint-lucia`). Tocá una barra de nutrientes y probá el switch grafo/base.
 - **Receta:** en el tablero, **Un pasito** o **Más nutritiva** → **Ver la receta**. Tarda unos 10 s; la imagen carga aparte (unos 3 s).
-- **Grafo:** https://nibble-eight-vert.vercel.app/grafo?nino=sint-tomas → tocá "crocante" o un alimento.
+- **Perfil:** https://nibble-eight-vert.vercel.app/perfil?nino=sint-tomas → "Lo que sabemos de Tomás": le gusta, está probando y lo que notamos.
 - **Resumen para el nutricionista:** https://nibble-eight-vert.vercel.app/resumen?nino=sint-tomas → **Copiar**.
 
-Al entrar con `?nino=…`, ese chico queda como activo. Para volver a uno tuyo, entrá con su `?nino=` o desde **Perfil → Agregar otro chico**.
+Al entrar con `?nino=…`, ese chico queda como activo. Para volver a uno tuyo, entrá con su `?nino=`.
 
 ### Qué reportar
 Mandá en el grupo: **qué celular y navegador** (iPhone Safari / Android Chrome), **en qué paso**, **qué esperabas y qué pasó**, y una captura. Lo más valioso: si la cámara o el micrófono fallan, si una foto buena aparece como "movida" (o al revés), y si la IA marca algo que no dijiste.
