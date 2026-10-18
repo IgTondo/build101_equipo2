@@ -1,6 +1,6 @@
 # Plan de implementación · build 101 · Nibble
 
-> v4 · sábado 17/10 · v2 (15:05): reenfocada en el objetivo (mejorar la alimentación del chico) e integrando el research `Selectividad alimentaria en niños autistas… .md`. Reemplaza la v1 de las 14:45. **v3: stack de costo casi cero (§4.1).** **v4 (después de la charla con el mentor): cocción como atributo, cita textual en cada respuesta, capas de datos y motores enchufables (§4.3), tres sugerencias en el tablero y dataset sintético de 2 chicos (§10.5).** Lo nuevo o cambiado en los contratos lleva `// v2`, `// v3` o `// v4`.
+> v4 · sábado 17/10 · v2 (15:05): reenfocada en el objetivo (mejorar la alimentación del chico) e integrando el research `Selectividad alimentaria en niños autistas… .md`. Reemplaza la v1 de las 14:45. **v3: stack de costo casi cero (§4.1).** **v4 (después de la charla con el mentor): cocción como atributo, cita textual en cada respuesta, capas de datos y motores enchufables (§4.3), tres sugerencias en el tablero y dataset sintético de 2 chicos (§10.5).** **v5 (17/10, noche): alta desde cero por voz (§5.2) y se descarta el modo jurado.** Lo nuevo o cambiado en los contratos lleva `// v2`, `// v3`, `// v4` o `// v5`.
 > **Regla de oro:** antes de las 18:15 tiene que andar en el deploy, desde un celular, el ciclo **después de comer: foto + cómo le fue → análisis → grafo → tablero**. Todo lo demás viene después y, si no llega, se declara como pendiente.
 
 ---
@@ -64,7 +64,7 @@ Arriba de todo, una frase armada con una plantilla, sin LLM: *"Esta semana Tomá
 | **P0** | **Tablero "¿está comiendo bien?"**: frase de resumen, cobertura semanal y del día, energía aproximada, qué le falta | B + C | El tablero cambia después de registrar |
 | **P0** | Deploy en Vercel usable desde el celular | C | Anda en iPhone y Android con 3 fotos distintas seguidas |
 | **P1 (el primero)** | **Nota de voz**: "contame cómo le fue" → transcripción (Whisper) → la IA marca los botones → el padre confirma | A + C | Una nota de voz nueva completa bien las respuestas, en iPhone y en Android |
-| **P1** | Perfil inicial: formulario + relato **por voz** o texto → la IA extrae → "esto entendí" → grafo (reusa la transcripción) | A + B + C | Se crea un chico nuevo desde un relato nuevo |
+| **P1** | (v5) **Alta desde cero por voz** (§5.2): la primera vez, un solo audio con todo lo vital del chico → transcripción → la IA llena los datos y el perfil → "esto entendí" (las alergias se confirman tocándolas) → grafo inicial | A + B + C | Un audio nuevo crea un chico completo, sin formulario previo |
 | **P1** | Aprendizaje: aceptación por preparación, exposiciones, patrones combinados + "qué aprendí" | B | Después de registrar aparecen aprendizajes reales |
 | **P1** | **Receta con food chaining** (GraphRAG): parte de un alimento seguro, cambia una sola cosa, apunta a lo que falta; validación por código + imagen de cómo servirla | B + A + C | Receta con su porqué (camino del grafo), un solo cambio y alergias 100% respetadas |
 | **P1** | Tablero completo: evolución de 4 semanas, repertorio, grupos, exposiciones, **alertas**, tarjeta "próximo paso" | B + C | Con el historial de Tomás se ven todos los bloques |
@@ -106,6 +106,12 @@ Arriba de todo, una frase armada con una plantilla, sin LLM: *"Esta semana Tomá
 13. **Capas bronze, silver y gold, y motores enchufables** (§4.3). El grafo puede vivir en Neo4j o en Mongo, y el recomendador puede ser `grafo` o `base`, con un switch para la demo. GBrain y Cognee quedan fuera del camino crítico: son memoria para agentes, no el motor del chico. GBrain puede servir como memoria compartida del equipo.
 14. **Tres sugerencias en el tablero**: *va a gustarle* (explotar), *un pasito* (explorar de a un cambio) y *más nutritiva* (§8). Nunca se explora con un plato entero nuevo.
 15. **Dataset sintético de 2 chicos con reglas ocultas** (§10.5) para desarrollar y testear antes de tener datos reales. Ya encontró un error: la minería de patrones comparaba contra la media global, y un patrón que cubre casi todo lo que come el chico nunca pasaba el umbral. Ahora compara contra la media del resto (§8).
+
+**v5 (17/10, noche).**
+
+16. **Alta desde cero por voz (§5.2).** El primer uso de la app ya no es un formulario: el padre graba un solo audio con todo lo vital del chico (datos, seguridad, lo que come y lo que no, sus reglas), se transcribe con el mismo Whisper y la IA llena los datos básicos y el borrador del perfil, que siembra el grafo inicial. El formulario queda solo para corregir.
+17. **Las alergias las escucha la IA, pero las confirma el padre.** Una alergia mencionada aparece marcada como sugerencia y no se guarda hasta que el padre la toca; "no tiene alergias" también se confirma. Sigue valiendo que la validación de recetas usa solo las alergias confirmadas.
+18. **Se descarta el modo jurado (C10).** No hay QR ni relato de ejemplo precargado: el jurado ve la demo en vivo. El caso de ejemplo pasa a ser el audio de alta de Tomás (§5.2), que también sirve de eval.
 
 **Se mantiene de la v1:** visión y preguntas en una sola llamada; normalización por enum contra `data/alimentos.json`; catálogo semilla de preparaciones; nutrición calculada en código al registrar; algoritmos como funciones puras; miniatura dentro de la comida en lugar de Storage (ahora en el documento de Mongo); repo público; Tomás con una alergia (huevo) para que la validación filtre algo en vivo.
 
@@ -170,7 +176,7 @@ Tablero (C) ◄── /api/progreso (B): frase, cobertura semanal, energía, evo
 │  ├─ analizar-comida.ts        A
 │  ├─ relato-comida.ts          A   v2 · audio o texto + análisis → respuestas sugeridas
 │  ├─ transcribir.ts            A   v2 · audio → texto (lo usa el perfil inicial)
-│  ├─ perfil-inicial.ts         A   texto (+ foto de indicación) → PerfilBorrador
+│  ├─ perfil-inicial.ts         A   texto (+ foto de indicación) → PerfilBorrador · v5: sin datos, los extrae del relato (§5.2)
 │  ├─ receta.ts                 A
 │  ├─ imagen-plato.ts           A
 │  ├─ perfil.ts                 B   POST crea el chico desde el borrador · GET devuelve el Perfil
@@ -415,12 +421,29 @@ export interface Regla {
   efecto: 'rechaza' | 'requiere'
 }
 // POST /api/perfil-inicial (A) · la pantalla transcribe primero con /api/transcribir y deja editar el texto
-export interface PerfilInicialReq { datos: DatosBasicos; texto: string; fotoIndicacionBase64?: string }
+export interface PerfilInicialReq {
+  datos?: Partial<DatosBasicos>          // v5 · opcional: en el alta por voz (§5.2) no viene y se extrae del relato; si viene, manda sobre lo extraído
+  texto: string; fotoIndicacionBase64?: string
+}
+export interface DatoCitado<T> { valor: T; cita: string }   // v5 · como en el relato (v4): sin cita textual, no hay dato
+export interface DatosExtraidos {         // v5 · lo que dijo del chico; el padre lo confirma o lo corrige en "esto entendí"
+  nombre?: DatoCitado<string>; edad?: DatoCitado<number>; sexo?: DatoCitado<'masculino' | 'femenino'>
+  pesoKg?: DatoCitado<number>; tallaCm?: DatoCitado<number>
+  alergiasMencionadas: DatoCitado<Alergeno>[]       // NUNCA pasan solas a DatosBasicos.alergias: el padre las toca una por una
+  sinAlergias?: DatoCitado<true>                     // dijo explícitamente que no tiene; igual se confirma
+  alertas: DatoCitado<'bajo_peso' | 'arcadas_vomitos' | 'menos_15_alimentos'>[]
+  atragantamiento?: DatoCitado<true>                 // se muestra como alerta (§10.4) desde el alta
+  dieta?: DatoCitado<Dieta>; suplementos?: DatoCitado<string>
+}
+export const CAMPO_VITAL = ['nombre', 'edad', 'sexo', 'alergias', 'acepta', 'rechaza'] as const // v5
+export type CampoVital = De<typeof CAMPO_VITAL>
 export interface PerfilBorrador {
   acepta: { nombre: string; preparacionId: string | null; marca?: string; atributos: Partial<Atributos> }[]
   rechaza: { nombre: string; preparacionId: string | null; motivo: Motivo }[]   // v2: el motivo usa MOTIVO
   reglas: Regla[]
   objetivosNutricionista?: Partial<Nutrientes>
+  datos?: DatosExtraidos                 // v5 · solo si el pedido no trajo datos (alta por voz)
+  faltan?: CampoVital[]                  // v5 · lo vital que no mencionó: la pantalla lo pregunta antes de crear el perfil
 }
 // POST /api/perfil (B) { datos, borrador } → { ninoId }
 // GET  /api/perfil?ninoId (B) → Perfil
@@ -494,6 +517,52 @@ Una sola tabla que usan la UI, la nutrición, el aprendizaje y el prompt del rel
 
 ---
 
+### 5.2 Alta desde cero: el primer audio (v5)
+
+**Cuándo.** La primera vez que se abre la app (no hay chico activo en la URL ni en `localStorage`), y cada vez que el padre toca "Agregar otro chico". La app arranca con una sola pregunta: *"Contanos de tu hijo"*.
+
+**Qué pasa.**
+1. **Grabar.** Un solo audio de hasta **3 minutos** (el registro de comidas sigue en 90 s). Mientras graba, la pantalla muestra la guía de abajo como una lista que no hace falta seguir en orden. Sin micrófono, el mismo campo de texto con el dictado del teclado (§13).
+2. **Transcribir** con el mismo método de siempre: `POST /api/transcribir` (Whisper large-v3-turbo en Groq, idioma `es`), con la pista de nombres de alimentos comunes. El texto queda editable.
+3. **Entender.** `POST /api/perfil-inicial` **solo con `texto`** (sin `datos`). La IA devuelve el `PerfilBorrador` de siempre (qué acepta y con qué atributos, qué rechaza y por qué, reglas) **más** `datos` (lo que dijo del chico, cada dato con su cita) y `faltan` (lo vital que no dijo).
+4. **"Esto entendí".** Una sola pantalla para confirmar y corregir: los datos básicos ya completos, las **alergias como sugerencias que hay que tocar**, lo que come, lo que no y sus reglas. Lo que está en `faltan` se pregunta ahí mismo, con un control simple (no otro audio).
+5. **Crear.** `POST /api/perfil` con `{ datos, borrador }`, igual que hoy. B8 siembra el **grafo inicial** del chico: `Nino`, `ALERGICO_A`, `ACEPTA` y `RECHAZA` con su puntaje inicial (0,8 y 0,1, §8) y los atributos que contó, `SIGUE` para sus reglas, `OBJETIVO` según edad y sexo, y los patrones de investigación (§10.2). Desde ahí el tablero arranca vacío con "Registrá su primera comida".
+
+**La guía: lo vital, y para qué lo usa Nibble.**
+
+| Qué contar | Para qué | Si no lo dice |
+|---|---|---|
+| Nombre, edad y sexo | Los objetivos de nutrientes dependen de la edad y, desde los 9 años, del sexo (§10.1) | Se pregunta: es obligatorio |
+| Peso y talla (si los sabe) | Señal de bajo peso (§10.4) | Queda vacío |
+| **Alergias** | La validación de recetas por código (§7) | Se pregunta "¿Tiene alguna alergia?" con los 9 alérgenos y "No tiene": obligatorio |
+| Dieta especial (sin gluten ni caseína) y suplementos | Alerta `dieta_eliminacion`; los suplementos son solo registro | "Ninguna" |
+| Arcadas, vómitos, atragantamiento, que coma menos de 15 alimentos | Alertas que derivan al profesional (§10.4) | Ninguna |
+| **Lo que come seguro**, con marca y cómo se lo sirven (crocante o blando, frito o al horno, en bastones, frío…) | Los alimentos seguros son el punto de partida de toda cadena (§8) | Se pregunta: hace falta al menos uno |
+| Lo que no come y por qué (la textura, el olor, que esté mezclado…) | Puntaje inicial bajo y el motivo (`MOTIVO`) | Se puede seguir sin esto |
+| Sus reglas ("que no se toquen", "nada verde", "en su plato de siempre") | Filtro de reglas y preguntas de la visión | Ninguna |
+| Lo que indicó su nutricionista (opcional) | Reemplaza los objetivos de la tabla | La tabla de §10.1 |
+
+**Reglas (en el prompt; las marcadas con ✓ también se controlan por código).**
+- Cada dato lleva su **cita** textual de la transcripción; sin cita, no hay dato. ✓ (misma comprobación que el relato, §7)
+- **Alergias:** solo las que el padre llama alergia o reacción ("es alérgico al huevo", "le da ronchas el maní"). "No le gusta el huevo" es un rechazo, no una alergia. Ninguna alergia pasa a `DatosBasicos.alergias` sin que el padre la toque. ✓
+- No inventar edad, sexo ni alimentos: lo que no dijo va a `faltan`. ✓
+- Un alimento seguro que no está en el catálogo queda con `preparacionId: null` y los atributos que el padre describió.
+- Tono de la pantalla: "Contanos como se lo contarías a su pediatra"; nunca juzgar lo que come.
+
+**Caso de ejemplo: el audio de alta de Tomás** (unos 80 segundos; es el guion de la demo y uno de los audios de la eval de voz):
+
+> *"Hola, te cuento de Tomás. Tiene seis años, pesa veintiún kilos y mide un metro dieciséis. Es alérgico al huevo, eso es lo más importante. No tiene ninguna dieta especial ni toma suplementos. Come pocas cosas, pero las que come las come siempre: papas fritas en bastones, bien crocantes; la milanesa de carne al horno, que se la hacemos sin huevo; tostadas de pan blanco; las galletitas de agua, las de siempre; y la leche chocolatada fría a la mañana. Lo que no come es nada mezclado: el arroz con pollo, por ejemplo, no lo toca. El puré de papa tampoco, por la textura, dice que es raro. No tiene arcadas ni se atraganta."*
+
+Con ese audio, "esto entendí" tiene que mostrar: Tomás, 6 años, masculino, 21 kg, 116 cm; **huevo como alergia sugerida** (a confirmar); dieta ninguna; acepta 5 preparaciones (papas fritas en bastones, milanesa de carne al horno sin huevo, tostadas de pan blanco, galletitas de agua, leche chocolatada); rechaza puré de papa (`textura`) y arroz con pollo (`mezcla`); una regla, "nada mezclado" (`presentacion=mezclado → rechaza`); `faltan` vacío. Es lo mismo que `data/sinteticos/tomas.json` (`datos` y `borrador`), así que el test compara contra ese archivo. A propósito, el audio **no** cuenta lo de la salsa ni lo blando: son reglas ocultas de Tomás (§10.5) que el sistema tiene que descubrir solo con las comidas.
+
+**Tareas.**
+
+| # | Quién | Qué |
+|---|---|---|
+| A8b | A | `/api/perfil-inicial` sin `datos`: extraer `DatosExtraidos` con citas y `faltan`; comprobar las citas por código; alergias solo como sugerencia. Eval: el audio de Tomás (arriba) y 2 o 3 más grabados por el equipo, con la tabla de lo esperado |
+| B8b | B | Nada nuevo en la API: `POST /api/perfil` ya siembra el grafo inicial. Revisar que los atributos parciales de `acepta` entren al α/β inicial |
+| C6 | C | La pantalla de alta por voz (reemplaza el formulario previo): bienvenida → audio con la guía → texto editable → "esto entendí" con alergias a confirmar y lo que falta → crear → registrar |
+
 ## 6. Cronograma y checkpoints
 
 | Hora | Hito / todos | A | B | C |
@@ -529,7 +598,7 @@ Una sola tabla que usan la UI, la nutrición, el aprendizaje y el prompt del rel
 | A5 | `/api/analizar-comida` con el contexto del chico (`obtenerContexto()` de B; si falla, vacío) | curl con foto → `AnalisisComida` | P0 |
 | A6 | Robustez: `sinComida`; alimento fuera del catálogo → `otro_<grupo>` + pregunta; confianza < 0,6 → pregunta; JSON inválido → reintento | 3 fotos raras no rompen nada | P0 |
 | A7 | **`server/ia/voz.ts` + `/api/relato-comida`**: transcribir → LLM con los ítems, las preguntas y la transcripción → `RelatoComida`. Si llega `texto`, se saltea la transcripción. `/api/transcribir` expone solo el primer paso | Nota de voz → botones marcados en < 8 s | P1 (el primero) |
-| A8 | `/api/perfil-inicial`: texto del relato (+ foto de indicación) → `PerfilBorrador`. Las pantallas las hace C | Chico nuevo desde un relato nuevo | P1 |
+| A8 | `/api/perfil-inicial`: texto del relato (+ foto de indicación) → `PerfilBorrador`. (v5) Sin `datos`, también extrae los datos básicos con sus citas y lo que falta (A8b, §5.2). Las pantallas las hace C | Chico nuevo desde un audio nuevo, sin formulario | P1 |
 | A9 | `/api/receta`: `armarEvidencia()` → prompt (solo candidatos del paquete) → `validarReceta()` → 1 reintento con los problemas → si sigue mal, siguiente candidato | Receta válida con porqué y un solo cambio | P1 |
 | A10 | `/api/imagen-plato` con FLUX.1 schnell en Workers AI (Nano Banana si hay billing): prompt de presentación funcional, sin texto, marcada como ilustrativa | Imagen en < 20 s | P1 |
 | A11 | Eval de visión y de voz (§11.1 y §11.2). La de visión corre con Haiku 5.5 y con Sonnet 5.5 (con los créditos cuesta centavos), y se queda el que acierte más en menos de 8 s | Tablas de resultados | P1 |
@@ -588,7 +657,7 @@ Una sola tabla que usan la UI, la nutrición, el aprendizaje y el prompt del rel
 | B5 | `scripts/seed-grafo.ts`: Nutrientes, Ingredientes + `APORTA {por100g}`, Atributos, Preparaciones del catálogo + `TIENE` + `CONTIENE` | Grafo base | P0 |
 | B6 | `registrarComida()` en una transacción (con conducta, motivos y relato) + aceptación + exposiciones + α/β | `RegistrarComidaRes` real | P0 |
 | B7 | `/api/nutricion`, `/api/progreso` (frase, semana, energía, grupos; después semanas, repertorio y exposiciones), `obtenerContexto(ninoId)` para A | — | P0 |
-| B8 | `/api/perfil` POST (crea `Nino`, `ACEPTA`/`RECHAZA` iniciales, `SIGUE` reglas, `ALERGICO_A`, `OBJETIVO`, patrones de investigación) y GET | — | P1 |
+| B8 | `/api/perfil` POST (crea `Nino`, `ACEPTA`/`RECHAZA` iniciales, `SIGUE` reglas, `ALERGICO_A`, `OBJETIVO`, patrones de investigación) y GET. (v5) Es el grafo inicial del alta por voz (§5.2) | — | P1 |
 | B9 | `server/nutricion/alertas.ts` (§10.4) | Alertas en `registrar` y en `progreso` | P1 |
 | B10 | Patrones combinados + persistencia + diff → "qué aprendí" | Aprendizajes reales | P1 |
 | B11 | `data/preparaciones.json` (50–60, con `fortificadaDe` donde aplique): lanzarlo con Claude Code a las 15:45 en segundo plano y revisar los atributos a mano | Catálogo | P1 |
@@ -644,13 +713,13 @@ Observación = un ítem de una comida: `{ prepId, atributos (8, con la cocción)
 | C3 | **Tablero "¿está comiendo bien?"** (ver abajo) | Contra el fixture y después real | P0 / P1 |
 | C4 | Integración en el deploy; prueba en iPhone (Safari) y Android (Chrome): cámara **y micrófono** | CP1 y CP2 | P0 |
 | C5 | Grabador de voz: `MediaRecorder` con el formato que diga `isTypeSupported` (`audio/mp4` en Safari, `audio/webm` en Chrome), máx. 90 s, contador, cancelar, "Escuchando tu nota…" → `/api/relato-comida` → marcar los botones; resaltar lo que completó la IA y dejar sin marcar lo de `sinMencion`. Sin permiso de micrófono → campo de texto (el dictado del teclado) que va al mismo endpoint | Nota de voz → botones marcados | P1 (el primero) |
-| C6 | Pantallas de **perfil inicial**: formulario con alergias, dieta y señales de alerta a mano → relato por voz (`/api/transcribir` → texto editable) o escrito → `/api/perfil-inicial` → "Esto entendí" con chips editables → `POST /api/perfil` | Chico nuevo desde un relato nuevo | P1 |
+| C6 | (v5) **Alta desde cero por voz** (§5.2): bienvenida → un audio de hasta 3 min con la guía de lo vital (`/api/transcribir` → texto editable) → `/api/perfil-inicial` sin datos → "Esto entendí" con los datos extraídos, **alergias a confirmar tocándolas** y lo que falta → `POST /api/perfil` → registrar. El formulario queda solo para corregir | Chico nuevo desde un audio nuevo | P1 |
 | C7 | Pantalla **Receta**: nutriente (por defecto, el primero de `semana.faltan`) → progreso por etapas ("Buscando en el grafo de Tomás… Escribiendo la receta… Validando alergias…") → tarjeta: **"Parte de: sus papas fritas · Cambia: el ingrediente · Se mantiene: bastón, crocante, salado"**, por qué (camino), qué aporta y cuánto de lo que falta, ingredientes en gramos, pasos, **cómo servirlo** (la imagen carga aparte) y **cómo ofrecerlo** | — | P1 |
 | C8 | `/api/resumen` + pantalla: números de `progreso` y `perfil` → texto del LLM ("usá solo estos números") → copiar. Contenido: repertorio y tendencia, grupos ausentes, nutrientes por debajo de la referencia, exposiciones en curso, conducta en la mesa y alertas. Aclaración: "valores aproximados, no es un diagnóstico" | — | P1 |
 | C9 | Errores y estados vacíos: timeout con reintento, sin comida, foto movida, sin micrófono, audio que no se entendió, sin conexión | — | P1 |
-| C10 | **Modo jurado:** el QR abre "Crear perfil" con un relato de ejemplo editable; Tomás vive en `?nino=tomas` y no se ensucia. (v4) Los fixtures de `progreso`, `perfil` y `registrar-comida` pueden salir de `data/sinteticos/` (§10.5) | — | P1 |
+| C10 | ~~Modo jurado~~ **Descartado (v5).** El caso de ejemplo es el audio de alta de Tomás (§5.2). Tomás vive en `?nino=tomas` | — | — |
 | C11 | README: qué es, cómo correrlo, arquitectura, componentes de IA, **tabla real / simulado / pendiente**, alcance declarado, resultados de calidad | — | P1 |
-| C12 | Pitch: guion, 5–6 diapositivas, video de respaldo, QR | — | P1 |
+| C12 | Pitch: guion, 5–6 diapositivas, video de respaldo | — | P1 |
 | C13 | Visualización del grafo (`react-force-graph` con `/api/grafo`) o captura de Neo4j Explore para la diapositiva | — | P2 |
 | C14 | (v4) Switch "recomendador: base / grafo" en el tablero (`?motor=`, §4.3), para mostrar en vivo que el grafo sugiere mejor | — | P2 |
 
@@ -782,7 +851,7 @@ El script controla el vocabulario, que las citas estén en la transcripción, qu
 | 0:40–1:50 | **En vivo:** foto del plato de un juez o del catering → cajas y atributos → nota de voz ("comió las papas, el queso lo tocó y lo dejó") → los botones se marcan solos → guardar → nutrientes con rango + "qué aprendí" → **el tablero cambia: "¿está comiendo bien?"** |
 | 1:50–2:20 | **Próximo paso:** la receta de food chaining ("parte de sus papas fritas, cambia solo el ingrediente: bastón y crocante, como siempre") + la imagen de cómo servirla, al lado de su alimento seguro |
 | 2:20–2:45 | **Calidad:** % de reconocimiento medido, voz sin ítems inventados, alergias 12/12, curva si llegó |
-| 2:45–3:00 | "Nibble no te dice qué cocinar a partir de una foto: aprende de cada comida cómo come tu hijo y te propone el paso más chico posible hacia lo que le falta. Si le sacás la IA, no hay lectura del plato, ni relato que se entiende, ni perfil que aprende, ni recetas a su medida" + QR |
+| 2:45–3:00 | "Nibble no te dice qué cocinar a partir de una foto: aprende de cada comida cómo come tu hijo y te propone el paso más chico posible hacia lo que le falta. Si le sacás la IA, no hay lectura del plato, ni relato que se entiende, ni perfil que aprende, ni recetas a su medida" |
 
 **Preguntas probables del jurado**
 

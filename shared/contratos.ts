@@ -197,12 +197,31 @@ export interface Regla {
   efecto: 'rechaza' | 'requiere'
 }
 // POST /api/perfil-inicial (A) · la pantalla transcribe primero con /api/transcribir y deja editar el texto
-export interface PerfilInicialReq { datos: DatosBasicos; texto: string; fotoIndicacionBase64?: string }
+export interface PerfilInicialReq {
+  // v5 · PLAN §5.2: pasa a `datos?: Partial<DatosBasicos>` (en el alta por voz no viene y se extrae del relato) cuando A
+  // haga A8b; hasta entonces sigue obligatorio para no romper server/ia/perfil.ts.
+  datos: DatosBasicos
+  texto: string; fotoIndicacionBase64?: string
+}
+export interface DatoCitado<T> { valor: T; cita: string }   // v5 · como en el relato (v4): sin cita textual, no hay dato
+export interface DatosExtraidos {         // v5 · lo que dijo del chico; el padre lo confirma o lo corrige en "esto entendí"
+  nombre?: DatoCitado<string>; edad?: DatoCitado<number>; sexo?: DatoCitado<'masculino' | 'femenino'>
+  pesoKg?: DatoCitado<number>; tallaCm?: DatoCitado<number>
+  alergiasMencionadas: DatoCitado<Alergeno>[]       // NUNCA pasan solas a DatosBasicos.alergias: el padre las toca una por una
+  sinAlergias?: DatoCitado<true>                     // dijo explícitamente que no tiene; igual se confirma
+  alertas: DatoCitado<'bajo_peso' | 'arcadas_vomitos' | 'menos_15_alimentos'>[]
+  atragantamiento?: DatoCitado<true>                 // se muestra como alerta (§10.4) desde el alta
+  dieta?: DatoCitado<Dieta>; suplementos?: DatoCitado<string>
+}
+export const CAMPO_VITAL = ['nombre', 'edad', 'sexo', 'alergias', 'acepta', 'rechaza'] as const // v5
+export type CampoVital = De<typeof CAMPO_VITAL>
 export interface PerfilBorrador {
   acepta: { nombre: string; preparacionId: string | null; marca?: string; atributos: Partial<Atributos> }[]
   rechaza: { nombre: string; preparacionId: string | null; motivo: Motivo }[]   // v2: el motivo usa MOTIVO
   reglas: Regla[]
   objetivosNutricionista?: Partial<Nutrientes>
+  datos?: DatosExtraidos                 // v5 · solo si el pedido no trajo datos (alta por voz)
+  faltan?: CampoVital[]                  // v5 · lo vital que no mencionó: la pantalla lo pregunta antes de crear el perfil
 }
 // POST /api/perfil (B) { datos, borrador } → { ninoId }
 // GET  /api/perfil?ninoId (B) → Perfil
