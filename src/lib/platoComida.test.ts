@@ -45,8 +45,10 @@ describe('cubreEnPalabras', () => {
 })
 
 describe('palabras de la tarjeta', () => {
-  it('nombreCorto saca el paréntesis y la aclaración después de la coma', () => {
-    expect(nombreCorto('Milanesa de carne al horno (rebozada sin huevo)')).toBe('Milanesa de carne al horno')
+  it('nombreCorto saca el paréntesis y la aclaración después de la coma, pero no lo que NO lleva', () => {
+    expect(nombreCorto('Milanesa de carne al horno (rebozada sin huevo)')).toBe('Milanesa de carne al horno (sin huevo)')
+    expect(nombreCorto('Milanesa a la napolitana (sin huevo)')).toBe('Milanesa a la napolitana (sin huevo)')
+    expect(nombreCorto('Nuggets de pollo (caseros)')).toBe('Nuggets de pollo')
     expect(nombreCorto('Papas al horno en bastones, crocantes')).toBe('Papas al horno en bastones')
     expect(nombreCorto('Leche chocolatada')).toBe('Leche chocolatada')
     expect(nombreCorto('(raro)')).toBe('(raro)')
@@ -75,7 +77,7 @@ describe('modeloTarjeta', () => {
     const m = modeloTarjeta('tomas', { ...fixture, plato: cena, momento: 'cena' }, 'cena')
     expect(m).toEqual({
       tipo: 'plato',
-      seguros: [{ id: 'milanesa_carne_horno', nombre: 'Milanesa de carne al horno' }, { id: 'papas_horno_baston', nombre: 'Papas al horno en bastones' }],
+      seguros: [{ id: 'milanesa_carne_horno', nombre: 'Milanesa de carne al horno (sin huevo)' }, { id: 'papas_horno_baston', nombre: 'Papas al horno en bastones' }],
       pasito: {
         nombre: 'Bastones de queso horneados',
         receta: '/receta?nino=tomas&preparacionId=bastones_queso_horno&nutriente=calcio_mg&momento=cena',
@@ -125,6 +127,6 @@ describe('platoParaImagen', () => {
 
   it('el texto alternativo nombra lo seguro y el pasito al costado', () => {
     expect(altPlato(cena, 'Bastones de queso horneados'))
-      .toBe('El plato: Milanesa de carne al horno y papas al horno en bastones; al costado, en porción chica, bastones de queso horneados.')
+      .toBe('El plato: Milanesa de carne al horno (sin huevo) y papas al horno en bastones; al costado, en porción chica, bastones de queso horneados.')
   })
 })

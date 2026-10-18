@@ -71,8 +71,11 @@ export function cubreEnPalabras(cubre: number, nutriente: Nutriente): string | n
  * crocantes" → "Papas al horno en bastones"). Lo seguro es lo que la familia ya prepara: el detalle está en la receta.
  */
 export function nombreCorto(nombre: string): string {
-  const corto = nombre.replace(/\s*\([^)]*\)/g, '').split(',')[0].trim()
-  return corto || nombre.trim()
+  // Si el paréntesis dice qué NO lleva ("rebozada sin huevo"), se conserva como "(sin huevo)": para un chico con
+  // alergia es lo primero que el padre busca.
+  const sin = nombre.match(/\(([^)]*\bsin [^)]*)\)/)?.[1].match(/\bsin .*/)?.[0]
+  const corto = nombre.replace(/\s*\([^)]*\)/g, '').split(',')[0].trim() || nombre.trim()
+  return sin ? `${corto} (${sin})` : corto
 }
 
 // ---------- El modelo de la tarjeta ----------
