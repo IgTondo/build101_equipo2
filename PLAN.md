@@ -579,7 +579,7 @@ Con ese audio, "esto entendí" tiene que mostrar: Tomás, 6 años, masculino, 21
 
 **Reglas (código, sin LLM).** Solo preparaciones en `acepta` para lo seguro; filtro por `momentos`; fuera lo que viola una regla `rechaza` y lo que tiene un alérgeno del chico; si no hay nada para esa comida, el plato sale vacío y la pantalla lo dice con calma (nunca se inventa). Si se repite exacto el plato de la última vez de esa comida, rota uno de los seguros (sin perder el pasito: el research pide repetir el mismo de 8 a 15 veces).
 
-**Dónde.** `Progreso.plato` en `GET /api/progreso?momento=` (B, función pura `server/aprendizaje/plato.ts`); la imagen del plato completo con `ImagenPlatoReq.plato` (A); la pantalla (C). Sin funciones nuevas: siguen siendo 12. Fuera de alcance: planes semanales.
+**Dónde.** `Progreso.plato` en `GET /api/progreso?momento=` (B, función pura `server/aprendizaje/plato.ts`; tipo `PlatoComida`, porque `Plato` ya es el tipo de plato: hondo, playo…); la imagen del plato completo con `ImagenPlatoReq.plato` (A); la pantalla (C). Sin funciones nuevas: siguen siendo 12. Fuera de alcance: planes semanales.
 
 ## 6. Cronograma y checkpoints
 

@@ -175,7 +175,7 @@ export interface Progreso {
   proximoPaso?: Candidato                                    // v2 · el mejor candidato del grafo, sin LLM, para la tarjeta del tablero
   sugerencias?: Sugerencia[]                                 // v4 · siempre en el orden segura, un_paso, mas_nutritiva (§8); proximoPaso = la de un_paso
   momento?: Momento                                          // v5.2 · vino ?momento=: las sugerencias (y proximoPaso) son solo de esa comida; pueden ser menos de 3 o ninguna
-  plato?: Plato                                              // v5.3 · con ?momento=: el plato de esa comida (PLAN §5.3)
+  plato?: PlatoComida                                        // v5.3 · con ?momento=: el plato de esa comida (PLAN §5.3)
 }
 export interface Sugerencia {            // v4 · las tres opciones del tablero: explotar, explorar de a un cambio, priorizar lo que falta
   tipo: 'segura' | 'un_paso' | 'mas_nutritiva'
@@ -280,7 +280,7 @@ export interface Receta {
 // GET  /api/resumen?ninoId (C) → { texto, progreso: Progreso, generadoISO }
 export interface ImagenPlatoReq {                                                     // C1
   receta: Receta; reglas: Regla[]
-  plato?: Plato                          // v5.3 · si viene, se dibuja el plato completo (lo seguro + el pasito) en vez de solo el pasito
+  plato?: PlatoComida                    // v5.3 · si viene, se dibuja el plato completo (lo seguro + el pasito) en vez de solo el pasito
 }
 export interface ImagenPlatoRes { imagenBase64: string; mime: string; ilustrativa: true } // C1
 export interface ResumenRes { texto: string; progreso: Progreso; generadoISO: string }   // C1
@@ -334,7 +334,7 @@ export interface ItemPlato {
   aporte: Partial<Nutrientes>            // por esa porción
   porQue: string                         // plantilla, una línea: "La come 8 de cada 8 veces" · "Aporta calcio"
 }
-export interface Plato {
+export interface PlatoComida {
   momento: Momento
   seguros: ItemPlato[]                   // de 1 a 3, distintos entre sí (no tres almidones); puede ser [] si no hay nada para esa comida
   pasito?: Sugerencia                    // el alimento nuevo (la de un_paso; si no hay, la de mas_nutritiva); abre la receta
