@@ -94,5 +94,39 @@
       ],
       "efecto": "rechaza"
     }
-  ]
+  ],
+  "datos": {
+    "nombre": {
+      "valor": "Tomás",
+      "cita": "te cuento de Tomás"
+    },
+    "edad": {
+      "valor": 6,
+      "cita": "Tiene seis años"
+    },
+    "sexo": {
+      "valor": "masculino",
+      "cita": "Es alérgico al huevo"
+    },
+    "pesoKg": {
+      "valor": 21,
+      "cita": "pesa veintiún kilos"
+    },
+    "tallaCm": {
+      "valor": 116,
+      "cita": "mide un metro dieciséis"
+    },
+    "alergiasMencionadas": [
+      {
+        "valor": "huevo",
+        "cita": "Es alérgico al huevo"
+      }
+    ],
+    "alertas": [],
+    "dieta": {
+      "valor": "ninguna",
+      "cita": "No tiene ninguna dieta especial"
+    }
+  },
+  "faltan": []
 }

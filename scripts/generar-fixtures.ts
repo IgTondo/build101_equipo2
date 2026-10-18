@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { CUANTO, GRUPO, NUTRIENTE } from '../shared/contratos.js'
 import type {
   AnalisisComida, Alerta, Aprendizaje, Atributos, Candidato, Cambio, CoberturaDia, ComidaResumen, Conducta, CrearPerfilRes,
-  Cuanto, DatosBasicos, Evidencia, Grupo, ImagenPlatoRes, ItemDetectado, Nutriente, Nutrientes, PatronVista, Perfil,
+  Cuanto, DatosBasicos, DatosExtraidos, Evidencia, Grupo, ImagenPlatoRes, ItemDetectado, Nutriente, Nutrientes, PatronVista, Perfil,
   PerfilBorrador, Porcion, PreparacionCatalogo, Progreso, Rango, Receta, RegistrarComidaReq, RegistrarComidaRes,
   RelatoComida, ResumenRes, SaludRes, Sugerencia, TranscribirRes,
 } from '../shared/contratos.js'
@@ -449,7 +449,26 @@ const transcribir: TranscribirRes = {
     'Es alérgico al huevo, así que la milanesa la hacemos sin huevo.',
   ms: 1800,
 }
-const perfilInicial: PerfilBorrador = TOMAS.borrador
+// v5 (§5.2): el alta por voz. /api/perfil-inicial recibe solo el texto (este es el audio de alta de Tomás, el guion de la
+// demo) y devuelve el borrador de siempre + `datos` (cada uno con su cita textual del audio) + `faltan`. La alergia al
+// huevo va como mencionada: el padre la confirma tocándola. No cuenta lo de la salsa ni lo blando (reglas ocultas, §10.5).
+const AUDIO_ALTA_TOMAS = 'Hola, te cuento de Tomás. Tiene seis años, pesa veintiún kilos y mide un metro dieciséis. ' +
+  'Es alérgico al huevo, eso es lo más importante. No tiene ninguna dieta especial ni toma suplementos. ' +
+  'Come pocas cosas, pero las que come las come siempre: papas fritas en bastones, bien crocantes; la milanesa de carne al horno, ' +
+  'que se la hacemos sin huevo; tostadas de pan blanco; las galletitas de agua, las de siempre; y la leche chocolatada fría a la mañana. ' +
+  'Lo que no come es nada mezclado: el arroz con pollo, por ejemplo, no lo toca. El puré de papa tampoco, por la textura, ' +
+  'dice que es raro. No tiene arcadas ni se atraganta.'
+const datosAltaTomas: DatosExtraidos = {
+  nombre: { valor: TOMAS.datos.nombre, cita: 'te cuento de Tomás' },
+  edad: { valor: TOMAS.datos.edad, cita: 'Tiene seis años' },
+  sexo: { valor: TOMAS.datos.sexo, cita: 'Es alérgico al huevo' },
+  pesoKg: { valor: TOMAS.datos.pesoKg!, cita: 'pesa veintiún kilos' },
+  tallaCm: { valor: TOMAS.datos.tallaCm!, cita: 'mide un metro dieciséis' },
+  alergiasMencionadas: [{ valor: 'huevo', cita: 'Es alérgico al huevo' }],
+  alertas: [],
+  dieta: { valor: TOMAS.datos.dieta, cita: 'No tiene ninguna dieta especial' },
+}
+const perfilInicial: PerfilBorrador = { ...TOMAS.borrador, datos: datosAltaTomas, faltan: [] }
 const perfilCrear: CrearPerfilRes = { ninoId: NINO_ID }
 const ORDEN_ESTADO = { acepta: 0, en_proceso: 1, rechaza: 2 }
 const perfil: Perfil = {
@@ -619,6 +638,13 @@ for (const n of ['calcio_mg', 'vitamina_d_ug', 'fibra_g'] as const) exigir(falta
 exigir(NUTRIENTE_OBJ === 'calcio_mg', 'la receta está escrita para el calcio')
 exigir(!receta.ingredientes.some((i) => i.alimentoId.includes('huevo')), 'receta: sin huevo (alergia)')
 exigir(TOMAS.datos.alergias.includes('huevo'), 'Tomás es alérgico al huevo')
+{
+  const { alergiasMencionadas, alertas, ...simples } = datosAltaTomas
+  for (const [k, d] of [...Object.entries(simples), ...alergiasMencionadas.map((a) => ['alergia', a] as const), ...alertas.map((a) => ['alerta', a] as const)]) {
+    exigir(d && AUDIO_ALTA_TOMAS.includes(d.cita), `perfil-inicial: la cita de ${k} no está en el audio de alta`)
+  }
+  exigir(alergiasMencionadas.map((a) => a.valor).join() === TOMAS.datos.alergias.join(), 'perfil-inicial: las alergias mencionadas son las de Tomás')
+}
 for (const [id, e] of ACEPT) exigir(e.veces > 0 || DEL_PERFIL.has(id), `preparación sin veces: ${id}`)
 for (const p of PATRONES.filter((x) => x.fuente === 'aprendido')) {
   const s = PATRONES.indexOf(p)
