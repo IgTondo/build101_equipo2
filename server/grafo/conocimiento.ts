@@ -286,7 +286,7 @@ export function conocimientoDe(
   // v5.10 · El peso se multiplica por lo que combina con su plato; si hay al menos MIN_AFINES que combinan, solo entre
   // esos. Si no (o sin datos de afinidad), el sorteo de siempre, y queda en el log.
   const conQue = contextoAfinidad(desde, modo)
-  const afinidad = candidatos.map((id) => afinidadCon(id, conQue))
+  const afinidad = candidatos.map((id) => afinidadConPlato(id, conQue))
   const combinan = candidatos.flatMap((_, i) => (afinidad[i]! > 0 ? [i] : []))
   const porAfinidad = combinan.length >= MIN_AFINES
   const ingrediente = porAfinidad
@@ -299,7 +299,7 @@ export function conocimientoDe(
   // v5.10 · Las combinaciones probadas del principal de su plato, para que el LLM arme algo que combine
   const suPrincipal = desde ? principal(desde.ingredientes) : null
   const combinaciones = suPrincipal
-    ? afines(suPrincipal, MAX_COMBINACIONES, (id) => { const a = c.alimentos.get(id); return Boolean(a && paraLoNuevo(a)) }).map((x) => x.alimentoId)
+    ? afines(conDatos(suPrincipal), MAX_COMBINACIONES, (id) => { const a = c.alimentos.get(id); return Boolean(a && paraLoNuevo(a)) }).map((x) => x.alimentoId)
     : []
 
   const rechaza = estados.filter((s) => s.estado === 'rechaza' || (s.declarada === 'rechaza' && s.estado !== 'acepta'))
@@ -368,6 +368,18 @@ function elegirConPesos<T>(xs: readonly T[], pesos: readonly number[], azar: () 
 }
 
 /**
+ * v5.10 · El id con el que se busca su afinidad: el suyo o, si no está en las recetas de Ahn, el de su familia que sí
+ * está (yogur_bebible combina como yogur, porotos_soja como porotos, huevo_revuelto como huevo). Con los ricos por
+ * porción entran esas variantes, y sin esto la afinidad no tenía con qué pesar el sorteo.
+ */
+export const conDatos = (id: string): string => (afines(id, 1).length > 0 || afines(familia(id), 1).length === 0 ? id : familia(id))
+
+/** v5.10 · Lo que combina `id` con un plato (afinidadCon), buscando cada uno por conDatos. */
+export function afinidadConPlato(id: string, plato: readonly string[]): number {
+  return afinidadCon(conDatos(id), plato.map(conDatos))
+}
+
+/**
  * v5.10 · Con qué tiene que combinar el ingrediente del foco: lo que queda del plato de partida. Sumando un ingrediente,
  * todo su plato; cambiando el principal, lo demás y, si no queda nada, como en la banana pisada, el principal. Los
  * acompañamientos (aceite, azúcar, manteca) y los condimentos no cuentan, y lo que no tiene datos de afinidad tampoco:
@@ -375,7 +387,7 @@ function elegirConPesos<T>(xs: readonly T[], pesos: readonly number[], azar: () 
  */
 export function contextoAfinidad(desde: Pick<PreparacionCatalogo, 'ingredientes'> | undefined, modo: Modo): string[] {
   if (!desde) return []
-  const cuenta = (id: string) => !ACOMPANAMIENTOS.has(id) && !esCondimento(id) && afines(id, 1).length > 0
+  const cuenta = (id: string) => !ACOMPANAMIENTOS.has(id) && !esCondimento(id) && afines(conDatos(id), 1).length > 0
   const ids = [...new Set(desde.ingredientes.map((i) => i.alimentoId))].filter(cuenta)
   if (modo === 'sumar_ingrediente') return ids
   const p = principal(desde.ingredientes)

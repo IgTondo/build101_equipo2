@@ -12,7 +12,8 @@ import { comidasSinteticas, ninoDoc, sintetico, type SinteticoId } from '../dato
 import { fijarAfinidades, type ParAfinidad } from '../ia/afinidades.js'
 import { escalar } from '../nutricion/calcular.js'
 import {
-  ACOMPANAMIENTOS, GOLOSINAS_Y_ULTRAPROCESADOS, conocimientoDe, contextoAfinidad, familia, recientesDe, type Conocimiento,
+  ACOMPANAMIENTOS, GOLOSINAS_Y_ULTRAPROCESADOS, afinidadConPlato, conDatos, conocimientoDe, contextoAfinidad, familia, recientesDe,
+  type Conocimiento,
 } from './conocimiento.js'
 
 const HOY = '2026-10-18' // el último día del historial de Valentina
@@ -290,9 +291,9 @@ describe('conocimientoDe: el ingrediente del foco combina con lo que queda de su
   const SUMAR = 0.9
   const sorteados = (momento: Momento, desde: number, modo: number, nutriente: Nutriente) =>
     R.map((r) => conocimiento({ momento, nutriente, azar: enOrden(desde, modo, 0, r) }).foco)
-  /** Pares de ejemplo: lo de `platos` combina con todo el catálogo menos con `menos` (no depende de cuáles son los ricos). */
+  /** Pares de ejemplo: lo de `platos` combina con todo el catálogo menos con la familia de `menos` (no depende de los ricos). */
   const todoMenos = (menos: string, ...platos: string[]): ParAfinidad[] =>
-    platos.flatMap((a) => [...alimentos.keys()].filter((b) => b !== a && b !== menos && !/^(otro|fdc)_/.test(b)).map((b) => ({ a, b, n: 10, afinidad: 0.2 })))
+    platos.flatMap((a) => [...alimentos.keys()].filter((b) => b !== a && familia(b) !== familia(menos) && !/^(otro|fdc)_/.test(b)).map((b) => ({ a, b, n: 10, afinidad: 0.2 })))
   /** El primer nutriente con un rico que cumple `es` en esa comida, y cuál: así el que no combina es candidato. */
   const conRico = (momento: Momento, es: (id: string) => boolean) => {
     for (const n of NUTRIENTE) {
@@ -333,6 +334,19 @@ describe('conocimientoDe: el ingrediente del foco combina con lo que queda de su
     // Con los datos reales el pan rallado no está en las recetas de Ahn: cuenta la carne
     fijarAfinidades(null)
     expect(contextoAfinidad(catalogo.get('milanesa_carne_horno'), 'cambiar_principal')).toEqual(['carne_vacuna'])
+  })
+
+  it('lo que no está en las recetas de Ahn combina como el de su familia que sí (el yogur bebible, como el yogur)', () => {
+    fijarAfinidades([{ a: 'yogur', b: 'banana', n: 10, afinidad: 0.25 }, { a: 'porotos', b: 'carne_vacuna', n: 10, afinidad: 0.2 }])
+    expect(conDatos('yogur_bebible')).toBe('yogur')
+    expect(afinidadConPlato('yogur_bebible', ['banana'])).toBe(0.25)
+    expect(afinidadConPlato('porotos_soja', ['carne_vacuna'])).toBe(0.2)
+    expect(afinidadConPlato('banana', ['yogur_bebible'])).toBe(0.25) // también lo del plato
+    expect(contextoAfinidad({ ingredientes: [{ alimentoId: 'pan_blanco', gramos: 40 }, { alimentoId: 'yogur_bebible', gramos: 20 }] }, 'cambiar_principal')).toEqual(['yogur_bebible'])
+    // Con sus propios datos, los suyos; sin datos ni familia, nada
+    fijarAfinidades([{ a: 'yogur', b: 'banana', n: 10, afinidad: 0.25 }, { a: 'yogur_bebible', b: 'banana', n: 10, afinidad: 0.1 }])
+    expect(afinidadConPlato('yogur_bebible', ['banana'])).toBe(0.1)
+    expect(afinidadConPlato('tofu', ['banana'])).toBe(0)
   })
 
   it('desde su licuado de banana con leche nunca sale el queso (el dambo, o el que esté entre los ricos: no va con la banana)', { timeout: 60_000 }, () => {
