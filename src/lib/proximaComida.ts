@@ -12,6 +12,8 @@ import preparaciones from '../../data/preparaciones.json'
 import { NOMBRE_CAMBIO } from './vocabulario'
 
 export type Principal = 'desayuno' | 'almuerzo' | 'cena'
+/** v5.3 · las comidas que el padre puede planificar en el inicio (la merienda también, aunque la secuencia la saltee). */
+export type ComidaPlan = Principal | 'merienda'
 
 export interface ProximaComida {
   momento: Principal
@@ -95,7 +97,7 @@ const MOMENTOS = new Map<string, readonly string[]>(
 const PREFERENCIA: Record<Sugerencia['tipo'], number> = { un_paso: 0, mas_nutritiva: 1, segura: 2 }
 
 /** ¿La preparación va en esa comida, según el catálogo? */
-export function encaja(momento: Principal, s: Pick<Sugerencia, 'preparacionId'>): boolean {
+export function encaja(momento: ComidaPlan, s: Pick<Sugerencia, 'preparacionId'>): boolean {
   return MOMENTOS.get(s.preparacionId)?.includes(momento) ?? false
 }
 
@@ -111,7 +113,7 @@ export function sugerenciasDe(p: Pick<Progreso, 'sugerencias' | 'proximoPaso'>):
 }
 
 /** La sugerencia para la próxima comida, o null si ninguna encaja con esa comida. */
-export function elegirSugerencia(p: Pick<Progreso, 'sugerencias' | 'proximoPaso' | 'momento'>, momento: Principal): Sugerencia | null {
+export function elegirSugerencia(p: Pick<Progreso, 'sugerencias' | 'proximoPaso' | 'momento'>, momento: ComidaPlan): Sugerencia | null {
   const filtradas = p.momento === momento
   const lista = sugerenciasDe(p).filter((s) => filtradas || encaja(momento, s))
   return lista.sort((a, b) => PREFERENCIA[a.tipo] - PREFERENCIA[b.tipo])[0] ?? null
@@ -136,11 +138,15 @@ export function lineaPorQue(texto: string): string {
   return `${i > 0 ? frase.slice(0, i) : frase}.`
 }
 
-/** La receta de la próxima comida: el candidato elegido, el nutriente que más falta y la comida. */
-export function rutaRecetaComida(ninoId: string, s: Sugerencia, momento: Principal, nutriente?: string): string {
+/**
+ * La receta de la próxima comida: el candidato elegido, el nutriente que más falta y la comida.
+ * v5.3 · `ver: 'plato'` abre la receta en la imagen del plato completo ("Ver cómo servirlo").
+ */
+export function rutaRecetaComida(ninoId: string, s: Sugerencia, momento: ComidaPlan, nutriente?: string, ver?: 'plato'): string {
   const p = new URLSearchParams({ nino: ninoId, preparacionId: s.candidato?.preparacionId ?? s.preparacionId })
   if (nutriente) p.set('nutriente', nutriente)
   p.set('momento', momento)
+  if (ver) p.set('ver', ver)
   return `/receta?${p.toString()}`
 }
 
