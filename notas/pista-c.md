@@ -41,6 +41,7 @@
 
 ## Para B
 
+0. **v5.1, la próxima comida (PLAN §9, "La pantalla principal"):** la pantalla pide `GET /api/progreso?…&momento=almuerzo` (la comida que sigue). Pedido: (a) con `momento`, ordenar las `sugerencias` para esa comida (que para la cena no salga un yogur bebible) y que `segura` saltee lo servido en la última comida de ese momento; (b) llenar `Sugerencia.grupo`. Mientras no esté, el front elige entre las tres según el grupo de `data/preparaciones.json`. La receta ya recibe `RecetaReq.momento` (A lo puede sumar al prompt).
 1. `server/aprendizaje/aprendi.ts:29,31,35`: el padre ve "aceptación 0,97 → 0,68 (lo apartó)". Mejor sin el número ("le está costando más que antes").
 2. `server/aprendizaje/textos.ts:86`: "lo rechaza" → "todavía no lo acepta" (C ya lo reescribe en pantalla, pero conviene en el origen). Concordancia: "Los cereales, panes y papas servido**s** separado**s** los acepta".
 3. `server/nutricion/alertas.ts`: no disparar `repertorio_baja` si no hay comidas en la ventana (l. 67); "en los 19 días registrados" cuenta días de calendario (l. 54); "Dejar grupos enteros…" se repite por grupo (l. 55).
