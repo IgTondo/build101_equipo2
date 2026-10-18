@@ -6,12 +6,14 @@ import type { EstadoNino } from '../aprendizaje/estado.js'
 import { esAtributo } from '../aprendizaje/condiciones.js'
 import type { ComidaDoc, NinoDoc } from '../datos/tipos.js'
 import { ATRIBUTOS_VOCABULARIO } from '../datos/validar.js'
+import type { ParAfinidad } from '../ia/afinidades.js'
 
 export const LABELS = ['Nino', 'Comida', 'Item', 'Preparacion', 'Ingrediente', 'Nutriente', 'Atributo', 'Contexto', 'Reaccion', 'Alergeno', 'Regla', 'Patron'] as const
 export type Label = (typeof LABELS)[number]
 export const TIPOS = [
   'COMIO', 'INCLUYE', 'ES', 'TIENE', 'CONTIENE', 'EN_CONTEXTO', 'RESULTADO', 'APORTA', 'TIENE_ALERGENO', 'FORTIFICADA_DE',
   'ALERGICO_A', 'SIGUE', 'CONDICION', 'OBJETIVO', 'ACEPTA', 'EN_PROCESO', 'RECHAZA', 'TIENE_PATRON',
+  'COMBINA', // v5.10 · Ingrediente → Ingrediente {afinidad, n}: qué combinan en recetas reales (data/afinidades.json)
 ] as const
 export type TipoArista = (typeof TIPOS)[number]
 /** Las aristas de conocimiento que se reemplazan enteras cada vez que se recalcula el silver. */
@@ -48,8 +50,12 @@ export const idPreparacion = (ninoId: string, prepId: string, catalogo: Readonly
 
 const condicionNodo = (tipo: string, valor: string): { label: Label; id: string } => ({ label: esAtributo(tipo) ? 'Atributo' : 'Contexto', id: `${tipo}:${valor}` })
 
-/** B5: Nutrientes, Ingredientes + APORTA {por100g}, Atributos, Preparaciones del catálogo + TIENE + CONTIENE. */
-export function proyectarCatalogo(preparaciones: readonly PreparacionCatalogo[], alimentos: readonly Alimento[]): Proyeccion {
+/**
+ * B5: Nutrientes, Ingredientes + APORTA {por100g}, Atributos, Preparaciones del catálogo + TIENE + CONTIENE.
+ * v5.10 · Con `afinidades`, también COMBINA {afinidad, n} entre los ingredientes: una arista por par (de a hacia b con
+ * a < b; se lee sin dirección) y solo entre alimentos del catálogo.
+ */
+export function proyectarCatalogo(preparaciones: readonly PreparacionCatalogo[], alimentos: readonly Alimento[], afinidades: readonly ParAfinidad[] = []): Proyeccion {
   const nodos: Nodo[] = []
   const aristas: Arista[] = []
   for (const n of NUTRIENTE) nodos.push({ label: 'Nutriente', id: n, props: { nombre: n, unidad: UNIDAD[n] }, ninoId: null })
@@ -69,6 +75,13 @@ export function proyectarCatalogo(preparaciones: readonly PreparacionCatalogo[],
     for (const al of a.alergenos ?? []) aristas.push({ tipo: 'TIENE_ALERGENO', desde: { label: 'Ingrediente', id: a.id }, hasta: { label: 'Alergeno', id: al }, props: {}, ninoId: null })
   }
   const conocidos = new Set(alimentos.map((a) => a.id))
+  const pares = new Set<string>()
+  for (const { a, b, n, afinidad } of afinidades) {
+    const [x, y] = a < b ? [a, b] : [b, a]
+    if (x === y || !conocidos.has(x) || !conocidos.has(y) || pares.has(`${x}|${y}`)) continue
+    pares.add(`${x}|${y}`)
+    aristas.push({ tipo: 'COMBINA', desde: { label: 'Ingrediente', id: x }, hasta: { label: 'Ingrediente', id: y }, props: { afinidad, n }, ninoId: null })
+  }
   for (const p of preparaciones) {
     nodos.push({ label: 'Preparacion', id: p.id, props: { nombre: p.nombre, catalogo: true }, ninoId: null })
     for (const [tipo, valor] of Object.entries(p.atributos)) {

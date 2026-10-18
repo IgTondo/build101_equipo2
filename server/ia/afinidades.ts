@@ -43,6 +43,11 @@ function indice(): Map<string, Map<string, Afin>> {
   return m
 }
 
+/** Todos los pares, tal como vienen: para proyectarlos al grafo como COMBINA (proyeccion.ts). */
+export function paresAfinidad(): readonly ParAfinidad[] {
+  return datos()
+}
+
 export function afinidad(a: string, b: string): number {
   return indice().get(a)?.get(b)?.afinidad ?? 0
 }

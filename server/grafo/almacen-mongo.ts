@@ -3,6 +3,7 @@
 import type { AnyBulkWriteOperation } from 'mongodb'
 import { preparacionesCatalogo } from '../datos/catalogos.js'
 import { type NodoDoc, type RelacionDoc, col, pingMongo } from '../datos/mongo.js'
+import { paresAfinidad } from '../ia/afinidades.js'
 import type { AlmacenGrafo, GrafoVista } from './almacen.js'
 import { armarVista } from './almacen-neo4j.js'
 import { type Proyeccion, TIPOS_ESTADO, proyectarCatalogo, proyectarComida, proyectarConocimiento, proyectarNino, unir } from './proyeccion.js'
@@ -56,7 +57,7 @@ export const almacenMongo: AlmacenGrafo = {
   },
 
   async sembrar(preparaciones, alimentos) {
-    await escribir(proyectarCatalogo(preparaciones, alimentos))
+    await escribir(proyectarCatalogo(preparaciones, alimentos, paresAfinidad())) // v5.10 · con COMBINA
   },
 
   async escribirNino(nino, objetivo, estado) {

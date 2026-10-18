@@ -2,6 +2,7 @@
 // pueden interpolar en el Cypher sin riesgo; los valores siempre van como parámetros.
 import type { ManagedTransaction } from 'neo4j-driver'
 import { preparacionesCatalogo } from '../datos/catalogos.js'
+import { paresAfinidad } from '../ia/afinidades.js'
 import type { AlmacenGrafo, GrafoVista } from './almacen.js'
 import { consultar, enTransaccion, pingNeo4j } from './cliente.js'
 import {
@@ -23,6 +24,7 @@ const GRUPOS: readonly (readonly [TipoArista, Label, Label])[] = [
   ['ES', 'Item', 'Preparacion'], ['CONTIENE', 'Item', 'Ingrediente'],
   ['ACEPTA', 'Nino', 'Preparacion'], ['EN_PROCESO', 'Nino', 'Preparacion'], ['RECHAZA', 'Nino', 'Preparacion'],
   ['TIENE_PATRON', 'Nino', 'Patron'], ['CONDICION', 'Patron', 'Atributo'], ['CONDICION', 'Patron', 'Contexto'],
+  ['COMBINA', 'Ingrediente', 'Ingrediente'], // v5.10
 ]
 
 /** El texto de la consulta de escritura es siempre el mismo (con las listas vacías que toquen): Neo4j la planifica una vez. */
@@ -96,7 +98,7 @@ export const almacenNeo4j: AlmacenGrafo = {
   },
 
   async sembrar(preparaciones, alimentos) {
-    await enTransaccion((tx) => escribir(proyectarCatalogo(preparaciones, alimentos), enTx(tx)))
+    await enTransaccion((tx) => escribir(proyectarCatalogo(preparaciones, alimentos, paresAfinidad()), enTx(tx))) // v5.10 · con COMBINA
   },
 
   async escribirNino(nino, objetivo, estado) {

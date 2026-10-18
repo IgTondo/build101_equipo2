@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest'
 import type { Atributos, PerfilBorrador } from '../../shared/contratos.js'
 import { calcularEstado } from '../aprendizaje/estado.js'
 import { catalogoPrueba, comidasSinteticas, sintetico } from '../datos/prueba/catalogos.js'
-import { idPreparacion, proyectarComida, proyectarConocimiento } from './proyeccion.js'
+import { paresAfinidad } from '../ia/afinidades.js'
+import { alimentos } from '../ia/catalogo.js'
+import { idPreparacion, proyectarCatalogo, proyectarComida, proyectarConocimiento } from './proyeccion.js'
 
 const catalogo = catalogoPrueba()
 const ids = new Set(catalogo.keys())
@@ -72,5 +74,27 @@ describe('proyectarComida', () => {
     // Lo del catálogo sigue apuntando al compartido
     const cat = proyectarComida(c, ids).aristas.find((a) => a.tipo === 'ES')
     expect(cat?.hasta.id).toBe(it0.preparacionId)
+  })
+})
+
+// v5.10
+describe('proyectarCatalogo: COMBINA entre ingredientes (data/afinidades.json)', () => {
+  const combina = (p: ReturnType<typeof proyectarCatalogo>) => p.aristas.filter((a) => a.tipo === 'COMBINA')
+
+  it('una arista por par, de a hacia b con a < b, solo entre alimentos del catálogo y sin un alimento consigo mismo', () => {
+    const p = proyectarCatalogo([], alimentos(), [
+      { a: 'zanahoria', b: 'papa', n: 700, afinidad: 0.3 },
+      { a: 'papa', b: 'zanahoria', n: 700, afinidad: 0.3 },
+      { a: 'papa', b: 'no_existe', n: 9, afinidad: 0.5 },
+      { a: 'papa', b: 'papa', n: 9, afinidad: 1 },
+    ])
+    expect(combina(p)).toEqual([
+      { tipo: 'COMBINA', desde: { label: 'Ingrediente', id: 'papa' }, hasta: { label: 'Ingrediente', id: 'zanahoria' }, props: { afinidad: 0.3, n: 700 }, ninoId: null },
+    ])
+  })
+
+  it('sin afinidades no hay COMBINA; con las reales, la mitad de los pares (vienen en las dos direcciones)', () => {
+    expect(combina(proyectarCatalogo([], alimentos()))).toEqual([])
+    expect(combina(proyectarCatalogo([], alimentos(), paresAfinidad()))).toHaveLength(paresAfinidad().length / 2)
   })
 })
