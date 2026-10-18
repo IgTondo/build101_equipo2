@@ -45,7 +45,8 @@ export function alertas(e: EntradaAlertas, cfg = CONFIG_ALERTAS): Alerta[] {
   if (e.diasRegistradosSemana >= cfg.minDiasVitaminaC && e.coberturaSemana.vitamina_c_mg < UMBRAL_SIN_VITAMINA_C) {
     r.push({ tipo: 'sin_vitamina_c', texto: 'Casi no está recibiendo vitamina C. Su falta prolongada puede traer problemas: conviene consultar.' })
   }
-  if (e.diasDeHistorial >= cfg.diasSinGrupo && e.diasRegistrados > 0) {
+  // Sin comidas registradas en la semana no se sabe si dejó un grupo: puede que no se haya registrado nada
+  if (e.diasDeHistorial >= cfg.diasSinGrupo && e.conductasSemana.length > 0) {
     const dias = (g: Grupo) => e.grupos.find((x) => x.grupo === g)?.diasSinComer ?? null
     const ausente = (gs: Grupo[], que: string): string | null => {
       const ds = gs.map(dias)

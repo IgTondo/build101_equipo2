@@ -77,9 +77,12 @@ describe('señales de alerta (§10.4)', () => {
     expect(alertas({ ...sinSeñales, grupos, diasRegistrados: 1 })[0]?.texto).toContain('En el día registrado no comió lácteos.')
   })
 
-  it('grupo ausente: sin ninguna comida registrada no dice nada', () => {
+  it('grupo ausente: sin comidas registradas en la semana no dice nada (no se sabe si los dejó)', () => {
     const nunca: EntradaAlertas['grupos'] = sinSeñales.grupos.map((g) => ({ ...g, diasSinComer: null }))
-    expect(tipos({ grupos: nunca, diasRegistrados: 0 })).toEqual([])
+    expect(tipos({ grupos: nunca, diasRegistrados: 0, conductasSemana: [] })).toEqual([])
+    const hace27: EntradaAlertas['grupos'] = sinSeñales.grupos.map((g) => ({ ...g, diasSinComer: 27 }))
+    expect(tipos({ grupos: hace27, conductasSemana: [] })).toEqual([])
+    expect(tipos({ grupos: hace27 })).toEqual(['grupo_ausente'])
   })
 
   it('sin vitamina C: cobertura semanal < 30%, con al menos 3 días registrados', () => {
