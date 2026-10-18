@@ -1,11 +1,19 @@
 // Pantalla Registrar (C2 + C5 + estados de C9): foto → chequeo de movida → análisis → ítems editables →
 // "¿cómo le fue?" (voz o botones) → guardar → resultado. Una sola pantalla con una máquina de pasos.
 // Nada se guarda sin que el padre confirme (§9).
-import { useEffect, useRef, useState } from 'react'
+// La protagonista es la foto del plato: antes de sacarla, su marco (teñido con el color de la comida elegida) es el
+// botón de la cámara; mientras se analiza, una banda de luz la recorre; después, las cajas aparecen sobre ella.
+import { cn } from 'cn'
+import { Camera, Focus, ImageOff, Images, RotateCcw } from 'lucide-react'
+import { motion, useReducedMotion } from 'motion/react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MOMENTO, type Momento, type RegistrarComidaReq, type RegistrarComidaRes } from '../../../shared/contratos'
-import { Cargando, ErrorConReintento } from '../../componentes/Estados'
+import { Bocaditos, Cargando, ErrorConReintento } from '../../componentes/Estados'
+import { PlatoVacio } from '../../componentes/Ilustraciones'
+import { Button } from '../../componentes/ui/button'
 import { api, type ErrorDeApi } from '../../lib/api'
+import { VISUAL_MOMENTO } from '../../lib/colores'
 import { diaUruguay, useNinoActivo } from '../../lib/nino'
 import { guardarUltimaComida } from '../../lib/proximaComida'
 import { aErrorDeApi } from '../../lib/useApi'
@@ -18,8 +26,8 @@ import {
   marcarCuanto, marcarMotivo, momentoDeUrl, momentoPorHora, preguntasVivas, puedeGuardar, type Borrador, type ItemEdit,
 } from './modelo'
 import { NotaDeVoz } from './NotaDeVoz'
+import { Aviso, MarcoFoto, RESORTE, TituloPaso } from './Piezas'
 import { Resultado } from './Resultado'
-import './registrar.css'
 
 type Paso =
   | { tipo: 'foto' }
@@ -32,12 +40,98 @@ type Paso =
   | { tipo: 'como' }
   | { tipo: 'resultado'; res: RegistrarComidaRes; req: RegistrarComidaReq }
 
-function IconoCamara() {
+/** Cada paso entra con un fundido corto (sin deslizarse): es un cambio de pantalla, no secciones que llegan. */
+const PASO = 'flex flex-col gap-5 animate-in fade-in-0 duration-300 motion-reduce:animate-none'
+
+/** Las comidas del día como una fila: la elegida lleva una pastilla con su color que se desliza de una a otra. */
+function ElegirMomento({ momento, alElegir }: { momento: Momento; alElegir: (m: Momento) => void }) {
   return (
-    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
-      <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.3-2h5.2l1.3 2h1.6A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-      <circle cx="12" cy="12.5" r="3.5" fill="none" stroke="currentColor" strokeWidth="2" />
-    </svg>
+    <fieldset className="flex min-w-0 flex-col">
+      <legend className="mb-2.5 font-titulo text-lg font-extrabold">¿Qué comida es?</legend>
+      <div className="grid grid-cols-5 gap-0.5 rounded-[1.5rem] bg-muted p-1">
+        {MOMENTO.map((m) => {
+          const visual = VISUAL_MOMENTO[m]
+          const Icono = visual.icono
+          const activo = momento === m
+          return (
+            <label
+              key={m}
+              className="relative flex min-h-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-[1.25rem] text-center select-none has-focus-visible:outline-3 has-focus-visible:outline-verde"
+            >
+              <input type="radio" className="sr-only" name="rg-momento" value={m} checked={activo} onChange={() => alElegir(m)} />
+              {activo && (
+                <motion.span
+                  layoutId="rg-momento"
+                  className="absolute inset-0 rounded-[1.25rem] border"
+                  style={{ background: visual.claro, borderColor: visual.color }}
+                  transition={RESORTE}
+                />
+              )}
+              <Icono className="relative size-5" style={{ color: visual.color }} strokeWidth={2.25} aria-hidden="true" />
+              {/* Sin negrita en la elegida: "Almuerzo" en negrita no entra a 360 px (la pastilla ya la marca). */}
+              <span className={cn('relative text-xs', activo ? 'text-pino' : 'text-musgo')}>{NOMBRE_MOMENTO[m]}</span>
+            </label>
+          )
+        })}
+      </div>
+    </fieldset>
+  )
+}
+
+/**
+ * El lugar de la foto antes de sacarla: un plato blanco sobre el color de la comida elegida, con el mordisco de la
+ * marca. Con onClick es el botón de la cámara; sin él, muestra lo de adentro (preparando la foto).
+ */
+function MarcoCamara({ momento, onClick, children }: { momento: Momento; onClick?: () => void; children: ReactNode }) {
+  const fondo = (
+    <span aria-hidden="true" className="absolute inset-0 drop-shadow-[0_14px_18px_rgb(35_97_64/0.2)]">
+      <span
+        className="absolute inset-0 rounded-3xl transition-[background-color] duration-500 mordisco [--mordisco:34px]"
+        style={{ background: VISUAL_MOMENTO[momento].claro }}
+      />
+    </span>
+  )
+  const clase = 'relative flex aspect-[4/3] w-full flex-col items-center justify-center gap-4 rounded-3xl'
+  if (!onClick) return <div className={clase}>{fondo}{children}</div>
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(clase, 'group cursor-pointer transition-[scale] duration-150 ease-salida active:scale-[0.98] motion-reduce:active:scale-100')}
+    >
+      {fondo}
+      {children}
+    </button>
+  )
+}
+
+/** El plato blanco con la cámara en el medio. */
+function PlatoConCamara() {
+  return (
+    <span aria-hidden="true" className="relative grid size-36 place-items-center rounded-full bg-background ring-1 ring-black/5">
+      <span className="absolute inset-3 rounded-full border-2 border-muted" />
+      <span className="relative grid size-16 place-items-center rounded-full bg-primary text-primary-foreground transition-colors duration-150 group-hover:bg-verde-noche">
+        <Camera className="size-7" strokeWidth={2.25} />
+      </span>
+    </span>
+  )
+}
+
+/** Mientras se analiza: una banda de luz recorre la foto, despacio. Con movimiento reducido, la foto queda quieta. */
+function BandaDeLuz() {
+  const reducir = useReducedMotion()
+  return (
+    <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden bg-background/15">
+      {!reducir && (
+        <motion.span
+          className="absolute inset-x-0 top-0 h-2/5"
+          style={{ background: 'linear-gradient(to bottom, rgb(255 255 255 / 0), rgb(255 255 255 / 0.55) 50%, rgb(255 255 255 / 0))' }}
+          initial={{ y: '-100%' }}
+          animate={{ y: '250%' }}
+          transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 0.2, ease: 'easeInOut' }}
+        />
+      )}
+    </span>
   )
 }
 
@@ -111,6 +205,7 @@ export function Registrar() {
   }
 
   const sacarOtra = () => camara.current?.click()
+  const elegirDeGaleria = () => galeria.current?.click()
 
   const cambiarItem = (idTmp: string, cambio: Partial<ItemEdit>) =>
     setBorrador((b) => b && { ...b, items: b.items.map((i) => (i.idTmp === idTmp ? { ...i, ...cambio } : i)) })
@@ -143,104 +238,130 @@ export function Registrar() {
     setPaso({ tipo: 'foto' })
   }
 
+  const botonSacarOtra = (texto: string, variante: 'default' | 'outline' = 'default') => (
+    <Button size="lg" variant={variante} className="w-full" onClick={sacarOtra}>
+      <Camera aria-hidden="true" /> {texto}
+    </Button>
+  )
+  const botonGaleria = (
+    <Button size="lg" variant="outline" className="w-full" onClick={elegirDeGaleria}>
+      <Images aria-hidden="true" /> Elegir de la galería
+    </Button>
+  )
+
   return (
-    <div className="rg" ref={raiz}>
+    <div className="flex flex-col text-pretty" ref={raiz}>
       {/* Siempre montados, para que "Sacar otra" abra la cámara desde cualquier paso. */}
       <input
-        ref={camara} type="file" accept="image/*" capture="environment" className="rg-oculto"
+        ref={camara} type="file" accept="image/*" capture="environment" className="sr-only"
         tabIndex={-1} aria-hidden="true" onChange={(e) => void alElegirArchivo(e.currentTarget)}
       />
       <input
-        ref={galeria} type="file" accept="image/*" className="rg-oculto"
+        ref={galeria} type="file" accept="image/*" className="sr-only"
         tabIndex={-1} aria-hidden="true" onChange={(e) => void alElegirArchivo(e.currentTarget)}
       />
 
       {paso.tipo === 'foto' && (
-        <section className="rg-paso" aria-labelledby="rg-t-foto">
-          <h1 id="rg-t-foto" tabIndex={-1} data-foco>Registrar una comida</h1>
-          <fieldset className="rg-grupo">
-            <legend className="rg-leyenda">¿Qué comida es?</legend>
-            <div className="rg-chips">
-              {MOMENTO.map((m) => (
-                <label key={m} className="rg-chip rg-chip-check">
-                  <input type="radio" name="rg-momento" value={m} checked={momento === m} onChange={() => setMomento(m)} />
-                  <span>{NOMBRE_MOMENTO[m]}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-          <button type="button" className="nb-boton rg-boton-grande" onClick={sacarOtra}>
-            <IconoCamara /> Sacar foto del plato
-          </button>
-          <button type="button" className="nb-boton nb-boton-secundario" onClick={() => galeria.current?.click()}>
-            Elegir de la galería
-          </button>
-          <p className="rg-pista">Desde arriba, con el plato entero.</p>
-          {errorFoto && <div className="nb-tarjeta nb-aviso" role="alert"><p>{errorFoto}</p></div>}
+        <section className={PASO} aria-labelledby="rg-t-foto">
+          <TituloPaso id="rg-t-foto">Registrar una comida</TituloPaso>
+          {errorFoto && (
+            <Aviso icono={ImageOff}><p>{errorFoto}</p></Aviso>
+          )}
+          <ElegirMomento momento={momento} alElegir={setMomento} />
+          <div className="flex flex-col gap-3">
+            <MarcoCamara momento={momento} onClick={sacarOtra}>
+              <PlatoConCamara />
+              <span className="relative font-titulo text-xl font-extrabold text-pino">Sacar foto del plato</span>
+            </MarcoCamara>
+            {botonGaleria}
+            <p className="px-1 text-sm text-musgo">Desde arriba, con el plato entero.</p>
+          </div>
         </section>
       )}
 
       {paso.tipo === 'procesando' && (
-        <section className="rg-paso" aria-labelledby="rg-t-proc">
-          <h1 id="rg-t-proc" tabIndex={-1} data-foco>Registrar una comida</h1>
-          <Cargando texto="Preparando la foto…" />
+        <section className={PASO} aria-labelledby="rg-t-proc">
+          <TituloPaso id="rg-t-proc">Registrar una comida</TituloPaso>
+          <MarcoCamara momento={momento}>
+            <span aria-hidden="true" className="relative grid size-36 place-items-center rounded-full bg-background ring-1 ring-black/5">
+              <Bocaditos />
+            </span>
+            <Cargando texto="Preparando la foto…" className="relative" />
+          </MarcoCamara>
         </section>
       )}
 
       {paso.tipo === 'movida' && foto && (
-        <section className="rg-paso" aria-labelledby="rg-t-movida">
-          <h1 id="rg-t-movida" tabIndex={-1} data-foco>La foto salió movida</h1>
-          <img className="rg-previa" src={foto.dataUrl} alt="La foto que sacaste" />
-          <p>Con una más nítida la reconocemos mejor.</p>
-          <button type="button" className="nb-boton" onClick={sacarOtra}>Sacar otra</button>
-          <button type="button" className="nb-boton nb-boton-secundario" onClick={() => void analizar(foto)}>Usar igual</button>
+        <section className={PASO} aria-labelledby="rg-t-movida">
+          <TituloPaso id="rg-t-movida">La foto salió movida</TituloPaso>
+          <MarcoFoto src={foto.dataUrl} alt="La foto que sacaste" chica />
+          <Aviso icono={Focus} rol="status">
+            <p>Con una más nítida la reconocemos mejor.</p>
+          </Aviso>
+          <div className="flex flex-col gap-3">
+            {botonSacarOtra('Sacar otra')}
+            <Button size="lg" variant="outline" className="w-full" onClick={() => void analizar(foto)}>Usar igual</Button>
+          </div>
         </section>
       )}
 
       {paso.tipo === 'analizando' && foto && (
-        <section className="rg-paso" aria-labelledby="rg-t-anal">
-          <h1 id="rg-t-anal" tabIndex={-1} data-foco>Mirando el plato</h1>
-          <img className="rg-previa rg-previa-esperando" src={foto.dataUrl} alt="" />
-          <Cargando texto="Analizando la comida…" />
+        <section className={PASO} aria-labelledby="rg-t-anal">
+          <TituloPaso id="rg-t-anal">Mirando el plato</TituloPaso>
+          <MarcoFoto src={foto.dataUrl} alt="">
+            <BandaDeLuz />
+          </MarcoFoto>
+          <Cargando texto="Analizando la comida…" className="justify-center" />
         </section>
       )}
 
       {paso.tipo === 'error_analisis' && foto && (
-        <section className="rg-paso" aria-labelledby="rg-t-err">
-          <h1 id="rg-t-err" tabIndex={-1} data-foco>No pudimos analizar la foto</h1>
+        <section className={PASO} aria-labelledby="rg-t-err">
+          <TituloPaso id="rg-t-err">No pudimos analizar la foto</TituloPaso>
+          <MarcoFoto src={foto.dataUrl} alt="La foto que sacaste" chica />
           <ErrorConReintento error={paso.error} reintentar={() => void analizar(foto)} />
-          <button type="button" className="nb-boton nb-boton-secundario" onClick={sacarOtra}>Sacar otra foto</button>
+          {botonSacarOtra('Sacar otra foto', 'outline')}
         </section>
       )}
 
       {paso.tipo === 'sin_comida' && (
-        <section className="rg-paso" aria-labelledby="rg-t-sin">
-          <div className="nb-tarjeta nb-vacio">
-            <h1 id="rg-t-sin" tabIndex={-1} data-foco>No encontramos comida en la foto</h1>
-            <p className="nb-suave">¿Probás con otra, desde arriba y con luz?</p>
+        <section className={PASO} aria-labelledby="rg-t-sin">
+          <div className="flex flex-col items-center gap-3 rounded-3xl bg-muted px-6 py-7 text-center">
+            <PlatoVacio className="size-24" />
+            <TituloPaso id="rg-t-sin" className="text-2xl">No encontramos comida en la foto</TituloPaso>
+            <p className="text-musgo">¿Probás con otra, desde arriba y con luz?</p>
           </div>
-          {foto && <img className="rg-previa" src={foto.dataUrl} alt="La foto que sacaste" />}
-          <button type="button" className="nb-boton" onClick={sacarOtra}>Sacar otra foto</button>
-          <button type="button" className="nb-boton nb-boton-secundario" onClick={() => galeria.current?.click()}>Elegir de la galería</button>
+          {foto && <MarcoFoto src={foto.dataUrl} alt="La foto que sacaste" chica />}
+          <div className="flex flex-col gap-3">
+            {botonSacarOtra('Sacar otra foto')}
+            {botonGaleria}
+          </div>
         </section>
       )}
 
       {paso.tipo === 'items' && borrador && foto && (
-        <section className="rg-paso" aria-labelledby="rg-t-items">
-          <h1 id="rg-t-items" tabIndex={-1} data-foco>¿Esto le serviste?</h1>
+        <section className={PASO} aria-labelledby="rg-t-items">
+          <TituloPaso id="rg-t-items">¿Esto le serviste?</TituloPaso>
           <FotoConCajas src={foto.dataUrl} items={borrador.items} original={borrador.analisis.items} />
           <ListaItems items={borrador.items} original={borrador.analisis.items} alCambiar={cambiarItem} />
           {itemsVivos(borrador).length === 0 ? (
-            <div className="nb-tarjeta nb-aviso" role="status">
+            <Aviso
+              icono={RotateCcw}
+              rol="status"
+              acciones={<Button variant="outline" className="bg-background" onClick={sacarOtra}><Camera aria-hidden="true" /> Sacar otra foto</Button>}
+            >
               <p>Sacaste todos los alimentos. Podés deshacer, o sacar otra foto.</p>
-              <button type="button" className="nb-boton nb-boton-secundario" onClick={sacarOtra}>Sacar otra foto</button>
-            </div>
+            </Aviso>
           ) : (
-            <button type="button" className="nb-boton rg-boton-grande" onClick={() => setPaso({ tipo: 'como' })}>
-              Seguir: ¿cómo le fue?
-            </button>
+            <div className="flex flex-col gap-2">
+              <Button size="lg" className="w-full" onClick={() => setPaso({ tipo: 'como' })}>
+                Seguir: ¿cómo le fue?
+              </Button>
+              <Button variant="ghost" className="self-center text-primary" onClick={sacarOtra}>
+                <Camera aria-hidden="true" /> Sacar otra foto
+              </Button>
+            </div>
           )}
-          <button type="button" className="rg-boton-texto" onClick={sacarOtra}>Sacar otra foto</button>
         </section>
       )}
 
@@ -256,7 +377,11 @@ export function Registrar() {
         />
       )}
 
-      {paso.tipo === 'resultado' && <Resultado ninoId={ninoId} res={paso.res} req={paso.req} alOtra={otra} />}
+      {paso.tipo === 'resultado' && (
+        <div className={PASO}>
+          <Resultado ninoId={ninoId} res={paso.res} req={paso.req} foto={foto?.dataUrl} alOtra={otra} />
+        </div>
+      )}
     </div>
   )
 }
@@ -274,11 +399,11 @@ function PasoComo({ ninoId, borrador, setBorrador, guardando, errorGuardar, alGu
   const faltan = faltanMarcar(borrador)
   const listo = puedeGuardar(borrador)
   const preguntas = preguntasVivas(borrador)
-  const numero = new Map(borrador.items.map((i, k) => [i.idTmp, k + 1]))
+  const grupo = new Map(borrador.analisis.items.map((i) => [i.idTmp, i.atributos.grupo]))
 
   return (
-    <section className="rg-paso" aria-labelledby="rg-t-como">
-      <h1 id="rg-t-como" tabIndex={-1} data-foco>¿Cómo le fue?</h1>
+    <section className={PASO} aria-labelledby="rg-t-como">
+      <TituloPaso id="rg-t-como">¿Cómo le fue?</TituloPaso>
 
       <NotaDeVoz
         ninoId={ninoId}
@@ -287,19 +412,20 @@ function PasoComo({ ninoId, borrador, setBorrador, guardando, errorGuardar, alGu
         alRelato={(relato, fuente) => actualizar((b) => aplicarRelato(b, relato, fuente))}
       />
 
-      <h2 className="rg-subtitulo">Con cada alimento</h2>
-      {itemsVivos(borrador).map((it) => (
-        <div key={it.idTmp} className="nb-tarjeta">
+      <div className="flex flex-col gap-3">
+        <h2 className="pt-1 text-xl">Con cada alimento</h2>
+        {itemsVivos(borrador).map((it) => (
           <EscaleraItem
+            key={it.idTmp}
             item={it}
-            n={numero.get(it.idTmp) ?? 0}
+            grupo={grupo.get(it.idTmp)}
             respuesta={borrador.respuestas[it.idTmp]}
             sinMencion={borrador.sinMencion.includes(it.idTmp)}
             alCuanto={(c) => actualizar((b) => marcarCuanto(b, it.idTmp, c))}
             alMotivo={(m) => actualizar((b) => marcarMotivo(b, it.idTmp, m))}
           />
-        </div>
-      ))}
+        ))}
+      </div>
 
       <ChipsConducta
         marcadas={borrador.conducta}
@@ -308,8 +434,10 @@ function PasoComo({ ninoId, borrador, setBorrador, guardando, errorGuardar, alGu
       />
 
       {preguntas.length > 0 && (
-        <section className="nb-tarjeta rg-preguntas" aria-labelledby="rg-t-preg">
-          <h2 id="rg-t-preg">Unas preguntas <span className="rg-opcional">(opcionales)</span></h2>
+        <section className="flex flex-col gap-5 rounded-2xl border bg-card p-4" aria-labelledby="rg-t-preg">
+          <h2 id="rg-t-preg" className="text-xl">
+            Unas preguntas <span className="font-sans text-sm font-normal text-musgo">(opcionales)</span>
+          </h2>
           {preguntas.map((p) => (
             <PreguntaIA
               key={p.id}
@@ -322,27 +450,29 @@ function PasoComo({ ninoId, borrador, setBorrador, guardando, errorGuardar, alGu
         </section>
       )}
 
-      <div className="rg-guardar">
+      <div className="flex flex-col gap-3 pt-1">
         {errorGuardar && <ErrorConReintento error={errorGuardar} reintentar={alGuardar} />}
         {guardando ? (
-          <Cargando texto="Guardando…" />
+          <div className="grid min-h-14 place-items-center">
+            <Cargando texto="Guardando…" />
+          </div>
         ) : (
-          <button
-            type="button"
-            className="nb-boton rg-boton-grande"
+          <Button
+            size="lg"
+            className="w-full"
             disabled={!listo}
             aria-describedby={listo ? undefined : 'rg-falta'}
             onClick={alGuardar}
           >
             Guardar
-          </button>
+          </Button>
         )}
         {!listo && faltan.length > 0 && (
-          <p id="rg-falta" className="rg-pista">
+          <p id="rg-falta" className="px-1 text-sm text-musgo">
             Para guardar, marcá cómo le fue con: {faltan.map((i) => i.preparacion).join(', ')}.
           </p>
         )}
-        <button type="button" className="rg-boton-texto" onClick={alVolver}>Volver a los alimentos</button>
+        <Button variant="ghost" className="self-center text-primary" onClick={alVolver}>Volver a los alimentos</Button>
       </div>
     </section>
   )

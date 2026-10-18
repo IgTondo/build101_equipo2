@@ -2,22 +2,27 @@
 // la cobertura semanal, el próximo paso, la evolución,
 // repertorio + grupos + exposiciones y las últimas comidas (lo que aprendimos va, simple, en el Perfil). C9: cargando, error y vacío.
 // Si los últimos 7 días no tienen comidas pero hay historial, se muestra la última semana con registros (`hasta`).
+// Arriba va la respuesta (la respuesta corta como titular y, al lado, el plato de nutrientes); la protagonista es el
+// próximo paso. La grilla de "Lo que come" lee además el perfil (solo para mostrar; si falla, queda el número de aceptadas).
+import { CalendarClock, Camera, FileText } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Progreso } from '../../../shared/contratos'
 import { AvisoConsulta } from '../../componentes/AvisoConsulta'
 import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
+import { Button } from '../../componentes/ui/button'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { diaUruguay, useNinoActivo } from '../../lib/nino'
-import { aErrorDeApi } from '../../lib/useApi'
+import { aErrorDeApi, useApi } from '../../lib/useApi'
 import { UltimasComidas } from './UltimasComidas'
 import { Cobertura } from './Cobertura'
 import { Evolucion } from './Evolucion'
 import { ProximoPaso } from './ProximoPaso'
 import { Repertorio } from './Repertorio'
+import { Respuesta } from './Respuesta'
 import { fechaCorta, gruposDesdeHoy, hayComidas, respuestaSemana, ultimoDia, ultimoDiaConComidas } from './calculos'
-import './tablero.css'
+import { loQueCome } from './visual'
 
 const DIAS = 7 // la cobertura es semanal; las 4 semanas de la evolución vienen aparte en `semanas`
 
@@ -60,47 +65,68 @@ function useProgreso(ninoId: string) {
 export function Tablero() {
   const ninoId = useNinoActivo()
   const { datos, hasta, error, cargando, reintentar } = useProgreso(ninoId)
+  const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
   const conNino = `?nino=${encodeURIComponent(ninoId)}`
+
+  const titulo = <h1 className="text-lg font-extrabold text-musgo">¿Está comiendo bien?</h1>
 
   if (!datos) {
     if (error?.codigo === 'no_encontrado') return <PerfilNoEncontrado />
     return (
-      <>
-        <h1 className="tb-titulo">¿Está comiendo bien?</h1>
-        {error ? <ErrorConReintento error={error} reintentar={reintentar} /> : <Cargando texto="Juntando lo que comió esta semana…" />}
-      </>
+      <div className="flex flex-col gap-4">
+        {titulo}
+        {error ? <ErrorConReintento error={error} reintentar={reintentar} /> : <Cargando texto="Juntando lo que comió esta semana…" className="py-2" />}
+      </div>
     )
   }
 
   if (!hayComidas(datos.dias)) {
     return (
-      <>
-        <h1 className="tb-titulo">¿Está comiendo bien?</h1>
+      <div className="flex flex-col gap-4">
+        {titulo}
         <Vacio titulo="Todavía no hay comidas registradas">
-          <Link className="nb-boton" to={`/registrar${conNino}`}>Registrar la primera comida</Link>
+          <Button asChild size="lg" className="mt-1">
+            <Link to={`/registrar${conNino}`}>
+              <Camera aria-hidden="true" />
+              Registrar la primera comida
+            </Link>
+          </Button>
         </Vacio>
-      </>
+      </div>
     )
   }
 
   const p = datos
   const nutrienteQueFalta = p.semana.faltan[0]
+  const lista = perfil.tipo === 'ok' ? loQueCome(perfil.datos.preparaciones) : perfil.tipo === 'error' ? null : undefined
 
   return (
-    <div className="tb-tablero">
-      <header className="tb-hero">
-        <h1 className="tb-titulo">¿Está comiendo bien?</h1>
-        {/* La frase de §1 cuenta "cubrió 4 de 8" con la regla del 70%; acá va la respuesta corta, coherente con los estados. */}
-        <p className="tb-frase">{respuestaSemana(p.semana.faltan)}</p>
+    <div className="flex flex-col gap-10">
+      <header className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          {titulo}
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+            {/* La frase de §1 cuenta "cubrió 4 de 8" con la regla del 70%; acá va la respuesta corta, coherente con los estados. */}
+            <p className="font-titulo text-2xl leading-tight font-extrabold text-pino text-balance">{respuestaSemana(p.semana.faltan)}</p>
+            <Respuesta semana={p.semana} />
+          </div>
+        </div>
         {hasta && (
-          <p className="tb-aviso-semana" role="status">
-            Sin comidas en los últimos 7 días: es la semana hasta el <span className="nb-numero">{fechaCorta(hasta)}</span>.
+          <p className="flex items-start gap-2.5 rounded-xl bg-muted px-3.5 py-3 text-sm text-musgo text-pretty" role="status">
+            <CalendarClock className="mt-0.5 size-4 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+            <span>
+              Sin comidas en los últimos 7 días: es la semana hasta el <span className="tabular-nums">{fechaCorta(hasta)}</span>.
+            </span>
           </p>
         )}
       </header>
 
-      {error && <ErrorConReintento error={error} reintentar={reintentar} />}
-      <AvisoConsulta alertas={p.alertas} />
+      {(error || p.alertas.length > 0) && (
+        <div className="-mt-4 flex flex-col gap-3">
+          {error && <ErrorConReintento error={error} reintentar={reintentar} />}
+          <AvisoConsulta alertas={p.alertas} />
+        </div>
+      )}
 
       <Cobertura semana={p.semana} dia={ultimoDia(p.dias)} />
 
@@ -120,13 +146,24 @@ export function Tablero() {
         repertorioTendencia={p.repertorioTendencia}
         grupos={p.grupos}
         exposiciones={p.exposiciones}
+        loQueCome={lista}
       />
 
       <UltimasComidas dias={p.dias} />
 
-      <nav className="tb-acciones" aria-label="Seguir">
-        <Link className="nb-boton" to={`/registrar${conNino}`}>Registrar una comida</Link>
-        <Link className="nb-boton nb-boton-secundario" to={`/resumen${conNino}`}>Resumen para el nutricionista</Link>
+      <nav className="flex flex-col gap-3" aria-label="Seguir">
+        <Button asChild size="lg">
+          <Link to={`/registrar${conNino}`}>
+            <Camera aria-hidden="true" />
+            Registrar una comida
+          </Link>
+        </Button>
+        <Button asChild size="lg" variant="secondary">
+          <Link to={`/resumen${conNino}`}>
+            <FileText aria-hidden="true" />
+            Resumen para el nutricionista
+          </Link>
+        </Button>
       </nav>
     </div>
   )

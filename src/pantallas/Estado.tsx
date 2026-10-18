@@ -1,3 +1,4 @@
+import { CircleAlert, CircleCheck, FlaskConical, LoaderCircle, type LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ENDPOINTS, ErrorDeApi, pedirConMeta } from '../lib/api'
 import { diaUruguay, useNino } from '../lib/nino'
@@ -31,26 +32,48 @@ export function Estado() {
     return () => control.abort()
   }, [ninoId])
 
+  const pistas = [...new Set(ENDPOINTS.map((e) => e.pista))]
+
   return (
-    <section className="nb-tarjeta">
-      <h1>Estado de la API</h1>
-      <p className="nb-suave">Los GET se prueban con el perfil activo.</p>
-      <table className="nb-tabla">
-        <thead><tr><th>Endpoint</th><th>Pista</th><th>Estado</th><th className="nb-numero">ms</th></tr></thead>
-        <tbody>
-          {ENDPOINTS.map((e) => {
-            const r = res[e.nombre]
-            return (
-              <tr key={e.nombre}>
-                <td><code>{e.metodo} {e.nombre}</code></td>
-                <td>{e.pista}</td>
-                <td>{r ? (r.estado === 'error' ? `error ${r.status} ${r.detalle ?? ''}` : r.estado) : '…'}</td>
-                <td className="nb-numero">{r?.ms ?? ''}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+    <section className="flex flex-col gap-6">
+      <header className="flex flex-col gap-1">
+        <h1 className="text-3xl">Estado de la API</h1>
+        <p className="text-musgo">Los GET se prueban con el perfil activo.</p>
+      </header>
+      {pistas.map((pista) => (
+        <div key={pista} className="flex flex-col gap-2">
+          <h2 className="text-base text-musgo">Pista {pista}</h2>
+          <ul className="flex flex-col divide-y rounded-2xl border bg-card">
+            {ENDPOINTS.filter((e) => e.pista === pista).map((e) => (
+              <Fila key={e.nombre} metodo={e.metodo} nombre={e.nombre} r={res[e.nombre]} />
+            ))}
+          </ul>
+        </div>
+      ))}
     </section>
+  )
+}
+
+// Cada estado con su ícono y su texto: el color acompaña, nunca dice solo.
+const VISTA: Record<Resultado['estado'] | 'probando', { Icono: LucideIcon; clase: string }> = {
+  real: { Icono: CircleCheck, clase: 'text-verde-hondo' },
+  stub: { Icono: FlaskConical, clase: 'text-musgo' },
+  error: { Icono: CircleAlert, clase: 'text-pino' },
+  probando: { Icono: LoaderCircle, clase: 'text-musgo animate-spin motion-reduce:animate-none' },
+}
+
+function Fila({ metodo, nombre, r }: { metodo: string; nombre: string; r?: Resultado }) {
+  const { Icono, clase } = VISTA[r?.estado ?? 'probando']
+  return (
+    <li className={`flex min-h-14 items-center gap-3 px-4 py-2.5 ${r?.estado === 'error' ? 'bg-zapallo-claro first:rounded-t-2xl last:rounded-b-2xl' : ''}`}>
+      <Icono className={`size-5 shrink-0 ${clase}`} strokeWidth={2.25} aria-hidden="true" />
+      <code className="min-w-0 flex-1 font-sans text-sm break-words">
+        <span className="text-musgo">{metodo}</span> <span className="font-bold text-pino">{nombre}</span>
+      </code>
+      <span className="max-w-[40%] text-right text-sm break-words">
+        {r ? (r.estado === 'error' ? `error ${r.status} ${r.detalle ?? ''}` : r.estado) : '…'}
+      </span>
+      <span className="min-w-14 shrink-0 text-right text-sm whitespace-nowrap text-musgo tabular-nums">{r ? `${r.ms} ms` : ''}</span>
+    </li>
   )
 }

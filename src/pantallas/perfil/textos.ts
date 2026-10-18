@@ -27,18 +27,25 @@ export const ALERGENO_CON_ARTICULO: Record<Alergeno, string> = {
 }
 export const alergico = (sexo: DatosBasicos['sexo'] | '') => (sexo === 'femenino' ? 'alérgica' : 'alérgico')
 
-/** La guía del alta por voz (§5.2): lo vital, en cualquier orden. */
-export const GUIA_ALTA = [
-  'Nombre, edad y sexo',
-  'Peso y talla, si los sabés',
-  'Alergias',
-  'Dieta especial y suplementos',
-  'Si tiene arcadas, vómitos o se atraganta',
-  'Lo que come seguro: la marca y cómo se lo servís (crocante o blando, frito o al horno, en bastones, frío…)',
-  'Lo que no come y por qué: la textura, el olor, que esté mezclado…',
-  'Sus reglas: “que no se toquen”, “nada verde”, “en su plato de siempre”',
-  'Lo que indicó su nutricionista (opcional)',
-]
+/**
+ * La guía del alta por voz (§5.2): lo vital, en cualquier orden. Sobre el chico, recordatorios cortos; sobre la comida
+ * (lo que más le sirve a Nibble), cada tema con un ejemplo de qué contar.
+ */
+export const GUIA_ALTA = {
+  chico: [
+    'Nombre, edad y sexo',
+    'Peso y talla, si los sabés',
+    'Alergias',
+    'Dieta especial y suplementos',
+    'Si tiene arcadas, vómitos o se atraganta',
+    'Lo que indicó su nutricionista (opcional)',
+  ],
+  comida: {
+    acepta: { tema: 'Lo que come seguro', ejemplo: 'La marca y cómo se lo servís: crocante o blando, frito o al horno, en bastones, frío…' },
+    rechaza: { tema: 'Lo que no come y por qué', ejemplo: 'La textura, el olor, que esté mezclado…' },
+    reglas: { tema: 'Sus reglas', ejemplo: '“Que no se toquen”, “nada verde”, “en su plato de siempre”' },
+  },
+}
 
 /** §10.4 · `atragantamiento`: alerta desde la primera vez. */
 export const AVISO_ATRAGANTAMIENTO = 'Si tose o se atraganta al comer, conviene consultar con su pediatra o con fonoaudiología.'

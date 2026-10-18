@@ -1,11 +1,19 @@
 // "Contame cómo le fue" (C5): nota de voz → /api/relato-comida → la IA pre-marca los botones.
 // Sin micrófono (o si el padre prefiere), un campo de texto que va al mismo endpoint.
-import { useEffect, useId, useRef, useState } from 'react'
+// Es la protagonista del paso: un micrófono grande que, mientras graba, late con anillos (quietos con movimiento
+// reducido), el tiempo que queda y, al terminar, lo que entendimos.
+import { cn } from 'cn'
+import { CircleCheck, Keyboard, Mic, MicOff, Quote, Square } from 'lucide-react'
+import { motion, useReducedMotion } from 'motion/react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import type { AnalisisComida, RelatoComida, RelatoComidaReq } from '../../../shared/contratos'
-import { Cargando, ErrorConReintento } from '../../componentes/Estados'
+import { Bocaditos, ErrorConReintento } from '../../componentes/Estados'
+import { Button } from '../../componentes/ui/button'
+import { Textarea } from '../../componentes/ui/textarea'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { MAX_SEGUNDOS, useGrabador, type Audio } from '../../lib/grabador'
 import { aErrorDeApi } from '../../lib/useApi'
+import { Aviso } from './Piezas'
 
 type Fase = 'inicio' | 'escuchando' | 'listo' | 'no_entendido' | 'error'
 
@@ -16,12 +24,58 @@ interface Props {
   transcripcion?: string                 // la del último relato aplicado
 }
 
-function IconoMicro() {
+/** Tres anillos que salen del micrófono mientras graba. Con movimiento reducido quedan quietos. */
+function Anillos() {
+  const reducir = useReducedMotion()
   return (
-    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
-      <rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor" />
-      <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
+    <span aria-hidden="true" className="absolute inset-0">
+      {[0, 1, 2].map((i) =>
+        reducir ? (
+          <span
+            key={i}
+            className="absolute inset-0 rounded-full border-2 border-verde/35"
+            style={{ transform: `scale(${1.16 + i * 0.16})` }}
+          />
+        ) : (
+          <motion.span
+            key={i}
+            className="absolute inset-0 rounded-full bg-verde/30"
+            initial={{ scale: 1, opacity: 0.6 }}
+            animate={{ scale: 1.7, opacity: 0 }}
+            transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.8, ease: 'easeOut' }}
+          />
+        ),
+      )}
+    </span>
+  )
+}
+
+/** El botón redondo: micrófono para empezar, cuadrado para terminar. El texto de abajo es parte del botón. */
+function BotonMicro({ grabando = false, onClick, disabled, describedBy, children }: {
+  grabando?: boolean
+  onClick: () => void
+  disabled?: boolean
+  describedBy?: string
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-describedby={describedBy}
+      className="group flex flex-col items-center gap-3 rounded-3xl px-4 pt-2 pb-1 outline-none select-none focus-visible:ring-3 focus-visible:ring-verde disabled:opacity-60"
+    >
+      <span className="relative grid size-24 place-items-center">
+        {grabando && <Anillos />}
+        <span className="relative grid size-24 place-items-center rounded-full bg-primary text-primary-foreground shadow-flotante transition-[background-color,scale] duration-150 group-hover:bg-verde-noche group-active:scale-95 motion-reduce:group-active:scale-100">
+          {grabando
+            ? <Square className="size-8 fill-current" aria-hidden="true" />
+            : <Mic className="size-10" strokeWidth={2.25} aria-hidden="true" />}
+        </span>
+      </span>
+      <span className="font-titulo text-xl font-extrabold text-pino">{children}</span>
+    </button>
   )
 }
 
@@ -71,113 +125,140 @@ export function NotaDeVoz({ ninoId, analisis, alRelato, transcripcion }: Props) 
 
   const grabando = grabador.estado === 'grabando'
   const restantes = Math.max(0, grabador.restantes)
+  const listo = fase === 'listo'
+  // El micrófono grande va al centro; con lo que entendimos (o sin micrófono) se lee de izquierda a derecha.
+  const centrado = grabando || fase === 'escuchando' || (fase === 'inicio' && !sinMicro && !mostrarTexto)
 
   return (
-    <section className="nb-tarjeta rg-voz" aria-label="Nota de voz">
-
+    <section
+      aria-label="Nota de voz"
+      className={cn(
+        'flex flex-col gap-4 rounded-3xl bg-brote px-5 py-6 mordisco [--mordisco:26px]',
+        centrado ? 'items-center text-center' : 'items-stretch',
+      )}
+    >
       {grabando ? (
-        <div className="rg-grabando">
-          <p className="rg-grabando-estado" role="status">
-            <span className="rg-punto-grabando" aria-hidden="true" /> Grabando. Contá qué hizo con cada cosa del plato.
-          </p>
-          <p className="rg-contador nb-numero" role="timer" aria-label={`Quedan ${restantes} segundos`}>
+        <>
+          <BotonMicro grabando onClick={grabador.detener}>Listo, terminé</BotonMicro>
+          <p className="font-titulo text-5xl font-extrabold text-pino tabular-nums" role="timer" aria-label={`Quedan ${restantes} segundos`}>
             {Math.floor(restantes / 60)}:{String(restantes % 60).padStart(2, '0')}
           </p>
           <div
-            className="rg-barra-tiempo"
+            className="h-2 w-full max-w-64 overflow-hidden rounded-full bg-background"
             role="progressbar"
             aria-label="Tiempo de grabación"
             aria-valuemin={0}
             aria-valuemax={MAX_SEGUNDOS}
             aria-valuenow={grabador.segundos}
           >
-            <span style={{ transform: `scaleX(${Math.min(1, grabador.segundos / MAX_SEGUNDOS)})` }} />
+            <span
+              className="block h-full origin-left rounded-full bg-verde transition-transform duration-300 ease-linear"
+              style={{ transform: `scaleX(${Math.min(1, grabador.segundos / MAX_SEGUNDOS)})` }}
+            />
           </div>
-          <div className="rg-fila-botones">
-            <button type="button" className="nb-boton" onClick={grabador.detener}>Listo, terminé</button>
-            <button type="button" className="nb-boton nb-boton-secundario" onClick={grabador.cancelar}>Cancelar</button>
-          </div>
-        </div>
+          <p className="font-bold text-balance text-pino" role="status">
+            <span className="mr-2 inline-block size-2.5 animate-pulse rounded-full bg-verde align-[0.08em] motion-reduce:animate-none" aria-hidden="true" />
+            Grabando. Contá qué hizo con cada cosa del plato.
+          </p>
+          <Button variant="ghost" className="text-musgo" onClick={grabador.cancelar}>Cancelar</Button>
+        </>
       ) : fase === 'escuchando' ? (
-        <Cargando texto={ultimo.current?.fuente === 'texto' ? 'Leyendo lo que contaste…' : 'Escuchando tu nota…'} />
+        <div className="flex flex-col items-center gap-3 py-2" role="status" aria-live="polite">
+          <span className="grid size-24 place-items-center rounded-full bg-background" aria-hidden="true">
+            <Bocaditos />
+          </span>
+          <p className="font-bold text-pino">
+            {ultimo.current?.fuente === 'texto' ? 'Leyendo lo que contaste…' : 'Escuchando tu nota…'}
+          </p>
+        </div>
       ) : (
         <>
+          {listo && (
+            <p className="flex items-start gap-2.5 font-bold text-pino" role="status">
+              <CircleCheck className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+              Listo: marcamos lo que contaste. Revisalo abajo.
+            </p>
+          )}
+          {transcripcion && listo && (
+            <figure className="m-0 flex flex-col gap-1.5 rounded-2xl bg-background p-4">
+              <figcaption className="flex items-center gap-1.5 text-sm font-bold text-musgo">
+                <Quote className="size-4" aria-hidden="true" /> Lo que entendimos
+              </figcaption>
+              <blockquote className="text-pino italic">{transcripcion}</blockquote>
+            </figure>
+          )}
+
+          {fase === 'no_entendido' && (
+            <Aviso icono={MicOff}>
+              <p>No llegamos a entender la nota. Puede pasar con ruido de fondo o si quedó muy cortita.</p>
+              <p className="text-sm text-musgo">Podés grabarla de nuevo, escribirlo o marcar los botones de abajo.</p>
+            </Aviso>
+          )}
+          {fase === 'error' && error && (
+            <ErrorConReintento error={error} reintentar={() => ultimo.current && void enviar(ultimo.current.req, ultimo.current.fuente)} />
+          )}
+
+          {!sinMicro && (listo || fase === 'no_entendido' ? (
+            <Button
+              variant="outline"
+              size="lg"
+              className="self-start bg-background"
+              onClick={grabador.iniciar}
+              disabled={grabador.estado === 'pidiendo'}
+              aria-describedby={`${id}-ayuda`}
+            >
+              <Mic aria-hidden="true" /> Grabar otra nota
+            </Button>
+          ) : (
+            <BotonMicro onClick={grabador.iniciar} disabled={grabador.estado === 'pidiendo'} describedBy={`${id}-ayuda`}>
+              Contame cómo le fue
+            </BotonMicro>
+          ))}
           {!sinMicro && (
-            <>
-              <button
-                type="button"
-                className="nb-boton rg-boton-voz"
-                onClick={grabador.iniciar}
-                disabled={grabador.estado === 'pidiendo'}
-                aria-describedby={`${id}-ayuda`}
-              >
-                <IconoMicro />
-                {fase === 'listo' || fase === 'no_entendido' ? 'Grabar otra nota' : 'Contame cómo le fue'}
-              </button>
-              <p id={`${id}-ayuda`} className="rg-pista">
-                {grabador.estado === 'pidiendo'
-                  ? 'Pidiendo permiso para usar el micrófono…'
-                  : `Hasta ${MAX_SEGUNDOS} segundos. Ej.: «el puré lo dejó, la milanesa la probó».`}
-              </p>
-            </>
+            <p id={`${id}-ayuda`} className={cn('text-sm text-musgo', centrado && 'max-w-72')}>
+              {grabador.estado === 'pidiendo'
+                ? 'Pidiendo permiso para usar el micrófono…'
+                : `Hasta ${MAX_SEGUNDOS} segundos. Ej.: «el puré lo dejó, la milanesa la probó».`}
+            </p>
           )}
 
           {sinMicro && (
-            <p className="rg-pista" role="status">
+            <p className="flex items-start gap-2.5 text-pino" role="status">
+              <MicOff className="mt-0.5 size-5 shrink-0 text-musgo" aria-hidden="true" />
               {grabador.estado === 'sin_permiso'
                 ? 'No tenemos permiso para usar el micrófono. Podés contarlo por escrito, o marcar los botones de abajo.'
                 : 'Este navegador no deja grabar audio. Podés contarlo por escrito, o marcar los botones de abajo.'}
             </p>
           )}
 
-          {fase === 'no_entendido' && (
-            <div className="nb-tarjeta nb-aviso" role="alert">
-              <p>No llegamos a entender la nota. Puede pasar con ruido de fondo o si quedó muy cortita.</p>
-              <p className="nb-suave">Podés grabarla de nuevo, escribirlo o marcar los botones de abajo.</p>
-            </div>
-          )}
-          {fase === 'error' && error && (
-            <ErrorConReintento error={error} reintentar={() => ultimo.current && void enviar(ultimo.current.req, ultimo.current.fuente)} />
-          )}
-
           {mostrarTexto ? (
             <form
-              className="rg-texto"
+              className="flex flex-col gap-2 text-left"
               onSubmit={(e) => {
                 e.preventDefault()
                 if (texto.trim()) void enviar({ ninoId, analisis, texto: texto.trim() }, 'texto')
               }}
             >
-              <label htmlFor={`${id}-texto`}>Contalo con tus palabras</label>
-              <p id={`${id}-texto-ayuda`} className="rg-pista">Podés dictarlo con el teclado: tocá el micrófono del teclado del celular.</p>
-              <textarea
+              <label htmlFor={`${id}-texto`} className="font-bold text-pino">Contalo con tus palabras</label>
+              <p id={`${id}-texto-ayuda`} className="text-sm text-musgo">Podés dictarlo con el teclado: tocá el micrófono del teclado del celular.</p>
+              <Textarea
                 id={`${id}-texto`}
                 ref={textoRef}
-                className="rg-input rg-textarea"
+                className="min-h-28 bg-background text-base leading-normal"
                 rows={4}
                 value={texto}
                 onChange={(e) => setTexto(e.target.value)}
                 aria-describedby={`${id}-texto-ayuda`}
                 placeholder="El puré ni lo tocó, la milanesa se comió la mitad…"
               />
-              <button type="submit" className="nb-boton nb-boton-secundario" disabled={!texto.trim()}>
+              <Button type="submit" className="self-start" disabled={!texto.trim()}>
                 Marcar con lo que conté
-              </button>
+              </Button>
             </form>
           ) : (
-            <button type="button" className="rg-boton-texto" onClick={escribir}>Prefiero escribirlo</button>
-          )}
-
-          {fase === 'listo' && (
-            <p className="rg-listo" role="status">
-              Listo: marcamos lo que contaste. Revisalo abajo.
-            </p>
-          )}
-          {transcripcion && fase === 'listo' && (
-            <details className="rg-transcripcion">
-              <summary>Lo que entendimos</summary>
-              <p>{transcripcion}</p>
-            </details>
+            <Button variant="ghost" className={cn('text-primary', !centrado && 'self-start')} onClick={escribir}>
+              <Keyboard aria-hidden="true" /> Prefiero escribirlo
+            </Button>
           )}
         </>
       )}

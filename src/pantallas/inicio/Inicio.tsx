@@ -1,8 +1,10 @@
-// La pantalla principal (PLAN v5.1, §9): el día se organiza en comidas. De arriba hacia abajo: el nombre del chico,
-// "Hoy" (nutrientes del día + una línea de la semana), la próxima comida (el botón grande, abre la receta para esa
-// comida), "Registrar comida" (con la comida que acaba de terminar preseleccionada), "Generar receta" (v5.3: para la
-// comida que elija el padre), las alertas si hay y "Ver la semana".
+// La pantalla principal (PLAN v5.1, §9): el día se organiza en comidas. De arriba hacia abajo: el nombre del chico, la
+// próxima comida (la protagonista: abre la receta para esa comida), "Registrar comida" (con la comida que acaba de
+// terminar preseleccionada), "Generar receta" (v5.3: para la comida que elija el padre), "Hoy" (nutrientes del día +
+// una línea de la semana), las alertas si hay y "Ver la semana".
 // Un solo pedido a /api/progreso (7 días, con ?momento= de la próxima comida) y el perfil en paralelo, solo por el nombre.
+import { CalendarDays, Camera } from 'lucide-react'
+import { motion } from 'motion/react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AvisoConsulta } from '../../componentes/AvisoConsulta'
@@ -16,7 +18,8 @@ import { comidaRecienPorHora, comidasDelDia, horaUruguay, leerUltimaComida, prox
 import { useApi } from '../../lib/useApi'
 import { hayComidas } from '../tablero/calculos'
 import { Hoy } from './Hoy'
-import './inicio.css'
+
+const RESORTE = { type: 'spring', stiffness: 420, damping: 34 } as const
 
 export function Inicio() {
   const ninoId = useNinoActivo()
@@ -44,36 +47,58 @@ export function Inicio() {
   registrar.set('momento', comidaRecienPorHora(ahora.hora))
 
   return (
-    <div className="in">
-      <h1 className="in-nombre">{nombre ?? <span className="nb-oculto">Inicio</span>}</h1>
+    <div className="flex flex-col gap-5">
+      <header className="flex flex-col px-1">
+        <h1 className="min-h-[2.2rem] text-3xl font-black">{nombre ?? <span className="sr-only">Inicio</span>}</h1>
+        <p className="text-sm text-musgo">{fechaLarga(ahora.dia)}</p>
+      </header>
 
-      {progreso.tipo === 'cargando' && (
-        <div className="nb-tarjeta in-hoy in-cargando"><Cargando texto="Mirando cómo viene hoy…" /></div>
-      )}
       {progreso.tipo === 'error' && <ErrorConReintento error={progreso.error} reintentar={progreso.reintentar} />}
-      {datos && <Hoy dia={diaHoy} semana={datos.semana} hayComidasSemana={hayComidas(datos.dias)} />}
-
       {progreso.tipo !== 'error' && <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={datos} />}
 
-      <Link className="nb-boton nb-boton-secundario in-registrar" to={{ pathname: '/registrar', search: `?${registrar}` }}>
-        <IconoCamara /> Registrar comida
-      </Link>
+      <div className="flex flex-col gap-3">
+        <motion.div whileTap={{ scale: 0.97 }} transition={RESORTE} className="rounded-full">
+          <Link
+            to={{ pathname: '/registrar', search: `?${registrar}` }}
+            className="flex min-h-[76px] items-center gap-4 rounded-full bg-brote py-2.5 pr-6 pl-2.5 transition-colors duration-150 hover:bg-[color-mix(in_oklch,var(--nb-brote),var(--nb-verde)_12%)]"
+          >
+            <span className="grid size-14 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+              <Camera className="size-6" strokeWidth={2.25} aria-hidden="true" />
+            </span>
+            <span className="flex flex-col">
+              <span className="font-titulo text-xl font-extrabold">Registrar comida</span>
+              <span className="text-sm text-musgo">Una foto y contás cómo le fue</span>
+            </span>
+          </Link>
+        </motion.div>
 
-      {/* Debajo de registrar, que es lo que alimenta todo: la receta para otra comida que elige el padre (v5.3). */}
-      <GenerarReceta ninoId={ninoId} />
+        {/* Debajo de registrar, que es lo que alimenta todo: la receta para otra comida que elige el padre (v5.3). */}
+        <GenerarReceta ninoId={ninoId} />
+      </div>
+
+      {progreso.tipo === 'cargando' && (
+        <div className="flex items-center gap-4 rounded-2xl border bg-card p-4 pr-5">
+          <span aria-hidden="true" className="size-20 shrink-0 animate-pulse rounded-full bg-muted motion-reduce:animate-none" />
+          <Cargando texto="Mirando cómo viene hoy…" />
+        </div>
+      )}
+      {datos && <Hoy dia={diaHoy} semana={datos.semana} hayComidasSemana={hayComidas(datos.dias)} />}
 
       {datos && <AvisoConsulta alertas={datos.alertas} />}
 
-      <Link className="in-semana-link" to={{ pathname: '/tablero', search }}>Ver la semana</Link>
+      <Link
+        to={{ pathname: '/tablero', search }}
+        className="inline-flex h-12 items-center gap-2 self-center rounded-full px-5 font-bold text-primary transition-colors duration-150 hover:bg-brote"
+      >
+        <CalendarDays className="size-5" strokeWidth={2.25} aria-hidden="true" />
+        Ver la semana
+      </Link>
     </div>
   )
 }
 
-function IconoCamara() {
-  return (
-    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
-      <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.3-2h5.2l1.3 2h1.6A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-      <circle cx="12" cy="12.5" r="3.5" fill="none" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  )
+/** '2026-10-18' → "Domingo 18 de octubre". */
+function fechaLarga(dia: string): string {
+  const texto = new Date(`${dia}T12:00:00Z`).toLocaleDateString('es-UY', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
+  return texto.charAt(0).toUpperCase() + texto.slice(1).replace(',', '')
 }

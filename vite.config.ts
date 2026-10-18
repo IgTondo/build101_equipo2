@@ -1,11 +1,15 @@
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
 
 // En desarrollo, /api va al servidor local de scripts/dev-api.ts (npm run dev levanta los dos).
 const PUERTO_API = Number(process.env.PUERTO_API ?? 3001)
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
+  // "@/" es src/ (los componentes de shadcn/ui viven en src/components/ui).
+  resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   server: {
     host: true, // para abrirlo desde el celular en la misma red
     proxy: { '/api': `http://localhost:${PUERTO_API}` },
