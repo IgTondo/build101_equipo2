@@ -4,6 +4,7 @@
 import type { Alergeno, Regla } from '../../shared/contratos.js'
 import { calcularEstado } from '../aprendizaje/estado.js'
 import { cargarNino } from './cargar.js'
+import { hayMongo } from './mongo.js'
 
 export interface ContextoNino {
   ninoId: string
@@ -18,6 +19,9 @@ export interface ContextoNino {
 }
 
 export async function obtenerContexto(ninoId: string): Promise<ContextoNino | null> {
+  // Sin base no hay contexto (como los endpoints de B). Además evita que cargarNino() deje una promesa rechazada sin
+  // atrapar, que tira abajo la API local (C, integración).
+  if (!hayMongo()) return null
   try {
     const c = await cargarNino(ninoId)
     const estado = calcularEstado(c.nino, c.comidas, c.catalogo)

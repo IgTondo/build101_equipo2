@@ -88,7 +88,8 @@ describe('elegirSugerencia', () => {
     const p = progresoFixture as unknown as Progreso
     expect(elegirSugerencia(p, 'almuerzo')?.preparacionId).toBe('bastones_queso_horno')
     expect(elegirSugerencia(p, 'cena')?.preparacionId).toBe('bastones_queso_horno')
-    expect(elegirSugerencia(p, 'desayuno')?.tipo).toBe('un_paso') // bastones de queso: lácteo, encaja en el desayuno
+    expect(elegirSugerencia(p, 'desayuno')?.tipo).toBe('mas_nutritiva') // los bastones de queso son salados y calientes: el yogur
+    expect(encaja('desayuno', s('un_paso', 'bastones_queso_horno'))).toBe(0)
   })
 
   it('sin sugerencias usa el proximoPaso', () => {
