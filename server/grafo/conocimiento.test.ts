@@ -13,7 +13,7 @@ import { fijarAfinidades, type ParAfinidad } from '../ia/afinidades.js'
 import { escalar } from '../nutricion/calcular.js'
 import {
   ACOMPANAMIENTOS, GOLOSINAS_Y_ULTRAPROCESADOS, GRUPOS_PARA_CAMBIAR, afinidadConPlato, conDatos, conocimientoDe, contextoAfinidad, familia, recientesDe,
-  type Conocimiento, type Foco,
+  tipoDePlato, vecesDelTipo, type Conocimiento, type Foco,
 } from './conocimiento.js'
 
 const HOY = '2026-10-18' // el último día del historial de Valentina
@@ -503,14 +503,40 @@ describe('conocimientoDe: cambiando el principal, del mismo grupo o de uno que p
   })
 })
 
-describe('conocimientoDe: lo que pide evitar el reintento', () => {
+describe('conocimientoDe: el alimento de partida no repite lo reciente, y lo que pide evitar el reintento', () => {
   let info: ReturnType<typeof vi.spyOn>
   beforeEach(() => {
     info = vi.spyOn(console, 'info').mockImplementation(() => {})
   })
   afterAll(() => vi.restoreAllMocks())
+  const MILANESAS = ['Milanesa de lentejas al horno, dorada', 'Milanesa de pollo con costra de queso', 'Milanesas de avena crocantes']
   const evitoLog = (que: string) =>
     info.mock.calls.map((x: unknown[]) => JSON.parse(String(x[0])) as Record<string, unknown>).find((x: Record<string, unknown>) => x.evento === 'foco_evitar_ignorado' && x.que === que)
+
+  it('el tipo de plato es la primera palabra significativa de su nombre, en singular o en plural', () => {
+    expect(tipoDePlato('Milanesa de carne al horno (rebozada sin huevo)')).toBe('milanesa')
+    expect(tipoDePlato('Puré de zapallo')).toBe('pure')
+    expect(tipoDePlato('Papas fritas en bastones')).toBe('papas')
+    expect(tipoDePlato('Bastones de zanahoria horneados')).toBe('bastones')
+    expect(tipoDePlato('Las tostadas de su abuela')).toBe('tostadas')
+    expect(vecesDelTipo('milanesa', [...MILANESAS, 'Nuggets de pollo'])).toBe(3)
+    expect(vecesDelTipo('bastones', ['Bastón de polenta', 'Puré de boniato'])).toBe(1)
+    expect(vecesDelTipo('nuggets', ['Medallones de ricota crocantes, como sus nuggets'])).toBe(1) // de ahí partió
+    expect(vecesDelTipo('', MILANESAS)).toBe(0)
+  })
+
+  it('con 3 milanesas recientes, la milanesa de carne casi no sale de partida (varias semillas)', { timeout: 60_000 }, () => {
+    const semillas = Array.from({ length: 30 }, (_, i) => i + 1)
+    const desdes = (anteriores: string[]) => semillas.map((x) => conocimiento({ momento: 'cena', anteriores, azar: conSemilla(x) }).foco.desdeId)
+    const sin = desdes([])
+    const con = desdes(MILANESAS)
+    const cuantas = (ids: string[], id: string) => ids.filter((x) => x === id).length
+    expect(cuantas(sin, 'milanesa_carne_horno')).toBeGreaterThanOrEqual(2)
+    expect(cuantas(con, 'milanesa_carne_horno')).toBeLessThanOrEqual(cuantas(sin, 'milanesa_carne_horno') / 3)
+    // Ninguna milanesa (la de lentejas también lo es) casi nunca; los demás siguen saliendo
+    expect(con.filter((x) => x.startsWith('milanesa_')).length).toBeLessThanOrEqual(1)
+    expect(new Set(con).size).toBeGreaterThanOrEqual(5)
+  })
 
   it('evitar.desdeIds saca ese alimento seguro del sorteo; si no queda otro, se ignora y queda en el log', { timeout: 30_000 }, () => {
     const evitar = ['milanesa_carne_horno', conocimiento({ momento: 'cena', azar: () => 0 }).foco.desdeId]

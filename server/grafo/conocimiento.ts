@@ -14,7 +14,8 @@
 // que ya usó en las recetas que vio la familia (`anteriores`) no se repite: sale de los ricos y del sorteo.
 // v5.10 · El sorteo del ingrediente pesa por lo que combina con lo que queda del plato de partida (afinidades de Ahn
 // 2011, server/ia/afinidades.ts): sin eso salían "licuado de queso dambo y banana" y "milanesa de yogur".
-// v5.10 · `evitar` deja sortear OTRO foco en el reintento de la receta.
+// v5.10 · El alimento de partida no repite el tipo de plato de lo reciente (cuatro milanesas seguidas) y `evitar` deja
+// sortear OTRO foco en el reintento de la receta.
 import type { Alergeno, Alimento, Dieta, Grupo, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Presentacion, Regla, Variedad } from '../../shared/contratos.js'
 import { NUTRIENTE } from '../../shared/contratos.js'
 import { alimentosProhibidos, limpiarOtras, normalizar } from '../alergias.js'
@@ -134,6 +135,19 @@ const esCurado = (id: string) => !id.startsWith('otro_') && !id.startsWith('fdc_
 
 /** v5.10 · Lo que el reintento de la receta pide no volver a sortear: alimentos de partida e ingredientes del foco. */
 export interface Evitar { desdeIds?: string[]; ingredientes?: string[] }
+
+const NO_SIGNIFICAN = new Set(['de', 'del', 'la', 'el', 'los', 'las', 'con', 'en', 'al', 'a', 'y', 'e', 'o', 'su', 'sus', 'un', 'una', 'mi', 'mis'])
+/** v5.10 · El tipo de plato: la primera palabra significativa del nombre (milanesa, nuggets, papas, pure, bastones, licuado…). */
+export function tipoDePlato(nombre: string): string {
+  return normalizar(nombre).split(' ').find((w) => w && !NO_SIGNIFICAN.has(w)) ?? ''
+}
+/** La misma palabra en singular o en plural (milanesa, milanesas; baston, bastones; pure, pures). */
+const mismaPalabra = (a: string, b: string) => a === b || a === `${b}s` || b === `${a}s` || a === `${b}es` || b === `${a}es`
+/** v5.10 · En cuántos de esos nombres aparece el tipo de plato (el nombre entero: "como sus nuggets" dice de qué partió). */
+export function vecesDelTipo(tipo: string, nombres: readonly string[]): number {
+  if (!tipo) return 0
+  return nombres.filter((n) => normalizar(n).split(' ').some((w) => mismaPalabra(w, tipo))).length
+}
 
 /**
  * v5.10 · Los alimentos que identifican las recetas que ya vio la familia: los que aparecen en sus nombres, en palabras
@@ -280,7 +294,11 @@ export function conocimientoDe(
   const sinEvitar = seguros.filter((x) => !evitarDesde.has(x.p.id))
   if (!sinEvitar.length && seguros.length && evitarDesde.size) evitado('desde', evitarDesde)
   const paraFoco = sinEvitar.length ? sinEvitar : seguros
-  const sortearDesde = (xs: typeof seguros) => elegir(xs)?.p
+  // v5.10 · El tipo de plato que ya vio pesa menos: el peso se divide por (1 + cuántas recetas recientes lo nombran)³,
+  // así cuatro milanesas seguidas casi no vuelven a salir. Sin anteriores, todos pesan 1 (el sorteo parejo de siempre).
+  const anteriores = op.anteriores ?? []
+  const pesoDesde = (p: PreparacionCatalogo) => 1 / (1 + vecesDelTipo(tipoDePlato(p.nombre), anteriores)) ** 3
+  const sortearDesde = (xs: typeof seguros) => elegirConPesos(xs, xs.map((x) => pesoDesde(x.p)), azar)?.p
   let desde = sortearDesde(paraFoco)
   const sorteado = elegir(MODOS_FOCO) ?? 'cambiar_principal'
   let modo: Modo = variedad?.grupo ? 'cambiar_principal' : sorteado
