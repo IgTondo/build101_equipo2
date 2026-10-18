@@ -8,7 +8,7 @@ on:
       eval:
         description: Qué eval correr
         type: choice
-        options: [vision, voz, recetas]
+        options: [vision, voz, recetas, variedad]
         default: vision
 
 jobs:

@@ -119,3 +119,23 @@ Hacen falta **de 5 a 8 notas, al menos 2 grabadas en iPhone y 2 en Android**, so
 4. **Validá** con `npx vitest run scripts/eval`.
 
 Los casos sintéticos no se editan a mano: si cambia `data/sinteticos/`, se regeneran con `npx tsx scripts/eval/relatos-sinteticos.ts`, que reescribe solo los casos con `"fuente": "sintetico"` y deja los del equipo como están.
+
+## Eval de variedad de las recetas creativas (v5.10)
+
+¿Salen distintas las recetas cuando la familia pide una tras otra para la misma comida? `scripts/eval-variedad.ts` carga un chico sintético sin Mongo (los catálogos reales y su historial de `data/sinteticos/`, con `hoy` = el último día que registró) y llama a `generarRecetaCreativa()`, la misma función que `/api/receta` sin `preparacionId`. Por cada comida pide N recetas seguidas y manda en `anteriores` los nombres de las que ya salieron, como la app (`src/lib/recetaPrevia.ts`).
+
+```bash
+npx tsx scripts/eval-variedad.ts > eval-variedad.md                                   # Valentina, cena y desayuno, 6 por comida
+npx tsx scripts/eval-variedad.ts --nino tomas --momentos almuerzo,cena --n 4          # valentina | tomas | lucia; n de 1 a 20
+```
+
+Necesita `ANTHROPIC_API_KEY` (Sonnet 5.5, ≈ USD 0,04 por receta: unos USD 0,5 con lo de por defecto). Por comida y en total mide:
+
+- **Principales distintos sobre N** (el ingrediente de más gramos) y **familias** (el primer tramo del id: `queso_muzzarella` → `queso`).
+- **Alimentos de partida distintos sobre N.**
+- **Con queso:** recetas con algún `queso_*` o ricota.
+- **Nombres repetidos** (sin tildes ni mayúsculas, como los compara la validación).
+- **Siguieron el foco:** partió del alimento seguro que sorteó el código y, si el foco trae un ingrediente (v5.10), lo usó: de principal al cambiar el principal, entre los ingredientes al sumar uno.
+- **Fallas** (`sin_candidatos`, timeouts, errores), **latencia** media y p95, y **costo**: con el uso de tokens que reporta la API (USD 2 y 10 por millón) o, si no lo reporta, USD 0,04 por receta, y lo dice.
+
+Por receta, la tabla trae el nombre, de qué alimento parte, el cambio, el nutriente, el ingrediente principal, los ingredientes nuevos respecto del alimento de partida y el foco. Las métricas son funciones puras en `scripts/eval/metricas-variedad.ts`, con tests.
