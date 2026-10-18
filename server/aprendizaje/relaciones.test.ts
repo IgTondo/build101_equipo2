@@ -8,6 +8,7 @@ import { alimentosPrueba, catalogoPrueba, comidasSinteticas, ninoDoc, sintetico 
 import type { Cargado } from '../datos/cargar.js'
 import type { NinoDoc } from '../datos/tipos.js'
 import { conocimientoDe } from '../grafo/conocimiento.js'
+import { franjaDe, franjaDePreparacion } from '../ia/momentos.js'
 import { CON_META, objetivosPara } from '../nutricion/objetivos.js'
 import type { EstadoPrep } from './aceptacion.js'
 import { type EntradaCadena, type PasoCadena, type PrepConocida, cambios, candidatosCadena, esAncla, esSegura } from './cadena.js'
@@ -62,7 +63,8 @@ function invariantes(pasos: readonly PasoCadena[], e: EntradaCadena) {
     }
     expect(cambios(p.desde, p.cand), par(p)).toHaveLength(1)
     expect(p.seMantiene.length, par(p)).toBeGreaterThanOrEqual(4)
-    if (e.momento) expect((p.desde.momentos ?? catalogo.get(p.desde.id)?.momentos ?? []), par(p)).toContain(e.momento)
+    // v5.10 · Por franja (desayuno y merienda o almuerzo y cena): la del catálogo o la de su tipo
+    if (e.momento) expect(franjaDePreparacion(p.desde, catalogo), par(p)).toBe(franjaDe(e.momento))
   }
 }
 
@@ -147,20 +149,23 @@ describe('la versión fortificada viene de su base (D2)', () => {
   })
 })
 
-describe('el origen va en la comida (D3)', () => {
-  it.each(MOMENTO)('%s: cada origen es de esa comida', (momento) => {
+describe('el origen va en la comida (D3), por franja (v5.10: desayuno y merienda o almuerzo y cena, no se mezclan)', () => {
+  it.each(MOMENTO)('%s: cada origen es de la franja de esa comida', (momento) => {
     const e = entrada({ acepta: ['papas_fritas_baston', 'milanesa_carne_horno', 'leche_chocolatada', 'tostadas', 'pizza_muzzarella', 'yogur_vainilla'], momento })
     const pasos = todos(e)
-    for (const p of pasos) expect(catalogo.get(p.desde.id)?.momentos, par(p)).toContain(momento)
+    expect(pasos.length).toBeGreaterThan(0)
+    for (const p of pasos) expect((catalogo.get(p.desde.id)?.momentos ?? []).map(franjaDe), par(p)).toContain(franjaDe(momento))
     invariantes(pasos, e)
   })
 
-  it('lo que no es del catálogo cuenta con sus propios momentos', () => {
-    const casera: PrepConocida = { ...catalogo.get('milanesa_carne_horno')!, id: 'milanesa_de_la_abuela', nombre: 'Milanesa de la abuela', momentos: ['cena'] }
-    const almuerzo = todos(entrada({ acepta: ['milanesa_de_la_abuela'], extra: [casera], momento: 'almuerzo' }))
-    const cena = todos(entrada({ acepta: ['milanesa_de_la_abuela'], extra: [casera], momento: 'cena' }))
-    expect(almuerzo).toEqual([])
-    expect(cena.map((p) => p.desde.id)).toContain('milanesa_de_la_abuela')
+  it('lo que no es del catálogo va por su tipo, nunca por la hora en que lo comió: la pizza de la merienda sigue siendo de almuerzo y cena', () => {
+    const milanesa: PrepConocida = { ...catalogo.get('milanesa_carne_horno')!, id: 'milanesa_de_la_abuela', nombre: 'Milanesa de la abuela', momentos: ['cena'] }
+    const pizza: PrepConocida = { ...catalogo.get('pizza_muzzarella')!, id: 'pizza_de_la_esquina', nombre: 'Pizza de la esquina', momentos: ['merienda'] }
+    const origenes = (id: string, extra: PrepConocida, momento: Momento) => todos(entrada({ acepta: [id], extra: [extra], momento })).map((p) => p.desde.id)
+    expect(origenes('milanesa_de_la_abuela', milanesa, 'almuerzo')).toContain('milanesa_de_la_abuela') // misma franja que la cena
+    expect(origenes('milanesa_de_la_abuela', milanesa, 'desayuno')).toEqual([])
+    expect(origenes('pizza_de_la_esquina', pizza, 'merienda')).toEqual([])
+    expect(origenes('pizza_de_la_esquina', pizza, 'cena')).toContain('pizza_de_la_esquina')
   })
 })
 

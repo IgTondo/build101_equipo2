@@ -10,7 +10,7 @@ import { alimentosCatalogo, preparacionesCatalogo } from '../datos/catalogos.js'
 import { type Cargado, objetivoDe } from '../datos/cargar.js'
 import { comidasSinteticas, ninoDoc, sintetico, type SinteticoId } from '../datos/prueba/catalogos.js'
 import { fijarAfinidades, type ParAfinidad } from '../ia/afinidades.js'
-import { vaEnLaComida } from '../ia/momentos.js'
+import { franjaDe, franjaDePreparacion, vaEnLaComida } from '../ia/momentos.js'
 import { escalar } from '../nutricion/calcular.js'
 import {
   ACOMPANAMIENTOS, GOLOSINAS_Y_ULTRAPROCESADOS, GRUPOS_PARA_CAMBIAR, afinidadConPlato, claseDePreparacion, conDatos, conocimientoDe, contextoAfinidad, familia, recientesDe,
@@ -626,5 +626,28 @@ describe('conocimientoDe: el alimento de partida no repite lo reciente, y lo que
     expect(k.foco.ingrediente).toBeDefined()
     expect(k.foco.ingrediente).toBe(conocimiento({ azar: () => 0.4 }).foco.ingrediente)
     expect(evitoLog('ingrediente')).toBeDefined()
+  })
+})
+
+describe('(v5.10) franjas: lo que ya come de desayuno y merienda no se mezcla con lo de almuerzo y cena', () => {
+  it('en cada comida, sus seguros son de su franja (ni leche ni yogur en la cena, ni milanesas en la merienda)', { timeout: 30_000 }, () => {
+    for (const momento of MOMENTO) {
+      const k = conocimiento({ momento })
+      expect(k.seguros.length, momento).toBeGreaterThan(0)
+      for (const p of k.seguros) expect(franjaDePreparacion(p, catalogo), `${momento}: ${p.id}`).toBe(franjaDe(momento))
+    }
+    const cena = conocimiento({ momento: 'cena' }).seguros.map((p) => p.id)
+    for (const id of ['leche_chocolatada', 'yogur_vainilla', 'licuado_banana_leche', 'tostadas', 'banana_pisada']) expect(cena).not.toContain(id)
+  })
+
+  it('la pizza que vio la cámara en la merienda no es punto de partida de la merienda: sigue siendo de almuerzo y cena', { timeout: 30_000 }, () => {
+    // Sin la pizza en el catálogo, es lo que vio la cámara: sus comidas, todas en la merienda
+    const sinPizza = new Map([...catalogo].filter(([id]) => id !== 'pizza_muzzarella'))
+    const comidas = valentina.comidas.map((x) => (x.items.some((i) => i.preparacionId === 'pizza_muzzarella') ? { ...x, momento: 'merienda' as const } : x))
+    const c: Cargado = { ...valentina, catalogo: sinPizza, comidas }
+    const merienda = conocimiento({ momento: 'merienda' }, c)
+    expect(merienda.aceptadas.map((p) => p.id)).toContain('pizza_muzzarella')
+    expect(merienda.seguros.map((p) => p.id)).not.toContain('pizza_muzzarella')
+    expect(conocimiento({ momento: 'cena' }, c).seguros.map((p) => p.id)).toContain('pizza_muzzarella')
   })
 })

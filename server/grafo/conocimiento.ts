@@ -30,7 +30,7 @@ import { recomendacionDe } from '../datos/tablero.js'
 import { afinidadCon, afines } from '../ia/afinidades.js'
 import { completa } from '../ia/candidato.js'
 import { esCondimento } from '../ia/condimentos.js'
-import { vaEnLaComida } from '../ia/momentos.js'
+import { franjaDe, franjaDePreparacion, vaEnLaComida } from '../ia/momentos.js'
 import { energiaDeReferencia } from '../ia/plato-completo.js'
 import { faltanSemana } from '../nutricion/calcular.js'
 import { coberturaDia, gruposDesde, semana, variedadDe } from '../nutricion/progreso.js'
@@ -241,15 +241,16 @@ export function conocimientoDe(
     return conocida ? completa(conocida) : undefined
   }
 
-  // Lo que come seguro: el punto de partida de la cadena. Primero lo que va en esta comida (lo anotado en el catálogo o,
-  // si no es del catálogo, las comidas en que lo come según lo que se sabe de él).
+  // Lo que come seguro: el punto de partida de la cadena. Primero lo que va en esta comida. v5.10 · Por franja
+  // (server/ia/momentos.ts, franjaDePreparacion): desayuno y merienda o almuerzo y cena, que no se mezclan. La del
+  // catálogo o, si no es del catálogo, la de su tipo, nunca la hora en que la comió (su pizza de la merienda sigue
+  // siendo de almuerzo y cena).
   const estados = [...estado.estados.values()]
   const aceptadas = estados
     .filter((s) => s.estado === 'acepta')
     .flatMap((s) => {
       const p = preparacion(s.prepId)
-      const momentos = p?.momentos ?? estado.conocidas.get(s.prepId)?.momentos ?? []
-      return p ? [{ p, s, vaEnLaComida: !op.momento || momentos.includes(op.momento) }] : []
+      return p ? [{ p, s, vaEnLaComida: !op.momento || franjaDePreparacion(p, c.catalogo) === franjaDe(op.momento) }] : []
     })
     .sort((a, b) => Number(b.vaEnLaComida) - Number(a.vaEnLaComida) || b.s.p - a.s.p)
   // Se parte solo de lo que va en esta comida (la imagen lo sirve al lado: "Servilo al lado de su pizza" en el desayuno

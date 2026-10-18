@@ -4,6 +4,7 @@ import { CAMBIO } from '../../shared/contratos.js'
 import { aporte } from '../nutricion/calcular.js'
 import type { EstadoPrep } from './aceptacion.js'
 import { cumple, esAtributo } from './condiciones.js'
+import { franjaDe, franjaDePreparacion } from '../ia/momentos.js'
 
 /** Lo que se sabe de una preparación: del catálogo, de lo observado en las comidas o de lo que contó el padre. */
 export interface PrepConocida {
@@ -168,7 +169,9 @@ export function candidatosCadena(e: EntradaCadena, nutriente: Nutriente): PasoCa
   const aceptaMezclado = aceptadas.some((d) => d.prep.atributos.presentacion === 'mezclado')
   const aceptaSalsa = aceptadas.some((d) => d.prep.atributos.presentacion === 'con_salsa')
   const delCatalogo = new Map(e.catalogo.map((p) => [p.id, p]))
-  const vaEnLaComida = (p: PrepConocida) => !e.momento || (p.momentos ?? delCatalogo.get(p.id)?.momentos ?? []).includes(e.momento)
+  // v5.10 · El origen va en esa comida por franja (desayuno y merienda o almuerzo y cena, server/ia/momentos.ts): la del
+  // catálogo o la de su tipo, no la hora en que lo comió
+  const vaEnLaComida = (p: PrepConocida) => !e.momento || franjaDePreparacion(p, delCatalogo) === franjaDe(e.momento)
   const desdes = aceptadas
     .filter((d) => esAncla(d.prep) && esSegura(d.prep, e.alergias, e.alimentos, e.prohibidos) && vaEnLaComida(d.prep))
     .map((d) => ({ ...d, aporte: aporte(d.prep.ingredientes, e.alimentos).nutrientes[nutriente] }))
