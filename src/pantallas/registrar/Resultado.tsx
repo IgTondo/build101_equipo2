@@ -1,17 +1,15 @@
 // Resultado del registro (C2, PLAN v5.1): alertas si hay (una línea), "Qué aprendí" (dos líneas cortas, el resto en
 // "Ver más"), lo que aportó la comida (plegado, con rangos) y, al final, la próxima comida calculada con la que se acaba
-// de registrar. Se vuelve a pedir el progreso después de
-// guardar, así la sugerencia y el "Hoy" del inicio ya la cuentan. La energía va como dato, sin meta (§1). Las alertas
+// de registrar: v5.3, el plato de esa comida (lo seguro + un pasito; §5.3), sin selector. Se vuelve a pedir el
+// progreso después de guardar (Registrar olvida la caché), así el plato y el "Hoy" del inicio ya la cuentan. La energía va como dato, sin meta (§1). Las alertas
 // derivan al profesional, sin alarmar.
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Rango, RegistrarComidaReq, RegistrarComidaRes } from '../../../shared/contratos'
 import { AvisoConsulta } from '../../componentes/AvisoConsulta'
-import { ErrorConReintento } from '../../componentes/Estados'
-import { TarjetaProximaComida } from '../../componentes/ProximaComida'
-import { api } from '../../lib/api'
+import { TarjetaComida } from '../../componentes/ProximaComida'
+import { useProgresoComida } from '../../lib/progresoComida'
 import { comidasDelDia, horaUruguay, proximaComida } from '../../lib/proximaComida'
-import { useApi } from '../../lib/useApi'
 import { NOMBRE_NUTRIENTE, NUTRIENTES_CON_META, textoParaPadres } from '../../lib/vocabulario'
 import { aprendiCorto, rangoLegible } from './modelo'
 
@@ -53,10 +51,7 @@ export function Resultado({ ninoId, res, req, alOtra }: Props) {
   const delDia = comidasDelDia(res.dia.dia === req.dia ? [res.dia] : [], req.dia, [registrada])
   const [hora] = useState(horaUruguay)
   const proxima = proximaComida(delDia, hora)
-  const progreso = useApi(
-    (s) => api.progreso(ninoId, { dias: 7, momento: proxima.momento }, s),
-    [ninoId, res.comidaId],
-  )
+  const progreso = useProgresoComida(ninoId, proxima.momento)
 
   const conNino = new URLSearchParams({ nino: ninoId })
 
@@ -86,9 +81,7 @@ export function Resultado({ ninoId, res, req, alOtra }: Props) {
       <Nutrientes rango={res.nutrientesComida} />
 
       <div className="rg-final">
-        {progreso.tipo === 'error'
-          ? <ErrorConReintento error={progreso.error} reintentar={progreso.reintentar} />
-          : <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={progreso.tipo === 'ok' ? progreso.datos : null} />}
+        <TarjetaComida ninoId={ninoId} etiqueta={proxima.etiqueta} progreso={progreso} />
         <Link className="nb-boton nb-boton-secundario" to={{ pathname: '/', search: `?${conNino}` }}>Volver al inicio</Link>
         <button type="button" className="rg-boton-texto" onClick={alOtra}>Registrar otra comida</button>
       </div>

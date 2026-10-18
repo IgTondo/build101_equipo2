@@ -1,42 +1,110 @@
-/* Tarjeta "Próxima comida" (PLAN v5.1): el botón grande del inicio y el cierre del registro. Solo tokens de marca. */
+/* La tarjeta grande de una comida (PLAN v5.3): selector, "Para la cena" y el plato. Solo tokens de marca.
+   Mobile first, 360 px; objetivos táctiles de 48 px como mínimo. */
 .pc {
-  display: flex; flex-direction: column; gap: 4px;
-  padding: 18px 20px; border-radius: var(--nb-radio);
-  text-decoration: none; -webkit-tap-highlight-color: transparent;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 8px 8px 20px; border-radius: 22px;
+  background: var(--nb-superficie); color: var(--nb-texto);
+  border: 1px solid var(--nb-borde);
+  box-shadow: 0 1px 2px rgba(22, 53, 42, 0.06), 0 8px 24px rgba(22, 53, 42, 0.08);
 }
-.pc-enlace {
-  min-height: 128px;
-  background: var(--nb-primario); color: var(--nb-sobre-primario);
-  box-shadow: 0 1px 2px rgba(22, 53, 42, 0.12), 0 6px 20px rgba(22, 53, 42, 0.14);
+.pc > :not(.sc) { margin-inline: 12px; }
+
+/* ---------- Selector: Desayuno · Almuerzo · Merienda · Cena ---------- */
+/* Radio concéntrico: 22 (tarjeta) = 14 (selector) + 8 (padding de la tarjeta). */
+.sc {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px;
+  margin: 0; padding: 4px; min-width: 0;
+  border: 0; border-radius: 14px; background: var(--nb-superficie-suave);
+}
+.sc-opcion {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 0 2px; border-radius: 10px;
+  font-size: 0.9rem; font-weight: 700; color: var(--nb-texto-suave);
+  cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none;
+  transition-property: background-color, color, box-shadow; transition-duration: 150ms; transition-timing-function: ease-out;
+}
+.sc-opcion span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc-opcion input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.sc-opcion:hover { color: var(--nb-texto); }
+.sc-opcion:has(input:checked) {
+  background: var(--nb-superficie); color: var(--nb-primario);
+  box-shadow: 0 1px 2px rgba(22, 53, 42, 0.10), 0 2px 8px rgba(22, 53, 42, 0.08);
+}
+.sc-opcion:has(input:focus-visible) { outline: 3px solid var(--nb-marca); outline-offset: 1px; }
+
+/* ---------- Cabecera y cuerpo ---------- */
+.pc-cuando {
+  margin-block: 6px -2px;
+  font: 800 1.35rem/1.2 var(--nb-font-titulos); color: var(--nb-texto); text-wrap: balance;
+}
+.pc-cuerpo { display: flex; flex-direction: column; gap: 14px; transition: opacity 150ms ease-out; }
+.pc-cuerpo[data-atenuado='true'] { opacity: 0.45; }
+.pc-cuerpo .nb-cargando { margin: 0; min-height: 48px; }
+.pc-cuerpo .nb-aviso { box-shadow: none; }
+
+.pc-calma { margin: 0; font-size: 1.05rem; line-height: 1.45; text-wrap: pretty; color: var(--nb-texto); }
+
+/* La sugerencia sola (sin plato, v5.2). */
+.pc-nombre {
+  margin: 0; font-family: var(--nb-font-titulos); font-weight: 800; font-size: 1.2rem; line-height: 1.25;
+  text-wrap: pretty;
+}
+.pc-porque { margin: -10px 0 0; line-height: 1.4; color: var(--nb-texto-suave); text-wrap: pretty; }
+
+/* ---------- El plato ---------- */
+.pc-grupo { display: flex; flex-direction: column; gap: 6px; }
+.pc-rotulo {
+  margin: 0; font: 700 0.8rem var(--nb-font-texto); letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--nb-texto-suave);
+}
+.pc-seguros { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pc-seguros li {
+  display: flex; align-items: baseline; gap: 10px;
+  font-family: var(--nb-font-titulos); font-weight: 800; font-size: 1.2rem; line-height: 1.25; text-wrap: pretty;
+}
+/* Un punto verde por cada cosa que ya come. */
+.pc-seguros li::before {
+  content: ''; flex: none; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--nb-marca); transform: translateY(-1px);
+}
+
+/* El pasito: al costado y en chico, pero que se note que es lo nuevo. */
+.pc-pasito {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px 14px; border-radius: 14px;
+  background: var(--nb-superficie-suave); border: 1.5px dashed var(--nb-marca);
+}
+.pc-pasito-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; }
+.pc-pasito .pc-rotulo { color: var(--nb-primario); }
+.pc-insignia {
+  display: inline-flex; align-items: center; min-height: 24px; padding: 0 10px;
+  border-radius: var(--nb-radio-pastilla); background: var(--nb-superficie);
+  font-size: 0.8rem; font-weight: 700; color: var(--nb-primario);
+  box-shadow: inset 0 0 0 1px var(--nb-borde);
+}
+.pc-pasito-nombre {
+  margin: 0; font-family: var(--nb-font-titulos); font-weight: 800; font-size: 1.2rem; line-height: 1.25; text-wrap: pretty;
+}
+
+.pc-cubre { margin: 0; font-size: 0.98rem; line-height: 1.4; text-wrap: balance; color: var(--nb-texto); }
+
+/* ---------- Acciones ---------- */
+.pc-acciones { display: flex; flex-direction: column; gap: 2px; }
+.pc-boton { gap: 4px; }
+.pc-boton, .pc-servir {
   transition-property: background-color, transform; transition-duration: 150ms; transition-timing-function: ease-out;
 }
-.pc-enlace:hover { background: var(--nb-primario-hover); }
-.pc-enlace:active { background: var(--nb-primario-hover); transform: scale(0.98); }
-.pc-enlace:focus-visible { outline-offset: 3px; }
-.pc-quieta {
-  background: var(--nb-superficie); color: var(--nb-texto);
-  border: 1px solid var(--nb-borde); box-shadow: var(--nb-sombra);
+.pc-boton:active, .pc-servir:active { transform: scale(0.98); }
+.pc-boton svg { flex: none; margin-right: -4px; }
+.pc-servir {
+  align-self: center; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 16px; border-radius: var(--nb-radio-pastilla);
+  font-weight: 700; color: var(--nb-primario); text-decoration: none; -webkit-tap-highlight-color: transparent;
 }
-
-.pc-cuando {
-  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
-}
-.pc-quieta .pc-cuando { color: var(--nb-texto-suave); }
-.pc-nombre {
-  font-family: var(--nb-font-titulos); font-weight: 800; font-size: 1.45rem; line-height: 1.15;
-  text-wrap: balance;
-}
-/* El porqué en una sola línea (el completo está en la receta). */
-.pc-porque { margin: 0; font-size: 0.98rem; line-height: 1.4; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.pc-quieta .pc-porque { color: var(--nb-texto-suave); }
-.pc-accion {
-  display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
-  font-weight: 700; font-size: 1rem;
-}
-.pc-accion svg { flex: none; }
-.pc .nb-cargando { margin: 4px 0 0; }
+.pc-servir:hover { background: var(--nb-superficie-suave); }
+.pc-servir svg { flex: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .pc-enlace { transition: none; }
-  .pc-enlace:active { transform: none; }
+  .pc-cuerpo, .sc-opcion, .pc-boton, .pc-servir { transition: none; }
+  .pc-boton:active, .pc-servir:active { transform: none; }
 }
