@@ -1,5 +1,5 @@
 // Funciones puras del tablero (C3): orden, escalas y textos. Sin React, para poder testearlas.
-import { MOTOR, type CoberturaDia, type ComidaResumen, type Grupo, type Motor, type Nutriente, type Nutrientes, type Progreso } from '../../../shared/contratos'
+import type { CoberturaDia, ComidaResumen, Grupo, Nutriente, Nutrientes, Progreso } from '../../../shared/contratos'
 import { diaUruguay } from '../../lib/nino'
 import { NUTRIENTES_CON_META } from '../../lib/vocabulario'
 
@@ -154,15 +154,10 @@ export function valorAtributo(par: string): string {
   return VALOR_LEGIBLE[v] ?? v.replace(/_/g, ' ')
 }
 
-export function leerMotor(valor: string | null): Motor {
-  return (MOTOR as readonly string[]).includes(valor ?? '') ? (valor as Motor) : 'grafo'
-}
-
-/** La receta de una sugerencia: el candidato elegido y el nutriente que más falta. El motor viaja si no es el de siempre. */
-export function rutaReceta(ninoId: string, preparacionId: string, nutriente?: Nutriente, motor: Motor = 'grafo'): string {
+/** La receta de una sugerencia: el candidato elegido y el nutriente que más falta. */
+export function rutaReceta(ninoId: string, preparacionId: string, nutriente?: Nutriente): string {
   const p = new URLSearchParams({ nino: ninoId, preparacionId })
   if (nutriente) p.set('nutriente', nutriente)
-  if (motor !== 'grafo') p.set('motor', motor)
   return `/receta?${p.toString()}`
 }
 

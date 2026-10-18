@@ -1,10 +1,10 @@
 // C3 · Tablero "¿está comiendo bien?" (PLAN.md §1 y §9), de arriba hacia abajo: la frase y las alertas,
-// la cobertura semanal, el próximo paso (con el switch de recomendador de C14), la evolución,
+// la cobertura semanal, el próximo paso, la evolución,
 // repertorio + grupos + exposiciones y las últimas comidas (lo que aprendimos va, simple, en el Perfil). C9: cargando, error y vacío.
 // Si los últimos 7 días no tienen comidas pero hay historial, se muestra la última semana con registros (`hasta`).
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import type { Alerta, Motor, Progreso } from '../../../shared/contratos'
+import { Link } from 'react-router-dom'
+import type { Alerta, Progreso } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { api, type ErrorDeApi } from '../../lib/api'
@@ -15,7 +15,7 @@ import { Cobertura } from './Cobertura'
 import { Evolucion } from './Evolucion'
 import { ProximoPaso } from './ProximoPaso'
 import { Repertorio } from './Repertorio'
-import { fechaCorta, gruposDesdeHoy, hayComidas, leerMotor, ultimoDia, ultimoDiaConComidas } from './calculos'
+import { fechaCorta, gruposDesdeHoy, hayComidas, ultimoDia, ultimoDiaConComidas } from './calculos'
 import './tablero.css'
 
 const DIAS = 7 // la cobertura es semanal; las 4 semanas de la evolución vienen aparte en `semanas`
@@ -23,31 +23,31 @@ const DIAS = 7 // la cobertura es semanal; las 4 semanas de la evolución vienen
 interface Carga { clave: string; datos: Progreso | null; hasta: string | null; error: ErrorDeApi | null; cargando: boolean }
 
 /** El tablero de los últimos 7 días; si vino vacío pero hay historial, el de la última semana con comidas. */
-async function pedirProgreso(ninoId: string, motor: Motor, senal: AbortSignal): Promise<{ datos: Progreso; hasta: string | null }> {
-  const datos = await api.progreso(ninoId, { dias: DIAS, motor }, senal)
+async function pedirProgreso(ninoId: string, senal: AbortSignal): Promise<{ datos: Progreso; hasta: string | null }> {
+  const datos = await api.progreso(ninoId, { dias: DIAS }, senal)
   const hoy = diaUruguay()
   const hasta = hayComidas(datos.dias) ? null : ultimoDiaConComidas(datos, hoy)
   if (!hasta) return { datos, hasta: null }
-  const semana = await api.progreso(ninoId, { dias: DIAS, motor, hasta }, senal)
+  const semana = await api.progreso(ninoId, { dias: DIAS, hasta }, senal)
   return { datos: { ...semana, grupos: gruposDesdeHoy(semana.grupos, hasta, hoy) }, hasta }
 }
 
 /**
- * Como useApi, pero al cambiar de motor conserva el tablero anterior mientras llega el nuevo
+ * Como useApi, pero al reintentar conserva el tablero anterior mientras llega el nuevo
  * (sin parpadeo de "Cargando…"). Los datos de otro chico nunca se muestran.
  */
-function useProgreso(ninoId: string, motor: Motor) {
+function useProgreso(ninoId: string) {
   const [carga, setCarga] = useState<Carga>({ clave: ninoId, datos: null, hasta: null, error: null, cargando: true })
   const [intento, setIntento] = useState(0)
 
   useEffect(() => {
     const control = new AbortController()
     setCarga((c) => (c.clave === ninoId ? { ...c, error: null, cargando: true } : { clave: ninoId, datos: null, hasta: null, error: null, cargando: true }))
-    pedirProgreso(ninoId, motor, control.signal)
+    pedirProgreso(ninoId, control.signal)
       .then(({ datos, hasta }) => { if (!control.signal.aborted) setCarga({ clave: ninoId, datos, hasta, error: null, cargando: false }) })
       .catch((e) => { if (!control.signal.aborted) setCarga((c) => ({ ...c, error: aErrorDeApi(e), cargando: false })) })
     return () => control.abort()
-  }, [ninoId, motor, intento])
+  }, [ninoId, intento])
 
   const propia = carga.clave === ninoId
   return {
@@ -58,14 +58,8 @@ function useProgreso(ninoId: string, motor: Motor) {
 
 export function Tablero() {
   const ninoId = useNinoActivo()
-  const [params, setParams] = useSearchParams()
-  const motor = leerMotor(params.get('motor'))
-  const { datos, hasta, error, cargando, reintentar } = useProgreso(ninoId, motor)
+  const { datos, hasta, error, cargando, reintentar } = useProgreso(ninoId)
   const conNino = `?nino=${encodeURIComponent(ninoId)}`
-
-  const cambiarMotor = (m: Motor) => {
-    setParams((p) => { const n = new URLSearchParams(p); n.set('motor', m); return n }, { replace: true })
-  }
 
   if (!datos) {
     if (error?.codigo === 'no_encontrado') return <PerfilNoEncontrado />
@@ -114,8 +108,6 @@ export function Tablero() {
         sugerencias={p.sugerencias}
         proximoPaso={p.proximoPaso}
         nutriente={nutrienteQueFalta}
-        motor={motor}
-        onMotor={cambiarMotor}
         recargando={cargando}
       />
 

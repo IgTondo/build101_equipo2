@@ -33,7 +33,7 @@ Celular (React + Vite) ──► Vercel Functions (api/*, 12) ──► server/
 
 - **Contratos:** [`shared/contratos.ts`](shared/contratos.ts) es la fuente de verdad entre el front y las funciones.
 - **Capas:** bronze (cada comida en Mongo, nunca se reescribe), silver (el grafo y las funciones puras), gold (lo que ve el padre). Silver y gold se recalculan desde el bronze.
-- **Motores enchufables:** el grafo vive en Neo4j o en Mongo (`MOTOR_GRAFO`), y el recomendador puede ser `grafo` o `base` (`?motor=`), para comparar en vivo.
+- **Motores enchufables:** el grafo vive en Neo4j o en Mongo (`MOTOR_GRAFO`), y el recomendador puede ser `grafo` o `base` (`?motor=` en la API, para comparar; la app no lo muestra).
 - **La IA nunca decide lo delicado:** las alergias se cargan a mano y se validan por código; los nutrientes salen de la tabla, no del modelo; los números del resumen los arma el código y el modelo solo los redacta.
 
 ## Componentes de IA

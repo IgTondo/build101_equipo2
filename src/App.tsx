@@ -43,12 +43,11 @@ function AvisoDatosDeEjemplo() {
 }
 
 export function App() {
-  const { search, pathname } = useLocation()
+  const { pathname } = useLocation()
   const nino = useNino()
   const hayNino = nino !== null
-  // La navegación lleva solo el chico (y el motor de la demo): no arrastra ?momento= ni ?preparacionId= de otra pantalla.
-  const motor = new URLSearchParams(search).get('motor')
-  const navSearch = nino ? `?${new URLSearchParams({ nino, ...(motor ? { motor } : {}) })}` : ''
+  // La navegación lleva solo el chico: no arrastra ?momento= ni ?preparacionId= de otra pantalla.
+  const navSearch = nino ? `?${new URLSearchParams({ nino })}` : ''
   useEffect(() => avisoStubs.limpiar(), [pathname])
   return (
     <div className="nb-app">

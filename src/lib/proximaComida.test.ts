@@ -117,6 +117,6 @@ describe('textos y rutas', () => {
   it('la receta lleva el candidato, el nutriente y la comida', () => {
     const r = rutaRecetaComida('tomas', s('un_paso', 'bastones_queso_horno'), 'almuerzo', 'calcio_mg')
     expect(r).toBe('/receta?nino=tomas&preparacionId=bastones_queso_horno&nutriente=calcio_mg&momento=almuerzo')
-    expect(rutaRecetaComida('tomas', s('un_paso', 'x'), 'cena', undefined, 'base')).toContain('&motor=base')
+    expect(rutaRecetaComida('tomas', s('un_paso', 'x'), 'cena')).not.toContain('motor')
   })
 })

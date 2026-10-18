@@ -1,11 +1,10 @@
 // Próximo paso (§8 "explotar o explorar"): tres tarjetas, cada una con su porqué; las dos que exploran abren la receta.
 import { useId } from 'react'
 import { Link } from 'react-router-dom'
-import type { Candidato, Motor, Nutriente, Sugerencia } from '../../../shared/contratos'
+import type { Candidato, Nutriente, Sugerencia } from '../../../shared/contratos'
 import { sugerenciasDe } from '../../lib/proximaComida'
 import { NOMBRE_CAMBIO } from '../../lib/vocabulario'
 import { rutaReceta, valorAtributo } from './calculos'
-import { SwitchMotor } from './SwitchMotor'
 
 const TITULO: Record<Sugerencia['tipo'], string> = { segura: 'Va a gustarle', un_paso: 'Un pasito', mas_nutritiva: 'Más nutritiva' }
 
@@ -14,21 +13,16 @@ interface Props {
   sugerencias?: Sugerencia[]
   proximoPaso?: Candidato
   nutriente?: Nutriente
-  motor: Motor
-  onMotor: (m: Motor) => void
   recargando: boolean
 }
 
-export function ProximoPaso({ ninoId, sugerencias, proximoPaso, nutriente, motor, onMotor, recargando }: Props) {
+export function ProximoPaso({ ninoId, sugerencias, proximoPaso, nutriente, recargando }: Props) {
   const id = useId()
   const tarjetas = sugerenciasDe({ sugerencias, proximoPaso })
 
   return (
     <section className="nb-tarjeta tb-seccion" aria-labelledby={`${id}-t`} aria-busy={recargando}>
-      <div className="tb-cab-seccion">
-        <h2 id={`${id}-t`}>Próximo paso</h2>
-        <SwitchMotor motor={motor} onCambio={onMotor} />
-      </div>
+      <h2 id={`${id}-t`}>Próximo paso</h2>
 
       {tarjetas.length === 0 ? (
         <p className="tb-vacio-chico">Todavía no tenemos una sugerencia. Con algunas comidas más registradas, vamos a poder proponerte una.</p>
@@ -43,7 +37,7 @@ export function ProximoPaso({ ninoId, sugerencias, proximoPaso, nutriente, motor
               {s.tipo !== 'segura' && (
                 <Link
                   className={`nb-boton${s.tipo === 'un_paso' ? '' : ' nb-boton-secundario'}`}
-                  to={rutaReceta(ninoId, s.candidato?.preparacionId ?? s.preparacionId, nutriente, motor)}
+                  to={rutaReceta(ninoId, s.candidato?.preparacionId ?? s.preparacionId, nutriente)}
                   aria-label={`Ver la receta: ${s.nombre}`}
                 >
                   Ver la receta

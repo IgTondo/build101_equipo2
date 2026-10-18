@@ -2,7 +2,7 @@
 // se abre la receta para esa comida. La usan el inicio y el resultado del registro. Es una sugerencia: el padre puede
 // servir otra cosa. Una sugerencia "segura" (algo que ya come) no abre receta: se muestra sin enlace.
 import { Link } from 'react-router-dom'
-import type { Motor, Nutriente, Progreso } from '../../shared/contratos'
+import type { Nutriente, Progreso } from '../../shared/contratos'
 import { elegirSugerencia, primeraFrase, rutaRecetaComida, type ProximaComida } from '../lib/proximaComida'
 import { Cargando } from './Estados'
 import './proxima-comida.css'
@@ -12,10 +12,9 @@ interface Props {
   proxima: ProximaComida
   /** null mientras carga. */
   progreso: Pick<Progreso, 'sugerencias' | 'proximoPaso' | 'semana' | 'momento'> | null
-  motor?: Motor
 }
 
-export function TarjetaProximaComida({ ninoId, proxima, progreso, motor }: Props) {
+export function TarjetaProximaComida({ ninoId, proxima, progreso }: Props) {
   const titulo = <h2 className="nb-oculto">Próxima comida</h2>
   const cuando = <span className="pc-cuando">{proxima.etiqueta}</span>
 
@@ -53,7 +52,7 @@ export function TarjetaProximaComida({ ninoId, proxima, progreso, motor }: Props
   return (
     <section>
       {titulo}
-      <Link className="pc pc-enlace" to={rutaRecetaComida(ninoId, s, proxima.momento, nutriente, motor)}>
+      <Link className="pc pc-enlace" to={rutaRecetaComida(ninoId, s, proxima.momento, nutriente)}>
         {cuando}
         <span className="pc-nombre">{s.nombre}</span>
         {porQue}

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { CoberturaDia, Nutrientes } from '../../../shared/contratos'
 import progreso from '../../../fixtures/progreso.json'
 import {
-  coberturaPromedio, escalaBarra, etiquetaDia, fechaCorta, fraseGrupoAusente, hayComidas, leerMotor, MARCA_100,
+  coberturaPromedio, escalaBarra, etiquetaDia, fechaCorta, fraseGrupoAusente, hayComidas, MARCA_100,
   ordenarNutrientes, rutaReceta, srcMiniatura, textoDiasSinComer, textoEnergia,
   diasEntre, gruposDesdeHoy, sumarDias, textoEvolucion, textoTendencia, textoVeces, ultimasComidas, ultimoDia, ultimoDiaConComidas, valorAtributo,
 } from './calculos'
@@ -106,16 +106,11 @@ describe('comidas', () => {
   })
 })
 
-describe('motor y receta', () => {
-  it('lee el motor de la URL con grafo por defecto', () => {
-    expect(leerMotor(null)).toBe('grafo')
-    expect(leerMotor('base')).toBe('base')
-    expect(leerMotor('otro')).toBe('grafo')
-  })
+describe('receta', () => {
   it('arma la ruta de la receta', () => {
     expect(rutaReceta('tomas', 'bastones_queso_horno', 'calcio_mg'))
       .toBe('/receta?nino=tomas&preparacionId=bastones_queso_horno&nutriente=calcio_mg')
-    expect(rutaReceta('tomas', 'yogur', undefined, 'base')).toBe('/receta?nino=tomas&preparacionId=yogur&motor=base')
+    expect(rutaReceta('tomas', 'yogur')).toBe('/receta?nino=tomas&preparacionId=yogur')
   })
 })
 

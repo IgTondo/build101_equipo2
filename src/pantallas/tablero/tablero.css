@@ -17,8 +17,6 @@
 .tb-vacio-chico { color: var(--nb-texto-suave); margin: 4px 0 0; text-wrap: pretty; }
 .tb-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .tb-subtitulo { font-size: 1.05rem; margin: 16px 0 4px; }
-.tb-cab-seccion { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-.tb-cab-seccion h2 { margin: 0; }
 
 /* ---------- Alertas: calmas, sin rojo ---------- */
 .tb-alertas {
@@ -75,23 +73,6 @@
 .tb-energia-dato strong { font-weight: 700; }
 
 /* ---------- Próximo paso ---------- */
-.tb-motor { border: 0; margin: 0; padding: 0; display: flex; align-items: center; gap: 8px; min-width: 0; }
-.tb-motor legend { float: left; padding: 0; margin-right: 8px; font-size: 0.8rem; color: var(--nb-texto-suave); }
-.tb-motor-nota { white-space: nowrap; }
-.tb-motor-opciones {
-  display: inline-flex; padding: 2px; border-radius: var(--nb-radio-pastilla);
-  background: var(--nb-superficie-suave); border: 1px solid var(--nb-borde);
-}
-.tb-motor-opcion { position: relative; display: inline-flex; }
-.tb-motor-opcion input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
-.tb-motor-opcion span {
-  display: inline-flex; align-items: center; min-height: 44px; min-width: 56px; justify-content: center;
-  padding: 0 12px; border-radius: var(--nb-radio-pastilla); font-size: 0.85rem; font-weight: 700;
-  color: var(--nb-texto-suave); transition: background-color 150ms ease-out, color 150ms ease-out;
-}
-.tb-motor-opcion input:checked + span { background: var(--nb-superficie); color: var(--nb-primario); box-shadow: var(--nb-sombra); }
-.tb-motor-opcion input:focus-visible + span { outline: 3px solid var(--nb-marca); outline-offset: 1px; }
-
 .tb-sugerencias { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; transition: opacity 150ms ease-out; }
 .tb-recargando { opacity: 0.55; }
 .tb-sugerencia {
@@ -180,6 +161,6 @@
 .tb-tablero .nb-boton:active { transform: scale(0.98); }
 
 @media (prefers-reduced-motion: reduce) {
-  .tb-chevron, .tb-relleno, .tb-sugerencias, .tb-motor-opcion span, .tb-tablero .nb-boton { transition: none; }
+  .tb-chevron, .tb-relleno, .tb-sugerencias, .tb-tablero .nb-boton { transition: none; }
   .tb-tablero .nb-boton:active { transform: none; }
 }

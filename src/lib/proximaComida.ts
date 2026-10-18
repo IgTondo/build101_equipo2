@@ -126,11 +126,10 @@ export function primeraFrase(texto: string): string {
 }
 
 /** La receta de la próxima comida: el candidato elegido, el nutriente que más falta y la comida. */
-export function rutaRecetaComida(ninoId: string, s: Sugerencia, momento: Principal, nutriente?: string, motor?: string): string {
+export function rutaRecetaComida(ninoId: string, s: Sugerencia, momento: Principal, nutriente?: string): string {
   const p = new URLSearchParams({ nino: ninoId, preparacionId: s.candidato?.preparacionId ?? s.preparacionId })
   if (nutriente) p.set('nutriente', nutriente)
   p.set('momento', momento)
-  if (motor && motor !== 'grafo') p.set('motor', motor)
   return `/receta?${p.toString()}`
 }
 

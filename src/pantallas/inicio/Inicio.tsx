@@ -3,7 +3,7 @@
 // comida), "Registrar comida" (con la comida que acaba de terminar preseleccionada), las alertas si hay y "Ver la semana".
 // Un solo pedido a /api/progreso (7 días, con ?momento= de la próxima comida) y el perfil en paralelo, solo por el nombre.
 import { useState } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import type { Alerta } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
@@ -12,15 +12,13 @@ import { api } from '../../lib/api'
 import { diaUruguay, useNinoActivo } from '../../lib/nino'
 import { comidaRecienPorHora, comidasDelDia, horaUruguay, leerUltimaComida, proximaComida } from '../../lib/proximaComida'
 import { useApi } from '../../lib/useApi'
-import { hayComidas, leerMotor } from '../tablero/calculos'
+import { hayComidas } from '../tablero/calculos'
 import { Hoy } from './Hoy'
 import './inicio.css'
 
 export function Inicio() {
   const ninoId = useNinoActivo()
   const { search } = useLocation()
-  const [params] = useSearchParams()
-  const motor = leerMotor(params.get('motor'))
   // El reloj se lee una vez al entrar: la pantalla no cambia de comida mientras el padre la mira.
   const [ahora] = useState(() => ({ dia: diaUruguay(), hora: horaUruguay() }))
 
@@ -28,8 +26,8 @@ export function Inicio() {
   const ultima = leerUltimaComida(ninoId, ahora.dia)
   const estimada = proximaComida(ultima ? [ultima] : [], ahora.hora)
   const progreso = useApi(
-    (s) => api.progreso(ninoId, { dias: 7, motor, momento: estimada.momento }, s),
-    [ninoId, motor],
+    (s) => api.progreso(ninoId, { dias: 7, momento: estimada.momento }, s),
+    [ninoId],
   )
   const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
   const nombre = perfil.tipo === 'ok' ? perfil.datos.datos.nombre : null
@@ -53,7 +51,7 @@ export function Inicio() {
       {progreso.tipo === 'error' && <ErrorConReintento error={progreso.error} reintentar={progreso.reintentar} />}
       {datos && <Hoy dia={diaHoy} semana={datos.semana} hayComidasSemana={hayComidas(datos.dias)} />}
 
-      {progreso.tipo !== 'error' && <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={datos} motor={motor} />}
+      {progreso.tipo !== 'error' && <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={datos} />}
 
       <Link className="nb-boton nb-boton-secundario in-registrar" to={{ pathname: '/registrar', search: `?${registrar}` }}>
         <IconoCamara /> Registrar comida

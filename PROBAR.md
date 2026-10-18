@@ -31,7 +31,7 @@ Tiene que entender 5 cosas que acepta, 2 que rechaza (puré por la textura, arro
 
 ### C · Tablero, receta, perfil y resumen (con datos ya cargados)
 Los chicos sintéticos del dataset (§10.5, simulación declarada) tienen 20 comidas cada uno:
-- **Tablero:** https://nibble-eight-vert.vercel.app/tablero?nino=sint-tomas (y `sint-lucia`). Tocá una barra de nutrientes y probá el switch grafo/base.
+- **Tablero:** https://nibble-eight-vert.vercel.app/tablero?nino=sint-tomas (y `sint-lucia`). Tocá una barra de nutrientes para ver el detalle.
 - **Receta:** en el tablero, **Un pasito** o **Más nutritiva** → **Ver la receta**. Tarda unos 10 s; la imagen carga aparte (unos 3 s).
 - **Perfil:** https://nibble-eight-vert.vercel.app/perfil?nino=sint-tomas → "Lo que sabemos de Tomás": le gusta, está probando y lo que notamos.
 - **Resumen para el nutricionista:** https://nibble-eight-vert.vercel.app/resumen?nino=sint-tomas → **Copiar**.

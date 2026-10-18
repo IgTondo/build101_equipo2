@@ -3,7 +3,7 @@
 // guardar, así la sugerencia y el "Hoy" del inicio ya la cuentan. La energía va como dato, sin meta (§1). Las alertas
 // derivan al profesional, sin alarmar.
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import type { Rango, RegistrarComidaReq, RegistrarComidaRes } from '../../../shared/contratos'
 import { ErrorConReintento } from '../../componentes/Estados'
 import { TarjetaProximaComida } from '../../componentes/ProximaComida'
@@ -11,7 +11,6 @@ import { api } from '../../lib/api'
 import { comidasDelDia, horaUruguay, proximaComida } from '../../lib/proximaComida'
 import { useApi } from '../../lib/useApi'
 import { NOMBRE_NUTRIENTE, NUTRIENTES_CON_META, textoParaPadres } from '../../lib/vocabulario'
-import { leerMotor } from '../tablero/calculos'
 import { rangoLegible } from './modelo'
 
 /** "Qué aprendí" corto: lo más nuevo primero, como mucho tres líneas. */
@@ -46,19 +45,17 @@ interface Props {
 }
 
 export function Resultado({ ninoId, res, req, alOtra }: Props) {
-  const [params] = useSearchParams()
-  const motor = leerMotor(params.get('motor'))
   const registrada = { id: res.comidaId, momento: req.momento, fechaISO: req.fechaISO }
   // Las comidas del día que devolvió el registro, más la recién guardada si no venía (B puede mandar el día sin ella).
   const delDia = comidasDelDia(res.dia.dia === req.dia ? [res.dia] : [], req.dia, [registrada])
   const [hora] = useState(horaUruguay)
   const proxima = proximaComida(delDia, hora)
   const progreso = useApi(
-    (s) => api.progreso(ninoId, { dias: 7, motor, momento: proxima.momento }, s),
-    [ninoId, motor, res.comidaId],
+    (s) => api.progreso(ninoId, { dias: 7, momento: proxima.momento }, s),
+    [ninoId, res.comidaId],
   )
 
-  const conNino = new URLSearchParams({ nino: ninoId, ...(motor !== 'grafo' ? { motor } : {}) })
+  const conNino = new URLSearchParams({ nino: ninoId })
 
   return (
     <>
@@ -88,7 +85,7 @@ export function Resultado({ ninoId, res, req, alOtra }: Props) {
       <div className="rg-final">
         {progreso.tipo === 'error'
           ? <ErrorConReintento error={progreso.error} reintentar={progreso.reintentar} />
-          : <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={progreso.tipo === 'ok' ? progreso.datos : null} motor={motor} />}
+          : <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={progreso.tipo === 'ok' ? progreso.datos : null} />}
         <Link className="nb-boton nb-boton-secundario" to={{ pathname: '/', search: `?${conNino}` }}>Volver al inicio</Link>
         <button type="button" className="rg-boton-texto" onClick={alOtra}>Registrar otra comida</button>
       </div>
