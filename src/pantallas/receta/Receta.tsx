@@ -2,14 +2,17 @@
 // v5.1: `momento` es la comida para la que es (la próxima comida del inicio): viaja en RecetaReq y titula la pantalla.
 // Sin preparacionId: el padre elige el nutriente (por defecto, el primero de semana.faltan) y pide la receta.
 // Con preparacionId (viene de una tarjeta de sugerencia del tablero): la receta se pide sola.
+import { ArrowLeft, CookingPot, RefreshCw } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { MOMENTO, MOTOR, NUTRIENTE } from '../../../shared/contratos'
 import type { Momento, Motor, Nutriente, Receta as RecetaT, Regla } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
+import { Button } from '../../componentes/ui/button'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { useNinoActivo } from '../../lib/nino'
 import { aErrorDeApi, useApi } from '../../lib/useApi'
+import { EsperaReceta } from './EsperaReceta'
 import { nutrienteEnFrase } from './legible'
 import { SelectorNutriente } from './SelectorNutriente'
 import { TarjetaReceta } from './TarjetaReceta'
@@ -113,30 +116,24 @@ export function Receta() {
 
   // Desde el inicio (con ?momento=) se vuelve al inicio; desde el tablero, a la semana.
   const volverA = { pathname: momento ? '/' : '/tablero', search: `?${new URLSearchParams({ nino: ninoId, ...(motor ? { motor } : {}) })}` }
-  const alTablero = <Link className="nb-boton nb-boton-secundario" to={volverA}>{momento ? 'Volver al inicio' : 'Volver a la semana'}</Link>
+  const alTablero = (
+    <Button asChild variant="ghost" className="self-center text-musgo">
+      <Link to={volverA}><ArrowLeft aria-hidden="true" />{momento ? 'Volver al inicio' : 'Volver a la semana'}</Link>
+    </Button>
+  )
 
   if (pedido.tipo === 'pidiendo') {
     const etapas = [nombre ? `Buscando en el grafo de ${nombre}…` : 'Buscando en su grafo…', 'Escribiendo la receta…', 'Validando alergias…']
-    return (
-      <section className="nb-tarjeta rc-progreso" aria-labelledby="rc-progreso-titulo">
-        <h1 id="rc-progreso-titulo">Preparando una receta{para ? ` ${para}` : ''}</h1>
-        <Cargando texto={etapas[pedido.etapa]} />
-        <ol className="rc-etapas" aria-hidden="true">
-          {etapas.map((t, i) => (
-            <li key={t} data-estado={i < pedido.etapa ? 'hecha' : i === pedido.etapa ? 'actual' : 'pendiente'}>{t.replace('…', '')}</li>
-          ))}
-        </ol>
-      </section>
-    )
+    return <EsperaReceta titulo={`Preparando una receta${para ? ` ${para}` : ''}`} etapas={etapas} etapa={pedido.etapa} />
   }
 
   if (pedido.tipo === 'ok') {
     return (
       <>
-        <TarjetaReceta receta={pedido.receta} reglas={reglas} para={para} />
-        <div className="rc-acciones">
-          <button type="button" className="nb-boton" onClick={() => otraOpcion(pedido.receta)}>Otra opción</button>
-          <button type="button" className="nb-boton nb-boton-secundario" onClick={elegirOtroNutriente}>Elegir otro nutriente</button>
+        <TarjetaReceta receta={pedido.receta} reglas={reglas} para={para} momento={momento} />
+        <div className="mt-4 flex flex-col gap-2.5">
+          <Button size="lg" onClick={() => otraOpcion(pedido.receta)}><RefreshCw aria-hidden="true" />Otra opción</Button>
+          <Button size="lg" variant="outline" onClick={elegirOtroNutriente}>Elegir otro nutriente</Button>
           {alTablero}
         </div>
       </>
@@ -147,11 +144,13 @@ export function Receta() {
     return (
       <>
         <Vacio titulo={`Todavía no encontramos un paso chico para ${nutriente ? nutrienteEnFrase(nutriente) : 'lo que le falta'}`}>
-          <p className="nb-suave">Registrá algunas comidas más: con cada una aprendemos qué le gusta y aparecen nuevas ideas.</p>
-          <Link className="nb-boton" to={{ pathname: '/registrar', search: volverA.search }}>Registrar una comida</Link>
+          <p className="text-musgo">Registrá algunas comidas más: con cada una aprendemos qué le gusta y aparecen nuevas ideas.</p>
+          <Button asChild className="mt-1">
+            <Link to={{ pathname: '/registrar', search: volverA.search }}>Registrar una comida</Link>
+          </Button>
         </Vacio>
-        <div className="rc-acciones">
-          <button type="button" className="nb-boton nb-boton-secundario" onClick={elegirOtroNutriente}>Elegir otro nutriente</button>
+        <div className="flex flex-col gap-2.5">
+          <Button size="lg" variant="outline" onClick={elegirOtroNutriente}>Elegir otro nutriente</Button>
           {alTablero}
         </div>
       </>
@@ -162,19 +161,29 @@ export function Receta() {
   const sinNutrienteTodavia = !elegido && progreso.tipo === 'cargando'
   return (
     <>
-      <section className="nb-tarjeta rc-elegir" aria-labelledby="rc-elegir-titulo">
-        <h1 id="rc-elegir-titulo">{para ? `Una receta ${para}` : 'Una receta para dar un pasito'}</h1>
-        {sinNutrienteTodavia
-          ? <Cargando texto="Mirando qué le falta esta semana…" />
-          : <SelectorNutriente semana={progreso.tipo === 'ok' ? progreso.datos.semana : null} valor={nutriente} onCambiar={setElegido} />}
-        <button type="button" className="nb-boton" disabled={sinNutrienteTodavia} onClick={() => pedir(undefined)}>
-          Pedir receta
-        </button>
+      <section className="flex flex-col gap-5" aria-labelledby="rc-elegir-titulo">
+        <h1 id="rc-elegir-titulo" className="text-3xl font-black">{para ? `Una receta ${para}` : 'Una receta para dar un pasito'}</h1>
+        {/* El error va arriba: si la receta se pidió sola y falló, es lo primero que tiene que ver. */}
+        {pedido.tipo === 'error' && (
+          <ErrorConReintento error={pedido.error} reintentar={() => pedir(pedido.preparacionId)} />
+        )}
+        <div className="mordisco rounded-3xl bg-brote px-5 pt-5 pb-6 [--mordisco:30px]">
+          {sinNutrienteTodavia
+            ? <Cargando texto="Mirando qué le falta esta semana…" className="min-h-24" />
+            : <SelectorNutriente semana={progreso.tipo === 'ok' ? progreso.datos.semana : null} valor={nutriente} onCambiar={setElegido} />}
+        </div>
+        {/* Queda a mano arriba de la barra de navegación mientras se elige (ya viene elegido lo que más le falta).
+            El halo blanco lo separa de lo que pasa por debajo, sin otra sombra. */}
+        <Button
+          size="lg"
+          disabled={sinNutrienteTodavia}
+          onClick={() => pedir(undefined)}
+          className="sticky bottom-[calc(max(14px,env(safe-area-inset-bottom))+76px)] z-30 shadow-[0_0_0_8px_var(--background)]"
+        >
+          <CookingPot aria-hidden="true" />Pedir receta
+        </Button>
       </section>
-      {pedido.tipo === 'error' && (
-        <ErrorConReintento error={pedido.error} reintentar={() => pedir(pedido.preparacionId)} />
-      )}
-      <div className="rc-acciones">{alTablero}</div>
+      {alTablero}
     </>
   )
 }
