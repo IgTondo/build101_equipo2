@@ -42,6 +42,7 @@
 | Indicador | Cómo se calcula | Por qué |
 |---|---|---|
 | **Cobertura semanal de nutrientes** (principal) | Promedio diario de los últimos 7 días ÷ objetivo por edad y sexo, para 8 nutrientes (la energía va aparte) | Una comida tiene ±35% de error en gramos; la semana compensa. El research pide promediar por semana, no por día |
+| *Cómo se muestra (v5.2)* | Al padre, nunca un porcentaje mayor a 100: tres estados, **Cubierto ✓** (≥ 100%), **Casi** (70–99%) y **Le falta** (< 70%), con la barra hasta 100%. Pasar el objetivo no es "más es mejor": las cifras de referencia son mínimos | Un 158% de proteína es correcto (una milanesa supera los 19 g de un chico de 6 años), pero confunde |
 | **Qué le falta, en orden** | Entre los que están por debajo del 70% de cobertura semanal: vitamina C si casi no hay ninguna fuente (riesgo de escorbuto) → calcio y vitamina D → hierro → fibra → omega-3 → B12 y proteína | Prioridad por gravedad del research. Se ataca uno o dos por vez |
 | **Energía aproximada** | kcal por día, como dato | **Sin meta de calorías**: no se le cuentan calorías al chico |
 | **Repertorio** | Preparaciones en estado `acepta`, con la tendencia contra la semana anterior | Menos de 10–20 alimentos, o un repertorio que se achica, es señal de alerta |
@@ -76,7 +77,7 @@ Arriba de todo, una frase armada con una plantilla, sin LLM: *"Esta semana Tomá
 | **P2** | Curva del chico simulado (grafo contra base α/β) | B | Gráfica para la diapositiva |
 | **P2** | Evaluación de recetas (alergias, un solo cambio y lenguaje, sin y con validación) | A | % antes y después |
 | **P2** | Visualización del grafo del chico | C + B | Pantalla, o captura de Neo4j para el pitch |
-| **P2** | (v4) Switch `base` / `grafo` en el tablero (§4.3) | C + B | En vivo se ve que las sugerencias cambian |
+| ~~P2~~ | ~~(v4) Switch `base` / `grafo` en el tablero (§4.3)~~ **Fuera de la interfaz (v5.2):** al padre no le dice nada; la comparación se muestra en el pitch con la curva (§11.4). `?motor=` sigue en la API | — | — |
 | **P2** | Contradicciones entre la regla del padre y lo aprendido ("¿actualizo la regla?") | B | Aparece en "qué aprendí" |
 | **P2** | Patrones de conducta (mismo algoritmo con la conducta como resultado: "se angustia si hay más de 3 alimentos") | B | Aparece en "qué aprendí" |
 | **P2** | Aviso de agotamiento: un alimento seguro servido igual casi todos los días → sugerir rotar la presentación | B | Aparece en el tablero |
@@ -724,7 +725,7 @@ Observación = un ítem de una comida: `{ prepId, atributos (8, con la cocción)
 | C11 | README: qué es, cómo correrlo, arquitectura, componentes de IA, **tabla real / simulado / pendiente**, alcance declarado, resultados de calidad | — | P1 |
 | C12 | Pitch: guion, 5–6 diapositivas, video de respaldo | — | P1 |
 | C13 | Visualización del grafo (`react-force-graph` con `/api/grafo`) o captura de Neo4j Explore para la diapositiva | — | P2 |
-| C14 | (v4) Switch "recomendador: base / grafo" en el tablero (`?motor=`, §4.3), para mostrar en vivo que el grafo sugiere mejor | — | P2 |
+| C14 | ~~Switch "recomendador: base / grafo" en el tablero~~ **Descartado (v5.2):** no se muestra al padre; la comparación grafo/base va en la diapositiva de calidad (curva de §11.4) | — | — |
 
 **"¿Cómo le fue?" en la pantalla Registrar:** arriba, un botón grande "Contame cómo le fue" (voz). Abajo, por cada ítem, los 7 botones de la escalera (§5.1) y, por comida, los chips de conducta. Con voz, la IA los marca y el padre solo corrige. Sin voz, se tocan los botones. Nunca se guarda sin que el padre confirme.
 
