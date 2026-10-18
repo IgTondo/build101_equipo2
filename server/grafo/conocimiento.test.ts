@@ -1,14 +1,19 @@
 // v5.10 · La variedad de la receta creativa, del lado del grafo (conocimientoDe): los "Ricos en X" uno por familia y sin
 // golosinas, el ingrediente del foco sorteado entre ellos y lo que ya usó en las recetas que vio la familia, afuera. Sin
 // Mongo: Valentina del dataset sintético (§10.5) con los catálogos reales, como la cargaría cargarNino().
-import { describe, expect, it } from 'vitest'
+// v5.10 · Y el sorteo pesado por las afinidades (server/ia/afinidades.ts): con pares de ejemplo (fijarAfinidades) y, donde
+// se dice, con data/afinidades.json.
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MOMENTO, NUTRIENTE, type Momento, type Nutriente } from '../../shared/contratos.js'
 import { principal } from '../aprendizaje/cadena.js'
 import { alimentosCatalogo, preparacionesCatalogo } from '../datos/catalogos.js'
 import { type Cargado, objetivoDe } from '../datos/cargar.js'
 import { comidasSinteticas, ninoDoc, sintetico, type SinteticoId } from '../datos/prueba/catalogos.js'
+import { fijarAfinidades, type ParAfinidad } from '../ia/afinidades.js'
 import { escalar } from '../nutricion/calcular.js'
-import { ACOMPANAMIENTOS, GOLOSINAS_Y_ULTRAPROCESADOS, conocimientoDe, familia, recientesDe, type Conocimiento } from './conocimiento.js'
+import {
+  ACOMPANAMIENTOS, GOLOSINAS_Y_ULTRAPROCESADOS, conocimientoDe, contextoAfinidad, familia, recientesDe, type Conocimiento,
+} from './conocimiento.js'
 
 const HOY = '2026-10-18' // el último día del historial de Valentina
 const catalogo = new Map(preparacionesCatalogo())
@@ -30,6 +35,11 @@ const principalDe = (k: Conocimiento, id = k.foco.desdeId) => principal(k.seguro
 const noIdentifican = (id: string) => ACOMPANAMIENTOS.has(id) || GOLOSINAS_Y_ULTRAPROCESADOS.has(id)
 const AZARES = [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 0.99]
 /** Un azar con semilla (congruencial lineal): cada llamada da otro número, y la misma semilla, la misma secuencia. */
+/** Un azar que da estos números en orden (y después repite el último): el sorteo es desde, modo, nutriente e ingrediente. */
+const enOrden = (...xs: number[]) => {
+  let i = 0
+  return () => xs[Math.min(i++, xs.length - 1)]!
+}
 const conSemilla = (semilla: number) => {
   let x = semilla
   return () => (x = (x * 9301 + 49297) % 233280) / 233280
@@ -210,5 +220,139 @@ describe('recientesDe', () => {
     expect(de('Medallones de ricota crocantes, como sus nuggets')).toEqual(['ricota'])
     expect(de('Bastones de polenta dorados como su milanesa de pollo')).toEqual(['polenta'])
     expect(de('', '   ')).toEqual([])
+  })
+})
+
+describe('conocimientoDe: el ingrediente del foco combina con lo que queda de su plato (afinidades)', () => {
+  const PARES: ParAfinidad[] = [
+    { a: 'banana', b: 'avena', n: 120, afinidad: 0.3 },
+    { a: 'banana', b: 'chocolate', n: 90, afinidad: 0.28 }, // una golosina: no va en las combinaciones
+    { a: 'banana', b: 'yogur', n: 200, afinidad: 0.25 },
+    { a: 'banana', b: 'merluza', n: 10, afinidad: 0.2 }, // pescado, su alergia: tampoco
+    { a: 'banana', b: 'frambuesa', n: 70, afinidad: 0.2 },
+    { a: 'banana', b: 'huevo_enriquecido', n: 40, afinidad: 0.1 },
+    { a: 'pan_rallado', b: 'queso_rallado', n: 300, afinidad: 0.3 },
+    { a: 'pan_rallado', b: 'ricota', n: 80, afinidad: 0.15 },
+    { a: 'carne_vacuna', b: 'porotos', n: 150, afinidad: 0.2 },
+    { a: 'carne_vacuna', b: 'ricota', n: 60, afinidad: 0.1 },
+  ]
+  const R = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.95] // el número que sortea el ingrediente
+  // Los alimentos seguros de Valentina en el desayuno son 9 (el licuado es el 6.º) y en la cena 10 (la milanesa, el último)
+  const LICUADO = 0.6
+  const MILANESA = 0.95
+  const CAMBIAR = 0.1
+  const SUMAR = 0.9
+  const sorteados = (momento: Momento, desde: number, modo: number, nutriente: Nutriente) =>
+    R.map((r) => conocimiento({ momento, nutriente, azar: enOrden(desde, modo, 0, r) }).foco)
+  /** Pares de ejemplo: lo de `platos` combina con todo el catálogo menos con `menos` (no depende de cuáles son los ricos). */
+  const todoMenos = (menos: string, ...platos: string[]): ParAfinidad[] =>
+    platos.flatMap((a) => [...alimentos.keys()].filter((b) => b !== a && b !== menos && !/^(otro|fdc)_/.test(b)).map((b) => ({ a, b, n: 10, afinidad: 0.2 })))
+  /** El primer nutriente con un rico que cumple `es` en esa comida, y cuál: así el que no combina es candidato. */
+  const conRico = (momento: Momento, es: (id: string) => boolean) => {
+    for (const n of NUTRIENTE) {
+      const id = ricosDe(conocimiento({ momento, nutriente: n }), n).find(es)
+      if (id) return { n, id }
+    }
+    return undefined
+  }
+  const esQueso = (id: string) => familia(id) === 'queso'
+  /** El sorteo de antes de las afinidades: por lugar entre los ricos posibles (de n, el primero pesa n … el último 1). */
+  const porLugar = (k: Conocimiento, a: number) => {
+    const plato = deSuPlato(k)
+    const xs = ricosDe(k, k.foco.nutriente!).filter((id) => !plato.includes(id) && alimentos.get(id)?.grupo !== 'verdura') // "No come verduras"
+    let r = (a * xs.length * (xs.length + 1)) / 2
+    for (const [i, x] of xs.entries()) {
+      r -= xs.length - i
+      if (r < 0) return x
+    }
+    return xs.at(-1)
+  }
+  let info: ReturnType<typeof vi.spyOn>
+  beforeEach(() => {
+    fijarAfinidades(PARES)
+    info = vi.spyOn(console, 'info').mockImplementation(() => {})
+  })
+  afterAll(() => {
+    fijarAfinidades(null)
+    vi.restoreAllMocks()
+  })
+
+  it('lo que queda del plato: sumando, todo; cambiando el principal, lo demás o, si no queda nada, el principal; sin acompañamientos', () => {
+    expect(contextoAfinidad(catalogo.get('licuado_banana_leche'), 'cambiar_principal')).toEqual(['banana'])
+    expect(contextoAfinidad(catalogo.get('banana_pisada'), 'cambiar_principal')).toEqual(['banana'])
+    expect(contextoAfinidad(catalogo.get('milanesa_carne_horno'), 'cambiar_principal')).toEqual(['pan_rallado'])
+    expect(contextoAfinidad(catalogo.get('milanesa_carne_horno'), 'sumar_ingrediente')).toEqual(['carne_vacuna', 'pan_rallado'])
+    expect(contextoAfinidad(undefined, 'sumar_ingrediente')).toEqual([])
+    // Con los datos reales el pan rallado no está en las recetas de Ahn: cuenta la carne
+    fijarAfinidades(null)
+    expect(contextoAfinidad(catalogo.get('milanesa_carne_horno'), 'cambiar_principal')).toEqual(['carne_vacuna'])
+  })
+
+  it('desde su licuado de banana con leche nunca sale el queso (el dambo, o el que esté entre los ricos: no va con la banana)', { timeout: 60_000 }, () => {
+    const rico = conRico('desayuno', esQueso)
+    expect(rico).toBeDefined()
+    const { n, id: queso } = rico!
+    fijarAfinidades(todoMenos(queso, 'banana', 'leche'))
+    info.mockClear()
+    for (const [modo, nombre] of [[CAMBIAR, 'cambiar_principal'], [SUMAR, 'sumar_ingrediente']] as const) {
+      const focos = sorteados('desayuno', LICUADO, modo, n)
+      for (const f of focos) expect(f).toMatchObject({ desdeId: 'licuado_banana_leche', modo: nombre })
+      expect(focos.map((f) => f.ingrediente), nombre).not.toContain(queso)
+      expect(new Set(focos.map((f) => f.ingrediente)).size, nombre).toBeGreaterThanOrEqual(2)
+    }
+    expect(info).not.toHaveBeenCalled() // combinan al menos 2: no cae al sorteo de antes
+  })
+
+  it('desde su milanesa de carne al horno nunca sale yogur', { timeout: 60_000 }, () => {
+    const rico = conRico('cena', (id) => id === 'yogur')
+    expect(rico).toBeDefined()
+    fijarAfinidades(todoMenos('yogur', 'carne_vacuna', 'pan_rallado'))
+    info.mockClear()
+    for (const [modo, nombre] of [[CAMBIAR, 'cambiar_principal'], [SUMAR, 'sumar_ingrediente']] as const) {
+      const focos = sorteados('cena', MILANESA, modo, rico!.n)
+      for (const f of focos) expect(f).toMatchObject({ desdeId: 'milanesa_carne_horno', modo: nombre })
+      expect(focos.map((f) => f.ingrediente), nombre).not.toContain('yogur')
+      expect(new Set(focos.map((f) => f.ingrediente)).size, nombre).toBeGreaterThanOrEqual(2)
+    }
+    expect(info).not.toHaveBeenCalled()
+  })
+
+  it('si combinan menos de 2, el sorteo de antes, y queda en el log', { timeout: 30_000 }, () => {
+    const { n, id: queso } = conRico('desayuno', esQueso)!
+    fijarAfinidades([])
+    const antes = sorteados('desayuno', LICUADO, SUMAR, n).map((f) => f.ingrediente)
+    const uno = antes.find((id) => id !== queso)!
+    fijarAfinidades([{ a: 'banana', b: uno, n: 10, afinidad: 0.2 }])
+    info.mockClear()
+    expect(sorteados('desayuno', LICUADO, SUMAR, n).map((f) => f.ingrediente)).toEqual(antes)
+    expect(JSON.parse(String(info.mock.calls[0]![0]))).toMatchObject({ evento: 'foco_sin_afinidad', desdeId: 'licuado_banana_leche', conQue: ['banana'], combinan: 1 })
+  })
+
+  it('sin datos de afinidad, el sorteo es el de antes: por lugar entre los ricos posibles', { timeout: 30_000 }, () => {
+    fijarAfinidades([])
+    for (const momento of ['almuerzo', 'desayuno'] as Momento[]) {
+      for (const a of AZARES) {
+        const k = conocimiento({ momento, azar: () => a })
+        expect(k.foco.ingrediente, `${momento} ${a}`).toBe(porLugar(k, a))
+      }
+    }
+    expect(conocimiento().texto).not.toContain('Combinaciones probadas')
+  })
+
+  it('el LLM lee las combinaciones probadas del principal de su plato: del catálogo, sin alérgenos ni golosinas', () => {
+    const k = conocimiento({ momento: 'desayuno', azar: enOrden(0.25, CAMBIAR, 0, 0.5) })
+    expect(k.foco.desdeId).toBe('banana_pisada')
+    expect(k.texto).toContain('Combinaciones probadas en recetas reales: banana va bien con avena, yogur, frambuesa, huevo_enriquecido.')
+    // Con los datos reales: hasta 6, ninguno que no pueda ser lo nuevo
+    fijarAfinidades(null)
+    const linea = conocimiento({ momento: 'desayuno', azar: enOrden(LICUADO, CAMBIAR, 0, 0.5) }).texto.split('\n').find((l) => l.startsWith('Combinaciones probadas'))!
+    const ids = linea.replace(/^.* va bien con /, '').replace(/\.$/, '').split(', ')
+    expect(linea).toMatch(/^Combinaciones probadas en recetas reales: leche va bien con /)
+    expect(ids.length).toBeGreaterThan(0)
+    expect(ids.length).toBeLessThanOrEqual(6)
+    for (const id of ids) {
+      expect(alimentos.has(id), id).toBe(true)
+      expect(noIdentifican(id) || (alimentos.get(id)?.alergenos ?? []).includes('pescado'), id).toBe(false)
+    }
   })
 })

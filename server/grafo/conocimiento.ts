@@ -12,16 +12,19 @@
 // v5.10 · Variedad de recetas: los "Ricos en X" van uno por familia (un solo queso) y sin golosinas ni ultraprocesados,
 // el foco trae el ingrediente que el plato nuevo TIENE que usar (sorteado entre esos ricos o entre los del grupo) y lo
 // que ya usó en las recetas que vio la familia (`anteriores`) no se repite: sale de los ricos y del sorteo.
+// v5.10 · El sorteo del ingrediente pesa por lo que combina con lo que queda del plato de partida (afinidades de Ahn
+// 2011, server/ia/afinidades.ts): sin eso salían "licuado de queso dambo y banana" y "milanesa de yogur".
 import type { Alergeno, Alimento, Dieta, Grupo, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Presentacion, Regla, Variedad } from '../../shared/contratos.js'
 import { NUTRIENTE } from '../../shared/contratos.js'
 import { alimentosProhibidos, limpiarOtras, normalizar } from '../alergias.js'
 import { APORTE_MINIMO, esAncla, esSegura, principal } from '../aprendizaje/cadena.js'
 import { calcularEstado } from '../aprendizaje/estado.js'
 import { menorCobertura } from '../aprendizaje/recomendador.js'
-import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, decimal, grupoSinComer, lista, porciento } from '../aprendizaje/textos.js'
+import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, decimal, grupoSinComer, lista, minuscula, porciento } from '../aprendizaje/textos.js'
 import { type Cargado, cargarNino } from '../datos/cargar.js'
 import { hoyUruguay } from '../datos/fechas.js'
 import { recomendacionDe } from '../datos/tablero.js'
+import { afinidadCon, afines } from '../ia/afinidades.js'
 import { completa } from '../ia/candidato.js'
 import { esCondimento } from '../ia/condimentos.js'
 import { energiaDeReferencia } from '../ia/plato-completo.js'
@@ -106,6 +109,8 @@ const MAX_NUTRIENTES = 3
 const MAX_RICOS = 8
 const MIN_RICOS = 3 // v5.10 · si sacar los recientes deja menos, vuelven los que más aportan
 const MIN_LETRAS_ALIAS = 4 // v5.10 · "pan" o "res" aparecen en todo: los alias más cortos no cuentan para los recientes
+const MIN_AFINES = 2 // v5.10 · con menos candidatos que combinen con su plato, el sorteo no mira la afinidad
+const MAX_COMBINACIONES = 6 // v5.10 · las "combinaciones probadas" del principal que ve el LLM
 
 /** v5.10 · Ni un genérico otro_<grupo> ni uno de alimentos_fdc (fdc_…, sin alérgenos curados ni en la lista del LLM). */
 const esCurado = (id: string) => !id.startsWith('otro_') && !id.startsWith('fdc_')
@@ -252,10 +257,26 @@ export function conocimientoDe(
   const rechazaGrupo = (g: Grupo | undefined) =>
     c.nino.reglas.some((r) => r.efecto === 'rechaza' && r.condiciones.length > 0 && r.condiciones.every((x) => x.tipo === 'grupo' && x.valor === g))
   const posible = (id: string) => !esReciente.has(id) && !deSuPlato.has(id) && !rechazaGrupo(c.alimentos.get(id)?.grupo)
-  const ingrediente = variedad
-    ? elegir(delGrupo.filter(posible))
-    : elegirPesado((nutrientes.find((x) => x.nutriente === foco.nutriente)?.ricos ?? []).map((r) => r.alimentoId).filter(posible), azar)
+  const candidatos = variedad ? delGrupo.filter(posible) : (nutrientes.find((x) => x.nutriente === foco.nutriente)?.ricos ?? []).map((r) => r.alimentoId).filter(posible)
+  const base = candidatos.map((_, i) => (variedad ? 1 : candidatos.length - i))
+  // v5.10 · El peso se multiplica por lo que combina con su plato; si hay al menos MIN_AFINES que combinan, solo entre
+  // esos. Si no (o sin datos de afinidad), el sorteo de siempre, y queda en el log.
+  const conQue = contextoAfinidad(desde, modo)
+  const afinidad = candidatos.map((id) => afinidadCon(id, conQue))
+  const combinan = candidatos.flatMap((_, i) => (afinidad[i]! > 0 ? [i] : []))
+  const porAfinidad = combinan.length >= MIN_AFINES
+  const ingrediente = porAfinidad
+    ? elegirConPesos(combinan.map((i) => candidatos[i]!), combinan.map((i) => base[i]! * afinidad[i]!), azar)
+    : elegirConPesos(candidatos, base, azar)
   if (ingrediente) foco.ingrediente = ingrediente
+  if (!porAfinidad && desde && candidatos.length > 1) {
+    console.info(JSON.stringify({ evento: 'foco_sin_afinidad', desdeId, modo, conQue, candidatos: candidatos.length, combinan: combinan.length, ingrediente }))
+  }
+  // v5.10 · Las combinaciones probadas del principal de su plato, para que el LLM arme algo que combine
+  const suPrincipal = desde ? principal(desde.ingredientes) : null
+  const combinaciones = suPrincipal
+    ? afines(suPrincipal, MAX_COMBINACIONES, (id) => { const a = c.alimentos.get(id); return Boolean(a && paraLoNuevo(a)) }).map((x) => x.alimentoId)
+    : []
 
   const rechaza = estados.filter((s) => s.estado === 'rechaza' || (s.declarada === 'rechaza' && s.estado !== 'acepta'))
   const enExposicion = estados.filter((s) => s.estado === 'en_proceso' && s.veces >= 1 && s.declarada !== 'rechaza')
@@ -285,6 +306,7 @@ export function conocimientoDe(
           ...nutrientes.map((x) => `- ${x.nutriente} (${NOMBRE_NUTRIENTE[x.nutriente]}): esta semana cubre ${porciento(x.coberturaSemana)}; hoy le faltan ${decimal(x.faltaHoy, 0)} ${UNIDAD[x.nutriente]}. La porción tiene que aportar al menos ${decimal(x.minimo, 1)} ${UNIDAD[x.nutriente]}. Ricos en ${NOMBRE_NUTRIENTE[x.nutriente]}: ${x.ricos.map((r) => `${r.alimentoId} (${decimal(r.por100g, 1)} ${UNIDAD[x.nutriente]}/100 g)`).join(', ')}.`),
         ]),
     ...(recientes.length ? [`Ya usó hace poco (no los repitas como ingrediente principal): ${recientes.join(', ')}.`] : []), // v5.10
+    ...(combinaciones.length ? [`Combinaciones probadas en recetas reales: ${minuscula(c.alimentos.get(suPrincipal!)?.nombre ?? suPrincipal!)} va bien con ${combinaciones.join(', ')}.`] : []), // v5.10
     ...(ideas.length ? [`Ideas del catálogo del grafo, solo como referencia (podés inventar otra): ${ideas.map((i) => (variedad ? i.nombre : `${i.nombre} (${NOMBRE_NUTRIENTE[i.nutriente]})`)).join(' · ')}.`] : []),
   ]
 
@@ -308,14 +330,33 @@ export function conocimientoDe(
   }
 }
 
-/** v5.10 · Uno al azar, pesando más los primeros: de n, el primero pesa n, el segundo n − 1 … y el último 1. */
-function elegirPesado<T>(xs: readonly T[], azar: () => number): T | undefined {
-  let r = azar() * ((xs.length * (xs.length + 1)) / 2)
+/**
+ * v5.10 · Uno al azar según su peso. Los ricos pesan por su lugar (de n, el primero n, el segundo n − 1 … y el último 1;
+ * con pesos iguales es el sorteo parejo) y, si combinan con su plato, por esa afinidad también.
+ */
+function elegirConPesos<T>(xs: readonly T[], pesos: readonly number[], azar: () => number): T | undefined {
+  let r = azar() * pesos.reduce((a, b) => a + b, 0)
   for (const [i, x] of xs.entries()) {
-    r -= xs.length - i
+    r -= pesos[i]!
     if (r < 0) return x
   }
   return xs.at(-1)
+}
+
+/**
+ * v5.10 · Con qué tiene que combinar el ingrediente del foco: lo que queda del plato de partida. Sumando un ingrediente,
+ * todo su plato; cambiando el principal, lo demás y, si no queda nada, como en la banana pisada, el principal. Los
+ * acompañamientos (aceite, azúcar, manteca) y los condimentos no cuentan, y lo que no tiene datos de afinidad tampoco:
+ * el pan rallado no está en las recetas de Ahn, así que la milanesa sin la carne no deja nada y cuenta la carne.
+ */
+export function contextoAfinidad(desde: Pick<PreparacionCatalogo, 'ingredientes'> | undefined, modo: Modo): string[] {
+  if (!desde) return []
+  const cuenta = (id: string) => !ACOMPANAMIENTOS.has(id) && !esCondimento(id) && afines(id, 1).length > 0
+  const ids = [...new Set(desde.ingredientes.map((i) => i.alimentoId))].filter(cuenta)
+  if (modo === 'sumar_ingrediente') return ids
+  const p = principal(desde.ingredientes)
+  const resto = ids.filter((id) => id !== p)
+  return resto.length ? resto : ids
 }
 
 /** v5.5 · Lo que ve el LLM en modo variedad: no le falta ningún nutriente; el grupo que menos come y con qué alimentos. */
