@@ -43,7 +43,8 @@ async function llamar<T = unknown>(handler: Handler, req: { method: string; quer
   return { status, body: body as T }
 }
 
-describe.skipIf(!URI)('pista B de punta a punta contra Mongo', () => {
+// Contra Atlas cada consulta tarda: 60 s por test (estas suites corren solo si se piden)
+describe.skipIf(!URI)('pista B de punta a punta contra Mongo', { timeout: 60_000 }, () => {
   const tomas = sintetico('tomas')
   const respuestas: RegistrarComidaRes[] = []
 
@@ -60,7 +61,7 @@ describe.skipIf(!URI)('pista B de punta a punta contra Mongo', () => {
     await db().dropDatabase()
     usarCatalogos({ alimentos: null })
     await cerrarMongo()
-  })
+  }, 60_000)
 
   it('/api/salud: Mongo responde y el grafo está en Mongo', async () => {
     const r = await llamar<SaludRes>(saludApi, { method: 'GET' })
@@ -181,5 +182,5 @@ describe.skipIf(!URI)('pista B de punta a punta contra Mongo', () => {
         else process.env[k] = previo[k]
       }
     }
-  }, 30_000)
+  }, 60_000)
 })
