@@ -3,11 +3,11 @@ import { useId, useState } from 'react'
 import type { Cuanto, Progreso } from '../../../shared/contratos'
 import { CUANTO } from '../../../shared/contratos'
 import { ESCALON, NIVEL_CUANTO, NOMBRE_GRUPO } from '../../lib/vocabulario'
-import { fraseGrupoAusente, GRUPOS_VISIBLES, textoDiasSinComer, textoTendencia, textoVeces } from './calculos'
+import { GRUPOS_VISIBLES, mayuscula, textoDiasSinComer, textoTendencia } from './calculos'
 
 type Props = Pick<Progreso, 'aceptadas' | 'enProceso' | 'repertorioTendencia' | 'grupos' | 'exposiciones'>
 
-const EXPOSICIONES_A_LA_VISTA = 4
+const EXPOSICIONES_A_LA_VISTA = 3
 /** La escalera de §5.1, de abajo (lo apartó) hacia arriba. */
 const ESCALERA: Cuanto[] = [...CUANTO].sort((a, b) => NIVEL_CUANTO[a] - NIVEL_CUANTO[b])
 
@@ -17,7 +17,6 @@ export function Repertorio({ aceptadas, enProceso, repertorioTendencia, grupos, 
   // Solo los grupos que manda B (§1: fruta, verdura, lácteo y proteína), en un orden fijo: un grupo que no viene
   // no es "nunca lo registramos", es un dato que no se calcula.
   const visibles = GRUPOS_VISIBLES.flatMap((g) => grupos.filter((x) => x.grupo === g))
-  const frase = fraseGrupoAusente(grupos)
   const listaExp = todas ? exposiciones : exposiciones.slice(0, EXPOSICIONES_A_LA_VISTA)
 
   return (
@@ -38,8 +37,7 @@ export function Repertorio({ aceptadas, enProceso, repertorioTendencia, grupos, 
 
         {visibles.length > 0 && (
           <>
-            <h3 className="tb-subtitulo">Última vez que comió de cada grupo</h3>
-            {frase && <p className="tb-frase-grupo">{frase}.</p>}
+            <h3 className="tb-subtitulo">Última vez por grupo</h3>
             <ul className="tb-grupos">
               {visibles.map((g) => (
                 <li key={g.grupo} className={g.diasSinComer !== null && g.diasSinComer >= 7 ? 'tb-grupo-lejos' : undefined}>
@@ -55,17 +53,18 @@ export function Repertorio({ aceptadas, enProceso, repertorioTendencia, grupos, 
       <section className="nb-tarjeta tb-seccion" aria-labelledby={`${id}-e`}>
         <h2 id={`${id}-e`}>Alimentos nuevos en camino</h2>
         {exposiciones.length === 0 ? (
-          <p className="tb-vacio-chico">Todavía no hay alimentos nuevos en camino. Cuando le ofrezcas uno, acá vas a ver cómo avanza.</p>
+          <p className="tb-vacio-chico">Cuando le ofrezcas algo nuevo, acá vas a ver cómo avanza.</p>
         ) : (
           <>
+            <p className="tb-nota nb-suave">Suelen hacer falta de 8 a 15 veces.</p>
             <ul className="tb-exposiciones">
               {listaExp.map((e) => (
                 <li key={e.preparacionId}>
                   <p className="tb-exp-nombre">{e.nombre}</p>
                   <Escalera paso={e.mejorPaso} />
                   <p className="tb-exp-dato">
-                    <span>Hasta ahora: {ESCALON[e.mejorPaso]}</span>
-                    <span className="nb-suave nb-numero">{textoVeces(e.veces)}</span>
+                    <span>{mayuscula(ESCALON[e.mejorPaso])}</span>
+                    <span className="nb-suave nb-numero">{e.veces} {e.veces === 1 ? 'vez' : 'veces'}</span>
                   </p>
                 </li>
               ))}

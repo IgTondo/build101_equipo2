@@ -18,59 +18,28 @@
 .tb-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .tb-subtitulo { font-size: 1.05rem; margin: 16px 0 4px; }
 
-/* ---------- Alertas: calmas, sin rojo ---------- */
-.tb-alertas {
-  display: flex; gap: 12px; align-items: flex-start;
-  background: var(--nb-superficie-suave); border: 1px solid var(--nb-borde);
-  border-left: 4px solid var(--nb-acento); border-radius: var(--nb-radio); padding: 14px 16px;
-}
-.tb-alertas-icono { flex: none; color: var(--nb-texto); margin-top: 2px; }
-.tb-alertas h2 { font-size: 1.05rem; margin: 0 0 4px; }
-.tb-alertas ul { margin: 0; padding-left: 1.1em; }
-.tb-alertas li { text-wrap: pretty; }
-
-/* ---------- Cobertura semanal ---------- */
-.tb-escala { position: relative; height: 18px; font-size: 0.75rem; color: var(--nb-texto-suave); }
-.tb-escala span { position: absolute; bottom: 0; transform: translateX(-50%); white-space: nowrap; }
+/* ---------- Cobertura semanal: estado por nutriente (colores en estado-nutriente.css) ---------- */
+.tb-resumen-estados { margin: 0 0 4px; color: var(--nb-texto-suave); font-size: 0.95rem; }
 .tb-barras { list-style: none; margin: 0; padding: 0; }
 .tb-barra {
-  display: flex; flex-direction: column; gap: 6px; width: 100%; min-height: 52px;
-  padding: 8px 0; border: 0; background: none; color: inherit; font: inherit; text-align: left;
+  display: flex; flex-direction: column; gap: 8px; width: 100%; min-height: 52px;
+  padding: 10px 0; border: 0; background: none; color: inherit; font: inherit; text-align: left;
   cursor: pointer; border-radius: var(--nb-radio-chico); -webkit-tap-highlight-color: transparent;
 }
 .tb-barra-cab { display: flex; align-items: center; gap: 8px; line-height: 1.25; }
-.tb-barra-nombre { font-weight: 700; }
-.tb-barra-valor { margin-left: auto; font-weight: 700; }
-.tb-etiqueta-falta {
-  display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--nb-texto);
-  background: var(--nb-superficie-suave); border-radius: var(--nb-radio-pastilla); padding: 1px 8px;
-}
-.tb-etiqueta-falta::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--nb-zapallo); }
+.tb-barra-nombre { font-weight: 700; margin-right: auto; }
 .tb-chevron { flex: none; color: var(--nb-texto-suave); transition: transform 160ms ease-out; }
 .tb-chevron-abierto { transform: rotate(180deg); }
-
-.tb-pista { position: relative; display: block; height: 12px; background: var(--nb-superficie-suave); border-radius: 0 4px 4px 0; }
-.tb-relleno {
-  position: absolute; inset: 0 auto 0 0; display: block; min-width: 2px;
-  background: var(--nb-verde); border-radius: 0 4px 4px 0; transition: width 240ms ease-out;
-}
-.tb-falta .tb-relleno { background: var(--nb-zapallo); }
-/* Más del 120%: la barra se corta y lleva un quiebre (como en un eje partido); el número dice el valor real. */
-.tb-recortada { border-radius: 0; }
-.tb-recortada::after {
-  content: ''; position: absolute; top: -2px; bottom: -2px; right: 8px; width: 3px;
-  background: var(--nb-superficie); transform: skewX(-20deg);
-}
-.tb-marca { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--nb-texto-suave); border-radius: 1px; }
-.tb-barra:hover .tb-relleno { filter: brightness(1.06); }
 .tb-detalle { padding: 0 0 10px; font-size: 0.95rem; }
 .tb-detalle p { margin: 0; text-wrap: pretty; }
 .tb-barras li + li { border-top: 1px solid var(--nb-borde); }
+.tb-leyenda { margin: 4px 0 0; font-size: 0.82rem; color: var(--nb-texto-suave); }
 
-.tb-energia { margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--nb-borde); }
-.tb-energia-dato { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin: 0 0 2px; }
-.tb-energia-nombre { font-weight: 700; }
-.tb-energia-dato strong { font-weight: 700; }
+.tb-energia {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px;
+  margin: 10px 0 0; padding-top: 12px; border-top: 1px solid var(--nb-borde);
+}
+.tb-energia span { font-weight: 700; }
 
 /* ---------- Próximo paso ---------- */
 .tb-sugerencias { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; transition: opacity 150ms ease-out; }
@@ -115,7 +84,6 @@
 .tb-cifra { display: flex; align-items: baseline; gap: 10px; margin: 0; }
 .tb-cifra strong { font-family: var(--nb-font-titulos); font-size: 2.6rem; line-height: 1; }
 .tb-tendencia { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-weight: 700; }
-.tb-frase-grupo { margin: 0 0 4px; font-weight: 700; text-wrap: pretty; }
 .tb-grupos { list-style: none; margin: 0 0 6px; padding: 0; }
 .tb-grupos li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--nb-borde); }
 .tb-grupos li:last-child { border-bottom: 0; }
@@ -161,6 +129,6 @@
 .tb-tablero .nb-boton:active { transform: scale(0.98); }
 
 @media (prefers-reduced-motion: reduce) {
-  .tb-chevron, .tb-relleno, .tb-sugerencias, .tb-tablero .nb-boton { transition: none; }
+  .tb-chevron, .tb-sugerencias, .tb-tablero .nb-boton { transition: none; }
   .tb-tablero .nb-boton:active { transform: none; }
 }

@@ -1,10 +1,11 @@
-// C3 · Tablero "¿está comiendo bien?" (PLAN.md §1 y §9), de arriba hacia abajo: la frase y las alertas,
+// C3 · Tablero "¿está comiendo bien?" (PLAN.md §1 y §9), de arriba hacia abajo: la respuesta corta y las alertas,
 // la cobertura semanal, el próximo paso, la evolución,
 // repertorio + grupos + exposiciones y las últimas comidas (lo que aprendimos va, simple, en el Perfil). C9: cargando, error y vacío.
 // Si los últimos 7 días no tienen comidas pero hay historial, se muestra la última semana con registros (`hasta`).
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { Alerta, Progreso } from '../../../shared/contratos'
+import type { Progreso } from '../../../shared/contratos'
+import { AvisoConsulta } from '../../componentes/AvisoConsulta'
 import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { api, type ErrorDeApi } from '../../lib/api'
@@ -15,7 +16,7 @@ import { Cobertura } from './Cobertura'
 import { Evolucion } from './Evolucion'
 import { ProximoPaso } from './ProximoPaso'
 import { Repertorio } from './Repertorio'
-import { fechaCorta, gruposDesdeHoy, hayComidas, ultimoDia, ultimoDiaConComidas } from './calculos'
+import { fechaCorta, gruposDesdeHoy, hayComidas, respuestaSemana, ultimoDia, ultimoDiaConComidas } from './calculos'
 import './tablero.css'
 
 const DIAS = 7 // la cobertura es semanal; las 4 semanas de la evolución vienen aparte en `semanas`
@@ -89,17 +90,17 @@ export function Tablero() {
     <div className="tb-tablero">
       <header className="tb-hero">
         <h1 className="tb-titulo">¿Está comiendo bien?</h1>
-        <p className="tb-frase">{p.frase}</p>
+        {/* La frase de §1 cuenta "cubrió 4 de 8" con la regla del 70%; acá va la respuesta corta, coherente con los estados. */}
+        <p className="tb-frase">{respuestaSemana(p.semana.faltan)}</p>
         {hasta && (
           <p className="tb-aviso-semana" role="status">
-            No hay comidas registradas en los últimos 7 días. Te mostramos la última semana con registros,
-            hasta el <span className="nb-numero">{fechaCorta(hasta)}</span>.
+            Sin comidas en los últimos 7 días: es la semana hasta el <span className="nb-numero">{fechaCorta(hasta)}</span>.
           </p>
         )}
       </header>
 
       {error && <ErrorConReintento error={error} reintentar={reintentar} />}
-      {p.alertas.length > 0 && <Alertas alertas={p.alertas} />}
+      <AvisoConsulta alertas={p.alertas} />
 
       <Cobertura semana={p.semana} dia={ultimoDia(p.dias)} />
 
@@ -128,22 +129,5 @@ export function Tablero() {
         <Link className="nb-boton nb-boton-secundario" to={`/resumen${conNino}`}>Resumen para el nutricionista</Link>
       </nav>
     </div>
-  )
-}
-
-function Alertas({ alertas }: { alertas: Alerta[] }) {
-  return (
-    <section className="tb-alertas" aria-labelledby="tb-alertas-t">
-      <svg className="tb-alertas-icono" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-        <path d="M12 7v6M12 16.5v.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-      </svg>
-      <div>
-        <h2 id="tb-alertas-t">Conviene consultar a su pediatra o nutricionista</h2>
-        <ul>
-          {alertas.map((a, i) => <li key={`${a.tipo}-${i}`}>{a.texto}</li>)}
-        </ul>
-      </div>
-    </section>
   )
 }

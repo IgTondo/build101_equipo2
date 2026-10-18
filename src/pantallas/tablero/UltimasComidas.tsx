@@ -7,7 +7,7 @@ import { etiquetaDia, mayuscula, srcMiniatura, ultimasComidas } from './calculos
 
 export function UltimasComidas({ dias }: { dias: CoberturaDia[] }) {
   const id = useId()
-  const comidas = ultimasComidas(dias, 5)
+  const comidas = ultimasComidas(dias, 3)
   const hoy = diaUruguay()
   if (!comidas.length) return null
   return (

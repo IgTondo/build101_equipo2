@@ -1,0 +1,31 @@
+/* Estado de un nutriente (Cubierto / Casi / Le falta). Solo tokens de marca. El texto va siempre en color de texto;
+   el color lo llevan el ícono y la barra (verde = cubierto, hoja = casi, zapallo = le falta). */
+.ne-estado {
+  display: inline-flex; align-items: center; gap: 5px; flex: none;
+  font-size: 0.85rem; font-weight: 700; line-height: 1.2; color: var(--nb-texto); white-space: nowrap;
+}
+.ne-falta.ne-estado { font-weight: 400; color: var(--nb-texto-suave); }
+.ne-icono { flex: none; }
+.ne-cubierto .ne-icono-lleno { fill: var(--nb-verde-hondo); }
+.ne-casi .ne-icono-lleno { fill: var(--nb-verde); }
+.ne-casi .ne-icono-aro { fill: none; stroke: var(--nb-verde); stroke-width: 1.6; }
+.ne-falta .ne-icono-aro { fill: var(--nb-zapallo); stroke: none; }
+
+/* La barra llena = lo recomendado. Lo que pasa del 100% no se dibuja: no hay marcas de "se pasó". */
+.ne-pista {
+  position: relative; display: block; height: 8px; overflow: hidden;
+  border-radius: var(--nb-radio-pastilla); background: var(--nb-superficie-suave);
+  box-shadow: inset 0 0 0 1px var(--nb-borde);
+}
+.ne-pista-gruesa { height: 10px; }
+.ne-relleno {
+  display: block; height: 100%; min-width: 4px; border-radius: inherit;
+  transition: width 240ms ease-out;
+}
+.ne-cubierto .ne-relleno { background: var(--nb-verde); }
+.ne-casi .ne-relleno { background: var(--nb-hoja); box-shadow: inset 0 0 0 1px rgba(46, 125, 82, 0.35); }
+.ne-falta .ne-relleno { background: var(--nb-zapallo); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ne-relleno { transition: none; }
+}
