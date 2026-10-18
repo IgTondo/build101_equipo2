@@ -73,11 +73,14 @@ export function comidaRecienPorHora(hora: number): Momento {
 
 /** Las comidas de `dia` ('YYYY-MM-DD' de Uruguay) en el progreso, más las que se acaban de registrar (sin repetir). */
 export function comidasDelDia(
-  dias: Progreso['dias'] | undefined, dia: string, extra: readonly (ComidaDelDia & { id?: string })[] = [],
+  dias: Progreso['dias'] | undefined, dia: string, extra: readonly (ComidaDelDia & { id?: string })[] = [], ahora = Date.now(),
 ): ComidaDelDia[] {
   const delProgreso = dias?.find((d) => d.dia === dia)?.comidas ?? []
   const ids = new Set(delProgreso.map((c) => c.id))
-  return [...delProgreso, ...extra.filter((c) => !c.id || !ids.has(c.id))]
+  // Lo que tiene horario futuro todavía no se comió (el server ya lo filtra; acá por si el progreso vino de otro lado):
+  // si contara, a la mañana la próxima comida saltaba a la cena
+  const yaPaso = (c: ComidaDelDia) => !(Date.parse(c.fechaISO) > ahora + 10 * 60_000)
+  return [...delProgreso, ...extra.filter((c) => !c.id || !ids.has(c.id))].filter(yaPaso)
 }
 
 // ---------- La sugerencia para esa comida ----------

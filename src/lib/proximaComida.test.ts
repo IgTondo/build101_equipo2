@@ -187,3 +187,16 @@ describe('la comida completa de la tarjeta (v5.7)', () => {
     expect(enDosRenglones('Esta vez no salió una receta segura. Probá otra idea.')).toEqual(['Esta vez no salió una receta segura. Probá otra idea.', null])
   })
 })
+
+describe('(v5.9) la próxima comida no cuenta lo que todavía no pasó', () => {
+  it('a las 9:35, un almuerzo cargado para las 13:50 no hace saltar a la cena', () => {
+    const ahora = Date.parse('2026-10-18T09:35:00-03:00')
+    const dias = [{ dia: '2026-10-18', comidas: [
+      { id: 'a', momento: 'desayuno', fechaISO: '2026-10-18T07:13:00-03:00', items: [] },
+      { id: 'b', momento: 'almuerzo', fechaISO: '2026-10-18T13:50:00-03:00', items: [] },
+    ] }] as unknown as Progreso['dias']
+    const hoy = comidasDelDia(dias, '2026-10-18', [], ahora)
+    expect(hoy.map((c) => c.momento)).toEqual(['desayuno'])
+    expect(proximaComida(hoy, 9).momento).toBe('almuerzo')
+  })
+})

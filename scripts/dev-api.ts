@@ -1,6 +1,7 @@
 // Servidor local de la API (C1): monta cada api/<nombre>.ts en /api/<nombre>, igual que Vercel,
 // para que nadie dependa de tener acceso al proyecto de Vercel. Lo levanta `npm run dev` junto con Vite,
 // que le pasa /api por proxy. Lee .env.local y respeta el límite de 4,5 MB del body de Vercel.
+import { promises as dnsPromesas, setServers } from 'node:dns'
 import { readdirSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -10,6 +11,19 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import { enviarError, type Handler } from '../server/http.js'
 
 config({ path: ['.env.local', '.env'], quiet: true })
+
+// En algunas redes el DNS es una dirección IPv6 local (fe80::…%en0) y el resolvedor de Node no resuelve el SRV de Mongo
+// Atlas (querySrv EBADRESP), aunque el del sistema sí. Solo en local: se prueba al arrancar y, si falla, DNS públicos.
+await (async () => {
+  const host = /^mongodb\+srv:\/\/[^@]*@?([^/?]+)/.exec(process.env.MONGODB_URI ?? '')?.[1]
+  if (!host) return
+  try {
+    await dnsPromesas.resolveSrv(`_mongodb._tcp.${host}`)
+  } catch {
+    setServers(['1.1.1.1', '8.8.8.8'])
+    console.warn('[dev-api] el DNS de esta red no resolvió Mongo Atlas: uso 1.1.1.1 y 8.8.8.8')
+  }
+})()
 
 const PUERTO = Number(process.env.PUERTO_API ?? 3001)
 const DIR_API = join(process.cwd(), 'api')

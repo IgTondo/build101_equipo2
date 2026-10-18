@@ -33,8 +33,20 @@ export function idsDeAlimentos(catalogo: ReadonlyMap<string, PreparacionCatalogo
 }
 
 /** Async a propósito: si col.comidas() tira (sin MONGODB_URI), queda como promesa rechazada y no como excepción. */
+/** Margen para el reloj del celular: una comida recién registrada puede venir unos minutos "adelantada". */
+export const MARGEN_FUTURO_MS = 10 * 60_000
+
+/**
+ * Las comidas que ya pasaron: una con horario futuro (un historial cargado hasta hoy, como Valentina, trae el almuerzo de
+ * las 13:50 aunque sean las 9) todavía no ocurrió. Si contara, el inicio daría la cena como próxima comida a la mañana y
+ * "Hoy" sumaría lo que todavía no comió. Va apareciendo sola cuando llega su hora.
+ */
+export function yaPasaron<T extends { fechaISO: string }>(comidas: readonly T[], ahora = Date.now()): T[] {
+  return comidas.filter((c) => !(Date.parse(c.fechaISO) > ahora + MARGEN_FUTURO_MS))
+}
+
 async function leerComidas(ninoId: string): Promise<ComidaDoc[]> {
-  return col.comidas().find({ ninoId }).sort({ fechaISO: 1 }).toArray()
+  return yaPasaron(await col.comidas().find({ ninoId }).sort({ fechaISO: 1 }).toArray())
 }
 
 export async function cargarNino(ninoId: string): Promise<Cargado> {
