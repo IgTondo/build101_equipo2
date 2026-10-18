@@ -28,15 +28,18 @@ import { CORTE_MS, TOPE_NUEVA_LLAMADA_MS, coberturaDeLoQueFalta, sinAlergenos, t
 /** v5.8 · La base de conocimiento con sus otras alergias, como las escribió el padre (Conocimiento no las trae). */
 export type ConocimientoReceta = Conocimiento & { alergiasOtras?: string[] }
 
-/** La base de conocimiento del chico (armarConocimiento) más sus otras alergias: lo que usa api/receta.ts. */
-export async function armarConocimientoReceta(ninoId: string, op: { nutriente?: Nutriente; momento?: Momento; motor?: Motor } = {}): Promise<ConocimientoReceta> {
+/**
+ * La base de conocimiento del chico (armarConocimiento) más sus otras alergias: lo que usa api/receta.ts. v5.10 · Con
+ * las recetas que ya vio (`anteriores`), que conocimientoDe usa para el ingrediente del foco y los recientes.
+ */
+export async function armarConocimientoReceta(ninoId: string, op: { nutriente?: Nutriente; momento?: Momento; motor?: Motor; anteriores?: string[] } = {}): Promise<ConocimientoReceta> {
   const c = await cargarNino(ninoId)
   const otras = limpiarOtras(c.nino.datos.alergiasOtras)
   return { ...conocimientoDe(c, op), ...(otras.length ? { alergiasOtras: otras } : {}) }
 }
 
 export interface DepsRecetaCreativa {
-  conocimiento: (ninoId: string, op: { nutriente?: Nutriente; momento?: RecetaReq['momento'] }) => Promise<ConocimientoReceta>
+  conocimiento: (ninoId: string, op: { nutriente?: Nutriente; momento?: RecetaReq['momento']; anteriores?: string[] }) => Promise<ConocimientoReceta>
   ahora?: () => number
   alIntentar?: (intento: Omit<IntentoReceta, 'salida' | 'problemas'> & { salida: SalidaCreativa; problemas: string[] }) => void
   /**
@@ -244,11 +247,13 @@ function registrar(datos: Record<string, unknown>, aviso = false) {
 export async function generarRecetaCreativa(req: RecetaReq, deps: DepsRecetaCreativa): Promise<Receta> {
   const ahora = deps.ahora ?? Date.now
   const t0 = ahora()
-  const k = await deps.conocimiento(req.ninoId, { ...(req.nutriente ? { nutriente: req.nutriente } : {}), ...(req.momento ? { momento: req.momento } : {}) })
+  const anteriores = (req.anteriores ?? []).slice(-10)
+  const k = await deps.conocimiento(req.ninoId, {
+    ...(req.nutriente ? { nutriente: req.nutriente } : {}), ...(req.momento ? { momento: req.momento } : {}), ...(anteriores.length ? { anteriores } : {}),
+  })
   // Sin el respaldo de "todo lo que acepta" (conocimiento.ts): si nada de lo que come va en esta comida, se dice cuál falta
   const elegido = req.preparacionId && deps.elegido ? await deps.elegido(req.ninoId, req.preparacionId, req.nutriente) : undefined
   if (k.seguros.length === 0 && !elegido) throw new ErrorNibble('sin_candidatos', textoSinSeguros(k.nombre, k.momento ?? req.momento))
-  const anteriores = (req.anteriores ?? []).slice(-10)
   const alergias = alergiasDe(k)
   const { otras, prohibidos } = otrasAlergiasDe(k)
   const ingredientes = alimentos()

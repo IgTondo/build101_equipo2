@@ -1,6 +1,7 @@
 // v5.4 · La receta creativa: la base de conocimiento de Tomás (dataset sintético, §10.5) y generarRecetaCreativa() con
 // generarJSON mockeado (ningún test llama a un modelo real).
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { cargarNino } from '../datos/cargar.js'
 import { alimentosPrueba, catalogoPrueba, comidasSinteticas, ninoDoc, sintetico } from '../datos/prueba/catalogos.js'
 import { conocimientoDe, type Conocimiento } from '../grafo/conocimiento.js'
 import { ErrorNibble } from '../http.js'
@@ -10,10 +11,16 @@ import { generarJSON } from './modelo.js'
 import type { SalidaCreativa } from './prompts/receta-creativa.js'
 import { calcularAporte } from '../validacion/receta.js'
 import { minimoComponentes } from './plato-completo.js'
-import { completarCreativa, generarRecetaCreativa, problemasCreativa, problemasDeCalidad, textoSinSeguros, type ConocimientoReceta } from './receta-creativa.js'
+import { armarConocimientoReceta, completarCreativa, generarRecetaCreativa, problemasCreativa, problemasDeCalidad, textoSinSeguros, type ConocimientoReceta } from './receta-creativa.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
 const llm = vi.mocked(generarJSON)
+// v5.10 · Para ver que las recetas que ya vio llegan hasta conocimientoDe (el real, espiado), sin Mongo
+vi.mock('../datos/cargar.js', async (original) => ({ ...(await original<typeof import('../datos/cargar.js')>()), cargarNino: vi.fn() }))
+vi.mock('../grafo/conocimiento.js', async (original) => {
+  const m = await original<typeof import('../grafo/conocimiento.js')>()
+  return { ...m, conocimientoDe: vi.fn(m.conocimientoDe) }
+})
 
 const catalogo = catalogoPrueba()
 const alimentos = alimentosPrueba()
@@ -291,5 +298,19 @@ describe('(v5.8) repertorio chico: el plato se completa con lo que haya', () => 
     const unaGuarnicion = { ...soloProteinas, seguros: [...soloProteinas.seguros.slice(1), { ...k.seguros[0]!, atributos: { ...k.seguros[0]!.atributos, grupo: 'cereal_almidon' as const } }] }
     expect(minimoComponentes(unaGuarnicion)).toBe(2)
     expect(minimoComponentes(k)).toBeLessThanOrEqual(3)
+  })
+})
+
+describe('(v5.10) las recetas que ya vio llegan al conocimiento (para el ingrediente del foco y los recientes)', () => {
+  it('llegan a deps.conocimiento (las últimas 10), y armarConocimientoReceta las pasa a conocimientoDe', async () => {
+    const vistas = Array.from({ length: 12 }, (_, i) => `Receta ${i + 1}`)
+    const deps = vi.fn(async () => conocimiento())
+    responde(PAPAS_CON_QUESO)
+    await generarRecetaCreativa({ ninoId: 'tomas', momento: 'cena', nutriente: 'calcio_mg', anteriores: vistas }, { conocimiento: deps })
+    expect(deps).toHaveBeenCalledWith('tomas', { nutriente: 'calcio_mg', momento: 'cena', anteriores: vistas.slice(-10) })
+
+    vi.mocked(cargarNino).mockResolvedValueOnce(cargado)
+    await armarConocimientoReceta('tomas', { momento: 'cena', anteriores: ['Medallones de ricota'] })
+    expect(vi.mocked(conocimientoDe)).toHaveBeenLastCalledWith(cargado, { momento: 'cena', anteriores: ['Medallones de ricota'] })
   })
 })

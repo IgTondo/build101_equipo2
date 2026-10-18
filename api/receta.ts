@@ -7,6 +7,7 @@
 // v5.9 · Toda receta es una comida completa: con preparacionId (una sugerencia del catálogo) también va por la creativa,
 // con ese plato ya elegido (`elegido`); el resto de la comida se arma con lo que ya come. Si el candidato no aparece,
 // una comida completa nueva para esa comida; sin momento (el tablero viejo), la receta de siempre (generarReceta).
+// v5.10 · Las recetas que ya vio (`anteriores`) llegan hasta conocimientoDe: el foco sortea un ingrediente que no repita.
 import { MOTOR, type Motor, type Nutriente, type Receta } from '../shared/contratos.js'
 import { ErrorNibble, manejar, param, permitir, responderStub } from '../server/http.js'
 import { hayMongo } from '../server/datos/mongo.js'
