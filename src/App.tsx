@@ -1,21 +1,24 @@
 import { cn } from 'cn'
 import { FlaskConical } from 'lucide-react'
-import { useEffect, useSyncExternalStore } from 'react'
+import { lazy, Suspense, useEffect, useSyncExternalStore } from 'react'
 import { Link, Route, Routes, useLocation } from 'react-router-dom'
 import { ConNino } from './componentes/ConNino'
+import { Cargando } from './componentes/Estados'
 import { NavInferior } from './componentes/NavInferior'
 import { TransicionPantalla } from './componentes/TransicionPantalla'
 import { avisoStubs } from './lib/api'
 import { useNino } from './lib/nino'
-import { Estado } from './pantallas/Estado'
 import { Inicio } from './pantallas/inicio/Inicio'
 import { Pendiente } from './pantallas/Pendiente'
 import { Perfil } from './pantallas/perfil/Perfil'
 import { PerfilNuevo } from './pantallas/perfil/PerfilNuevo'
-import { Receta } from './pantallas/receta/Receta'
 import { Registrar } from './pantallas/registrar/Registrar'
-import { Resumen } from './pantallas/resumen/Resumen'
-import { Tablero } from './pantallas/tablero/Tablero'
+
+// Lo que no es del ciclo diario (inicio, registrar, alta) se descarga al abrirlo: la Semana trae Recharts, que pesa.
+const Tablero = lazy(() => import('./pantallas/tablero/Tablero').then((m) => ({ default: m.Tablero })))
+const Receta = lazy(() => import('./pantallas/receta/Receta').then((m) => ({ default: m.Receta })))
+const Resumen = lazy(() => import('./pantallas/resumen/Resumen').then((m) => ({ default: m.Resumen })))
+const Estado = lazy(() => import('./pantallas/Estado').then((m) => ({ default: m.Estado })))
 
 // Cada pantalla vive en su carpeta de src/pantallas/. La navegación conserva ?nino= (§9). Las que necesitan un chico
 // activo van dentro de <ConNino>: sin chico (la primera vez, §5.2) se va al alta por voz y no se muestra la navegación.
@@ -60,19 +63,21 @@ export function App() {
       <main className={cn('flex flex-1 flex-col gap-4 px-4 pt-2', hayNino ? 'pb-32' : 'pb-12')}>
         <AvisoDatosDeEjemplo />
         <TransicionPantalla>
-          <Routes>
-            <Route element={<ConNino />}>
-              <Route path="/" element={<Inicio />} />
-              <Route path="/registrar" element={<Registrar />} />
-              <Route path="/tablero" element={<Tablero />} />
-              <Route path="/perfil" element={<Perfil />} />
-              <Route path="/receta" element={<Receta />} />
-              <Route path="/resumen" element={<Resumen />} />
-            </Route>
-            <Route path="/perfil/nuevo" element={<PerfilNuevo />} />
-            <Route path="/estado" element={<Estado />} />
-            <Route path="*" element={<Pendiente titulo="No encontramos esta página" />} />
-          </Routes>
+          <Suspense fallback={<Cargando />}>
+            <Routes>
+              <Route element={<ConNino />}>
+                <Route path="/" element={<Inicio />} />
+                <Route path="/registrar" element={<Registrar />} />
+                <Route path="/tablero" element={<Tablero />} />
+                <Route path="/perfil" element={<Perfil />} />
+                <Route path="/receta" element={<Receta />} />
+                <Route path="/resumen" element={<Resumen />} />
+              </Route>
+              <Route path="/perfil/nuevo" element={<PerfilNuevo />} />
+              <Route path="/estado" element={<Estado />} />
+              <Route path="*" element={<Pendiente titulo="No encontramos esta página" />} />
+            </Routes>
+          </Suspense>
         </TransicionPantalla>
       </main>
       {hayNino && <NavInferior search={navSearch} />}
