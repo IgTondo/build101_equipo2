@@ -156,6 +156,16 @@ describe('generarReceta', () => {
     expect(r.preparacionBaseId).toBe('papas_horno_baston')
   })
 
+  it('(v5.4) anteriores: solo le llegan al LLM para el preparacionId pedido', async () => {
+    responde(SALIDA_PAPAS)
+    await generarReceta({ ninoId: 'tomas', preparacionId: 'papas_horno_baston', anteriores: ['Papas al horno de siempre'] }, deps())
+    expect(promptDe(0)).toContain('ya vio estas recetas de esta misma preparación:\n- Papas al horno de siempre')
+    llm.mockReset()
+    responde(SALIDA_PAPAS)
+    await generarReceta({ ninoId: 'tomas', preparacionId: 'yogur_vainilla', anteriores: ['Yogur de siempre'] }, deps())
+    expect(promptDe(0)).not.toContain('ya vio estas recetas')
+  })
+
   it('preparacionId pedido que no pasa: sigue con los que venían después, y después con los de antes', async () => {
     responde(SALIDA_PAPAS)
     const r = await pedir({}, 'yogur_vainilla')

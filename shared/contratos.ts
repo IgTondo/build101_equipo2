@@ -176,6 +176,8 @@ export interface Progreso {
   sugerencias?: Sugerencia[]                                 // v4 · siempre en el orden segura, un_paso, mas_nutritiva (§8); proximoPaso = la de un_paso
   momento?: Momento                                          // v5.2 · vino ?momento=: las sugerencias (y proximoPaso) son solo de esa comida; pueden ser menos de 3 o ninguna
 }
+// v5.4 · Ideas del catálogo del grafo para una comida (Recomendacion.ideas, server): la receta creativa las usa solo de referencia.
+export interface IdeaReceta { preparacionId: string; nombre: string; nutriente: Nutriente }
 export interface Sugerencia {            // v4 · las tres opciones del tablero: explotar, explorar de a un cambio, priorizar lo que falta
   tipo: 'segura' | 'un_paso' | 'mas_nutritiva'
   preparacionId: string; nombre: string
@@ -260,7 +262,11 @@ export interface RecetaReq {             // C1
   nutriente?: Nutriente                  // por defecto, el primero de semana.faltan
   preparacionId?: string                 // C1 · el candidato elegido en una tarjeta de sugerencia (Candidato.preparacionId); si no viene, el mejor de armarEvidencia()
   momento?: Momento                      // v5.1 · la comida para la que es (la próxima comida, PLAN §9) · v5.2: los candidatos de la evidencia son de esa comida (el preparacionId elegido se respeta igual)
+  anteriores?: string[]                  // v5.4 · nombres de recetas que ya vio (máx. 10): con preparacionId, las de esa preparación (otra versión); sin preparacionId, las de esa comida (receta creativa: otro plato)
 }
+// v5.4 · Sin preparacionId, /api/receta arma una RECETA CREATIVA (server/ia/receta-creativa.ts): el grafo da la base de
+// conocimiento (server/grafo/conocimiento.ts) y el LLM inventa un plato nuevo a UN cambio de un alimento seguro; el
+// código cuenta los cambios, las alergias, las reglas y el aporte. El plato no está en el catálogo: viene en Receta.plato.
 export interface Receta {
   nombre: string; preparacionBaseId: string           // el candidato del catálogo sobre el que se escribe la receta
   desde: { preparacionId: string; nombre: string }   // v2 · su alimento seguro (el punto de partida de la cadena)
@@ -274,6 +280,11 @@ export interface Receta {
   coberturaDeLoQueFalta: number
   validacion: { ok: boolean; problemas: string[]; reintentos: number }
   evidencia: Evidencia
+  plato?: PlatoNuevo                     // v5.4 · solo en la receta creativa: el plato inventado (preparacionBaseId empieza con "nuevo_")
+}
+export interface PlatoNuevo {            // v5.4
+  atributos: Atributos & { coccion: Coccion }
+  imagen: { uno: string; varios: string; aspecto: string } // en inglés, para el prompt de la imagen (como VISUAL en prompts/imagen-plato.ts)
 }
 // POST /api/imagen-plato (A) { receta, reglas } → { imagenBase64, mime, ilustrativa: true }
 // GET  /api/resumen?ninoId (C) → { texto, progreso: Progreso, generadoISO }

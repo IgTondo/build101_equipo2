@@ -3,13 +3,13 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ErrorApi, ImagenPlatoReq, Receta, Regla } from '../../shared/contratos.js'
+import type { ErrorApi, ImagenPlatoReq, PlatoNuevo, Receta, Regla } from '../../shared/contratos.js'
 import handler from '../../api/imagen-plato.js'
 import { HEADER_STUB } from '../http.js'
 import { preparacion } from '../validacion/ejemplos.js'
 import { ErrorIA } from './errores.js'
 import { generarImagen } from './imagen.js'
-import { cantidadEnPresentacion, imagenPlato, promptImagenPlato } from './imagen-plato.js'
+import { cantidadEnPresentacion, esquemaImagenPlatoReq, imagenPlato, promptImagenPlato } from './imagen-plato.js'
 
 vi.mock('./imagen.js', () => ({ generarImagen: vi.fn() }))
 const flux = vi.mocked(generarImagen)
@@ -131,6 +131,57 @@ describe('promptImagenPlato', () => {
         expect(prompt, id).not.toContain('"')
       }
     }
+  })
+})
+
+// v5.4 · La receta creativa: el plato inventado no está en el catálogo, viene en receta.plato.
+describe('promptImagenPlato con un plato inventado (receta creativa)', () => {
+  const POLENTA: PlatoNuevo = {
+    atributos: { textura: 'crocante', forma: 'baston', color: 'amarillo', sabor: 'salado', temperatura: 'caliente', presentacion: 'separado', grupo: 'cereal_almidon', coccion: 'horno' },
+    imagen: { uno: 'baked polenta and cheese stick', varios: 'baked polenta and cheese sticks', aspecto: 'golden yellow polenta sticks with melted cheese, oven-baked until crispy' },
+  }
+  const creativa = (plato: PlatoNuevo, presentacion = ''): Receta =>
+    otra('nuevo_bastones_polenta_queso', ['papas_horno_baston', 'Papas al horno'], presentacion, { nombre: 'Bastones de polenta con queso', plato })
+
+  it('usa la descripción del plato, con la forma de papas fritas, a la derecha; su alimento seguro a la izquierda', () => {
+    const r = promptImagenPlato(pedido([], creativa(POLENTA, 'Sus papas y 2 bastones de polenta a la derecha.')), preparacion)
+    expect(r).toContain('On the left half of the plate: a normal portion of about 12 oven-baked potato fries')
+    expect(r).toContain('On the right half of the plate: exactly 2 baked polenta and cheese sticks, a very small portion: '
+      + 'golden yellow polenta sticks with melted cheese, oven-baked until crispy, cut into long thin sticks shaped exactly like French fries')
+    expect(r).not.toContain('Bastones de polenta')
+    expect(r).not.toContain('"')
+  })
+
+  it('si la descripción ya dice la forma, no la repite; y limpia saltos de línea y comillas', () => {
+    const r = promptImagenPlato(pedido([], creativa({ ...POLENTA, imagen: { ...POLENTA.imagen, aspecto: 'polenta sticks\n "shaped like French fries"' } })), preparacion)
+    expect(r).toContain('polenta sticks shaped like French fries.')
+    expect(r.match(/shaped exactly like French fries/g)).toHaveLength(1) // solo el de su alimento seguro
+    expect(r).not.toMatch(/["\n]/)
+  })
+
+  it('un puré frío que se come como viene va en un bol', () => {
+    const r = promptImagenPlato(pedido([], creativa({
+      atributos: { ...POLENTA.atributos, forma: 'pure', textura: 'cremoso', temperatura: 'frio', coccion: 'listo' },
+      imagen: { uno: 'banana yogurt cream', varios: 'banana yogurt cream', aspecto: 'smooth pale yellow banana yogurt cream' },
+    })), preparacion)
+    expect(r).toContain('On the right, set a little apart: a very small plain white bowl with just two spoonfuls of banana yogurt cream (smooth pale yellow banana yogurt cream, as a smooth puree)')
+  })
+
+  it('con salsa según los atributos del plato: no pide "sin salsa"', () => {
+    const r = promptImagenPlato(pedido([], creativa({ ...POLENTA, atributos: { ...POLENTA.atributos, presentacion: 'con_salsa' } })), preparacion)
+    expect(r).not.toContain('no sauce')
+  })
+
+  it('el esquema acepta un pedido sin plato y uno con plato (limpiando el texto); rechaza un enum inválido o un texto vacío', () => {
+    expect(esquemaImagenPlatoReq.safeParse(pedido()).success).toBe(true)
+    const ok = esquemaImagenPlatoReq.safeParse(pedido([], creativa({ ...POLENTA, imagen: { ...POLENTA.imagen, uno: '  baked\n"polenta"  stick ' } })))
+    expect(ok.success && ok.data.receta.plato?.imagen.uno).toBe('baked polenta stick')
+    const largo = esquemaImagenPlatoReq.safeParse(pedido([], creativa({ ...POLENTA, imagen: { ...POLENTA.imagen, aspecto: 'x'.repeat(1000) } })))
+    expect(largo.success && largo.data.receta.plato?.imagen.aspecto.length).toBe(400)
+    const malo = { ...POLENTA, atributos: { ...POLENTA.atributos, forma: 'triangulo' } } as unknown as PlatoNuevo
+    expect(esquemaImagenPlatoReq.safeParse(pedido([], creativa(malo))).success).toBe(false)
+    const vacio = { ...POLENTA, imagen: { ...POLENTA.imagen, varios: ' \n ' } }
+    expect(esquemaImagenPlatoReq.safeParse(pedido([], creativa(vacio))).success).toBe(false)
   })
 })
 

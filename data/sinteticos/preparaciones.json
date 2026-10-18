@@ -25,6 +25,10 @@
         "alimentoId": "azucar",
         "gramos": 10
       }
+    ],
+    "momentos": [
+      "merienda",
+      "colacion"
     ]
   },
   {
@@ -49,6 +53,10 @@
         "alimentoId": "pollo",
         "gramos": 50
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -69,6 +77,42 @@
         "alimentoId": "arvejas",
         "gramos": 50
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ]
+  },
+  {
+    "id": "avena_con_leche",
+    "nombre": "Avena con leche, fría",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "granos",
+      "color": "beige",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "mezclado",
+      "grupo": "lacteo",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "leche",
+        "gramos": 150
+      },
+      {
+        "alimentoId": "avena",
+        "gramos": 40
+      },
+      {
+        "alimentoId": "azucar",
+        "gramos": 5
+      }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda"
     ]
   },
   {
@@ -89,6 +133,39 @@
         "alimentoId": "banana",
         "gramos": 80
       }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
+    ]
+  },
+  {
+    "id": "bastones_boniato_fritos",
+    "nombre": "Bastones de boniato fritos",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "baston",
+      "color": "naranja",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "boniato",
+        "gramos": 120
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 10
+      }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -113,6 +190,10 @@
         "alimentoId": "pan_rallado",
         "gramos": 10
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -137,6 +218,10 @@
         "alimentoId": "aceite_girasol",
         "gramos": 3
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -157,6 +242,10 @@
         "alimentoId": "brocoli",
         "gramos": 50
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -177,6 +266,34 @@
         "alimentoId": "chauchas",
         "gramos": 50
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ]
+  },
+  {
+    "id": "copos_maiz",
+    "nombre": "Copos de maíz (cereal de desayuno, como vienen)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "amarillo",
+      "sabor": "neutro",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "cereal_fortificado",
+        "gramos": 30
+      }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda"
     ]
   },
   {
@@ -201,6 +318,10 @@
         "alimentoId": "salsa_tomate",
         "gramos": 40
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -229,6 +350,35 @@
         "alimentoId": "queso_rallado",
         "gramos": 10
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ]
+  },
+  {
+    "id": "frutilla_pisada",
+    "nombre": "Frutillas pisadas",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "rojo",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "fruta",
+      "coccion": "crudo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "frutilla",
+        "gramos": 80
+      }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
     ]
   },
   {
@@ -249,6 +399,36 @@
         "alimentoId": "galletitas_agua",
         "gramos": 25
       }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
+    ]
+  },
+  {
+    "id": "galletitas_integrales",
+    "nombre": "Galletitas integrales del mismo formato que las de agua",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "marron",
+      "sabor": "salado",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "galletitas_integrales",
+        "gramos": 40
+      }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
     ]
   },
   {
@@ -269,6 +449,35 @@
         "alimentoId": "carne_picada",
         "gramos": 100
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ]
+  },
+  {
+    "id": "jugo_naranja_colado",
+    "nombre": "Jugo de naranja natural, colado y sin pulpa",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "entero",
+      "color": "naranja",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "fruta",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "jugo_naranja",
+        "gramos": 200
+      }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
     ]
   },
   {
@@ -293,6 +502,10 @@
         "alimentoId": "cacao_azucarado",
         "gramos": 15
       }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda"
     ]
   },
   {
@@ -317,6 +530,38 @@
         "alimentoId": "zanahoria",
         "gramos": 20
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ]
+  },
+  {
+    "id": "licuado_banana_leche",
+    "nombre": "Licuado de banana con leche",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "entero",
+      "color": "amarillo",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "lacteo",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "leche",
+        "gramos": 150
+      },
+      {
+        "alimentoId": "banana",
+        "gramos": 60
+      }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda"
     ]
   },
   {
@@ -337,6 +582,11 @@
         "alimentoId": "manzana",
         "gramos": 60
       }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
     ]
   },
   {
@@ -365,6 +615,42 @@
         "alimentoId": "aceite_girasol",
         "gramos": 5
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ]
+  },
+  {
+    "id": "milanesa_lentejas_horno",
+    "nombre": "Milanesa de lentejas al horno (sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "marron",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "lentejas",
+        "gramos": 80
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 20
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 5
+      }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -397,6 +683,42 @@
         "alimentoId": "queso_muzzarella",
         "gramos": 30
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ]
+  },
+  {
+    "id": "nuggets_pollo_caseros",
+    "nombre": "Nuggets caseros de pollo con el mismo apanado, fritos (sin huevo)",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "redondo",
+      "color": "beige",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "frito"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "pollo",
+        "gramos": 70
+      },
+      {
+        "alimentoId": "pan_rallado",
+        "gramos": 15
+      },
+      {
+        "alimentoId": "aceite_girasol",
+        "gramos": 8
+      }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -417,6 +739,10 @@
         "alimentoId": "papa",
         "gramos": 120
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -441,6 +767,10 @@
         "alimentoId": "aceite_girasol",
         "gramos": 10
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -465,6 +795,10 @@
         "alimentoId": "aceite_girasol",
         "gramos": 5
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -489,6 +823,38 @@
         "alimentoId": "aceite_girasol",
         "gramos": 5
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ]
+  },
+  {
+    "id": "pizza_muzzarella",
+    "nombre": "Pizza de muzzarella sin salsa, masa fina y crocante",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "prepizza",
+        "gramos": 70
+      },
+      {
+        "alimentoId": "queso_muzzarella",
+        "gramos": 40
+      }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -509,6 +875,10 @@
         "alimentoId": "pollo",
         "gramos": 70
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -529,6 +899,10 @@
         "alimentoId": "pollo",
         "gramos": 90
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -553,6 +927,38 @@
         "alimentoId": "manteca",
         "gramos": 3
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ]
+  },
+  {
+    "id": "pure_lentejas",
+    "nombre": "Puré de lentejas",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "marron",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "proteina",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "lentejas",
+        "gramos": 80
+      },
+      {
+        "alimentoId": "manteca",
+        "gramos": 3
+      }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -581,6 +987,46 @@
         "alimentoId": "manteca",
         "gramos": 5
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ]
+  },
+  {
+    "id": "pure_papa_queso",
+    "nombre": "Puré de papa con queso rallado",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "pure",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "caliente",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "hervido"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "papa",
+        "gramos": 130
+      },
+      {
+        "alimentoId": "leche",
+        "gramos": 30
+      },
+      {
+        "alimentoId": "manteca",
+        "gramos": 5
+      },
+      {
+        "alimentoId": "queso_rallado",
+        "gramos": 20
+      }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -601,6 +1047,10 @@
         "alimentoId": "zapallo",
         "gramos": 100
       }
+    ],
+    "momentos": [
+      "almuerzo",
+      "cena"
     ]
   },
   {
@@ -621,6 +1071,63 @@
         "alimentoId": "pan_blanco",
         "gramos": 40
       }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda"
+    ]
+  },
+  {
+    "id": "tostadas_queso",
+    "nombre": "Tostadas con queso gratinado, bien doradas",
+    "atributos": {
+      "textura": "crocante",
+      "forma": "plano",
+      "color": "amarillo",
+      "sabor": "salado",
+      "temperatura": "tibio",
+      "presentacion": "separado",
+      "grupo": "cereal_almidon",
+      "coccion": "horno"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "pan_blanco",
+        "gramos": 40
+      },
+      {
+        "alimentoId": "queso_muzzarella",
+        "gramos": 30
+      }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda"
+    ]
+  },
+  {
+    "id": "yogur_bebible",
+    "nombre": "Yogur bebible de vainilla",
+    "atributos": {
+      "textura": "cremoso",
+      "forma": "entero",
+      "color": "blanco",
+      "sabor": "dulce",
+      "temperatura": "frio",
+      "presentacion": "separado",
+      "grupo": "lacteo",
+      "coccion": "listo"
+    },
+    "ingredientes": [
+      {
+        "alimentoId": "yogur",
+        "gramos": 180
+      }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
     ]
   },
   {
@@ -641,6 +1148,11 @@
         "alimentoId": "yogur",
         "gramos": 150
       }
+    ],
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
     ]
   }
 ]

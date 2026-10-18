@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Progreso, Sugerencia } from '../../shared/contratos'
 import progresoFixture from '../../fixtures/progreso.json'
 import {
-  comidaRecienPorHora, comidasDelDia, elegirParaReceta, elegirSugerencia, encaja, lineaPorQue, primeraFrase, proximaComida, rutaRecetaComida, sugerenciasDe,
+  comidaRecienPorHora, comidasDelDia, elegirSugerencia, encaja, lineaPorQue, primeraFrase, proximaComida, rutaRecetaComida, rutaRecetaNueva, sugerenciasDe, ultimosSinRepetir,
   type ComidaDelDia,
 } from './proximaComida'
 
@@ -124,21 +124,16 @@ describe('textos y rutas', () => {
     expect(r).toBe('/receta?nino=tomas&preparacionId=bastones_queso_horno&nutriente=calcio_mg&momento=almuerzo')
     expect(rutaRecetaComida('tomas', s('un_paso', 'x'), 'cena')).not.toContain('motor')
   })
-})
 
-describe('elegirParaReceta (Generar receta, v5.3)', () => {
-  const sug = (tipo: Sugerencia['tipo'], preparacionId: string): Sugerencia =>
-    ({ tipo, preparacionId, nombre: preparacionId, probAcepta: 0.5, aporte: {}, porQue: '' })
-
-  it('nunca elige una segura: no tiene receta', () => {
-    const p = { momento: 'desayuno' as const, sugerencias: [sug('segura', 'leche_chocolatada'), sug('mas_nutritiva', 'yogur_bebible')] }
-    expect(elegirParaReceta(p, 'desayuno')?.preparacionId).toBe('yogur_bebible')
-    expect(elegirParaReceta({ momento: 'desayuno', sugerencias: [sug('segura', 'leche_chocolatada')] }, 'desayuno')).toBeNull()
-  })
-
-  it('acepta la merienda y respeta el catálogo de comidas', () => {
-    expect(elegirParaReceta({ sugerencias: [sug('un_paso', 'yogur_bebible')] }, 'merienda')?.preparacionId).toBe('yogur_bebible')
-    expect(elegirParaReceta({ sugerencias: [sug('un_paso', 'milanesa_carne_horno')] }, 'merienda')).toBeNull()
+  it('Generar receta lleva la comida y nueva=1, sin preparación (la receta creativa, v5.4)', () => {
+    expect(rutaRecetaNueva('tomas', 'cena')).toBe('/receta?nino=tomas&momento=cena&nueva=1')
   })
 })
 
+describe('ultimosSinRepetir (anteriores de la receta creativa, v5.4)', () => {
+  it('saca los repetidos dejando el más nuevo y se queda con los últimos', () => {
+    expect(ultimosSinRepetir(['a', 'b', 'a', 'c'])).toEqual(['b', 'a', 'c'])
+    expect(ultimosSinRepetir(['a', 'b', 'c', 'd'], 2)).toEqual(['c', 'd'])
+    expect(ultimosSinRepetir([])).toEqual([])
+  })
+})

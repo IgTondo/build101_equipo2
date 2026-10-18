@@ -4,13 +4,18 @@
 //  - cada comida sale del catálogo visual (prompts/imagen-plato.ts), escrito a mano con su forma exacta, corte, tamaño,
 //    color y cocción ("long thin sticks shaped exactly like French fries", no "cut into sticks", que salía en cubos);
 //    lo que no está ahí se arma con sus atributos (los del catálogo o, para su alimento seguro, los que se mantienen);
+//    v5.4 · el plato inventado de la receta creativa (receta.plato, fuera del catálogo) trae su descripción en inglés
+//    del LLM: se limpia, se acorta y se le agrega la forma exacta (FORMA_EN) si no la dice;
 //  - su alimento seguro en porción normal, a la izquierda; el nuevo en porción chica, a la derecha, con la cantidad
 //    que dice la presentación de la receta ("2 bastones", "media tostada") o una por defecto;
 //  - las bebidas van en vaso y el yogur en un bol, nunca "en el plato";
 //  - plato playo blanco (hondo o con divisiones si una regla del chico lo pide), cenital, separados, nada más.
 // Siempre es ilustrativa.
 import { z } from 'zod'
-import { CAMBIO, type Atributos, type Coccion, type Color, type ImagenPlatoRes, type PreparacionCatalogo, type Regla, type Textura } from '../../shared/contratos.js'
+import {
+  CAMBIO, COCCION, COLOR, FORMA, GRUPO, PRESENTACION, SABOR, TEMPERATURA, TEXTURA,
+  type Atributos, type Coccion, type Color, type Forma, type ImagenPlatoRes, type PlatoNuevo, type PreparacionCatalogo, type Regla, type Textura,
+} from '../../shared/contratos.js'
 import { ingredientePrincipal } from '../validacion/receta.js'
 import { generarImagen } from './imagen.js'
 import { FORMA_EN, VISUAL, type Recipiente, type Visual } from './prompts/imagen-plato.js'
@@ -26,6 +31,28 @@ const esquemaRegla = z.object({
   efecto: z.enum(['rechaza', 'requiere']),
 })
 
+// v5.4 · Lo que escribe el LLM va a un prompt de imagen: una línea, sin comillas ni caracteres raros, y corto.
+export function limpiarTexto(texto: string, max: number): string {
+  return texto
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // "crème" → "creme"
+    .replace(/["`´“”«»]/g, '')
+    .replace(/[^\x20-\x7e]/g, ' ')                    // saltos de línea, tabs y lo que no sea ASCII imprimible
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, max)
+    .trim()
+}
+const MAX_IMAGEN = { uno: 80, varios: 80, aspecto: 400 } as const
+const textoImagen = (max: number) => z.string().transform((t) => limpiarTexto(t, max)).pipe(z.string().min(1))
+
+const esquemaPlatoNuevo = z.object({
+  atributos: z.object({
+    textura: z.enum(TEXTURA), forma: z.enum(FORMA), color: z.enum(COLOR), sabor: z.enum(SABOR),
+    temperatura: z.enum(TEMPERATURA), presentacion: z.enum(PRESENTACION), grupo: z.enum(GRUPO), coccion: z.enum(COCCION),
+  }),
+  imagen: z.object({ uno: textoImagen(MAX_IMAGEN.uno), varios: textoImagen(MAX_IMAGEN.varios), aspecto: textoImagen(MAX_IMAGEN.aspecto) }),
+})
+
 export const esquemaImagenPlatoReq = z.object({
   receta: z.object({
     nombre: z.string().min(1),
@@ -37,6 +64,7 @@ export const esquemaImagenPlatoReq = z.object({
     presentacion: z.string().optional(),
     seMantiene: z.array(z.string()).optional(),
     cambio: z.enum(CAMBIO).optional(),
+    plato: esquemaPlatoNuevo.optional(),   // v5.4 · solo en la receta creativa
   }),
   reglas: z.array(esquemaRegla).default([]),
 })
@@ -76,21 +104,40 @@ export function visualPorAtributos({ nombre, atributos: a, ingredientes }: SinVi
   const que = principal ? enIngles(principal) : `"${nombre}"`
   const adjetivos = [a.textura && TEXTURA_EN[a.textura], a.color && COLOR_EN[a.color], a.coccion && COCCION_EN[a.coccion], apanado].filter(Boolean)
   const aspecto = [[...adjetivos, que].join(' '), a.forma ? FORMA_EN[a.forma] : ''].filter(Boolean).join(', ')
-  const bebida = a.forma === 'entero' && a.textura === 'cremoso'
-  const recipiente: Recipiente = bebida ? 'vaso' : (a.forma === 'pure' || a.forma === 'granos') && a.temperatura === 'frio' && a.coccion === 'listo' ? 'bol' : 'plato'
   const normal = a.forma ? NORMAL_POR_FORMA[a.forma] : 0
-  return { uno: que, varios: normal > 1 ? `pieces of ${que}` : que, aspecto, normal, recipiente }
+  return { uno: que, varios: normal > 1 ? `pieces of ${que}` : que, aspecto, normal, recipiente: recipientePorAtributos(a) }
+}
+
+/** Las bebidas (enteras y cremosas) van en vaso; el puré o los granos fríos que se comen como vienen (yogur), en un bol. */
+function recipientePorAtributos(a: Partial<Atributos>): Recipiente {
+  if (a.forma === 'entero' && a.textura === 'cremoso') return 'vaso'
+  return (a.forma === 'pure' || a.forma === 'granos') && a.temperatura === 'frio' && a.coccion === 'listo' ? 'bol' : 'plato'
+}
+
+// Si la descripción del LLM ya dice la forma, no se repite.
+const DICE_LA_FORMA: Record<Forma, RegExp> = {
+  baston: /french fr/i, redondo: /round/i, plano: /\bflat\b/i, trozos: /chunk|bite-size/i, pure: /puree|mash/i, granos: /grain/i, entero: /./,
+}
+
+/** v5.4 · El plato inventado de la receta creativa: la descripción del LLM, con la forma exacta que FLUX respeta. */
+export function visualDelPlato({ atributos: a, imagen }: PlatoNuevo): Visual {
+  const uno = limpiarTexto(imagen.uno, MAX_IMAGEN.uno)
+  const varios = limpiarTexto(imagen.varios, MAX_IMAGEN.varios) || uno
+  const descripcion = limpiarTexto(imagen.aspecto, MAX_IMAGEN.aspecto)
+  const forma = FORMA_EN[a.forma] && !DICE_LA_FORMA[a.forma].test(descripcion) ? FORMA_EN[a.forma] : ''
+  const aspecto = [descripcion, forma].filter(Boolean).join(', ') || uno
+  return { uno, varios, aspecto, normal: NORMAL_POR_FORMA[a.forma], recipiente: recipientePorAtributos(a) }
 }
 
 /** "forma=baston" → { forma: 'baston' }: lo que comparten su alimento seguro y el nuevo (para el que no está en el catálogo). */
-function atributosQueSeMantienen(seMantiene: string[] = [], nuevo: PreparacionCatalogo | undefined): Partial<Atributos> {
+function atributosQueSeMantienen(seMantiene: string[] = [], nuevo: Partial<Atributos> | undefined): Partial<Atributos> {
   const a: Record<string, string> = {}
   for (const s of seMantiene) {
     const [k, v] = s.split('=')
     if (k && v) a[k] = v
   }
   // Sin seMantiene, lo del nuevo menos lo que cambió es lo mejor que hay.
-  if (!seMantiene.length && nuevo) Object.assign(a, nuevo.atributos)
+  if (!seMantiene.length && nuevo) Object.assign(a, nuevo)
   return a as Partial<Atributos>
 }
 
@@ -151,17 +198,25 @@ function platoPara(reglas: Regla[]): PlatoImagen {
 
 type BuscarPreparacion = (id: string) => PreparacionCatalogo | undefined
 
+/** Los atributos del nuevo: los del catálogo o, si no está (receta creativa), los del plato inventado. */
+function atributosDelNuevo({ receta }: PedidoImagenPlato, preparacion: BuscarPreparacion): Partial<Atributos> | undefined {
+  return preparacion(receta.preparacionBaseId)?.atributos ?? receta.plato?.atributos
+}
+
 /** Cómo se ve su alimento seguro y el nuevo. Exportada para los tests y el script de prueba. */
 export function visuales(req: PedidoImagenPlato, preparacion: BuscarPreparacion = preparacionCatalogo): { seguro: Visual; nuevo: Visual } {
   const { receta } = req
   const prepNuevo = preparacion(receta.preparacionBaseId)
   const prepSeguro = preparacion(receta.desde.preparacionId)
-  const nuevo = VISUAL[receta.preparacionBaseId] ?? visualPorAtributos(prepNuevo
-    ? { nombre: prepNuevo.nombre, atributos: prepNuevo.atributos, ingredientes: prepNuevo.ingredientes }
-    : { nombre: receta.nombre, atributos: atributosQueSeMantienen(receta.seMantiene, undefined), ingredientes: receta.ingredientes })
+  // El nuevo: el catálogo visual, el plato inventado (receta creativa) o sus atributos.
+  const nuevo = VISUAL[receta.preparacionBaseId]
+    ?? (!prepNuevo && receta.plato ? visualDelPlato(receta.plato) : undefined)
+    ?? visualPorAtributos(prepNuevo
+      ? { nombre: prepNuevo.nombre, atributos: prepNuevo.atributos, ingredientes: prepNuevo.ingredientes }
+      : { nombre: receta.nombre, atributos: atributosQueSeMantienen(receta.seMantiene, undefined), ingredientes: receta.ingredientes })
   const seguro = VISUAL[receta.desde.preparacionId] ?? visualPorAtributos(prepSeguro
     ? { nombre: prepSeguro.nombre, atributos: prepSeguro.atributos, ingredientes: prepSeguro.ingredientes }
-    : { nombre: receta.desde.nombre, atributos: atributosQueSeMantienen(receta.seMantiene, prepNuevo), ingredientes: [] })
+    : { nombre: receta.desde.nombre, atributos: atributosQueSeMantienen(receta.seMantiene, atributosDelNuevo(req, preparacion)), ingredientes: [] })
   return { seguro, nuevo }
 }
 
@@ -175,7 +230,8 @@ export function promptImagenPlato(req: PedidoImagenPlato, preparacion: BuscarPre
   // Solo con piezas enteras (bastones, nuggets): con media tostada o un trozo de milanesa se contradiría.
   const mismaForma = Boolean(receta.seMantiene?.some((s) => s.startsWith('forma=')))
     && seguro.normal >= 4 && nuevo.normal >= 4 && seguro.recipiente === 'plato' && nuevo.recipiente === 'plato'
-  const conSalsa = [receta.preparacionBaseId, receta.desde.preparacionId].some((id) => preparacion(id)?.atributos.presentacion === 'con_salsa')
+  const conSalsa = [atributosDelNuevo(req, preparacion), preparacion(receta.desde.preparacionId)?.atributos]
+    .some((a) => a?.presentacion === 'con_salsa')
 
   const enUnPlato = seguro.recipiente === 'plato' && nuevo.recipiente === 'plato'
   const escena = enUnPlato

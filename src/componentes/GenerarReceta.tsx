@@ -1,98 +1,43 @@
-// "Generar receta" (PLAN v5.3): el padre elige la comida (desayuno, almuerzo, merienda o cena) y sigue el flujo de
-// siempre: la sugerencia del grafo para esa comida (/api/progreso?momento=) → la receta (/receta, que la genera con su
-// imagen). Ventana con <dialog> nativo: el foco, Escape y el fondo inerte los resuelve el navegador.
-import { useRef, useState } from 'react'
+// "Generar receta" (PLAN v5.3 · v5.4): el padre elige la comida (desayuno, almuerzo, merienda o cena) y va directo a
+// /receta?momento=&nueva=1, que pide la receta creativa: el LLM inventa un plato nuevo con lo que sabe el grafo; no
+// repite lo que ya vio para esa comida (los nombres se guardan en este celular y viajan en RecetaReq.anteriores).
+// Ventana con <dialog> nativo: el foco, Escape y el fondo inerte los resuelve el navegador.
+import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { Momento, Nutriente } from '../../shared/contratos'
-import { api, type ErrorDeApi } from '../lib/api'
-import { elegirParaReceta, rutaRecetaComida } from '../lib/proximaComida'
-import { aErrorDeApi } from '../lib/useApi'
+import type { Momento } from '../../shared/contratos'
+import { rutaRecetaNueva } from '../lib/proximaComida'
 import { NOMBRE_MOMENTO } from '../lib/vocabulario'
-import { Cargando, ErrorConReintento } from './Estados'
 import './generar-receta.css'
 
 const COMIDAS: Momento[] = ['desayuno', 'almuerzo', 'merienda', 'cena']
-const PARA: Record<Momento, string> = {
-  desayuno: 'el desayuno', almuerzo: 'el almuerzo', merienda: 'la merienda', cena: 'la cena', colacion: 'la colación',
-}
-
-type Estado =
-  | { tipo: 'eligiendo' }
-  | { tipo: 'buscando'; momento: Momento }
-  | { tipo: 'sin_idea'; momento: Momento }
-  | { tipo: 'error'; momento: Momento; error: ErrorDeApi }
 
 export function GenerarReceta({ ninoId }: { ninoId: string }) {
   const dialogo = useRef<HTMLDialogElement>(null)
-  const control = useRef<AbortController | null>(null)
-  const [estado, setEstado] = useState<Estado>({ tipo: 'eligiendo' })
   const navegar = useNavigate()
 
-  function abrir() {
-    setEstado({ tipo: 'eligiendo' })
-    dialogo.current?.showModal()
-  }
-
-  function cerrar() {
-    control.current?.abort()
+  function elegir(momento: Momento) {
     dialogo.current?.close()
+    navegar(rutaRecetaNueva(ninoId, momento))
   }
-
-  async function elegir(momento: Momento) {
-    control.current?.abort()
-    const c = new AbortController()
-    control.current = c
-    setEstado({ tipo: 'buscando', momento })
-    try {
-      const progreso = await api.progreso(ninoId, { dias: 7, momento }, c.signal)
-      if (c.signal.aborted) return
-      const s = elegirParaReceta(progreso, momento)
-      if (!s) return setEstado({ tipo: 'sin_idea', momento })
-      const nutriente: Nutriente | undefined = progreso.semana.faltan.find((n) => n !== 'energia_kcal')
-      dialogo.current?.close()
-      navegar(rutaRecetaComida(ninoId, s, momento, nutriente))
-    } catch (e) {
-      if (!c.signal.aborted) setEstado({ tipo: 'error', momento, error: aErrorDeApi(e) })
-    }
-  }
-
-  const buscando = estado.tipo === 'buscando'
 
   return (
     <>
-      <button type="button" className="nb-boton nb-boton-secundario gr-abrir" onClick={abrir}>
+      <button type="button" className="nb-boton nb-boton-secundario gr-abrir" onClick={() => dialogo.current?.showModal()}>
         <IconoOlla /> Generar receta
       </button>
 
-      <dialog ref={dialogo} className="gr-dialogo" aria-labelledby="gr-titulo" onClose={() => control.current?.abort()}>
+      <dialog ref={dialogo} className="gr-dialogo" aria-labelledby="gr-titulo">
         <h2 id="gr-titulo">¿Para qué comida?</h2>
 
-        <div className="gr-opciones" role="group" aria-labelledby="gr-titulo" aria-busy={buscando}>
+        <div className="gr-opciones" role="group" aria-labelledby="gr-titulo">
           {COMIDAS.map((m) => (
-            <button
-              key={m}
-              type="button"
-              className="gr-opcion"
-              aria-pressed={estado.tipo !== 'eligiendo' && 'momento' in estado && estado.momento === m}
-              disabled={buscando}
-              onClick={() => elegir(m)}
-            >
+            <button key={m} type="button" className="gr-opcion" onClick={() => elegir(m)}>
               {NOMBRE_MOMENTO[m]}
             </button>
           ))}
         </div>
 
-        <div className="gr-estado" aria-live="polite">
-          {estado.tipo === 'buscando' && <Cargando texto={`Buscando una receta para ${PARA[estado.momento]}…`} />}
-          {estado.tipo === 'sin_idea' && (
-            <p>Todavía no tenemos una receta para {PARA[estado.momento]}. Probá otra comida o registrá algunas más.</p>
-          )}
-          {estado.tipo === 'error' && (
-            <ErrorConReintento error={estado.error} reintentar={() => elegir(estado.momento)} />
-          )}
-        </div>
-
-        <button type="button" className="gr-cancelar" onClick={cerrar}>Cancelar</button>
+        <button type="button" className="gr-cancelar" onClick={() => dialogo.current?.close()}>Cancelar</button>
       </dialog>
     </>
   )

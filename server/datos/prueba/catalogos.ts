@@ -1,5 +1,5 @@
 // Ayudas para los tests de la pista B: el fixture de nutrientes, el catálogo de preparaciones y el dataset
-// sintético de Tomás y Lucía (PLAN.md §10.5) ya resueltos como documentos de Mongo.
+// sintético de Tomás, Lucía y Valentina (PLAN.md §10.5) ya resueltos como documentos de Mongo.
 import type { Alimento, DatosBasicos, PerfilBorrador, PreparacionCatalogo, RegistrarComidaReq } from '../../../shared/contratos.js'
 import type { Condicion } from '../../aprendizaje/condiciones.js'
 import { leerJSON } from '../archivos.js'
@@ -37,7 +37,9 @@ export function catalogoPrueba(): Map<string, PreparacionCatalogo> {
   return new Map(preparaciones.map((p) => [p.id, p]))
 }
 
-export function sintetico(id: 'tomas' | 'lucia'): Sintetico {
+export type SinteticoId = 'tomas' | 'lucia' | 'valentina'
+
+export function sintetico(id: SinteticoId): Sintetico {
   return exigir(leerJSON<Sintetico>(`data/sinteticos/${id}.json`), `data/sinteticos/${id}.json`)
 }
 

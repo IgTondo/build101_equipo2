@@ -31,6 +31,7 @@ export const esquemaRecetaReq = z.object({
   nutriente: z.enum(NUTRIENTE).exclude(['energia_kcal']).optional(), // sin meta de calorías: no hay receta "para la energía"
   preparacionId: z.string().trim().min(1).optional(),
   momento: z.enum(MOMENTO).optional(), // v5.2 · la comida para la que es: api/receta.ts se lo pasa a armarEvidencia()
+  anteriores: z.array(z.string().trim().min(1).max(120)).max(10).optional(), // v5.4 · con preparacionId, de esa preparación; sin, de esa comida
 })
 
 export interface DepsReceta {
@@ -76,7 +77,7 @@ export function preparacionCatalogo(id: string): PreparacionCatalogo | undefined
 // solo si están en el catálogo y no tienen alérgenos del chico.
 const BASICOS = ['aceite_girasol', 'aceite_canola', 'leche', 'manteca', 'pan_rallado', 'queso_rallado', 'harina_trigo']
 
-const sinAlergenos = (id: string, alergias: Alergeno[]) =>
+export const sinAlergenos = (id: string, alergias: Alergeno[]) =>
   !esGenerico(id) && (alimentoPorId(id)?.alergenos.every((a) => !alergias.includes(a)) ?? false)
 
 function ingredientesSugeridos(base: PreparacionCatalogo, desde: PreparacionCatalogo, alergias: Alergeno[]) {
@@ -215,7 +216,10 @@ export async function generarReceta(req: RecetaReq, deps: DepsReceta): Promise<R
       const { datos } = await generarJSON({
         tarea: 'receta',
         sistema: SISTEMA_RECETA,
-        partes: [{ tipo: 'texto', texto: promptReceta({ evidencia, candidato, base, ingredientes, alergias, anterior }) }],
+        partes: [{ tipo: 'texto', texto: promptReceta({
+          evidencia, candidato, base, ingredientes, alergias, anterior,
+          ...(candidato.preparacionId === req.preparacionId && req.anteriores?.length ? { yaVistas: req.anteriores } : {}),
+        }) }],
         schema,
         limiteMs: CORTE_MS - (desdeLlamada - t0),
       })

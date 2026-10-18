@@ -1,4 +1,4 @@
-/* "Generar receta" (PLAN v5.3): el botón del inicio y la ventana para elegir la comida. Tokens de brand/tokens/nibble.css. */
+/* "Generar receta" (PLAN v5.3 · v5.4): el botón del inicio y la ventana para elegir la comida. Tokens de brand/tokens/nibble.css. */
 .gr-abrir { gap: 10px; min-height: 60px; font-size: 1.05rem; }
 .gr-abrir { transition-property: background-color, transform; transition-duration: 150ms; transition-timing-function: ease-out; }
 .gr-abrir:active { transform: scale(0.98); }
@@ -29,15 +29,9 @@
 }
 .gr-opcion:hover { border-color: var(--nb-marca); }
 .gr-opcion:active { transform: scale(0.97); }
-.gr-opcion[aria-pressed='true'] { background: var(--nb-primario); border-color: var(--nb-primario); color: var(--nb-sobre-primario); }
-.gr-opcion:disabled:not([aria-pressed='true']) { opacity: 0.55; cursor: default; }
-
-.gr-estado { min-height: 8px; margin-top: 12px; }
-.gr-estado:empty { margin-top: 0; }
-.gr-estado p { margin: 0; color: var(--nb-texto-suave); text-align: center; }
 
 .gr-cancelar {
-  display: block; width: 100%; min-height: 48px; margin-top: 8px;
+  display: block; width: 100%; min-height: 48px; margin-top: 12px;
   border: 0; background: none; color: var(--nb-texto-suave);
   font: 700 1rem var(--nb-font-texto); cursor: pointer;
 }

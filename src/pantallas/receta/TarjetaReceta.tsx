@@ -1,11 +1,12 @@
-// La receta de food chaining, para leer con una mano en la cocina: arriba el nombre, "Parte de / Cambia" y la imagen;
-// después una línea de cómo ofrecerlo (sin presión, siempre a la vista), qué aporta, ingredientes y pasos. Lo largo
+// La receta de food chaining, para leer con una mano en la cocina: arriba el nombre, "Parte de / Cambia" y la imagen
+// (el plato nuevo al lado de su alimento seguro, y una línea que lo dice: la foto no queda sin explicar); después una
+// línea de cómo ofrecerlo (sin presión, siempre a la vista), qué aporta, ingredientes y pasos. Lo largo
 // (por qué esta, el camino en su historial, cómo servirlo, lo que va adentro) queda detrás de "Ver más".
 import type { Receta, Regla } from '../../../shared/contratos'
 import { fraccionBarra, porcentajeTope } from '../../lib/cobertura'
 import { NOMBRE_CAMBIO, formatoNutriente, textoParaPadres } from '../../lib/vocabulario'
 import { ImagenPlato } from './ImagenPlato'
-import { aceptacionLegible, alergenoEnFrase, listaLegible, nutrienteEnFrase } from './legible'
+import { aceptacionLegible, alergenoEnFrase, listaLegible, nutrienteEnFrase, su } from './legible'
 
 /** La línea que siempre se ve (§9, tono): ofrecer sin presión. El texto completo de la receta va en "Ver más". */
 export const OFRECER_SIN_PRESION = 'Ofrecelo sin pedirle que lo coma.'
@@ -30,6 +31,7 @@ export function TarjetaReceta({ receta, reglas, para = null }: { receta: Receta;
 
       <div className="rc-servir">
         <ImagenPlato receta={receta} reglas={reglas} />
+        <p className="rc-al-lado">Servilo al lado de {su(receta.desde.nombre)}, que ya come.</p>
         <details className="nb-ver-mas rc-mas">
           <summary>Cómo servirlo</summary>
           <p>{receta.presentacion}</p>
@@ -80,11 +82,18 @@ export function TarjetaReceta({ receta, reglas, para = null }: { receta: Receta;
           <summary>Por qué esta</summary>
           <p>{receta.porQue}</p>
           {receta.seMantiene.length > 0 && <p><strong>Se mantiene:</strong> {listaLegible(receta.seMantiene)}.</p>}
-          {candidato && (
+          {candidato ? (
             <p className="rc-camino">
               {candidato.camino.desde} ({aceptacionLegible(candidato.camino.aceptacion)})
               <span aria-hidden="true"> → </span><span className="nb-oculto"> lleva a </span>
               {candidato.nombre}
+            </p>
+          ) : receta.plato && (
+            // v5.4 · La receta creativa no sale de un candidato del catálogo: el camino es de su alimento seguro al plato
+            <p className="rc-camino">
+              {receta.desde.nombre}
+              <span aria-hidden="true"> → </span><span className="nb-oculto"> lleva a </span>
+              {receta.nombre}
             </p>
           )}
           {candidato && candidato.patrones.length > 0 && (

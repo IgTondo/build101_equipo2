@@ -33,3 +33,14 @@ export function aceptacionLegible(aceptacion: string): string {
   const m = /^(\d+)\s*\/\s*(\d+)$/.exec(aceptacion)
   return m ? `la aceptó ${m[1]} de ${m[2]} ${m[2] === '1' ? 'vez' : 'veces'}` : aceptacion
 }
+
+/**
+ * Su alimento seguro en medio de una frase: "su milanesa de carne al horno", "sus papas fritas". Plural si la primera
+ * palabra termina en s ("Bastones de queso", "Fideos con manteca"); la primera letra va en minúscula.
+ */
+export function su(nombre: string): string {
+  const t = nombre.trim()
+  const primera = t.split(/\s+/)[0] ?? ''
+  const plural = /s$/i.test(primera)
+  return `${plural ? 'sus' : 'su'} ${t.charAt(0).toLocaleLowerCase('es')}${t.slice(1)}`
+}

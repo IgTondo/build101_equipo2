@@ -55,6 +55,9 @@
 .rc-mas[open] > summary { margin-bottom: 2px; }
 .rc-mas p { margin: 0; font-size: 0.95rem; }
 
+/* v5.4 · La foto muestra el plato al lado de su alimento seguro: esta línea lo dice, siempre a la vista. */
+.rc-al-lado { margin: 8px 0 0; font-size: 0.95rem; font-weight: 700; color: var(--nb-texto); text-wrap: pretty; }
+
 /* Cómo ofrecerlo: una línea siempre a la vista (sin presión, §9). */
 .rc-ofrecer {
   padding: 12px 14px; border-radius: var(--nb-radio-chico);

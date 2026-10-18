@@ -1,7 +1,8 @@
-// Carga a Tomás y a Lucía del dataset sintético (PLAN.md §10.5) con el flujo real: crearPerfil + registrarComida,
-// comida por comida y con sus fechas. Es una simulación declarada: quedan como "sint-tomas" y "sint-lucia" para no
-// pisar al Tomás de la demo, que se carga a mano con el flujo real (§6). Sirve para probar el tablero y las recetas.
-// Uso: npx tsx --env-file=.env.local scripts/cargar-sinteticos.ts [tomas] [lucia] [--prefijo=sint-]
+// Carga a los chicos del dataset sintético (PLAN.md §10.5) con el flujo real: crearPerfil + registrarComida,
+// comida por comida y con sus fechas. Es una simulación declarada: quedan como "sint-tomas", "sint-lucia" y
+// "sint-valentina" para no pisar al Tomás de la demo, que se carga a mano con el flujo real (§6). Sirve para probar
+// el tablero y las recetas. Sin argumentos carga a Tomás y a Lucía; Valentina (6 semanas, 181 comidas) se pide aparte.
+// Uso: npx tsx --env-file=.env.local scripts/cargar-sinteticos.ts [tomas] [lucia] [valentina] [--prefijo=sint-]
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { DatosBasicos, PerfilBorrador, RegistrarComidaReq } from '../shared/contratos.js'

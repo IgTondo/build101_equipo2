@@ -1,10 +1,10 @@
 // Recomendador enchufable (PLAN.md §4.3 y §8): `grafo` (propagación + patrones, el de producción) o `base`
 // (α/β por atributo, la misma base de la curva de §11.4). Los dos usan los mismos candidatos de cadena.ts.
-import type { Cambio, Candidato, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Sugerencia } from '../../shared/contratos.js'
+import type { Cambio, Candidato, IdeaReceta, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Sugerencia } from '../../shared/contratos.js'
 import { aporte, cero, redondearParcial } from '../nutricion/calcular.js'
 import { CON_META } from '../nutricion/objetivos.js'
 import { alfaBeta, pAtributos } from './aceptacion.js'
-import { type EntradaCadena, type PasoCadena, DIFICULTAD, candidatosCadena } from './cadena.js'
+import { type EntradaCadena, type PasoCadena, DIFICULTAD, candidatosCadena, principal } from './cadena.js'
 import { type Contexto, type Observacion, cumple } from './condiciones.js'
 import type { Patron } from './patrones.js'
 import { importanciaPorTipo, propagar } from './propagacion.js'
@@ -24,6 +24,7 @@ export interface Recomendacion {
   nutriente: Nutriente
   candidatos: Candidato[]
   sugerencias: Sugerencia[] // siempre en el orden segura, un_paso, mas_nutritiva
+  ideas?: IdeaReceta[] // v5.4 · solo con momento: para que "Generar receta" no repita
 }
 
 /** Cómo se va a servir lo nuevo (§7): separado y al lado de su alimento seguro. Los patrones de contexto se miran con esto. */
@@ -127,10 +128,7 @@ export function recomendar(e: EntradaRecomendador, motor: Motor = 'grafo', nutri
   // Un pasito (explorar con sentido): la exposición en curso sigue igual; si no hay, el mejor candidato
   let unPaso: { x: Puntuado; n: Nutriente; enCurso: boolean } | null = null
   for (const n of [nutriente, ...e.faltan.filter((f) => f !== nutriente)]) {
-    const x = (n === nutriente ? lista : puntuar(n)).find((c) => {
-      const s = e.estados.get(c.paso.cand.id)
-      return s?.estado === 'en_proceso' && s.veces >= 1 && s.veces < MAX_EXPOSICIONES_MISMO
-    })
+    const x = (n === nutriente ? lista : puntuar(n)).find((c) => enCurso(e, c.paso.cand.id))
     if (x) {
       unPaso = { x, n, enCurso: true }
       break
@@ -145,7 +143,50 @@ export function recomendar(e: EntradaRecomendador, motor: Motor = 'grafo', nutri
     .sort((a, b) => b.paso.aporte[nutriente] - a.paso.aporte[nutriente] || b.puntaje - a.puntaje)[0]
   if (masNutritiva) sugerencias.push(sugerenciaPaso('mas_nutritiva', masNutritiva, nutriente, false, e))
 
-  return { motor, nutriente, candidatos: lista.map(aCandidato), sugerencias }
+  const rec: Recomendacion = { motor, nutriente, candidatos: lista.map(aCandidato), sugerencias }
+  if (!e.momento) return rec
+  // v5.4 · Las ideas de "Generar receta": los candidatos de cada nutriente que falta, sin lo que está en exposición
+  // (eso lo repite la tarjeta de la próxima comida, a propósito; acá el padre busca ideas nuevas).
+  const enExposicion = e.catalogo.filter((p) => enCurso(e, p.id))
+  const porNutriente = [nutriente, ...e.faltan.filter((f) => f !== nutriente)].map((n) => ({ n, lista: n === nutriente ? lista : puntuar(n) }))
+  return { ...rec, ideas: ideasReceta(porNutriente, enExposicion, (id) => enCurso(e, id)) }
+}
+
+/** ¿Está en exposición? En proceso, ofrecido al menos una vez y todavía sin las 10 exposiciones (§8). */
+function enCurso(e: EntradaRecomendador, id: string): boolean {
+  const s = e.estados.get(id)
+  return s?.estado === 'en_proceso' && s.veces >= 1 && s.veces < MAX_EXPOSICIONES_MISMO
+}
+
+/** Mismo ingrediente principal y misma forma: para el padre es "lo mismo otra vez" (bastones de queso al horno o fritos). */
+const pareceA = (a: PreparacionCatalogo, b: PreparacionCatalogo) =>
+  a.atributos.forma === b.atributos.forma && principal(a.ingredientes) !== null && principal(a.ingredientes) === principal(b.ingredientes)
+
+/**
+ * v5.4 · Una de cada nutriente por vuelta (el mejor puntaje de cada uno): si se tomara la lista entera del primer
+ * nutriente, "Generar receta" daría todas las de calcio (bastones de queso, pizza…) seguidas. Cada preparación sale una
+ * sola vez, con el primer nutriente que la trajo. Lo que está en exposición no sale, y lo que se le parece (o se parece
+ * a una idea anterior) va al final: en la demo no tiene que parecer que se repite.
+ */
+function ideasReceta(
+  porNutriente: readonly { n: Nutriente; lista: readonly Puntuado[] }[], enExposicion: readonly PreparacionCatalogo[], excluir: (id: string) => boolean,
+): IdeaReceta[] {
+  const vistas = new Set<string>()
+  const ideas: PreparacionCatalogo[] = []
+  const parecidas: PreparacionCatalogo[] = []
+  const nutrienteDe = new Map<string, Nutriente>()
+  const largo = Math.max(0, ...porNutriente.map((x) => x.lista.length))
+  for (let k = 0; k < largo; k++) {
+    for (const { n, lista } of porNutriente) {
+      const c = lista[k]?.paso.cand
+      if (!c || vistas.has(c.id) || excluir(c.id)) continue
+      vistas.add(c.id)
+      nutrienteDe.set(c.id, n)
+      if ([...enExposicion, ...ideas].some((x) => pareceA(x, c))) parecidas.push(c)
+      else ideas.push(c)
+    }
+  }
+  return [...ideas, ...parecidas].map((c) => ({ preparacionId: c.id, nombre: c.nombre, nutriente: nutrienteDe.get(c.id) ?? porNutriente[0]!.n }))
 }
 
 /** Entre lo que acepta, la de mayor p × aporte al nutriente que más falta, salteando lo de la última comida del mismo momento. */

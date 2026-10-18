@@ -39,13 +39,13 @@ describe('data/alimentos.json', () => {
     for (const g of GRUPO) expect(alimentoPorId(idGenerico(g))?.grupo).toBe(g)
   })
 
-  it('incluye los 26 alimentoIds de data/sinteticos/indice.json', () => {
+  it('incluye los 33 alimentoIds de data/sinteticos/indice.json', () => {
     const { alimentoIds: ids } = leer('data', 'sinteticos', 'indice.json') as { alimentoIds: string[] }
-    expect(ids).toHaveLength(26)
+    expect(ids).toHaveLength(33) // v5.4: 26 de Tomás y Lucía + 7 que suma Valentina
     expect(ids.filter((id) => !alimentoPorId(id))).toEqual([])
   })
 
-  it.each(['preparaciones.json', 'tomas.json', 'lucia.json'])('todos los alimentoId de data/sinteticos/%s existen', (archivo) => {
+  it.each(['preparaciones.json', 'tomas.json', 'lucia.json', 'valentina.json'])('todos los alimentoId de data/sinteticos/%s existen', (archivo) => {
     const ids = [...alimentoIds(leer('data', 'sinteticos', archivo))]
     expect(ids.length).toBeGreaterThan(0)
     expect(ids.filter((id) => !alimentoPorId(id))).toEqual([])

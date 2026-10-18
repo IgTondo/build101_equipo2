@@ -66,6 +66,13 @@ describe('promptReceta', () => {
     expect(p).toContain('no pasó la validación de la app por estos motivos:\n- El aceite va en 2 g.\nCorregí eso')
     expect(p.endsWith(JSON.stringify(SALIDA_QUESO))).toBe(true)
   })
+
+  it('(v5.4) con recetas ya vistas, pide otra versión que no se parezca', () => {
+    expect(promptReceta(datos())).not.toContain('ya vio estas recetas')
+    const p = promptReceta(datos({ yaVistas: ['Bastones de queso al horno, crocantes como sus papas'] }))
+    expect(p).toContain('ya vio estas recetas de esta misma preparación:\n- Bastones de queso al horno, crocantes como sus papas\nEscribí otra versión')
+    expect(p).toContain('Lo que dice "Se mantiene" y todas las reglas siguen igual.')
+  })
 })
 
 describe('esquemaSalidaReceta', () => {

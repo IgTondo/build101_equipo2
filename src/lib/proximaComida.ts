@@ -117,14 +117,6 @@ export function elegirSugerencia(p: Pick<Progreso, 'sugerencias' | 'proximoPaso'
   return lista.sort((a, b) => PREFERENCIA[a.tipo] - PREFERENCIA[b.tipo])[0] ?? null
 }
 
-/**
- * "Generar receta" (PLAN v5.3): la sugerencia con receta para la comida que eligió el padre. Como elegirSugerencia,
- * pero sin las "seguras": son algo que ya come y /api/receta solo arma recetas de candidatos (un_paso, mas_nutritiva).
- */
-export function elegirParaReceta(p: Pick<Progreso, 'sugerencias' | 'proximoPaso' | 'momento'>, momento: Momento): Sugerencia | null {
-  return elegirSugerencia({ ...p, sugerencias: sugerenciasDe(p).filter((s) => s.tipo !== 'segura') }, momento)
-}
-
 /** "Se parece a sus papas: cambia solo el ingrediente. Ya los vio 5 veces…" → la primera oración, para una línea. */
 export function primeraFrase(texto: string): string {
   const t = texto.trim()
@@ -145,11 +137,16 @@ export function lineaPorQue(texto: string): string {
 }
 
 /** La receta de la próxima comida: el candidato elegido, el nutriente que más falta y la comida. */
-export function rutaRecetaComida(ninoId: string, s: Sugerencia, momento: Momento, nutriente?: string): string {
+export function rutaRecetaComida(ninoId: string, s: Pick<Sugerencia, 'preparacionId' | 'candidato'>, momento: Momento, nutriente?: string): string {
   const p = new URLSearchParams({ nino: ninoId, preparacionId: s.candidato?.preparacionId ?? s.preparacionId })
   if (nutriente) p.set('nutriente', nutriente)
   p.set('momento', momento)
   return `/receta?${p.toString()}`
+}
+
+/** "Generar receta" (v5.4): la receta creativa para esa comida (/receta la pide sola con nueva=1). */
+export function rutaRecetaNueva(ninoId: string, momento: Momento): string {
+  return `/receta?${new URLSearchParams({ nino: ninoId, momento, nueva: '1' })}`
 }
 
 // ---------- La última comida registrada en este celular ----------
@@ -166,4 +163,46 @@ export function leerUltimaComida(ninoId: string, dia: string): (ComidaDelDia & {
     const c = JSON.parse(localStorage.getItem(CLAVE(ninoId)) ?? 'null') as (ComidaDelDia & { id?: string; dia: string }) | null
     return c && c.dia === dia && typeof c.momento === 'string' ? c : null
   } catch { return null }
+}
+
+/** Los nombres de las recetas que ya vio de una preparación (v5.4), para que /api/receta escriba otra versión. */
+const CLAVE_NOMBRES = (ninoId: string, preparacionId: string) => `nibble:recetas-nombres:${ninoId}:${preparacionId}`
+const MAX_NOMBRES = 5
+
+export function leerNombresDeRecetas(ninoId: string, preparacionId: string): string[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(CLAVE_NOMBRES(ninoId, preparacionId)) ?? '[]') as unknown
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(-MAX_NOMBRES) : []
+  } catch { return [] }
+}
+
+export function anotarNombreDeReceta(ninoId: string, preparacionId: string, nombre: string): void {
+  const nombres = [...leerNombresDeRecetas(ninoId, preparacionId).filter((n) => n !== nombre), nombre].slice(-MAX_NOMBRES)
+  try { localStorage.setItem(CLAVE_NOMBRES(ninoId, preparacionId), JSON.stringify(nombres)) } catch { /* sin storage */ }
+}
+
+// ---------- Las recetas que ya vio para cada comida (v5.4) ----------
+// "Generar receta" pide una receta creativa (sin preparacionId) y manda estos nombres en `anteriores`, para que el LLM
+// invente otro plato. Por chico y por comida ("todas" si no hay comida), de la más vieja a la más nueva. Sin storage,
+// vuelve a empezar: el servidor igual elige un foco al azar.
+const CLAVE_COMIDA = (ninoId: string, momento?: Momento) => `nibble:recetas-comida:${ninoId}:${momento ?? 'todas'}`
+export const MAX_ANTERIORES = 10
+
+export function leerRecetasDeLaComida(ninoId: string, momento?: Momento): string[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(CLAVE_COMIDA(ninoId, momento)) ?? '[]') as unknown
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(-MAX_ANTERIORES) : []
+  } catch { return [] }
+}
+
+/** La pasa al final (la más nueva). */
+export function anotarRecetaDeLaComida(ninoId: string, momento: Momento | undefined, nombre: string): void {
+  const nombres = [...leerRecetasDeLaComida(ninoId, momento).filter((n) => n !== nombre), nombre].slice(-MAX_ANTERIORES)
+  try { localStorage.setItem(CLAVE_COMIDA(ninoId, momento), JSON.stringify(nombres)) } catch { /* sin storage */ }
+}
+
+/** Sin repetir y, si se repite, en su lugar más nuevo; los últimos MAX_ANTERIORES (para RecetaReq.anteriores). */
+export function ultimosSinRepetir(nombres: readonly string[], max = MAX_ANTERIORES): string[] {
+  const vistos = new Set<string>()
+  return [...nombres].reverse().filter((n) => !vistos.has(n) && vistos.add(n)).reverse().slice(-max)
 }

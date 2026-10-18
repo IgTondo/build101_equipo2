@@ -325,5 +325,17 @@ describe('(v5.2) sugerencias para la próxima comida (?momento=)', () => {
   it('sin momento no cambia nada (el tablero de la semana), salvo que ahora viene el grupo', () => {
     expect(para('tomas').sugerencias.map((s) => s.preparacionId)).toEqual(['leche_chocolatada', 'bastones_queso_horno', 'yogur_bebible'])
     expect(para('tomas').candidatos.length).toBeGreaterThan(para('tomas', 'almuerzo').candidatos.length)
+    expect(para('tomas').ideas).toBeUndefined()
+  })
+
+  it('(v5.4) Tomás, cena: las ideas de "Generar receta" no traen la exposición en curso, alternan nutrientes y lo parecido va al final', () => {
+    const ideas = para('tomas', 'cena').ideas ?? []
+    expect(ideas.map((i) => i.preparacionId)).not.toContain('bastones_queso_horno')
+    expect(new Set(ideas.map((i) => i.preparacionId)).size).toBe(ideas.length)
+    expect(new Set(ideas.slice(0, 4).map((i) => i.nutriente)).size).toBeGreaterThan(2)
+    for (const i of ideas) expect(catalogo.get(i.preparacionId)?.momentos, i.preparacionId).toContain('cena')
+    expect(ideas.slice(0, 3).map((i) => i.preparacionId)).toEqual(['pizza_muzzarella', 'milanesa_lentejas_horno', 'papas_fritas_canola'])
+    // Los bastones de queso fritos se parecen a la exposición (al horno): van con lo parecido, al final
+    expect(ideas.slice(-2).map((i) => i.preparacionId)).toContain('bastones_queso_fritos')
   })
 })
