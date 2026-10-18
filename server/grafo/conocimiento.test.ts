@@ -94,7 +94,8 @@ describe('conocimientoDe: el ingrediente del foco', () => {
 
   it('nunca de un grupo que rechaza una regla de la familia ("No come verduras"), aunque esté entre los ricos', () => {
     expect(valentina.nino.reglas.map((r) => r.texto)).toContain('No come verduras')
-    expect(ricosDe(calcio, 'calcio_mg')).toContain('espinaca')
+    // Con el catálogo ampliado (v5.10, capa 1) cambia cuál verdura entra: alcanza con que haya alguna
+    expect(ricosDe(calcio, 'calcio_mg').some((id) => alimentos.get(id)?.grupo === 'verdura')).toBe(true)
     for (const [i, k] of calcioPorAzar.entries()) expect(alimentos.get(k.foco.ingrediente!)?.grupo, String(AZARES[i])).not.toBe('verdura')
   })
 
@@ -186,7 +187,7 @@ describe('recientesDe', () => {
   })
 
   it('los alias de menos de 4 letras no cuentan ("pan", "res")', () => {
-    expect(de('Tostadas de pan con palta')).toEqual([])
+    expect(de('Tostadas de pan con manteca')).toEqual([]) // la manteca es acompañamiento (la palta ya es un alimento del catálogo)
   })
 
   it('la familia, cuando nombra a varios: "costra de queso" son todos los quesos', () => {

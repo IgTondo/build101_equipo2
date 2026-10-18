@@ -20,6 +20,7 @@ import { DIMENSIONES, cambios, principal } from '../aprendizaje/cadena.js'
 import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, TEXTO_CAMBIO, decimal, slug } from '../aprendizaje/textos.js'
 import { cargarNino } from '../datos/cargar.js'
 import { ACOMPANAMIENTOS, conocimientoDe, type Conocimiento } from '../grafo/conocimiento.js'
+import { esCondimento } from './condimentos.js'
 import { ErrorNibble } from '../http.js'
 import { CON_META } from '../nutricion/objetivos.js'
 import { calcularAporte, cambiosEntre, problemasPorTipo, aplanar, type ContextoValidacion } from '../validacion/receta.js'
@@ -92,6 +93,9 @@ export function textoSinSeguros(nombre: string, momento?: Momento): string {
   return `Todavía no sabemos qué come ${nombre} en ${el} ${m}: registrá ${un} ${m} o contanos qué come.`
 }
 
+/** v5.10 · Lo que acompaña y no es el plato: grasas, dulces, aderezos y condimentos. No alcanza para el cambio ni para el aporte. */
+const deRelleno = (id: string): boolean => ACOMPANAMIENTOS.has(id) || esCondimento(id)
+
 /** v5.6 · Una receta elaborada: al menos estos ingredientes de verdad (sin contar acompañamientos) y estos pasos. */
 export const MIN_INGREDIENTES_COMIDA = 2
 export const MIN_INGREDIENTES = 3
@@ -107,10 +111,10 @@ export function problemasDeCalidad(receta: Receta, desde: PreparacionCatalogo, m
   const ids = receta.ingredientes.map((i) => i.alimentoId)
   const deSuPlato = new Set(desde.ingredientes.map((i) => i.alimentoId))
   const nuevos = ids.filter((id) => !deSuPlato.has(id))
-  const comida = ids.filter((id) => !ACOMPANAMIENTOS.has(id))
+  const comida = ids.filter((id) => !deRelleno(id))
   if (nuevos.length === 0) {
     p.push(`«${receta.nombre}» usa los mismos ingredientes que «${desde.nombre}»: es más de lo mismo. Proponé un plato de verdad distinto, con un ingrediente nuevo.`)
-  } else if (nuevos.every((id) => ACOMPANAMIENTOS.has(id))) {
+  } else if (nuevos.every((id) => deRelleno(id))) {
     p.push(`Lo único nuevo de «${receta.nombre}» es ${nuevos.map((id) => alimentoPorId(id)?.nombre ?? id).join(' y ')}: un aceite, una grasa o un dulce no es un plato nuevo. El cambio tiene que ser un alimento (una verdura, una legumbre, un lácteo, una carne, un cereal…).`)
   }
   if (/\baceite\b/i.test(receta.nombre)) p.push(`El nombre «${receta.nombre}» habla del aceite: el plato es lo que se come, no con qué se cocina. Poné un nombre que dé ganas.`)
@@ -120,7 +124,7 @@ export function problemasDeCalidad(receta: Receta, desde: PreparacionCatalogo, m
   if (receta.pasos.length < MIN_PASOS) p.push(`Tiene ${receta.pasos.length} pasos: una receta elaborada lleva al menos ${MIN_PASOS} (preparar, armar o rebozar, cocinar y servir).`)
   const n = receta.evidencia.nutriente
   if (minimo > 0) {
-    const sinAcompanar = calcularAporte(receta.ingredientes.filter((i) => !ACOMPANAMIENTOS.has(i.alimentoId)))[n]
+    const sinAcompanar = calcularAporte(receta.ingredientes.filter((i) => !deRelleno(i.alimentoId)))[n]
     if (receta.aporte[n] >= minimo && sinAcompanar < minimo) {
       p.push(`El ${NOMBRE_NUTRIENTE[n]} sale casi todo del aceite o de un dulce (sin eso aporta ${decimal(sinAcompanar, 1)} y el mínimo es ${decimal(minimo, 1)}): tiene que venir de un alimento. Si con ${NOMBRE_NUTRIENTE[n]} no se puede, elegí otro nutriente de la lista.`)
     }
@@ -219,7 +223,7 @@ export function problemasDelFoco(receta: Receta, k: ConocimientoReceta, desde: P
   }
   if (ingrediente && relajado && modo === 'sumar_ingrediente') {
     const deSuPlato = new Set(desde.ingredientes.map((i) => i.alimentoId))
-    const repetidos = receta.ingredientes.map((i) => i.alimentoId).filter((id) => id !== tiene && !deSuPlato.has(id) && !ACOMPANAMIENTOS.has(id) && recientes.has(id))
+    const repetidos = receta.ingredientes.map((i) => i.alimentoId).filter((id) => id !== tiene && !deSuPlato.has(id) && !deRelleno(id) && recientes.has(id))
     if (repetidos.length) p.push(`Ya usó ${repetidos.map(nombre).join(' y ')} hace poco (está en las recetas que vio la familia): sumale otro alimento.`)
   }
   return p

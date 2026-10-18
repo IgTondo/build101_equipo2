@@ -23,6 +23,7 @@ import { type Cargado, cargarNino } from '../datos/cargar.js'
 import { hoyUruguay } from '../datos/fechas.js'
 import { recomendacionDe } from '../datos/tablero.js'
 import { completa } from '../ia/candidato.js'
+import { esCondimento } from '../ia/condimentos.js'
 import { energiaDeReferencia } from '../ia/plato-completo.js'
 import { faltanSemana } from '../nutricion/calcular.js'
 import { coberturaDia, gruposDesde, semana, variedadDe } from '../nutricion/progreso.js'
@@ -139,7 +140,7 @@ export function recientesDe(anteriores: readonly string[], alimentos: ReadonlyMa
       texto = texto.split(` ${t} `).join(' | ')
     }
   }
-  return curados.filter((a) => aparecen.has(a.id) && !ACOMPANAMIENTOS.has(a.id) && !GOLOSINAS_Y_ULTRAPROCESADOS.has(a.id)).map((a) => a.id)
+  return curados.filter((a) => aparecen.has(a.id) && !ACOMPANAMIENTOS.has(a.id) && !esCondimento(a.id) && !GOLOSINAS_Y_ULTRAPROCESADOS.has(a.id)).map((a) => a.id)
 }
 
 const atributosEnTexto = (p: PreparacionCatalogo) => {
@@ -162,7 +163,7 @@ export function conocimientoDe(
   const prohibidos = alimentosProhibidos(limpiarOtras(d.alergiasOtras), c.alimentos)
   const sinAlergenos = (id: string) => !prohibidos.has(id) && (c.alimentos.get(id)?.alergenos ?? []).every((x) => !alergias.includes(x))
   // v5.10 · Lo que puede ser "lo nuevo" de una receta: un alimento curado, que no sea un acompañamiento ni una golosina
-  const paraLoNuevo = (a: Alimento) => esCurado(a.id) && !ACOMPANAMIENTOS.has(a.id) && !GOLOSINAS_Y_ULTRAPROCESADOS.has(a.id) && sinAlergenos(a.id)
+  const paraLoNuevo = (a: Alimento) => esCurado(a.id) && !ACOMPANAMIENTOS.has(a.id) && !esCondimento(a.id) && !GOLOSINAS_Y_ULTRAPROCESADOS.has(a.id) && sinAlergenos(a.id)
   const recientes = recientesDe(op.anteriores ?? [], c.alimentos)
   const esReciente = new Set(recientes)
   const preparacion = (id: string) => {
