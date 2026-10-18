@@ -3,6 +3,9 @@
 // valores fuera del vocabulario se descartan y un preparacionId que no está en el catálogo pasa a null.
 // Las alergias nunca salen de la IA: vienen a mano en `datos`, no se le pasan al modelo y no se devuelven. Lo que el
 // modelo marca como evitado por alergia (porAlergia) se descarta.
+// A8b (alta por voz, §5.2): sin `datos`, extraerDatos() saca del mismo relato, en paralelo, nombre, edad, sexo, peso,
+// talla, alergias mencionadas, alertas, dieta y suplementos, cada uno con su cita textual (sin cita que esté en el relato,
+// no hay dato). Las alergias mencionadas son sugerencias: el padre las confirma una por una. Lo vital que falta, en `faltan`.
 // La foto de la indicación del nutricionista (A12, P2) → objetivosNutricionista, con depurarIndicacion(): unidades del
 // contrato, rangos plausibles para chicos y solo objetivos de ingesta diaria. Los suplementos no son objetivos.
 import { existsSync, readFileSync } from 'node:fs'
@@ -10,14 +13,16 @@ import { join } from 'node:path'
 import { z } from 'zod'
 import {
   ALERGENO, DIETA, MOTIVO,
-  type Atributos, type Nutrientes, type PerfilBorrador, type PerfilInicialReq, type PreparacionCatalogo, type Regla,
+  type Alergeno, type Atributos, type CampoVital, type DatoCitado, type DatosExtraidos, type Nutrientes, type PerfilBorrador,
+  type PerfilInicialReq, type PreparacionCatalogo, type Regla,
 } from '../../shared/contratos.js'
 import { ErrorNibble } from '../http.js'
 import { generarJSON } from './modelo.js'
 import {
-  ATRIBUTOS, mensajeIndicacion, mensajePerfil, NUTRIENTES_OBJETIVO, SISTEMA_INDICACION, SISTEMA_PERFIL, VOCABULARIO,
+  ATRIBUTOS, mensajeDatos, mensajeIndicacion, mensajePerfil, NUTRIENTES_OBJETIVO, SISTEMA_DATOS, SISTEMA_INDICACION, SISTEMA_PERFIL,
+  VOCABULARIO,
 } from './prompts/perfil.js'
-import { normalizar } from './relato.js'
+import { citaEnTranscripcion, normalizar } from './relato.js'
 
 // ---------- Entrada ----------
 const MAX_FOTO = 4_500_000 // el body entero no puede pasar de 4,5 MB en Vercel
@@ -30,6 +35,7 @@ const fotoIndicacion = z.preprocess(
 )
 
 export const esquemaPerfilInicialReq = z.object({
+  // A8b: en el alta por voz no viene (se extrae del relato)
   datos: z.object({
     nombre: z.string().min(1),
     edad: z.number().nonnegative(),
@@ -40,7 +46,7 @@ export const esquemaPerfilInicialReq = z.object({
     alertas: z.array(z.enum(['bajo_peso', 'arcadas_vomitos', 'menos_15_alimentos'])),
     dieta: z.enum(DIETA),
     suplementos: z.string().optional(),
-  }),
+  }).optional(),
   texto: z.string(),
   fotoIndicacionBase64: fotoIndicacion,
 })
@@ -64,6 +70,24 @@ export const esquemaSalidaPerfil = z.object({
   })),
 })
 export type SalidaPerfil = z.infer<typeof esquemaSalidaPerfil>
+
+// A8b · Los datos del chico, del relato. Todo nullable y como texto donde hay vocabulario: el código decide qué queda.
+const citado = <T extends z.ZodTypeAny>(v: T) => z.object({ valor: v, cita: z.string() }).nullable()
+const soloCita = z.object({ cita: z.string() }).nullable()
+export const esquemaSalidaDatos = z.object({
+  nombre: citado(z.string()),
+  edad: citado(z.number()),
+  sexo: citado(z.string()),
+  pesoKg: citado(z.number()),
+  tallaCm: citado(z.number()),
+  alergiasMencionadas: z.array(z.object({ valor: z.string(), cita: z.string() })),
+  sinAlergias: soloCita,
+  alertas: z.array(z.object({ valor: z.string(), cita: z.string() })),
+  atragantamiento: soloCita,
+  dieta: citado(z.string()),
+  suplementos: citado(z.string()),
+})
+export type SalidaDatos = z.infer<typeof esquemaSalidaDatos>
 
 export const esquemaSalidaIndicacion = z.object({
   objetivos: z.array(z.object({
@@ -165,6 +189,77 @@ export function depurarPerfil(salida: SalidaPerfil, catalogo: Pick<PreparacionCa
   }
 }
 
+// ---------- Los datos del chico (A8b, código, nunca IA) ----------
+const ALERTAS = ['bajo_peso', 'arcadas_vomitos', 'menos_15_alimentos'] as const
+const SEXOS = ['masculino', 'femenino'] as const
+
+/**
+ * Lo que dijo la familia de su hijo, pasado en limpio: sin cita que esté en el relato no hay dato, los valores fuera
+ * del vocabulario o de un rango posible para un chico se descartan, y las alergias no se repiten.
+ */
+export function depurarDatos(x: SalidaDatos, relato: string): DatosExtraidos {
+  const conCita = <T>(d: { valor: T; cita: string } | null, valido: (v: T) => boolean): DatoCitado<T> | undefined =>
+    d && d.cita?.trim() && citaEnTranscripcion(d.cita, relato) && valido(d.valor) ? { valor: d.valor, cita: d.cita.trim() } : undefined
+  const enRango = (min: number, max: number) => (v: number) => Number.isFinite(v) && v >= min && v <= max
+  const nombre = conCita(x.nombre ? { ...x.nombre, valor: x.nombre.valor.replace(/\s+/g, ' ').trim() } : null, (v) => v.length > 0 && v.length <= 40)
+  const sexo = x.sexo ? delVocabulario(SEXOS, x.sexo.valor) : undefined
+  const dieta = x.dieta ? delVocabulario(DIETA, x.dieta.valor) : undefined
+  const alergias = new Map<Alergeno, DatoCitado<Alergeno>>()
+  for (const a of x.alergiasMencionadas) {
+    const v = delVocabulario(ALERGENO, a.valor)
+    if (v && !alergias.has(v) && a.cita?.trim() && citaEnTranscripcion(a.cita, relato)) alergias.set(v, { valor: v, cita: a.cita.trim() })
+  }
+  const alertas = new Map<(typeof ALERTAS)[number], DatoCitado<(typeof ALERTAS)[number]>>()
+  for (const a of x.alertas) {
+    const v = delVocabulario(ALERTAS, a.valor)
+    if (v && !alertas.has(v) && a.cita?.trim() && citaEnTranscripcion(a.cita, relato)) alertas.set(v, { valor: v, cita: a.cita.trim() })
+  }
+  const marca = (d: { cita: string } | null) => (d?.cita?.trim() && citaEnTranscripcion(d.cita, relato) ? { valor: true as const, cita: d.cita.trim() } : undefined)
+  const edad = conCita(x.edad, enRango(0, 18))
+  const pesoKg = conCita(x.pesoKg, enRango(3, 150))
+  const tallaCm = conCita(x.tallaCm, enRango(40, 210))
+  const sinAlergias = alergias.size ? undefined : marca(x.sinAlergias)
+  const atragantamiento = marca(x.atragantamiento)
+  const sexoCitado = sexo && x.sexo ? conCita({ valor: sexo, cita: x.sexo.cita }, () => true) : undefined
+  const dietaCitada = dieta && x.dieta ? conCita({ valor: dieta, cita: x.dieta.cita }, () => true) : undefined
+  const suplementos = conCita(x.suplementos, (v) => v.trim().length > 0)
+  return {
+    ...(nombre ? { nombre } : {}),
+    ...(edad ? { edad } : {}),
+    ...(sexoCitado ? { sexo: sexoCitado } : {}),
+    ...(pesoKg ? { pesoKg } : {}),
+    ...(tallaCm ? { tallaCm } : {}),
+    alergiasMencionadas: [...alergias.values()],
+    ...(sinAlergias ? { sinAlergias } : {}),
+    alertas: [...alertas.values()],
+    ...(atragantamiento ? { atragantamiento } : {}),
+    ...(dietaCitada ? { dieta: dietaCitada } : {}),
+    ...(suplementos ? { suplementos } : {}),
+  }
+}
+
+/** Lo vital que no dijo (§5.2), en el orden de CAMPO_VITAL: la pantalla lo pregunta antes de crear el perfil. */
+export function faltanVitales(d: DatosExtraidos, b: Pick<PerfilBorrador, 'acepta' | 'rechaza'>): CampoVital[] {
+  const f: CampoVital[] = []
+  if (!d.nombre) f.push('nombre')
+  if (!d.edad) f.push('edad')
+  if (!d.sexo) f.push('sexo')
+  if (!d.alergiasMencionadas.length && !d.sinAlergias) f.push('alergias')
+  if (!b.acepta.length) f.push('acepta')
+  if (!b.rechaza.length) f.push('rechaza')
+  return f
+}
+
+export async function extraerDatos(texto: string): Promise<DatosExtraidos> {
+  const { datos } = await generarJSON({
+    tarea: 'perfil',
+    sistema: SISTEMA_DATOS,
+    partes: [{ tipo: 'texto', texto: mensajeDatos(texto) }],
+    schema: esquemaSalidaDatos,
+  })
+  return depurarDatos(datos, texto)
+}
+
 // ---------- Objetivos de la indicación (código, nunca IA) ----------
 type NutrienteObjetivo = (typeof NUTRIENTES_OBJETIVO)[number]
 type Masa = 'g' | 'mg' | 'ug'
@@ -260,16 +355,23 @@ export async function extraerPerfil(req: PerfilInicialReq): Promise<PerfilBorrad
   const texto = req.texto.trim()
   if (!texto) throw new ErrorNibble('entrada_invalida', 'Contanos cómo come para armar su perfil.', { campo: 'texto' })
   const catalogo = preparaciones()
-  const chico = { nombre: req.datos.nombre, edad: req.datos.edad }
+  // A8b · Sin datos (alta por voz), los datos del chico salen del mismo relato, en paralelo con el perfil
+  const extraidos = req.datos ? undefined : extraerDatos(texto)
+  const chico = req.datos ? { nombre: req.datos.nombre, edad: req.datos.edad } : undefined
   // El relato y la foto van en paralelo: la foto suma su latencia solo si tarda más que el relato.
-  const [perfil, objetivos] = await Promise.all([
+  const [perfil, objetivos, datos] = await Promise.all([
     generarJSON({
       tarea: 'perfil',
       sistema: SISTEMA_PERFIL,
-      partes: [{ tipo: 'texto', texto: mensajePerfil({ ...chico, catalogo, texto }) }],
+      partes: [{ tipo: 'texto', texto: mensajePerfil({ ...(chico ?? {}), catalogo, texto }) }],
       schema: esquemaSalidaPerfil,
     }).then(({ datos }) => depurarPerfil(datos, catalogo)),
-    req.fotoIndicacionBase64 ? leerIndicacion(req.fotoIndicacionBase64, chico) : undefined,
+    !req.fotoIndicacionBase64 ? undefined
+      // Con los datos, la foto sale ya; en el alta por voz, cuando se sabe el nombre y la edad
+      : chico ? leerIndicacion(req.fotoIndicacionBase64, chico)
+      : extraidos!.then((d) => leerIndicacion(req.fotoIndicacionBase64!, { nombre: d.nombre?.valor ?? 'el chico', edad: d.edad?.valor ?? 0 })),
+    extraidos,
   ])
-  return objetivos ? { ...perfil, objetivosNutricionista: objetivos } : perfil
+  const borrador: PerfilBorrador = objetivos ? { ...perfil, objetivosNutricionista: objetivos } : perfil
+  return datos ? { ...borrador, datos, faltan: faltanVitales(datos, borrador) } : borrador
 }

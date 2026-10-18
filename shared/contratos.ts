@@ -218,9 +218,9 @@ export interface Regla {
 }
 // POST /api/perfil-inicial (A) · la pantalla transcribe primero con /api/transcribir y deja editar el texto
 export interface PerfilInicialReq {
-  // v5 · PLAN §5.2: pasa a `datos?: Partial<DatosBasicos>` (en el alta por voz no viene y se extrae del relato) cuando A
-  // haga A8b; hasta entonces sigue obligatorio para no romper server/ia/perfil.ts.
-  datos: DatosBasicos
+  // v5 · PLAN §5.2 (A8b, 18/10): en el alta por voz no viene; los datos se extraen del relato con su cita
+  // (PerfilBorrador.datos) y lo vital que falta va en `faltan`.
+  datos?: DatosBasicos
   texto: string; fotoIndicacionBase64?: string
 }
 export interface DatoCitado<T> { valor: T; cita: string }   // v5 · como en el relato (v4): sin cita textual, no hay dato

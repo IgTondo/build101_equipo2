@@ -7,8 +7,8 @@ import { ErrorNibble, HEADER_STUB, type Handler } from '../http.js'
 import perfilInicialHandler from '../../api/perfil-inicial.js'
 import { generarJSON } from './modelo.js'
 import {
-  depurarIndicacion, depurarPerfil, extraerPerfil, fijarPreparaciones, preparaciones, RANGO_OBJETIVO,
-  type SalidaIndicacion, type SalidaPerfil,
+  depurarDatos, depurarIndicacion, depurarPerfil, extraerPerfil, faltanVitales, fijarPreparaciones, preparaciones, RANGO_OBJETIVO,
+  type SalidaDatos, type SalidaIndicacion, type SalidaPerfil,
 } from './perfil.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
@@ -426,5 +426,47 @@ describe('api/perfil-inicial', () => {
   it('405 con otro método', async () => {
     const r = await llamar(perfilInicialHandler, {}, 'GET')
     expect(r.statusCode).toBe(405)
+  })
+})
+
+describe('(A8b) los datos del chico en el alta por voz', () => {
+  const relato = 'Te cuento de Valentina. Tiene ocho años, pesa veinticinco kilos y mide un metro veintisiete. Es alérgica al pescado y a la lactosa.'
+  const salida = (extra: Partial<SalidaDatos> = {}): SalidaDatos => ({
+    nombre: { valor: 'Valentina', cita: 'Te cuento de Valentina' },
+    edad: { valor: 8, cita: 'Tiene ocho años' },
+    sexo: { valor: 'femenino', cita: 'Es alérgica' },
+    pesoKg: { valor: 25, cita: 'pesa veinticinco kilos' },
+    tallaCm: { valor: 127, cita: 'mide un metro veintisiete' },
+    alergiasMencionadas: [{ valor: 'pescado', cita: 'alérgica al pescado' }, { valor: 'leche', cita: 'a la lactosa' }, { valor: 'pescado', cita: 'alérgica al pescado' }],
+    sinAlergias: null,
+    alertas: [],
+    atragantamiento: null,
+    dieta: null,
+    suplementos: null,
+    ...extra,
+  })
+
+  it('cada dato con su cita del relato; las alergias sin repetir', () => {
+    const d = depurarDatos(salida(), relato)
+    expect(d.nombre?.valor).toBe('Valentina')
+    expect(d.edad?.valor).toBe(8)
+    expect(d.sexo?.valor).toBe('femenino')
+    expect([d.pesoKg?.valor, d.tallaCm?.valor]).toEqual([25, 127])
+    expect(d.alergiasMencionadas.map((a) => a.valor)).toEqual(['pescado', 'leche'])
+    expect(faltanVitales(d, { acepta: [{ nombre: 'x', preparacionId: null, atributos: {} }], rechaza: [] })).toEqual(['rechaza'])
+  })
+
+  it('sin cita que esté en el relato, o fuera de rango o de vocabulario, no hay dato', () => {
+    const d = depurarDatos(salida({
+      nombre: { valor: 'Valentina', cita: 'se llama Vale' },
+      edad: { valor: 45, cita: 'Tiene ocho años' },
+      sexo: { valor: 'otro', cita: 'Es alérgica' },
+      alergiasMencionadas: [{ valor: 'polen', cita: 'Es alérgica' }],
+    }), relato)
+    expect(d.nombre).toBeUndefined()
+    expect(d.edad).toBeUndefined()
+    expect(d.sexo).toBeUndefined()
+    expect(d.alergiasMencionadas).toEqual([])
+    expect(faltanVitales(d, { acepta: [], rechaza: [] })).toEqual(['nombre', 'edad', 'sexo', 'alergias', 'acepta', 'rechaza'])
   })
 })
