@@ -420,7 +420,10 @@ const ordinal = (n: number) => `${n}.ª`
 function cambioAceptacion(id: string, cuanto: Cuanto): Aprendizaje {
   const a = antes.get(id)?.p ?? 0.5
   const d = despues.get(id)?.p ?? 0.5
-  return { tipo: 'aceptacion', texto: `${prep(id).nombre}: aceptación ${coma(redondear(a))} → ${coma(redondear(d))} (${ESCALON[cuanto]}).` }
+  // Como lo dice B (server/aprendizaje/aprendi.ts): sin números hacia el padre
+  const cambio = Math.round(d * 100) - Math.round(a * 100)
+  const como = cambio > 0 ? 'le está gustando más' : cambio < 0 ? 'le está costando más que antes' : 'sigue igual'
+  return { tipo: 'aceptacion', texto: `${prep(id).nombre}: ${como} (${ESCALON[cuanto]}).` }
 }
 const qAntes = antes.get('bastones_queso_horno')
 const qDespues = despues.get('bastones_queso_horno')
