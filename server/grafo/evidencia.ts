@@ -1,6 +1,7 @@
 // armarEvidencia(ninoId, nutriente?) (PLAN.md §8, B12): el paquete de ~20 líneas que es lo ÚNICO que ve el LLM de
 // la receta (A9). Lo que falta → candidatos a UN cambio de un alimento seguro → propagación + patrones.
 import type { Candidato, Evidencia, Momento, Motor, Nutriente } from '../../shared/contratos.js'
+import { limpiarOtras } from '../alergias.js'
 import { calcularEstado } from '../aprendizaje/estado.js'
 import { NOMBRE_NUTRIENTE, TEXTO_CAMBIO, decimal, lista, porciento } from '../aprendizaje/textos.js'
 import { type Cargado, cargarNino } from '../datos/cargar.js'
@@ -33,8 +34,9 @@ export function evidenciaDe(c: Cargado, op: { nutriente?: Nutriente; motor?: Mot
   ].slice(0, MAX_CANDIDATOS)
 
   const d = c.nino.datos
+  const alergias = [...d.alergias, ...limpiarOtras(d.alergiasOtras)] // v5.8 · con las otras, como las escribió el padre ("kiwi")
   const lineas = [
-    `Chico: ${d.nombre}, ${d.edad} años. Alergias: ${d.alergias.length ? lista(d.alergias) : 'ninguna'}${d.dieta === 'sin_gluten_caseina' ? '. Dieta sin gluten ni caseína' : ''}.`,
+    `Chico: ${d.nombre}, ${d.edad} años. Alergias: ${alergias.length ? lista(alergias) : 'ninguna'}${d.dieta === 'sin_gluten_caseina' ? '. Dieta sin gluten ni caseína' : ''}.`,
     // v5.5 · Si no le falta ninguno, no se dice "le falta": es el que menos cubre, y la receta suma variedad
     sem.diasRegistrados && !faltanSemana(sem.cobertura).length
       ? `No le falta ningún nutriente clave esta semana; el que menos cubre es ${NOMBRE_NUTRIENTE[n]} (${porciento(sem.cobertura[n])}).`

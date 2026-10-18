@@ -3,10 +3,11 @@ import type { DatosBasicos, ErrorApi, PerfilBorrador } from '../../../shared/con
 import tomas from '../../../data/sinteticos/tomas.json'
 import fixture from '../../../fixtures/perfil-inicial.json'
 import {
-  alergiasRespondidas, altaInicial, citaVigente, faltanDe, pedidoPerfilInicial, pideDatosManuales, revisarAlta,
-  sanearExtraidos, textoFaltan, tocarAlergia, tocarSinAlergias,
+  agregarAlergiaOtra, alergenoDeTexto, alergiasRespondidas, altaInicial, citaVigente, faltanDe, pedidoPerfilInicial, pideDatosManuales,
+  quitarAlergiaOtra, revisarAlta, sanearExtraidos, textoFaltan, tocarAlergia, tocarAlergiaOtra, tocarSinAlergias,
 } from './alta'
 import { armarCrearPerfilReq } from './borrador'
+import { textoOtrasAlergias } from './textos'
 
 const respuesta = fixture as PerfilBorrador
 const datosTomas = tomas.datos as DatosBasicos
@@ -149,5 +150,75 @@ describe('lo que falta', () => {
     if (!r2.ok) expect(Object.keys(r2.errores)).toEqual(['edad'])
     const ok = revisarAlta({ ...lleno, form: { ...lleno.form, edad: '7' } }, { acepta: [{ nombre: 'Yogur', preparacionId: null, atributos: {} }] })
     expect(ok).toEqual({ ok: true, datos: { nombre: 'Ana', edad: 7, sexo: 'femenino', alergias: [], alertas: [], dieta: 'ninguna' } })
+  })
+})
+
+describe('(v5.8) las otras alergias, las que no están en la lista', () => {
+  const extraidos = sanearExtraidos({
+    alergiasMencionadas: [],
+    otrasAlergiasMencionadas: [
+      { valor: 'kiwi', cita: 'es alérgica al kiwi' }, { valor: 'Kiwi', cita: 'el kiwi' }, { valor: 'colorante rojo', cita: 'y al colorante rojo' },
+      { valor: 'maní', cita: 'al maní' }, { valor: 'durazno', cita: '' },
+    ],
+    alertas: [],
+  })
+  const lista = { ...altaInicial(undefined), form: { ...altaInicial(undefined).form, nombre: 'Ana', edad: '7', sexo: 'femenino' as const } }
+  const yogur = { acepta: [{ nombre: 'Yogur', preparacionId: null, atributos: {} }] }
+
+  it('las mencionadas llegan como sugerencias: sin cita no hay, sin repetir y sin las de siempre', () => {
+    expect(extraidos?.otrasAlergiasMencionadas).toEqual([
+      { valor: 'kiwi', cita: 'es alérgica al kiwi' }, { valor: 'colorante rojo', cita: 'y al colorante rojo' },
+    ])
+    expect(altaInicial(extraidos).form.alergiasOtras).toEqual([]) // nada se guarda sin que el padre la toque
+  })
+
+  it('mencionar una otra cuenta como hablar de alergias (faltan), pero hay que tocarla para que sea respuesta', () => {
+    const b: PerfilBorrador = { ...respuesta, faltan: ['alergias'] }
+    expect(faltanDe(b, extraidos)).not.toContain('alergias')
+    const a = altaInicial(extraidos)
+    expect(alergiasRespondidas(a)).toBe(false)
+    const tocada = tocarAlergiaOtra(a, 'kiwi')
+    expect(tocada.form.alergiasOtras).toEqual(['kiwi'])
+    expect(alergiasRespondidas(tocada)).toBe(true)
+    expect(tocarAlergiaOtra(tocada, 'Kiwi').form.alergiasOtras).toEqual([])
+  })
+
+  it('sumar a mano: sin vacías ni repetidas; si es una de las de siempre, marca esa', () => {
+    let a = agregarAlergiaOtra(lista, '  colorante   rojo ')
+    a = agregarAlergiaOtra(a, 'Colorante rojo')
+    a = agregarAlergiaOtra(a, '   ')
+    expect(a.form.alergiasOtras).toEqual(['colorante rojo'])
+    const mani = agregarAlergiaOtra(a, 'Maní')
+    expect(mani.form).toMatchObject({ alergias: ['mani'], alergiasOtras: ['colorante rojo'] })
+    expect(alergenoDeTexto('frutos secos')).toBe('frutos_secos')
+    expect(alergenoDeTexto('kiwi')).toBeUndefined()
+    expect(quitarAlergiaOtra(a, 'COLORANTE ROJO').form.alergiasOtras).toEqual([])
+  })
+
+  it('"No tiene alergias" saca también las otras; sumar una lo apaga', () => {
+    const con = agregarAlergiaOtra(lista, 'kiwi')
+    const no = tocarSinAlergias(con)
+    expect(no).toMatchObject({ sinAlergias: true, form: { alergiasOtras: [] } })
+    expect(agregarAlergiaOtra(no, 'durazno')).toMatchObject({ sinAlergias: false, form: { alergiasOtras: ['durazno'] } })
+  })
+
+  it('van en datos.alergiasOtras al crear el perfil; sin otras, el campo no va', () => {
+    const r = revisarAlta(agregarAlergiaOtra(agregarAlergiaOtra(lista, 'kiwi'), 'colorante rojo'), yogur)
+    expect(r).toEqual({ ok: true, datos: { nombre: 'Ana', edad: 7, sexo: 'femenino', alergias: [], alergiasOtras: ['kiwi', 'colorante rojo'], alertas: [], dieta: 'ninguna' } })
+    const sinOtras = revisarAlta(tocarAlergia(lista, 'huevo'), yogur)
+    expect(sinOtras.ok && 'alergiasOtras' in sinOtras.datos).toBe(false)
+  })
+
+  it('con datos a mano (transición), una otra alergia ya es respuesta', () => {
+    expect(faltanDe(sinDatos, undefined, { ...datosTomas, alergias: [], alergiasOtras: ['kiwi'] })).toEqual([])
+  })
+
+  it('la nota: cuáles revisamos en cada receta y cuáles no', () => {
+    expect(textoOtrasAlergias(['kiwi', 'colorante rojo'], ['colorante rojo']))
+      .toBe('Kiwi lo revisamos en cada receta. «Colorante rojo» no lo podemos revisar ingrediente por ingrediente: tenelo en cuenta.')
+    expect(textoOtrasAlergias(['kiwi', 'durazno'], [])).toBe('Kiwi y durazno los revisamos en cada receta.')
+    expect(textoOtrasAlergias(['sal', 'colorante rojo'], ['sal', 'colorante rojo']))
+      .toBe('«Sal» y «Colorante rojo» no los podemos revisar ingrediente por ingrediente: tenelo en cuenta.')
+    expect(textoOtrasAlergias([], [])).toBe('')
   })
 })

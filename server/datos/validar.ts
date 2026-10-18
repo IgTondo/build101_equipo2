@@ -1,7 +1,7 @@
 // Validación de lo que llega a los endpoints de B, contra el vocabulario cerrado de shared/contratos.ts (§5).
 // Errores claros (400) en lugar de datos raros en el bronze.
 import type {
-  AnalisisComida, Atributos, DatosBasicos, ItemDetectado, Nutrientes, PerfilBorrador, RegistrarComidaReq, Regla,
+  AlimentoDeclarado, AnalisisComida, Atributos, DatosBasicos, ItemDetectado, Momento, Nutrientes, PerfilBorrador, RegistrarComidaReq, Regla,
 } from '../../shared/contratos.js'
 import {
   ALERGENO, COCCION, COLOR, CONDUCTA, CUANTO, DIETA, DISTRIBUCION, FORMA, GRUPO, MOMENTO, MOTIVO, NUTRIENTE, PLATO,
@@ -175,12 +175,55 @@ function regla(x: unknown, i: number): Regla {
   }
 }
 
+/** v5.8 · Las otras alergias, como las escribe el padre ("kiwi", "colorante rojo"): sin espacios de más ni repetidas. */
+function alergiasOtras(x: unknown): string[] | undefined {
+  const r: string[] = []
+  const vistas = new Set<string>()
+  for (const [i, v] of lista(x, 'datos.alergiasOtras').entries()) {
+    if (typeof v !== 'string') return mal(`datos.alergiasOtras[${i}] tiene que ser un texto`)
+    const t = v.trim().replace(/\s+/g, ' ')
+    if (!t) continue
+    if (t.length > 40) return mal(`datos.alergiasOtras[${i}] es demasiado largo (máx. 40)`)
+    if (vistas.has(t.toLowerCase())) continue
+    vistas.add(t.toLowerCase())
+    r.push(t)
+  }
+  if (r.length > 10) return mal('datos.alergiasOtras: como mucho 10')
+  return r.length ? r : undefined
+}
+
+/**
+ * v5.8 · Lo que acompaña a cada alimento declarado (acepta y rechaza): sus palabras, sus ingredientes (solo si no es
+ * del catálogo), en qué comidas va, si algo es lo típico y la duda. Todo opcional: los pedidos viejos siguen pasando.
+ */
+function extrasDeclarado(x: Objeto, donde: string, preparacionId: string | null): Omit<AlimentoDeclarado, 'nombre' | 'preparacionId' | 'atributos'> {
+  const dicho = opcional(x.dicho, (v) => texto(v, `${donde}.dicho`, 500).trim())
+  const duda = opcional(x.duda, (v) => texto(v, `${donde}.duda`, 300).trim())
+  const ingredientes = preparacionId !== null || x.ingredientes === undefined || x.ingredientes === null
+    ? []
+    : lista(x.ingredientes, `${donde}.ingredientes`).slice(0, 20).map((g, j) => {
+      if (!esObjeto(g)) return mal(`${donde}.ingredientes[${j}] no es un objeto`)
+      return { alimentoId: texto(g.alimentoId, `${donde}.ingredientes[${j}].alimentoId`, 120), gramos: numero(g.gramos, `${donde}.ingredientes[${j}].gramos`, 0, 2000) }
+    })
+  const momentos: Momento[] = x.momentos === undefined || x.momentos === null
+    ? []
+    : [...new Set(lista(x.momentos, `${donde}.momentos`).map((m) => de(MOMENTO, m, `${donde}.momentos`)))]
+  return {
+    ...(dicho ? { dicho } : {}),
+    ...(ingredientes.length ? { ingredientes } : {}),
+    ...(momentos.length ? { momentos } : {}),
+    ...(x.inferido === true ? { inferido: true } : {}),
+    ...(duda ? { duda } : {}),
+  }
+}
+
 export function validarPerfil(x: unknown): { datos: DatosBasicos; borrador: PerfilBorrador; ninoId?: string } {
   if (!esObjeto(x)) return mal('Faltan los datos del perfil')
   const d = esObjeto(x.datos) ? x.datos : mal('Faltan los datos básicos')
   const pesoKg = opcional(d.pesoKg, (v) => numero(v, 'datos.pesoKg', 3, 150))
   const tallaCm = opcional(d.tallaCm, (v) => numero(v, 'datos.tallaCm', 40, 220))
   const suplementos = opcional(d.suplementos, (v) => texto(v, 'datos.suplementos', 500))
+  const otras = opcional(d.alergiasOtras, alergiasOtras)
   const datos: DatosBasicos = {
     nombre: texto(d.nombre, 'datos.nombre', 60).trim(),
     edad: numero(d.edad, 'datos.edad', 1, 18),
@@ -191,6 +234,7 @@ export function validarPerfil(x: unknown): { datos: DatosBasicos; borrador: Perf
     alertas: [...new Set(lista(d.alertas ?? [], 'datos.alertas').map((a) => de(ALERTAS_DECLARADAS, a, 'datos.alertas')))],
     dieta: de(DIETA, d.dieta ?? 'ninguna', 'datos.dieta'),
     ...(suplementos ? { suplementos } : {}),
+    ...(otras ? { alergiasOtras: otras } : {}),
   }
   const b = x.borrador === undefined ? {} : esObjeto(x.borrador) ? x.borrador : mal('El borrador no es válido')
   const preparacionId = (v: unknown, donde: string) => (v === null || v === undefined || v === '' ? null : texto(v, donde, 120))
@@ -204,16 +248,22 @@ export function validarPerfil(x: unknown): { datos: DatosBasicos; borrador: Perf
     acepta: lista(b.acepta ?? [], 'borrador.acepta').map((a, i) => {
       if (!esObjeto(a)) return mal(`borrador.acepta[${i}] no es un objeto`)
       const marca = opcional(a.marca, (m) => texto(m, `borrador.acepta[${i}].marca`, 80))
+      const id = preparacionId(a.preparacionId, `borrador.acepta[${i}].preparacionId`)
       return {
-        nombre: texto(a.nombre, `borrador.acepta[${i}].nombre`, 120), preparacionId: preparacionId(a.preparacionId, `borrador.acepta[${i}].preparacionId`),
+        nombre: texto(a.nombre, `borrador.acepta[${i}].nombre`, 120), preparacionId: id,
         ...(marca ? { marca } : {}), atributos: atributosParciales(a.atributos, `borrador.acepta[${i}]`),
+        ...extrasDeclarado(a, `borrador.acepta[${i}]`, id),
       }
     }),
     rechaza: lista(b.rechaza ?? [], 'borrador.rechaza').map((r, i) => {
       if (!esObjeto(r)) return mal(`borrador.rechaza[${i}] no es un objeto`)
+      const id = preparacionId(r.preparacionId, `borrador.rechaza[${i}].preparacionId`)
+      const atr = atributosParciales(r.atributos, `borrador.rechaza[${i}]`)
       return {
-        nombre: texto(r.nombre, `borrador.rechaza[${i}].nombre`, 120), preparacionId: preparacionId(r.preparacionId, `borrador.rechaza[${i}].preparacionId`),
+        nombre: texto(r.nombre, `borrador.rechaza[${i}].nombre`, 120), preparacionId: id,
         motivo: de(MOTIVO, r.motivo ?? 'otro', `borrador.rechaza[${i}].motivo`),
+        ...(Object.keys(atr).length ? { atributos: atr } : {}),
+        ...extrasDeclarado(r, `borrador.rechaza[${i}]`, id),
       }
     }),
     reglas: lista(b.reglas ?? [], 'borrador.reglas').map(regla),

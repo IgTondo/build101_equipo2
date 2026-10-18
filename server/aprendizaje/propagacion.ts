@@ -24,7 +24,7 @@ export function importanciaPorTipo(patrones: readonly { condiciones: readonly Co
 
 /**
  * Semilla positiva s(p) = max(0, puntaje − 0,5); negativa r(p) = max(0, 0,5 − puntaje). Arista con peso
- * 1 + importancia del tipo. 20 iteraciones de x ← 0,15·s + 0,85·W·x. Resultado: PPR(s) − 0,5·PPR(r), llevado a
+ * 1 + importancia del tipo; el grado de una preparación es el de los 8 atributos aunque le falte alguno. 20 iteraciones de x ← 0,15·s + 0,85·W·x. Resultado: PPR(s) − 0,5·PPR(r), llevado a
  * [−1, 1] dividiendo por el máximo entre las preparaciones que no son semilla positiva (las candidatas).
  */
 export function propagar(
@@ -53,7 +53,11 @@ export function propagar(
     }
   })
   const N = vecinos.length
-  const grado = vecinos.map((vs) => vs.reduce((s, v) => s + v.w, 0))
+  // Una preparación reparte su masa como si tuviera los 8 atributos: la parte de lo que no se sabe no propaga (se pierde).
+  // Si no, una manzana contada sin forma ni textura concentra todo en sus 3 atributos y empuja a lo que comparte esos 3
+  // mucho más que una preparación completa. Con los datos completos no cambia nada.
+  const gradoPreparacion = TIPOS_ATRIBUTO.reduce((s, t) => s + 1 + (importancia[t] ?? 0), 0)
+  const grado = vecinos.map((vs, i) => (i < P ? gradoPreparacion : vs.reduce((s, v) => s + v.w, 0)))
 
   const semilla = (f: (p: number) => number) => {
     const s = new Float64Array(N)

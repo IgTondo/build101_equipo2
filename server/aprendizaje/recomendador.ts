@@ -4,7 +4,7 @@ import type { Cambio, Candidato, IdeaReceta, Momento, Motor, Nutriente, Nutrient
 import { aporte, cero, redondearParcial } from '../nutricion/calcular.js'
 import { CON_META } from '../nutricion/objetivos.js'
 import { alfaBeta, pAtributos } from './aceptacion.js'
-import { type EntradaCadena, type PasoCadena, DIFICULTAD, candidatosCadena, principal } from './cadena.js'
+import { type EntradaCadena, type PasoCadena, DIFICULTAD, candidatosCadena, esSegura, principal } from './cadena.js'
 import { type Contexto, type Observacion, cumple } from './condiciones.js'
 import type { Patron } from './patrones.js'
 import { importanciaPorTipo, propagar } from './propagacion.js'
@@ -16,7 +16,6 @@ export interface EntradaRecomendador extends EntradaCadena {
   faltan: readonly Nutriente[] // en el orden de prioridad de §1
   coberturaSemana: Nutrientes
   evitarSegura?: readonly string[] // lo que se sirvió en la última comida del mismo momento: no repetir el mismo tema
-  momento?: Momento // v5.2 · la comida para la que se sugiere: solo lo que el catálogo anota para esa comida
   variedad?: Variedad // v5.5 · modo variedad (variedadDe, nutricion/progreso.ts): no falta ningún nutriente clave esta semana
 }
 
@@ -220,16 +219,21 @@ function ideasReceta(
   return [...ideas, ...parecidas].map((c) => ({ preparacionId: c.id, nombre: c.nombre, nutriente: nutrienteDe.get(c.id) ?? porNutriente[0]!.n }))
 }
 
-/** Entre lo que acepta, la de mayor p × aporte al nutriente que más falta, salteando lo de la última comida del mismo momento. */
+/**
+ * Entre lo que acepta, la de mayor p × aporte al nutriente que más falta, salteando lo de la última comida del mismo
+ * momento. Con momento, solo lo que va en esa comida (lo anotado en el catálogo o, si no es del catálogo, en lo que se
+ * sabe de él). Nunca algo con sus alérgenos (o sin ingredientes conocidos, si tiene alergias).
+ */
 function sugerenciaSegura(e: EntradaRecomendador, n: Nutriente): Sugerencia | null {
   const evitar = new Set(e.evitarSegura ?? [])
   const delCatalogo = e.momento ? new Map(e.catalogo.map((p) => [p.id, p])) : null
   const opciones = [...e.estados.values()]
-    .filter((s) => s.estado === 'acepta' && (!delCatalogo || esParaMomento(delCatalogo.get(s.prepId), e.momento)))
-    .map((s) => {
+    .filter((s) => s.estado === 'acepta' && (!delCatalogo || esParaMomento(delCatalogo.get(s.prepId) ?? e.conocidas.get(s.prepId), e.momento)))
+    .flatMap((s) => {
       const prep = e.conocidas.get(s.prepId)
+      if (!esSegura(prep ?? { ingredientes: [] }, e.alergias, e.alimentos, e.prohibidos)) return []
       const ap = prep && prep.ingredientes.length ? aporte(prep.ingredientes, e.alimentos).nutrientes : cero()
-      return { s, prep, ap, valor: s.p * (e.objetivo[n] > 0 ? ap[n] / e.objetivo[n] : 0) }
+      return [{ s, prep, ap, valor: s.p * (e.objetivo[n] > 0 ? ap[n] / e.objetivo[n] : 0) }]
     })
   const elegibles = opciones.some((o) => !evitar.has(o.s.prepId)) ? opciones.filter((o) => !evitar.has(o.s.prepId)) : opciones
   const mejor = elegibles.sort((a, b) => b.valor - a.valor || b.s.p - a.s.p || a.s.prepId.localeCompare(b.s.prepId))[0]

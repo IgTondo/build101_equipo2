@@ -1,10 +1,12 @@
 // Controles del formulario del perfil: campo con etiqueta y error conectados, chips de alternar (aria-pressed) y
-// opciones únicas (radios: dos opciones son una fila con una pastilla que se desliza; más, chips que se marcan).
+// opciones únicas (radios: dos opciones son una fila con una pastilla que se desliza; más, chips que se marcan) y el
+// campo para sumar algo a una lista ("Sumar").
 // Lo que falta se marca en Zapallo, con calma: nunca en rojo.
 import { cn } from 'cn'
-import { Check } from 'lucide-react'
+import { Check, Plus } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useId, type InputHTMLAttributes, type ReactNode, type Ref } from 'react'
+import { useId, useState, type FormEvent, type InputHTMLAttributes, type ReactNode, type Ref } from 'react'
+import { Button } from '../../componentes/ui/button'
 import { Input } from '../../componentes/ui/input'
 import { Falta, RESORTE } from './Piezas'
 
@@ -159,5 +161,35 @@ export function OpcionUnica<T extends string>({ leyenda, nombre, opciones, etiqu
       {error && <Falta id={`${id}-error`}>{error}</Falta>}
       {pie}
     </fieldset>
+  )
+}
+
+/** Sumar algo a una lista de "Esto entendí" (lo que come, lo que no, sus reglas, otra alergia): un campo y "Sumar". */
+export function Agregar({ etiqueta, ejemplo, alAgregar, refInput, error }: {
+  etiqueta: string; ejemplo: string; alAgregar: (v: string) => void; refInput?: Ref<HTMLInputElement>; error?: string
+}) {
+  const id = useId()
+  const [valor, setValor] = useState('')
+  const enviar = (e: FormEvent) => {
+    e.preventDefault()
+    if (!valor.trim()) return
+    alAgregar(valor)
+    setValor('')
+  }
+  return (
+    <form className="flex flex-col gap-1.5" onSubmit={enviar}>
+      <label htmlFor={id} className="px-1 text-sm font-bold text-pino">{etiqueta}</label>
+      <div className="flex gap-2">
+        <Input
+          ref={refInput} id={id} className={cn(CLASE_INPUT, 'min-w-0 flex-1 rounded-full')} value={valor}
+          onChange={(e) => setValor(e.target.value)} placeholder={ejemplo} enterKeyHint="done" autoComplete="off"
+          aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined}
+        />
+        <Button type="submit" variant="outline" className="shrink-0 bg-background" aria-label={etiqueta}>
+          <Plus aria-hidden="true" /> <span aria-hidden="true">Sumar</span>
+        </Button>
+      </div>
+      {error && <Falta id={`${id}-error`} rol="alert">{error}</Falta>}
+    </form>
   )
 }

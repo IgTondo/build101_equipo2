@@ -61,11 +61,17 @@ async function escribir(p: Proyeccion, run: Ejecutor, borrados: readonly string[
 
 const enTx = (tx: ManagedTransaction): Ejecutor => (cypher, parametros) => tx.run(cypher, parametros)
 
-/** El conocimiento del chico que se recalcula entero: aristas de estado y patrones (usa el parámetro $ninoId). */
+/**
+ * El conocimiento del chico que se recalcula entero: aristas de estado, patrones y los atributos e ingredientes de sus
+ * preparaciones propias (fuera del catálogo), así no quedan aristas viejas (usa el parámetro $ninoId).
+ */
 const BORRAR_CONOCIMIENTO = [
   `MATCH (:Nino {id: $ninoId})-[r:${TIPOS_ESTADO.join('|')}]->() DELETE r`,
   'MATCH (:Nino {id: $ninoId})-[:TIENE_PATRON]->(p:Patron) DETACH DELETE p',
+  'MATCH (p:Preparacion {ninoId: $ninoId})-[r:TIENE|CONTIENE]->() DELETE r',
 ]
+
+const catalogoIds = () => new Set(preparacionesCatalogo().keys())
 
 const CONSTRAINTS = [
   'CREATE CONSTRAINT nino_id IF NOT EXISTS FOR (n:Nino) REQUIRE n.id IS UNIQUE',
@@ -100,14 +106,14 @@ export const almacenNeo4j: AlmacenGrafo = {
       ...BORRAR_CONOCIMIENTO,
     ]
     await enTransaccion((tx) =>
-      escribir(unir(proyectarNino(nino, objetivo), proyectarConocimiento(nino._id, estado)), enTx(tx), borrados, { ninoId: nino._id }),
+      escribir(unir(proyectarNino(nino, objetivo), proyectarConocimiento(nino._id, estado, catalogoIds())), enTx(tx), borrados, { ninoId: nino._id }),
     )
   },
 
   async escribirComida(comida, estado) {
-    const catalogo = new Set(preparacionesCatalogo().keys())
+    const catalogo = catalogoIds()
     await enTransaccion((tx) =>
-      escribir(unir(proyectarComida(comida, catalogo), proyectarConocimiento(comida.ninoId, estado)), enTx(tx), BORRAR_CONOCIMIENTO, { ninoId: comida.ninoId }),
+      escribir(unir(proyectarComida(comida, catalogo), proyectarConocimiento(comida.ninoId, estado, catalogo)), enTx(tx), BORRAR_CONOCIMIENTO, { ninoId: comida.ninoId }),
     )
   },
 
@@ -117,6 +123,7 @@ export const almacenNeo4j: AlmacenGrafo = {
       await run('MATCH (:Nino {id: $id})-[:COMIO]->(:Comida)-[:INCLUYE]->(i:Item) DETACH DELETE i', { id: ninoId })
       await run('MATCH (:Nino {id: $id})-[:COMIO]->(c:Comida) DETACH DELETE c', { id: ninoId })
       await run('MATCH (:Nino {id: $id})-[:TIENE_PATRON|SIGUE]->(x) DETACH DELETE x', { id: ninoId })
+      await run('MATCH (p:Preparacion {ninoId: $id}) DETACH DELETE p', { id: ninoId })
       await run('MATCH (n:Nino {id: $id}) DETACH DELETE n', { id: ninoId })
     })
   },
@@ -136,6 +143,15 @@ export const almacenNeo4j: AlmacenGrafo = {
     )
     const nino = await consultar<{ nombre: string }>('MATCH (n:Nino {id: $id}) RETURN n.nombre AS nombre', { id: ninoId })
     return armarVista('neo4j', ninoId, nino[0]?.nombre ?? ninoId, preps, patrones)
+  },
+
+  async borrarHuerfanas() {
+    // Las preparaciones fuera del catálogo de antes (compartidas entre chicos, sin ninoId) que ya nadie usa
+    const [r] = await consultar<{ n: number }>(
+      `MATCH (p:Preparacion) WHERE p.catalogo IS NULL AND p.ninoId IS NULL AND NOT (p)<--()
+       DETACH DELETE p RETURN count(*) AS n`, {}, 'escribir',
+    )
+    return Number(r?.n ?? 0)
   },
 
   ping: pingNeo4j,

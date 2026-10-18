@@ -210,6 +210,7 @@ export interface DatosBasicos {
   alertas: ('bajo_peso' | 'arcadas_vomitos' | 'menos_15_alimentos')[]
   dieta: Dieta                           // v2
   suplementos?: string                   // v2 · solo registro; la app nunca sugiere suplementos
+  alergiasOtras?: string[]               // v5.8 · las que no están en ALERGENO, como las escribe el padre ("kiwi", "durazno", "colorante rojo"): server/alergias.ts las cruza con los alimentos por nombre y alias
 }
 export interface Regla {
   texto: string
@@ -232,12 +233,26 @@ export interface DatosExtraidos {         // v5 · lo que dijo del chico; el pad
   alertas: DatoCitado<'bajo_peso' | 'arcadas_vomitos' | 'menos_15_alimentos'>[]
   atragantamiento?: DatoCitado<true>                 // se muestra como alerta (§10.4) desde el alta
   dieta?: DatoCitado<Dieta>; suplementos?: DatoCitado<string>
+  otrasAlergiasMencionadas?: DatoCitado<string>[]   // v5.8 · las que no están en ALERGENO ("es alérgico al kiwi"): sugerencias, el padre las confirma
 }
 export const CAMPO_VITAL = ['nombre', 'edad', 'sexo', 'alergias', 'acepta', 'rechaza'] as const // v5
 export type CampoVital = De<typeof CAMPO_VITAL>
+// v5.8 · Cada alimento declarado lleva lo que hace falta para razonar sobre él (las relaciones de food chaining): los 8
+// atributos (lo que dijo la familia y, lo demás, lo típico: `inferido`), sus ingredientes (si no es del catálogo) y en qué
+// comidas se come. `dicho` son las palabras de la familia, tal cual; `duda`, una pregunta si la versión típica lleva algo
+// que importa y no se aclaró (el pescado del sushi para un chico alérgico).
+export interface AlimentoDeclarado {
+  nombre: string; preparacionId: string | null
+  dicho?: string                         // v5.8
+  atributos: Partial<Atributos>          // v5.8: completos (8) cuando se pudo; si preparacionId no es null, los del catálogo
+  ingredientes?: { alimentoId: string; gramos: number }[] // v5.8 · solo si preparacionId es null
+  momentos?: Momento[]                   // v5.8
+  inferido?: boolean                     // v5.8 · algún atributo o ingrediente es lo típico, no lo que dijo la familia
+  duda?: string                          // v5.8
+}
 export interface PerfilBorrador {
-  acepta: { nombre: string; preparacionId: string | null; marca?: string; atributos: Partial<Atributos> }[]
-  rechaza: { nombre: string; preparacionId: string | null; motivo: Motivo }[]   // v2: el motivo usa MOTIVO
+  acepta: (AlimentoDeclarado & { marca?: string })[]
+  rechaza: (Omit<AlimentoDeclarado, 'atributos'> & { atributos?: Partial<Atributos>; motivo: Motivo })[]   // v2: el motivo usa MOTIVO · v5.8: con atributos e ingredientes, como acepta (opcionales: los viejos no los tienen)
   reglas: Regla[]
   objetivosNutricionista?: Partial<Nutrientes>
   datos?: DatosExtraidos                 // v5 · solo si el pedido no trajo datos (alta por voz)

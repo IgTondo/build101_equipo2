@@ -39,6 +39,13 @@ export interface Proyeccion {
 const UNIDAD: Record<Nutriente, string> = {
   energia_kcal: 'kcal', proteina_g: 'g', calcio_mg: 'mg', vitamina_d_ug: 'µg', hierro_mg: 'mg', fibra_g: 'g', omega3_g: 'g', b12_ug: 'µg', vitamina_c_mg: 'mg',
 }
+/**
+ * Lo que no es del catálogo es de cada chico: el "Sushi" de Rosario no es el de otro chico (otros ingredientes, otros
+ * atributos). Su nodo es `${ninoId}|${id}`, lleva `ninoId` y se borra con el chico. Lo del catálogo es compartido.
+ */
+export const idPreparacion = (ninoId: string, prepId: string, catalogo: ReadonlySet<string>): string =>
+  catalogo.has(prepId) ? prepId : `${ninoId}|${prepId}`
+
 const condicionNodo = (tipo: string, valor: string): { label: Label; id: string } => ({ label: esAtributo(tipo) ? 'Atributo' : 'Contexto', id: `${tipo}:${valor}` })
 
 /** B5: Nutrientes, Ingredientes + APORTA {por100g}, Atributos, Preparaciones del catálogo + TIENE + CONTIENE. */
@@ -129,14 +136,12 @@ export function proyectarComida(c: ComidaDoc, catalogo: ReadonlySet<string>): Pr
       },
     })
     aristas.push({ tipo: 'INCLUYE', desde: { label: 'Comida', id: c._id }, hasta: { label: 'Item', id: itemId }, props: {}, ninoId: id })
-    nodos.push({ label: 'Preparacion', id: it.preparacionId, props: { nombre: it.nombre }, ninoId: null })
-    aristas.push({ tipo: 'ES', desde: { label: 'Item', id: itemId }, hasta: { label: 'Preparacion', id: it.preparacionId }, props: {}, ninoId: id })
-    if (!catalogo.has(it.preparacionId)) {
-      // Lo que no está en el catálogo toma los atributos observados (los del catálogo los puso el seed)
-      for (const [tipo, valor] of Object.entries(a)) {
-        if (valor) aristas.push({ tipo: 'TIENE', desde: { label: 'Preparacion', id: it.preparacionId }, hasta: { label: 'Atributo', id: `${tipo}:${valor}` }, props: {}, ninoId: null })
-      }
-    }
+    // Lo que no está en el catálogo es del chico; sus atributos e ingredientes los pone proyectarConocimiento (que va
+    // siempre en la misma escritura), con lo declarado y lo observado juntos
+    const prep = idPreparacion(id, it.preparacionId, catalogo)
+    const propio = prep !== it.preparacionId
+    nodos.push({ label: 'Preparacion', id: prep, props: propio ? { nombre: it.nombre, catalogo: false, ninoId: id, prepId: it.preparacionId } : { nombre: it.nombre }, ninoId: propio ? id : null })
+    aristas.push({ tipo: 'ES', desde: { label: 'Item', id: itemId }, hasta: { label: 'Preparacion', id: prep }, props: {}, ninoId: id })
     for (const g of it.ingredientes) {
       nodos.push({ label: 'Ingrediente', id: g.alimentoId, props: {}, ninoId: null })
       aristas.push({ tipo: 'CONTIENE', desde: { label: 'Item', id: itemId }, hasta: { label: 'Ingrediente', id: g.alimentoId }, props: { gramos: Math.round(g.gramos * 10) / 10 }, ninoId: id })
@@ -145,15 +150,39 @@ export function proyectarComida(c: ComidaDoc, catalogo: ReadonlySet<string>): Pr
   return { nodos, aristas }
 }
 
-/** Silver: ACEPTA / EN_PROCESO / RECHAZA con su puntaje, y los patrones vigentes con sus condiciones. */
-export function proyectarConocimiento(ninoId: string, estado: EstadoNino): Proyeccion {
+/**
+ * Silver: ACEPTA / EN_PROCESO / RECHAZA con su puntaje, los patrones vigentes con sus condiciones y las preparaciones
+ * propias del chico (fuera del catálogo: lo que contó el padre y lo observado) con sus atributos (TIENE), ingredientes
+ * (CONTIENE) y momentos. Los TIENE/CONTIENE de las propias se borran antes de reescribirlas (no se acumulan viejos).
+ */
+export function proyectarConocimiento(ninoId: string, estado: EstadoNino, catalogo: ReadonlySet<string>): Proyeccion {
   const nodos: Nodo[] = []
   const aristas: Arista[] = []
   const tipo = { acepta: 'ACEPTA', en_proceso: 'EN_PROCESO', rechaza: 'RECHAZA' } as const
+  for (const p of estado.conocidas.values()) {
+    if (catalogo.has(p.id)) continue
+    const prep = idPreparacion(ninoId, p.id, catalogo)
+    const momentos = (p as { momentos?: readonly string[] }).momentos
+    nodos.push({
+      label: 'Preparacion', id: prep, ninoId,
+      props: { nombre: p.nombre, catalogo: false, ninoId, prepId: p.id, ...(momentos?.length ? { momentos: [...momentos] } : {}) },
+    })
+    for (const [t, valor] of Object.entries(p.atributos)) {
+      if (valor) aristas.push({ tipo: 'TIENE', desde: { label: 'Preparacion', id: prep }, hasta: { label: 'Atributo', id: `${t}:${valor}` }, props: {}, ninoId })
+    }
+    const gramos = new Map<string, number>()
+    for (const g of p.ingredientes) if (g.alimentoId) gramos.set(g.alimentoId, (gramos.get(g.alimentoId) ?? 0) + (Number(g.gramos) || 0))
+    for (const [alimentoId, g] of gramos) {
+      nodos.push({ label: 'Ingrediente', id: alimentoId, props: {}, ninoId: null })
+      aristas.push({ tipo: 'CONTIENE', desde: { label: 'Preparacion', id: prep }, hasta: { label: 'Ingrediente', id: alimentoId }, props: { gramos: Math.round(g * 10) / 10 }, ninoId })
+    }
+  }
   for (const e of estado.estados.values()) {
-    nodos.push({ label: 'Preparacion', id: e.prepId, props: { nombre: e.nombre }, ninoId: null })
+    const prep = idPreparacion(ninoId, e.prepId, catalogo)
+    const propio = prep !== e.prepId
+    nodos.push({ label: 'Preparacion', id: prep, props: propio ? { nombre: e.nombre, catalogo: false, ninoId, prepId: e.prepId } : { nombre: e.nombre }, ninoId: propio ? ninoId : null })
     aristas.push({
-      tipo: tipo[e.estado], desde: { label: 'Nino', id: ninoId }, hasta: { label: 'Preparacion', id: e.prepId }, ninoId,
+      tipo: tipo[e.estado], desde: { label: 'Nino', id: ninoId }, hasta: { label: 'Preparacion', id: prep }, ninoId,
       props: { puntaje: Math.round(e.p * 1000) / 1000, veces: e.veces, comio: e.comio, mejorPaso: e.mejorPaso, ultima: e.ultimaISO, declarada: e.declarada, motivo: e.motivoDeclarado ?? null },
     })
   }

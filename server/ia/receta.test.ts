@@ -148,6 +148,31 @@ describe('generarReceta', () => {
     expect(r.preparacionBaseId).toBe('papas_horno_baston')
   })
 
+  it('(v5.8) sus otras alergias: fuera del schema y de la lista, en el prompt, y el candidato cuyo principal alcanzan se saltea', async () => {
+    const conOtras: Perfil = { ...PERFIL_TOMAS, datos: { ...PERFIL_TOMAS.datos, alergiasOtras: ['leche de vaca', 'colorante rojo'] } }
+    responde(SALIDA_QUESO)
+    await pedir({ perfil: async () => conOtras }).catch(() => null) // la leche no pasa la validación: acá importa el pedido
+    const { schema } = llm.mock.calls[0][0]
+    expect(schema.safeParse(SALIDA_QUESO).success).toBe(false) // lleva leche
+    expect(promptDe(0)).toContain('- Alergias: huevo, leche de vaca, colorante rojo. Ningún ingrediente ni paso puede llevarlas.')
+    expect(promptDe(0)).not.toContain('- leche:')
+
+    llm.mockReset()
+    const conMuzza: Perfil = { ...PERFIL_TOMAS, datos: { ...PERFIL_TOMAS.datos, alergiasOtras: ['muzzarella'] } }
+    responde(SALIDA_PAPAS)
+    const r = await pedir({ perfil: async () => conMuzza })
+    expect(llm).toHaveBeenCalledTimes(1)
+    expect(r.preparacionBaseId).toBe('papas_horno_baston')
+  })
+
+  it('(v5.8) una otra alergia nombrada en un paso se atrapa y se pide de nuevo', async () => {
+    const conOtras: Perfil = { ...PERFIL_TOMAS, datos: { ...PERFIL_TOMAS.datos, alergiasOtras: ['colorante rojo'] } }
+    responde({ ...SALIDA_QUESO, pasos: [...SALIDA_QUESO.pasos, 'Decoralos con colorante rojo.'] }, SALIDA_QUESO)
+    const r = await pedir({ perfil: async () => conOtras })
+    expect(promptDe(1)).toContain('aparece «colorante rojo» y tiene alergia declarada a colorante rojo')
+    expect(r.validacion.reintentos).toBe(1)
+  })
+
   it('preparacionId pedido: la receta se arma sobre ese candidato', async () => {
     responde(SALIDA_PAPAS)
     const r = await pedir({}, 'papas_horno_baston')

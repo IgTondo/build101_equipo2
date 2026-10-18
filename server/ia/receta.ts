@@ -14,6 +14,7 @@ import {
   type Alergeno, type Candidato, type Evidencia, type Nutriente, type Nutrientes, type Perfil,
   type PreparacionCatalogo, type Presentacion, type Receta, type RecetaReq,
 } from '../../shared/contratos.js'
+import { alimentosProhibidos, limpiarOtras } from '../alergias.js'
 import { NOMBRE_NUTRIENTE, TEXTO_CAMBIO, decimal } from '../aprendizaje/textos.js'
 import { ErrorNibble } from '../http.js'
 import {
@@ -80,10 +81,10 @@ const BASICOS = ['aceite_girasol', 'aceite_canola', 'leche', 'manteca', 'pan_ral
 export const sinAlergenos = (id: string, alergias: Alergeno[]) =>
   !esGenerico(id) && (alimentoPorId(id)?.alergenos.every((a) => !alergias.includes(a)) ?? false)
 
-function ingredientesSugeridos(base: PreparacionCatalogo, desde: PreparacionCatalogo, alergias: Alergeno[]) {
+function ingredientesSugeridos(base: PreparacionCatalogo, desde: PreparacionCatalogo, alergias: Alergeno[], prohibidos: ReadonlySet<string>) {
   const ids = [...base.ingredientes, ...desde.ingredientes].map((i) => i.alimentoId).concat(BASICOS)
   return [...new Set(ids)]
-    .filter((id) => sinAlergenos(id, alergias))
+    .filter((id) => sinAlergenos(id, alergias) && !prohibidos.has(id))
     .map((id) => ({ alimentoId: id, nombre: alimentoPorId(id)?.nombre ?? id }))
 }
 
@@ -180,6 +181,9 @@ export async function generarReceta(req: RecetaReq, deps: DepsReceta): Promise<R
   const candidatos = ordenar(evidencia.candidatos, req.preparacionId)
 
   const alergias = [...new Set([...evidencia.alergias, ...perfil.datos.alergias])]
+  // v5.8 · Sus otras alergias ("kiwi"): fuera de la lista y del schema, y la validación las controla en el texto
+  const alergiasOtras = limpiarOtras(perfil.datos.alergiasOtras)
+  const prohibidos = alimentosProhibidos(alergiasOtras, alimentos())
   const presentacionesAceptadas = [...new Set(perfil.preparaciones
     .filter((p) => p.estado === 'acepta')
     .flatMap((p): Presentacion[] => {
@@ -187,7 +191,7 @@ export async function generarReceta(req: RecetaReq, deps: DepsReceta): Promise<R
       return pr && pr !== 'separado' ? [pr] : []
     }))]
   // El schema deja elegir cualquier alimento del catálogo, menos los genéricos y los que tienen alérgenos del chico.
-  const schema = esquemaSalidaReceta(alimentos().map((a) => a.id).filter((id) => sinAlergenos(id, alergias)))
+  const schema = esquemaSalidaReceta(alimentos().map((a) => a.id).filter((id) => sinAlergenos(id, alergias) && !prohibidos.has(id)))
   let llamadas = 0
 
   for (const candidato of candidatos) {
@@ -198,14 +202,17 @@ export async function generarReceta(req: RecetaReq, deps: DepsReceta): Promise<R
       descartes.push({ preparacionId: candidato.preparacionId, problemas: [`No está ${falta} en el catálogo: no se puede validar el cambio.`] })
       continue
     }
-    const ctx: ContextoValidacion = { alergias, reglas: perfil.reglas, desde, base, presentacionesAceptadas }
+    const ctx: ContextoValidacion = {
+      alergias, reglas: perfil.reglas, desde, base, presentacionesAceptadas,
+      ...(alergiasOtras.length ? { alergiasOtras, prohibidos } : {}),
+    }
     const previa = validarCandidato(ctx, candidato)
     if (!previa.ok) {
       descartes.push({ preparacionId: candidato.preparacionId, problemas: previa.problemas })
       continue
     }
 
-    const ingredientes = ingredientesSugeridos(base, desde, alergias)
+    const ingredientes = ingredientesSugeridos(base, desde, alergias, prohibidos)
     let anterior: { salida: SalidaReceta; problemas: string[] } | undefined
     for (let intento = 0; intento < 2; intento++) {
       if (ahora() - t0 > TOPE_NUEVA_LLAMADA_MS) {
@@ -217,7 +224,7 @@ export async function generarReceta(req: RecetaReq, deps: DepsReceta): Promise<R
         tarea: 'receta',
         sistema: SISTEMA_RECETA,
         partes: [{ tipo: 'texto', texto: promptReceta({
-          evidencia, candidato, base, ingredientes, alergias, anterior,
+          evidencia, candidato, base, ingredientes, alergias, anterior, ...(alergiasOtras.length ? { alergiasOtras } : {}),
           ...(candidato.preparacionId === req.preparacionId && req.anteriores?.length ? { yaVistas: req.anteriores } : {}),
         }) }],
         schema,

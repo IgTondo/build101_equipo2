@@ -7,7 +7,7 @@ import { col } from '../datos/mongo.js'
 import { almacen } from './almacen.js'
 import type { MotorGrafo } from './cliente.js'
 
-export async function reconstruirGrafo(op: { ninoId?: string; motor?: MotorGrafo; sembrar?: boolean } = {}): Promise<{ motor: MotorGrafo; ninos: number; comidas: number }> {
+export async function reconstruirGrafo(op: { ninoId?: string; motor?: MotorGrafo; sembrar?: boolean } = {}): Promise<{ motor: MotorGrafo; ninos: number; comidas: number; huerfanas: number }> {
   const a = almacen(op.motor)
   const catalogo = preparacionesCatalogo()
   await a.asegurarEsquema()
@@ -22,5 +22,7 @@ export async function reconstruirGrafo(op: { ninoId?: string; motor?: MotorGrafo
     for (const c of comidas) await a.escribirComida(c, estado)
     comidasTotal += comidas.length
   }
-  return { motor: a.motor, ninos: ninos.length, comidas: comidasTotal }
+  // Con todos los chicos rehechos, lo que no es del catálogo y quedó compartido (de antes) ya no lo usa nadie
+  const huerfanas = op.ninoId ? 0 : await a.borrarHuerfanas()
+  return { motor: a.motor, ninos: ninos.length, comidas: comidasTotal, huerfanas }
 }

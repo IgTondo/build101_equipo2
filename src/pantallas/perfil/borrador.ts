@@ -13,6 +13,7 @@ export interface FormDatos {
   pesoKg: string
   tallaCm: string
   alergias: Alergeno[]
+  alergiasOtras: string[]   // v5.8 · las que no están en ALERGENO, como las escribe el padre ("kiwi")
   alertas: Senal[]
   dieta: Dieta
   suplementos: string
@@ -21,7 +22,7 @@ export type CampoDatos = 'nombre' | 'edad' | 'sexo' | 'pesoKg' | 'tallaCm'
 export type ErroresDatos = Partial<Record<CampoDatos, string>>
 
 export function formVacio(): FormDatos {
-  return { nombre: '', edad: '', sexo: '', pesoKg: '', tallaCm: '', alergias: [], alertas: [], dieta: 'ninguna', suplementos: '' }
+  return { nombre: '', edad: '', sexo: '', pesoKg: '', tallaCm: '', alergias: [], alergiasOtras: [], alertas: [], dieta: 'ninguna', suplementos: '' }
 }
 
 export function formDesde(d: DatosBasicos): FormDatos {
@@ -29,7 +30,7 @@ export function formDesde(d: DatosBasicos): FormDatos {
     nombre: d.nombre, edad: String(d.edad), sexo: d.sexo,
     pesoKg: d.pesoKg === undefined ? '' : String(d.pesoKg).replace('.', ','),
     tallaCm: d.tallaCm === undefined ? '' : String(d.tallaCm),
-    alergias: [...d.alergias], alertas: [...d.alertas], dieta: d.dieta, suplementos: d.suplementos ?? '',
+    alergias: [...d.alergias], alergiasOtras: [...(d.alergiasOtras ?? [])], alertas: [...d.alertas], dieta: d.dieta, suplementos: d.suplementos ?? '',
   }
 }
 
@@ -67,11 +68,13 @@ export function validarDatos(f: FormDatos): Validacion {
   if (Object.keys(errores).length || edad === undefined || !f.sexo) return { ok: false, errores }
 
   const suplementos = f.suplementos.trim()
+  const alergiasOtras = f.alergiasOtras.map(limpio).filter(Boolean)
   const datos: DatosBasicos = {
     nombre, edad, sexo: f.sexo,
     ...(pesoKg === undefined ? {} : { pesoKg }),
     ...(tallaCm === undefined ? {} : { tallaCm }),
     alergias: [...f.alergias], alertas: [...f.alertas], dieta: f.dieta,
+    ...(alergiasOtras.length ? { alergiasOtras } : {}),
     ...(suplementos ? { suplementos } : {}),
   }
   return { ok: true, datos }

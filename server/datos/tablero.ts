@@ -1,6 +1,7 @@
 // GET /api/nutricion y GET /api/progreso (B7): el tablero "¿está comiendo bien?" y las tres sugerencias (§8).
 import type { CoberturaDia, Momento, Motor, Nutriente, Progreso } from '../../shared/contratos.js'
 import type { EstadoNino } from '../aprendizaje/estado.js'
+import { alimentosProhibidos } from '../alergias.js'
 import { calcularEstado } from '../aprendizaje/estado.js'
 import { type EntradaRecomendador, type Recomendacion, recomendar } from '../aprendizaje/recomendador.js'
 import { faltanSemana } from '../nutricion/calcular.js'
@@ -31,6 +32,7 @@ export function entradaRecomendador(c: Cargado, estado: EstadoNino, hoy: string,
     conocidas: estado.conocidas,
     estados: estado.estados,
     alergias: c.nino.datos.alergias,
+    prohibidos: alimentosProhibidos(c.nino.datos.alergiasOtras ?? [], c.alimentos), // v5.8 · sus otras alergias ("kiwi")
     reglas: c.nino.reglas,
     alimentos: c.alimentos,
     objetivo: c.objetivo,

@@ -256,13 +256,45 @@ describe('vision.ts: postprocesar (A6)', () => {
 
   it('ids inválidos: preparacionId que no está en ningún catálogo → null; ítem inexistente en una pregunta → sin itemIdTmp', () => {
     const r = procesar(salida({
-      items: [papas({ preparacionId: 'papas_noisette' }), pollo({ preparacionId: 'nuggets_caseros' })],
+      items: [papas({ preparacionId: 'papas_noisette' }), pollo({ preparacion: 'nuggets de pollo', preparacionId: 'nuggets_caseros', confianza: 0.95 })],
       preguntas: [{ texto: '¿Es salsa de tomate?', opciones: ['Sí', 'No'], item: 7, origen: 'contexto' }, { texto: '¿Y esto?', opciones: ['Sí', 'No'], item: 2.2, origen: 'contexto' }],
     }))
     expect(r.items.map((i) => i.preparacionId)).toEqual([null, 'nuggets_caseros']) // el del catálogo personal vale
     expect(r.preguntas[0]).not.toHaveProperty('itemIdTmp')
     expect(r.preguntas[0]).not.toHaveProperty('caja')
     expect(r.preguntas[1]).toMatchObject({ itemIdTmp: 'i2', caja: [500, 300, 880, 900] })
+  })
+
+  it('(v5.8) un id que no es la misma preparación que describe → null, con lo que vio, y queda en el log', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const r = procesar(salida({
+      items: [
+        pollo({ preparacion: 'pollo al horno', preparacionId: 'pollo_plancha' }),
+        papas({ preparacion: 'papas al horno en bastones' }),
+        pollo({ preparacion: 'milanesa de pollo', preparacionId: 'nuggets_caseros', confianza: 0.95 }),
+      ],
+    }))
+    expect(r.items.map((i) => i.preparacionId)).toEqual([null, null, null])
+    expect(r.items[0].atributos.coccion).toBe('plancha') // los atributos que vio el modelo quedan
+    const avisos = warn.mock.calls.map(([m]) => JSON.parse(String(m)))
+    expect(avisos[0]).toMatchObject({ evento: 'vision', aviso: 'id_descartado', id: 'pollo_plancha', motivo: expect.stringContaining('coccion') })
+    warn.mockRestore()
+  })
+
+  it('(v5.8) empanado o formado sin seguridad (< 0,9) → "¿De qué es?" carne, pollo, pescado o soja, antes que otra duda del ítem', () => {
+    const r = procesar(salida({
+      items: [
+        pollo({ preparacion: 'milanesa de carne con salsa', preparacionId: null, confianza: 0.7 }),
+        pollo({ preparacion: 'nuggets', preparacionId: null, confianza: 0.4, alternativas: ['croquetas'] }),
+        pollo({ preparacion: 'milanesa de pollo', preparacionId: null, confianza: 0.95 }),
+        pollo({ confianza: 0.7 }),
+      ],
+      preguntas: [{ texto: '¿Es carne o pollo?', opciones: ['Carne', 'Pollo'], item: 1, origen: 'duda' }],
+    }))
+    expect(r.preguntas).toEqual([
+      { id: 'q1', texto: '¿De qué es la milanesa?', opciones: ['Carne', 'Pollo', 'Pescado', 'Soja'], itemIdTmp: 'i1', caja: [500, 300, 880, 900], origen: 'duda' },
+      { id: 'q2', texto: '¿De qué son los nuggets?', opciones: ['Carne', 'Pollo', 'Pescado', 'Soja'], itemIdTmp: 'i2', caja: [500, 300, 880, 900], origen: 'duda' },
+    ])
   })
 
   it('gramos de 1 a 1000, repetidos sumados y, sin dato, la porción típica del alimento', () => {

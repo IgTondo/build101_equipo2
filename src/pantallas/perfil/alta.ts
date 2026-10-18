@@ -2,11 +2,13 @@
 // - el pedido a /api/perfil-inicial (solo texto) y qué hacer si el back todavía pide `datos` (transición hasta A8b);
 // - de `DatosExtraidos` (lo que dijo el padre, con citas) al formulario de "Esto entendí";
 // - las alergias: una mencionada es una sugerencia y solo pasa a DatosBasicos.alergias si el padre la toca;
+//   v5.8 · las otras ("kiwi"), igual: las mencionadas se tocan para confirmarlas y el padre puede sumar las suyas;
 // - lo vital que falta (`faltan`) y la regla de cuándo se puede crear el perfil.
 import {
   ALERGENO, CAMPO_VITAL, DIETA, type Alergeno, type CampoVital, type DatoCitado, type DatosBasicos, type DatosExtraidos,
   type ErrorApi, type PerfilBorrador, type PerfilInicialReq,
 } from '../../../shared/contratos'
+import { NOMBRE_ALERGENO } from '../../lib/vocabulario'
 import { alternarAlergia, clave, formDesde, formVacio, leerNumero, SENALES, validarDatos, type ErroresDatos, type FormDatos } from './borrador'
 
 // ---------- El pedido y la transición hasta A8b ----------
@@ -61,6 +63,11 @@ export function sanearExtraidos(x: unknown): DatosExtraidos | undefined {
   const d = x as Record<string, unknown>
   const vistas = new Set<Alergeno>()
   const alergias = citados(d.alergiasMencionadas, de(ALERGENO)).filter((a) => !vistas.has(a.valor) && vistas.add(a.valor))
+  // v5.8 · Las otras: sin repetir (sin mirar mayúsculas ni tildes) y sin las que ya son de las de siempre
+  const vistasOtras = new Set<string>()
+  const otras = citados(d.otrasAlergiasMencionadas, texto)
+    .map((a) => ({ valor: a.valor.trim().replace(/\s+/g, ' ').slice(0, MAX_OTRA), cita: a.cita }))
+    .filter((a) => !alergenoDeTexto(a.valor) && !vistasOtras.has(clave(a.valor)) && vistasOtras.add(clave(a.valor)))
   const opcionales = {
     nombre: citado(d.nombre, texto), edad: citado(d.edad, edadValida), sexo: citado(d.sexo, de(SEXO)),
     pesoKg: citado(d.pesoKg, entre(3, 150)), tallaCm: citado(d.tallaCm, entre(40, 210)),
@@ -69,6 +76,7 @@ export function sanearExtraidos(x: unknown): DatosExtraidos | undefined {
   }
   return {
     alergiasMencionadas: alergias,
+    ...(otras.length ? { otrasAlergiasMencionadas: otras } : {}),
     alertas: citados(d.alertas, de(SENALES)),
     ...Object.fromEntries(Object.entries(opcionales).filter(([, v]) => v !== undefined)),
   }
@@ -99,6 +107,7 @@ export function altaInicial(extraidos: DatosExtraidos | undefined, manual?: Dato
       pesoKg: numeroAForm(d?.pesoKg?.valor),
       tallaCm: numeroAForm(d?.tallaCm?.valor),
       alergias: [],
+      alergiasOtras: [],
       alertas: SENALES.filter((s) => d?.alertas.some((a) => a.valor === s)),
       dieta: d?.dieta?.valor ?? 'ninguna',
       suplementos: d?.suplementos?.valor ?? '',
@@ -112,13 +121,52 @@ export function tocarAlergia(alta: Alta, a: Alergeno): Alta {
   return { form: { ...alta.form, alergias: alternarAlergia(alta.form.alergias, a) }, sinAlergias: false }
 }
 
-/** "No tiene alergias": al confirmarlo se sacan las que estuvieran marcadas. */
+/** "No tiene alergias": al confirmarlo se sacan las que estuvieran marcadas (también las otras). */
 export function tocarSinAlergias(alta: Alta): Alta {
   const sinAlergias = !alta.sinAlergias
-  return { form: { ...alta.form, alergias: sinAlergias ? [] : alta.form.alergias }, sinAlergias }
+  const form = sinAlergias ? { ...alta.form, alergias: [], alergiasOtras: [] } : alta.form
+  return { form, sinAlergias }
 }
 
-export const alergiasRespondidas = (alta: Alta) => alta.sinAlergias || alta.form.alergias.length > 0
+export const alergiasRespondidas = (alta: Alta) => alta.sinAlergias || alta.form.alergias.length > 0 || alta.form.alergiasOtras.length > 0
+
+// ---------- Las otras alergias (v5.8) ----------
+
+/** Lo más largo que se guarda de una alergia escrita a mano, y cuántas: lo que acepta POST /api/perfil (datos/validar.ts). */
+export const MAX_OTRA = 40
+export const MAX_OTRAS = 10
+
+/** Si lo que escribió es una de las de siempre ("Huevo", "maní", "frutos secos"), cuál. */
+export function alergenoDeTexto(texto: string): Alergeno | undefined {
+  const k = clave(texto)
+  return ALERGENO.find((a) => clave(NOMBRE_ALERGENO[a]) === k || clave(a.replace(/_/g, ' ')) === k)
+}
+
+/** Tocar una otra alergia (una mencionada en el audio) la confirma o la desconfirma. Confirmarla apaga "No tiene alergias". */
+export function tocarAlergiaOtra(alta: Alta, otra: string): Alta {
+  const ya = alta.form.alergiasOtras.some((o) => clave(o) === clave(otra))
+  if (!ya && alta.form.alergiasOtras.length >= MAX_OTRAS) return alta
+  const alergiasOtras = ya ? alta.form.alergiasOtras.filter((o) => clave(o) !== clave(otra)) : [...alta.form.alergiasOtras, otra]
+  return { form: { ...alta.form, alergiasOtras }, sinAlergias: false }
+}
+
+/**
+ * Sumar una alergia escrita a mano: si es una de las de siempre, se marca esa (así se cruza con la tabla de alimentos);
+ * si no, va a las otras. Vacía o repetida, no cambia nada salvo apagar "No tiene alergias" si sumó una que ya estaba.
+ */
+export function agregarAlergiaOtra(alta: Alta, texto: string): Alta {
+  const t = texto.trim().replace(/\s+/g, ' ').slice(0, MAX_OTRA)
+  if (!t) return alta
+  const fija = alergenoDeTexto(t)
+  if (fija) return alta.form.alergias.includes(fija) ? { ...alta, sinAlergias: false } : tocarAlergia(alta, fija)
+  if (alta.form.alergiasOtras.some((o) => clave(o) === clave(t))) return { ...alta, sinAlergias: false }
+  if (alta.form.alergiasOtras.length >= MAX_OTRAS) return alta
+  return { form: { ...alta.form, alergiasOtras: [...alta.form.alergiasOtras, t] }, sinAlergias: false }
+}
+
+export function quitarAlergiaOtra(alta: Alta, otra: string): Alta {
+  return { ...alta, form: { ...alta.form, alergiasOtras: alta.form.alergiasOtras.filter((o) => clave(o) !== clave(otra)) } }
+}
 
 /**
  * La cita de un dato extraído, mientras el valor del formulario siga siendo el que dijo. Si el padre lo corrige,
@@ -142,13 +190,15 @@ export function faltanDe(b: Pick<PerfilBorrador, 'acepta' | 'rechaza' | 'faltan'
   if (manual) {
     // Los datos básicos los escribió el padre: lo único que puede faltar es la respuesta explícita sobre alergias.
     for (const c of ['nombre', 'edad', 'sexo'] as const) f.delete(c)
-    if (manual.alergias.length) f.delete('alergias')
+    if (manual.alergias.length || manual.alergiasOtras?.length) f.delete('alergias')
     else f.add('alergias')
   } else {
     if (!extraidos?.nombre) f.add('nombre')
     if (!extraidos?.edad) f.add('edad')
     if (!extraidos?.sexo) f.add('sexo')
-    if (!extraidos?.alergiasMencionadas.length && !extraidos?.sinAlergias) f.add('alergias')
+    if (!extraidos?.alergiasMencionadas.length && !extraidos?.otrasAlergiasMencionadas?.length && !extraidos?.sinAlergias) f.add('alergias')
+    // v5.8 · Una otra alergia mencionada ("es alérgico al kiwi") también es hablar de alergias, aunque `faltan` no lo sepa
+    else if (extraidos?.otrasAlergiasMencionadas?.length) f.delete('alergias')
   }
   if (!b.acepta.length) f.add('acepta')
   if (!b.rechaza.length) f.add('rechaza')
@@ -181,7 +231,11 @@ export type RevisionAlta = { ok: true; datos: DatosBasicos } | { ok: false; erro
  * confirmada o "No tiene alergias") y al menos un alimento seguro. Las alergias de DatosBasicos son solo las tocadas.
  */
 export function revisarAlta(alta: Alta, b: Pick<PerfilBorrador, 'acepta'>, nombre = 'tu hijo'): RevisionAlta {
-  const v = validarDatos({ ...alta.form, alergias: alta.sinAlergias ? [] : alta.form.alergias })
+  const v = validarDatos({
+    ...alta.form,
+    alergias: alta.sinAlergias ? [] : alta.form.alergias,
+    alergiasOtras: alta.sinAlergias ? [] : alta.form.alergiasOtras,
+  })
   const errores: ErroresAlta = v.ok ? {} : { ...v.errores }
   if (!alergiasRespondidas(alta)) errores.alergias = 'Contanos si tiene alergias: tocá las que tiene o “No tiene alergias”.'
   if (!b.acepta.some((a) => a.nombre.trim())) errores.acepta = `Sumá al menos un alimento que ${nombre} coma seguro.`

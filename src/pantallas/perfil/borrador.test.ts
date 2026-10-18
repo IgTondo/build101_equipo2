@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Perfil, PerfilBorrador } from '../../../shared/contratos'
+import type { DatosBasicos, Perfil, PerfilBorrador } from '../../../shared/contratos'
 import lucia from '../../../data/sinteticos/lucia.json'
 import tomas from '../../../data/sinteticos/tomas.json'
 import perfilFixture from '../../../fixtures/perfil.json'
@@ -35,6 +35,10 @@ describe('datos básicos', () => {
   it('ida y vuelta: los datos de Tomás pasan por el formulario sin cambios', () => {
     expect(validarDatos(formDesde(tomas.datos as never))).toEqual({ ok: true, datos: tomas.datos })
     expect(validarDatos(formDesde(lucia.datos as never))).toEqual({ ok: true, datos: lucia.datos })
+    // v5.8 · las otras alergias van y vuelven
+    const conOtras = { ...(tomas.datos as never as DatosBasicos), alergiasOtras: ['kiwi'] }
+    expect(formDesde(conOtras).alergiasOtras).toEqual(['kiwi'])
+    expect(validarDatos(formDesde(conOtras))).toEqual({ ok: true, datos: conOtras })
   })
 
   it('las alergias se alternan en el orden del vocabulario', () => {

@@ -44,12 +44,23 @@ export function energiaDeReferencia(edad: number, sexo: 'masculino' | 'femenino'
 
 const porcionDe = (p: PreparacionCatalogo) => p.ingredientes.reduce((t, i) => t + i.gramos, 0)
 
+/**
+ * Cuántas cosas lleva como mínimo el plato para ESTE chico: las de la comida completa, salvo que lo que ya come no
+ * alcance para completarla sin otro principal (Rosario come milanesa, hamburguesa y sushi: en la cena, lo nuevo + el
+ * sushi). Con repertorio chico es justo cuando más sirve la app: el plato se completa con lo que haya.
+ */
+export function minimoComponentes(k: Conocimiento): number {
+  const e = estructuraDe(k.momento)
+  const acompanan = k.seguros.filter((s) => s.atributos.grupo !== 'proteina').length
+  return Math.max(1, Math.min(e.componentes[0], 1 + acompanan))
+}
+
 /** Lo que ve el LLM para armar la comida: la estructura y con qué de lo que ya come puede completarla. */
 export function textoComidaCompleta(k: Conocimiento): string[] {
   const e = estructuraDe(k.momento)
   const kcal = k.energiaReferencia
   return [
-    `La receta es una COMIDA COMPLETA${k.momento ? ` para ${k.momento}` : ''}: ${e.plato}. Son de ${e.componentes[0]} a ${e.componentes[1]} cosas en total, contando lo nuevo.`,
+    `La receta es una COMIDA COMPLETA${k.momento ? ` para ${k.momento}` : ''}: ${e.plato}. Son de ${minimoComponentes(k)} a ${e.componentes[1]} cosas en total, contando lo nuevo${minimoComponentes(k) < e.componentes[0] ? ' (come pocas cosas: completá con lo que haya de la lista, sin sumar otro principal)' : ''}.`,
     `Lo nuevo es UNA de esas cosas (en almuerzo y cena, de preferencia el principal: un plato potente, no una guarnición chiquita). El resto se completa con lo que ya come de esta lista (preparacionId, grupo, porción típica):`,
     ...k.seguros.map((p) => `- ${p.id}: ${p.nombre} · ${p.atributos.grupo} · ~${Math.round(porcionDe(p))} g`),
     `El plato entero tiene que tener entre ${Math.round(e.energia[0] * kcal)} y ${Math.round(e.energia[1] * kcal)} kcal${e.proteina ? ` y al menos ${decimal(e.proteina * k.metaDiaria.proteina_g, 0)} g de proteína` : ''} (la app lo calcula con la tabla: ajustá los gramos de cada cosa).`,
@@ -116,8 +127,9 @@ export function problemasDelPlato(plato: PlatoCompleto, acompanamientos: readonl
   const fuera = acompanamientos.filter((a) => !k.seguros.some((s) => s.id === a.preparacionId)).map((a) => a.preparacionId)
   if (fuera.length) p.push(`${fuera.join(', ')} no está entre lo que ya come para esta comida: completá el plato solo con la lista de lo que ya come.`)
   if (new Set(acompanamientos.map((a) => a.preparacionId)).size !== acompanamientos.length) p.push('Repetiste un acompañamiento: cada cosa va una sola vez.')
-  if (cuantos < e.componentes[0] || cuantos > e.componentes[1]) {
-    p.push(`El plato tiene ${cuantos} ${cuantos === 1 ? 'cosa' : 'cosas'} y una comida completa${para} lleva de ${e.componentes[0]} a ${e.componentes[1]}: ${e.plato}.`)
+  const minimo = minimoComponentes(k)
+  if (cuantos < minimo || cuantos > e.componentes[1]) {
+    p.push(`El plato tiene ${cuantos} ${cuantos === 1 ? 'cosa' : 'cosas'} y una comida completa${para} lleva de ${minimo} a ${e.componentes[1]}: ${e.plato}.`)
   }
   // Pedido de la familia (18/10): platos potentes. En almuerzo y cena lo nuevo es el principal, salvo que el objetivo
   // sea sumar verdura o fruta (ahí lo nuevo es esa verdura o fruta)

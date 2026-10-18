@@ -59,7 +59,8 @@ Respondé solo con el JSON del schema. Todos los textos (preparacion, preguntas 
 
 Qué hay en el plato
 - Cada preparación distinta es un ítem: la milanesa y el puré son dos. Una preparación mezclada (guiso, fideos con salsa) es un solo ítem con varios ingredientes. Una bebida o un postre a la vista también es un ítem.
-- Mirá primero el catálogo personal del chico: son las preparaciones que ya conoce, y casi siempre come lo mismo. Si un ítem coincide, poné su id en preparacionId. Si no, buscalo en el catálogo semilla. Si no está en ninguno, preparacionId es null. Nunca inventes un id.
+- preparacion: lo que ves, con su ingrediente principal y su cocción ("milanesa de pollo al horno", "fideos con salsa y carne picada"). No lo cambies por el nombre de una preparación del catálogo si no es igual.
+- Mirá primero el catálogo personal del chico: son las preparaciones que ya conoce, y casi siempre come lo mismo. Si un ítem es exactamente esa preparación (mismo ingrediente principal, misma cocción y forma, mismos agregados: una milanesa de pollo no es una de carne, unos fideos con carne no son unos fideos con salsa), poné su id en preparacionId. Si no, buscalo en el catálogo semilla. Si no está en ninguno, preparacionId es null. Nunca inventes un id. El código verifica el id: ante la duda, null.
 - Cada ingrediente va a un alimentoId de la lista de alimentos. Si no está, usá el genérico de su grupo (otro_cereal_almidon, otro_proteina, otro_verdura, otro_fruta, otro_lacteo u otro_otro) y poné en nombreIngles el nombre en inglés del alimento que no está, como en la tabla del USDA ("sweet potato, baked"). Si todos los ingredientes están en la lista, nombreIngles es null.
 - Si se puede contar (nuggets, bastones, galletitas, rodajas), devolvé conteo con la cantidad y la unidad en singular ("nugget", "bastón"). Si no, conteo es null.
 
@@ -76,7 +77,7 @@ Cómo está servido (con el vocabulario del schema)
 - caja: el rectángulo del ítem en la foto, con ymin, xmin, ymax y xmax normalizados de 0 a 1000 (0 es el borde de arriba o el de la izquierda; y es vertical y x, horizontal). Si no lo podés ubicar, null.
 
 Dudas y preguntas
-- confianza, de 0 a 1: qué tan seguro estás de qué es el ítem. Si es menor que 0,6, no adivines: completá alternativas con 1 a 3 otras cosas que podría ser y hacé una pregunta con origen "duda" sobre ese ítem, con 2 a 4 opciones. Si estás seguro, alternativas va vacío.
+- confianza, de 0 a 1: qué tan seguro estás de qué es el ítem. En lo empanado o formado (milanesa, nuggets, hamburguesa, empanada, croquetas) incluye de qué es (carne, pollo, pescado, soja): por fuera se parecen, así que si no se ve, no pases de 0,8 (la app le pregunta a la familia). Si es menor que 0,6, no adivines: completá alternativas con 1 a 3 otras cosas que podría ser y hacé una pregunta con origen "duda" sobre ese ítem, con 2 a 4 opciones. Si estás seguro, alternativas va vacío.
 - Si una regla del chico aplica a lo que se ve (por ejemplo, la regla es que no se toquen y en el plato se tocan), preguntá si le molestó, con origen "regla".
 - Si ayuda a entender el plato, podés hacer una pregunta de contexto (origen "contexto"), por ejemplo si un producto envasado es de la marca de siempre.
 - Como máximo 3 preguntas, cortas (menos de 12 palabras) y con 2 a 4 opciones cortas. Si tenés que elegir, primero las de regla, después las de duda y al final las de contexto. En item va el número del ítem (1 es el primero de items), o null si la pregunta es sobre todo el plato.

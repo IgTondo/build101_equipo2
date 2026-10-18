@@ -37,6 +37,8 @@ async function escribir(p: Proyeccion): Promise<void> {
 
 async function borrarConocimiento(ninoId: string): Promise<void> {
   await col.relaciones().deleteMany({ ninoId, tipo: { $in: [...TIPOS_ESTADO, 'TIENE_PATRON'] } })
+  // Los atributos e ingredientes de sus preparaciones propias se reescriben enteros (no quedan aristas viejas)
+  await col.relaciones().deleteMany({ ninoId, tipo: { $in: ['TIENE', 'CONTIENE'] }, desde: { $regex: '^Preparacion:' } })
   const patrones = await col.nodos().find({ ninoId, label: 'Patron' }, { projection: { _id: 1 } }).toArray()
   const ids = patrones.map((p) => p._id)
   if (ids.length) {
@@ -65,12 +67,13 @@ export const almacenMongo: AlmacenGrafo = {
       await col.nodos().deleteMany({ _id: { $in: reglas.map((r) => r._id) } })
     }
     await borrarConocimiento(nino._id)
-    await escribir(unir(proyectarNino(nino, objetivo), proyectarConocimiento(nino._id, estado)))
+    await escribir(unir(proyectarNino(nino, objetivo), proyectarConocimiento(nino._id, estado, new Set(preparacionesCatalogo().keys()))))
   },
 
   async escribirComida(comida, estado) {
     await borrarConocimiento(comida.ninoId)
-    await escribir(unir(proyectarComida(comida, new Set(preparacionesCatalogo().keys())), proyectarConocimiento(comida.ninoId, estado)))
+    const catalogo = new Set(preparacionesCatalogo().keys())
+    await escribir(unir(proyectarComida(comida, catalogo), proyectarConocimiento(comida.ninoId, estado, catalogo)))
   },
 
   async borrarNino(ninoId) {
@@ -104,6 +107,19 @@ export const almacenMongo: AlmacenGrafo = {
         condiciones: condiciones.filter((c) => c.desde === p._id).map((c) => sinLabel(c.hasta)),
       })),
     )
+  },
+
+  async borrarHuerfanas() {
+    // Las preparaciones fuera del catálogo de antes (compartidas entre chicos, sin ninoId) que ya nadie usa
+    const candidatas = await col.nodos().find({ label: 'Preparacion', ninoId: null, 'props.catalogo': { $ne: true } }, { projection: { _id: 1 } }).toArray()
+    const ids = candidatas.map((n) => n._id)
+    if (!ids.length) return 0
+    const usadas = new Set(await col.relaciones().distinct('hasta', { hasta: { $in: ids } }))
+    const huerfanas = ids.filter((id) => !usadas.has(id))
+    if (!huerfanas.length) return 0
+    await col.relaciones().deleteMany({ desde: { $in: huerfanas } })
+    await col.nodos().deleteMany({ _id: { $in: huerfanas } })
+    return huerfanas.length
   },
 
   ping: pingMongo,

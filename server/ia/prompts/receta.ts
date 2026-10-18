@@ -55,6 +55,7 @@ export interface DatosPromptReceta {
   base: PreparacionCatalogo                               // su preparación en el catálogo (los ingredientes de referencia)
   ingredientes: { alimentoId: string; nombre: string }[]  // los sugeridos: los de la base, los de su alimento seguro y básicos
   alergias: Alergeno[]
+  alergiasOtras?: string[]                                // v5.8 · las que no están en ALERGENO, como las escribió el padre ("kiwi")
   anterior?: { salida: SalidaReceta; problemas: string[] } // para el reintento: lo que respondió y por qué no pasó
   yaVistas?: string[]                                     // v5.4 · recetas de esta preparación que la familia ya vio
 }
@@ -78,7 +79,7 @@ export function promptReceta(d: DatosPromptReceta): string {
     `- Patrones que aplican: ${lista(candidato.patrones)}`,
     `- Apunta a: ${NOMBRE_NUTRIENTE[evidencia.nutriente]} (esta semana cubrió el ${porcentaje(evidencia.coberturaSemana)})`,
     `- Ingredientes de la preparación, por porción: ${lista(deLaBase)}`,
-    `- Alergias: ${d.alergias.length ? `${d.alergias.join(', ')}. Ningún ingrediente ni paso puede llevarlas.` : 'ninguna declarada.'}`,
+    `- Alergias: ${[...d.alergias, ...(d.alergiasOtras ?? [])].length ? `${[...d.alergias, ...(d.alergiasOtras ?? [])].join(', ')}. Ningún ingrediente ni paso puede llevarlas.` : 'ninguna declarada.'}`,
   ]
   if (evidencia.nutriente === 'vitamina_d_ug') {
     lineas.push('- La vitamina D casi no está en los alimentos: en porQue decí que conviene consultarlo con su pediatra o nutricionista.')

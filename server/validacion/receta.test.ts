@@ -194,6 +194,37 @@ describe('validarReceta: alergias (según data/alimentos.json)', () => {
   })
 })
 
+describe('validarReceta: sus otras alergias (v5.8, las contadas con palabras)', () => {
+  const conZanahoria = () => recetaQueso({ ingredientes: [...recetaQueso().ingredientes, { alimentoId: 'zanahoria', nombre: 'Zanahoria', gramos: 20 }] })
+
+  it('un ingrediente que alcanza (zanahorias ↔ zanahoria) → falla, y dice cuál', () => {
+    expect(problemas(conZanahoria(), ctxQueso({ alergiasOtras: ['zanahorias'] })))
+      .toEqual([expect.stringContaining('«Zanahoria» no puede ir: tiene alergia declarada a zanahorias')])
+  })
+
+  it('con prohibidos ya calculados, se usan esos', () => {
+    expect(validarReceta(conZanahoria(), ctxQueso({ alergiasOtras: ['zanahoria'], prohibidos: new Set() })).ok).toBe(true)
+    expect(validarReceta(conZanahoria(), ctxQueso({ alergiasOtras: [], prohibidos: new Set(['zanahoria']) })).ok).toBe(false)
+  })
+
+  it('nombrarla en el nombre o en un paso → falla aunque no esté en el catálogo (colorante rojo)', () => {
+    const p = problemas(conPaso('Pintalos con colorante rojo.'), ctxQueso({ alergiasOtras: ['colorante rojo'] }))
+    expect(p).toEqual([expect.stringContaining('En el paso 7 aparece «colorante rojo» y tiene alergia declarada a colorante rojo')])
+    expect(problemas(conTexto('nombre', 'Bastones con kiwis'), ctxQueso({ alergiasOtras: ['kiwi'] })))
+      .toEqual([expect.stringContaining('En el nombre aparece «kiwis»')])
+  })
+
+  it('"sin kiwi" no cuenta, y "sal" no es "salsa"', () => {
+    expect(validarReceta(conPaso('Va sin kiwi.'), ctxQueso({ alergiasOtras: ['kiwi'] })).ok).toBe(true)
+    expect(validarReceta(conPaso('Si querés, una salsa aparte para mojar.'), ctxQueso({ alergiasOtras: ['sal'] })).ok).toBe(true)
+  })
+
+  it('un candidato cuyo ingrediente principal alcanza no pasa', () => {
+    expect(validarCandidato(ctxQueso({ alergiasOtras: ['muzzarella'] }), CANDIDATO_QUESO).problemas)
+      .toContain('El ingrediente principal de «Bastones de queso horneados» (Queso muzzarella) no puede ir: tiene alergia declarada a muzzarella.')
+  })
+})
+
 describe('validarReceta: reglas "rechaza" del perfil', () => {
   const noVerde: Regla = { texto: 'No come nada verde', condiciones: [{ tipo: 'color', valor: 'verde' }], efecto: 'rechaza' }
 

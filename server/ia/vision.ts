@@ -9,7 +9,9 @@ import {
   type Porcion, type PreparacionCatalogo, type Pregunta, type Regla,
 } from '../../shared/contratos.js'
 import { alimentoPorId, alimentos, esGenerico, idGenerico, idsAlimentos } from './catalogo.js'
+import { verificarId } from './mismo-alimento.js'
 import { generarJSON } from './modelo.js'
+import { normalizar } from './relato.js'
 import {
   MAX_PREGUNTAS, ORIGENES, schemaVision, sistemaVision, textoVision, UMBRAL_CONFIANZA,
   type ItemSalida, type SalidaVision,
@@ -54,19 +56,35 @@ export async function contextoVision(ninoId: string): Promise<ContextoVision> {
 // ---------- Catálogo semilla de preparaciones ----------
 // El de B (data/preparaciones.json); mientras no exista, el del dataset sintético. Solo hacen falta id y nombre.
 const RUTAS_SEMILLA = [['data', 'preparaciones.json'], ['data', 'sinteticos', 'preparaciones.json']]
+type PreparacionSemilla = Pick<PreparacionCatalogo, 'id' | 'nombre'> & { ingredientes?: PreparacionCatalogo['ingredientes'] }
 let semilla: { id: string; nombre: string }[] | null = null
+let completas: Map<string, PreparacionSemilla> | null = null // v5.8 · con ingredientes, para verificarId
+
+function cargarSemilla(lista: PreparacionSemilla[]): void {
+  semilla = lista.map(({ id, nombre }) => ({ id, nombre }))
+  completas = new Map(lista.map((p) => [p.id, p]))
+}
 
 export function preparacionesSemilla(): { id: string; nombre: string }[] {
   if (semilla) return semilla
   const ruta = RUTAS_SEMILLA.map((r) => join(process.cwd(), ...r)).find((r) => existsSync(r)) // vercel.json → includeFiles
-  const lista = ruta ? (JSON.parse(readFileSync(ruta, 'utf8')) as PreparacionCatalogo[]) : []
-  semilla = lista.map(({ id, nombre }) => ({ id, nombre }))
-  return semilla
+  cargarSemilla(ruta ? (JSON.parse(readFileSync(ruta, 'utf8')) as PreparacionCatalogo[]) : [])
+  return semilla!
+}
+
+/** La preparación del catálogo semilla con sus ingredientes (para verificar un id), si está. */
+function preparacionSemilla(id: string): PreparacionSemilla | undefined {
+  preparacionesSemilla()
+  return completas?.get(id)
 }
 
 /** Solo para tests: reemplaza el catálogo semilla (null vuelve a leer el archivo). */
-export function fijarSemilla(nuevas: { id: string; nombre: string }[] | null): void {
-  semilla = nuevas
+export function fijarSemilla(nuevas: PreparacionSemilla[] | null): void {
+  if (nuevas) cargarSemilla(nuevas)
+  else {
+    semilla = null
+    completas = null
+  }
 }
 
 // ---------- Análisis ----------
@@ -114,8 +132,8 @@ export function postprocesar(salida: SalidaVision, { conocidas, reglas }: Opcion
 }
 
 function item(it: ItemSalida, idTmp: string, conocidas: Map<string, string>, validos: Set<string>): ItemDetectado {
-  const preparacionId = it.preparacionId && conocidas.has(it.preparacionId) ? it.preparacionId : null
   const ingredientes = ingredientesValidos(it, validos)
+  const preparacionId = idVerificado(it, conocidas, ingredientes)
   const conteo = conteoValido(it.conteo)
   const nombreIngles = it.nombreIngles?.trim()
   const conGenerico = ingredientes.some((g) => esGenerico(g.alimentoId))
@@ -131,6 +149,23 @@ function item(it: ItemSalida, idTmp: string, conocidas: Map<string, string>, val
     confianza: Number.isFinite(it.confianza) ? recortar(it.confianza, 0, 1) : 0,
     ...(conGenerico && nombreIngles ? { nombreIngles } : {}),
   }
+}
+
+/**
+ * v5.8 · El id tiene que existir (en el catálogo del chico o en el semilla) y ser la misma preparación que describe el
+ * modelo, con lo que vio en la foto (verificarId: una milanesa de pollo no es la de carne). Si no, null: se queda con
+ * los atributos y los ingredientes que vio.
+ */
+function idVerificado(it: ItemSalida, conocidas: Map<string, string>, ingredientes: ItemDetectado['ingredientes']): string | null {
+  const id = it.preparacionId
+  if (!id || !conocidas.has(id)) return null
+  const descripcion = it.preparacion.trim()
+  if (!descripcion) return id
+  const prep = preparacionSemilla(id) ?? { nombre: conocidas.get(id)!, ingredientes: [] }
+  const motivo = verificarId(descripcion, prep, [], [], ingredientes.map((g) => g.alimentoId))
+  if (!motivo) return id
+  console.warn(JSON.stringify({ evento: 'vision', aviso: 'id_descartado', id, preparacion: descripcion, motivo }))
+  return null
 }
 
 /** Fuera del catálogo → otro_<grupo del ítem>; repetidos se suman; gramos de 1 a 1000 (sin dato, la porción típica). */
@@ -191,6 +226,10 @@ function preguntas(salida: SalidaVision, crudos: ItemSalida[], items: ItemDetect
     candidatas.push({ texto, opciones, ...(deItem ? { itemIdTmp: deItem.idTmp } : {}), origen: p.origen })
   }
 
+  // v5.8 · Lo empanado o formado (milanesa, nuggets, hamburguesa…) por fuera es igual: si no está seguro, de qué es
+  // va primero (le gana a otra duda sobre el mismo ítem). Es lo que más cambia el aporte y lo que aprende el grafo.
+  candidatas.unshift(...items.flatMap((it) => preguntaProteina(it) ?? []))
+
   const regla = preguntaRegla(reglas, d)
   if (regla && !candidatas.some((c) => c.origen === 'regla')) candidatas.push(regla)
   items.forEach((it, i) => {
@@ -236,6 +275,25 @@ function preguntaDuda(it: ItemDetectado, alternativas: string[]): Candidata {
   const verbo = nombre.split(' ')[0].endsWith('s') ? 'Son' : 'Es'
   const opciones = opcionesValidas([mayuscula(nombre), ...alternativas.slice(0, 2).map(mayuscula), 'Otra cosa'])
   return { texto: `¿${verbo} ${minuscula(nombre)} o es otra cosa?`, opciones, itemIdTmp: it.idTmp, origen: 'duda' }
+}
+
+// Empanados y formados: por fuera no se ve de qué son. [prefijo de palabra, cómo se nombra en la pregunta]
+const FORMADOS: [string, string][] = [
+  ['milanesa', 'la milanesa'], ['nugget', 'los nuggets'], ['patita', 'las patitas'], ['empanada', 'la empanada'],
+  ['hamburguesa', 'la hamburguesa'], ['croqueta', 'las croquetas'], ['medallon', 'el medallón'], ['suprema', 'la suprema'],
+]
+export const UMBRAL_PROTEINA = 0.9
+export const OPCIONES_PROTEINA = ['Carne', 'Pollo', 'Pescado', 'Soja']
+
+/** "¿De qué es la milanesa?" si el ítem es empanado o formado y la confianza no llega a UMBRAL_PROTEINA. */
+function preguntaProteina(it: ItemDetectado): Candidata | null {
+  if (it.confianza >= UMBRAL_PROTEINA) return null
+  const palabras = normalizar(it.preparacion).split(' ')
+  const formado = FORMADOS.find(([prefijo]) => palabras.some((w) => w.startsWith(prefijo)))
+  if (!formado) return null
+  const [, nombre] = formado
+  const verbo = nombre.startsWith('los ') || nombre.startsWith('las ') ? 'son' : 'es'
+  return { texto: `¿De qué ${verbo} ${nombre}?`, opciones: OPCIONES_PROTEINA, itemIdTmp: it.idTmp, origen: 'duda' }
 }
 
 const SE_VE: { distribucion: Record<Distribucion, string>; plato: Record<Plato, string> } = {

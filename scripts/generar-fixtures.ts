@@ -642,7 +642,7 @@ exigir(NUTRIENTE_OBJ === 'calcio_mg', 'la receta está escrita para el calcio')
 exigir(!receta.ingredientes.some((i) => i.alimentoId.includes('huevo')), 'receta: sin huevo (alergia)')
 exigir(TOMAS.datos.alergias.includes('huevo'), 'Tomás es alérgico al huevo')
 {
-  const { alergiasMencionadas, alertas, ...simples } = datosAltaTomas
+  const { alergiasMencionadas, alertas, otrasAlergiasMencionadas: _otras, ...simples } = datosAltaTomas
   for (const [k, d] of [...Object.entries(simples), ...alergiasMencionadas.map((a) => ['alergia', a] as const), ...alertas.map((a) => ['alerta', a] as const)]) {
     exigir(d && AUDIO_ALTA_TOMAS.includes(d.cita), `perfil-inicial: la cita de ${k} no está en el audio de alta`)
   }

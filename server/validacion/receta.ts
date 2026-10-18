@@ -2,15 +2,18 @@
 // de recetas (A12). Cada problema es una frase en español, clara, que vuelve al LLM en el reintento.
 // - La cadena: parte de `desde`, cambia exactamente una cosa (la declarada) y lo que dice que se mantiene es cierto.
 // - El perfil: ninguna alergia (según data/alimentos.json), ninguna regla `rechaza` y nada mezclado salvo que ya lo acepte.
+//   v5.8 · También sus otras alergias (las contadas con palabras, "kiwi"): ningún alimento que alcancen (server/alergias.ts).
 // - El texto: ningún alérgeno nombrado en los pasos y ninguna frase de presión, premio, ocultamiento, suplemento o dieta.
+//   v5.8 · Ni sus otras alergias nombradas ("colorante rojo", que no está en el catálogo, se controla solo acá).
 // - Los números: ingredientes del catálogo, de 5 a 300 g, y el aporte calculado con la tabla (el del LLM se ignora).
 import {
   NUTRIENTE,
   type Alergeno, type Atributos, type Cambio, type Candidato, type Nutrientes, type Plato,
   type PreparacionCatalogo, type Presentacion, type Receta, type Regla,
 } from '../../shared/contratos.js'
+import { alimentosProhibidos, patronAlergia } from '../alergias.js'
 import { cambios, principal } from '../aprendizaje/cadena.js'
-import { alimentoPorId, esGenerico } from '../ia/catalogo.js'
+import { alimentoPorId, alimentos, esGenerico } from '../ia/catalogo.js'
 
 export interface ContextoValidacion {
   alergias: Alergeno[]                      // las del perfil (cargadas a mano) y las de la evidencia
@@ -18,6 +21,8 @@ export interface ContextoValidacion {
   desde: PreparacionCatalogo                // su alimento seguro: el punto de partida de la cadena
   base: PreparacionCatalogo                 // el candidato del catálogo sobre el que se escribe la receta
   presentacionesAceptadas?: Presentacion[]  // las de lo que ya acepta: con 'mezclado' o 'con_salsa' se permiten esas mezclas
+  alergiasOtras?: string[]                  // v5.8 · las que no están en ALERGENO, como las escribió el padre ("kiwi", "colorante rojo")
+  prohibidos?: ReadonlySet<string>          // v5.8 · los alimentos que alcanzan; si no viene, se calcula con el catálogo
 }
 
 export interface ResultadoValidacion { ok: boolean; problemas: string[] }
@@ -41,6 +46,17 @@ const NOMBRE_ALERGENO: Record<Alergeno, string> = {
 }
 
 const redondear = (x: number) => Math.round(x * 100) / 100
+
+// ---------- Sus otras alergias (v5.8) ----------
+const prohibidosDe = (ctx: ContextoValidacion): ReadonlySet<string> =>
+  ctx.prohibidos ?? alimentosProhibidos(ctx.alergiasOtras ?? [], alimentos())
+
+/** Cuál de sus otras alergias alcanza a este alimento ("kiwi"), para decirlo en el problema. */
+function alergiaQueAlcanza(id: string, ctx: ContextoValidacion): string {
+  const a = alimentoPorId(id)
+  const otra = a ? (ctx.alergiasOtras ?? []).find((o) => alimentosProhibidos([o], [a]).size > 0) : undefined
+  return otra ?? 'una de sus alergias'
+}
 const nombreAlimento = (id: string | undefined) => (id ? alimentoPorId(id)?.nombre ?? id : 'ninguno')
 
 // ---------- Tipos de problema ----------
@@ -151,6 +167,7 @@ function problemasDeIngredientes(r: Receta, ctx: ContextoValidacion, todos: Prob
     p.push('La receta no tiene ingredientes.')
     return
   }
+  const prohibidos = prohibidosDe(ctx)
   for (const { alimentoId, gramos } of r.ingredientes) {
     if (esGenerico(alimentoId)) {
       p.push(`«${alimentoId}» es un genérico: no se sabe qué alérgenos ni qué nutrientes tiene. Usá un alimento concreto de la lista.`)
@@ -167,6 +184,8 @@ function problemasDeIngredientes(r: Receta, ctx: ContextoValidacion, todos: Prob
     const choca = a.alergenos.filter((x) => ctx.alergias.includes(x))
     if (choca.length) {
       todos.alergias.push(`«${a.nombre}» tiene ${choca.map((x) => NOMBRE_ALERGENO[x]).join(' y ')}, y tiene alergia declarada a eso: sacalo o reemplazalo por otro ingrediente de la lista.`)
+    } else if (prohibidos.has(alimentoId)) {
+      todos.alergias.push(`«${a.nombre}» no puede ir: tiene alergia declarada a ${alergiaQueAlcanza(alimentoId, ctx)}. Sacalo o reemplazalo por otro ingrediente de la lista.`)
     }
   }
   // Otro ingrediente principal es otra preparación: más de un cambio respecto de su alimento seguro.
@@ -332,6 +351,13 @@ function problemasDelTexto(r: Receta, ctx: ContextoValidacion, p: ProblemasPorTi
       if (frase) p.alergias.push(`En ${campo} aparece «${frase}» y tiene alergia declarada a ${NOMBRE_ALERGENO[alergeno]}: sacalo de la receta (si hace falta, reemplazalo y decí con qué).`)
     }
   }
+  for (const otra of ctx.alergiasOtras ?? []) {
+    const patron = patronAlergia(otra)
+    for (const { campo, texto } of conIngredientes) {
+      const frase = buscar(texto, patron, true)
+      if (frase) p.alergias.push(`En ${campo} aparece «${frase}» y tiene alergia declarada a ${otra}: sacalo de la receta (si hace falta, reemplazalo y decí con qué).`)
+    }
+  }
 
   for (const { campo, texto } of todos) {
     for (const { patron, motivo } of PROHIBIDAS) {
@@ -369,7 +395,10 @@ function problemasDelAporte(r: Receta): string[] {
 function problemasDelPrincipal(ctx: ContextoValidacion): string[] {
   const principal = ingredientePrincipal(ctx.base.ingredientes)
   const choca = (principal ? alimentoPorId(principal)?.alergenos ?? [] : []).filter((x) => ctx.alergias.includes(x))
-  if (choca.length === 0) return []
+  if (choca.length === 0) {
+    if (!principal || !prohibidosDe(ctx).has(principal)) return []
+    return [`El ingrediente principal de «${ctx.base.nombre}» (${nombreAlimento(principal)}) no puede ir: tiene alergia declarada a ${alergiaQueAlcanza(principal, ctx)}.`]
+  }
   return [`El ingrediente principal de «${ctx.base.nombre}» (${nombreAlimento(principal)}) tiene ${choca.map((x) => NOMBRE_ALERGENO[x]).join(' y ')}, y tiene alergia declarada a eso.`]
 }
 

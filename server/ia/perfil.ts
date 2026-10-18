@@ -12,14 +12,17 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { z } from 'zod'
 import {
-  ALERGENO, DIETA, MOTIVO,
-  type Alergeno, type Atributos, type CampoVital, type DatoCitado, type DatosExtraidos, type Nutrientes, type PerfilBorrador,
-  type PerfilInicialReq, type PreparacionCatalogo, type Regla,
+  ALERGENO, COCCION, COLOR, DIETA, FORMA, GRUPO, MOMENTO, MOTIVO, PRESENTACION, SABOR, TEMPERATURA, TEXTURA,
+  type Alergeno, type Atributos, type CampoVital, type DatoCitado, type DatosExtraidos, type Momento,
+  type Nutrientes, type PerfilBorrador, type PerfilInicialReq, type PreparacionCatalogo, type Regla,
 } from '../../shared/contratos.js'
+import { alergenoDe, patronAlergia } from '../alergias.js'
 import { ErrorNibble } from '../http.js'
+import { alimentoPorId, alimentos, idGenerico, idsAlimentos } from './catalogo.js'
+import { alergiaQueChoca, verificarId } from './mismo-alimento.js'
 import { generarJSON } from './modelo.js'
 import {
-  ATRIBUTOS, mensajeDatos, mensajeIndicacion, mensajePerfil, NUTRIENTES_OBJETIVO, SISTEMA_DATOS, SISTEMA_INDICACION, SISTEMA_PERFIL,
+  ATRIBUTOS, mensajeDatos, mensajeIndicacion, mensajePerfil, NUTRIENTES_OBJETIVO, SISTEMA_DATOS, SISTEMA_INDICACION, sistemaPerfil,
   VOCABULARIO,
 } from './prompts/perfil.js'
 import { citaEnTranscripcion, normalizar } from './relato.js'
@@ -43,6 +46,7 @@ export const esquemaPerfilInicialReq = z.object({
     pesoKg: z.number().optional(),
     tallaCm: z.number().optional(),
     alergias: z.array(z.enum(ALERGENO)),
+    alergiasOtras: z.array(z.string().trim().min(1).max(60)).max(20).optional(), // v5.8
     alertas: z.array(z.enum(['bajo_peso', 'arcadas_vomitos', 'menos_15_alimentos'])),
     dieta: z.enum(DIETA),
     suplementos: z.string().optional(),
@@ -52,23 +56,58 @@ export const esquemaPerfilInicialReq = z.object({
 })
 
 // ---------- Salida del modelo ----------
-// Los valores del vocabulario van como texto: si el modelo se sale, el código los descarta en vez de fallar todo.
-const valor = z.string().nullable()
-export const esquemaSalidaPerfil = z.object({
-  acepta: z.array(z.object({
-    nombre: z.string(),
-    preparacionId: z.string().nullable(),
-    marca: z.string().nullable(),
-    atributos: z.object({ textura: valor, forma: valor, color: valor, sabor: valor, temperatura: valor, presentacion: valor, grupo: valor, coccion: valor }),
-  })),
-  rechaza: z.array(z.object({ nombre: z.string(), preparacionId: z.string().nullable(), motivo: z.string(), porAlergia: z.boolean() })),
-  reglas: z.array(z.object({
-    texto: z.string(),
-    condiciones: z.array(z.object({ tipo: z.string(), valor: z.string() })),
-    efecto: z.string(),
-    porAlergia: z.boolean(),
-  })),
+// v5.8 · Los 8 atributos van como enum sin null: los obliga y no suma uniones (la salida estructurada de Claude acepta
+// hasta 16 parámetros con null o anyOf por schema; un nullable por atributo los pasaba). Los alimentoId y los momentos
+// van con el enum en el JSON Schema pero Zod acepta cualquier texto: lo que se sale, el código lo saca en vez de gastar
+// el reintento (como en la visión).
+export const esquemaAtributos = z.object({
+  textura: z.enum(TEXTURA), forma: z.enum(FORMA), color: z.enum(COLOR), sabor: z.enum(SABOR),
+  temperatura: z.enum(TEMPERATURA), presentacion: z.enum(PRESENTACION), grupo: z.enum(GRUPO), coccion: z.enum(COCCION),
 })
+
+/** Los alimentoId que acepta el contrato: el catálogo curado y los genéricos otro_<grupo>. */
+export function idsIngredientes(): string[] {
+  return [...new Set([...idsAlimentos(), ...GRUPO.map(idGenerico)])]
+}
+
+export function esquemaIngredientes(ids: string[] = idsIngredientes()) {
+  const alimentoId = ids.length ? z.string().meta({ enum: ids }) : z.string()
+  return z.array(z.object({ alimentoId, gramos: z.number() }))
+}
+
+export const esquemaMomentos = z.array(z.string().meta({ enum: [...MOMENTO] }))
+
+export function esquemaPerfil(ids?: string[]) {
+  const ingredientes = esquemaIngredientes(ids)
+  return z.object({
+    acepta: z.array(z.object({
+      dicho: z.string(),
+      nombre: z.string(),
+      preparacionId: z.string().nullable(),
+      marca: z.string().nullable(),
+      atributos: esquemaAtributos,
+      ingredientes,
+      momentos: esquemaMomentos,
+      duda: z.string().nullable(),
+    })),
+    rechaza: z.array(z.object({
+      dicho: z.string(),
+      nombre: z.string(),
+      preparacionId: z.string().nullable(),
+      motivo: z.string().meta({ enum: [...MOTIVO] }),
+      porAlergia: z.boolean(),
+      atributos: esquemaAtributos,
+    })),
+    reglas: z.array(z.object({
+      texto: z.string(),
+      condiciones: z.array(z.object({ tipo: z.string(), valor: z.string() })),
+      efecto: z.string(),
+      porAlergia: z.boolean(),
+    })),
+  })
+}
+/** Sin el enum de alimentoId (para tipos y tests); extraerPerfil() manda el de esquemaPerfil(idsIngredientes()). */
+export const esquemaSalidaPerfil = esquemaPerfil([])
 export type SalidaPerfil = z.infer<typeof esquemaSalidaPerfil>
 
 // A8b · Los datos del chico, del relato. Todo nullable y como texto donde hay vocabulario: el código decide qué queda.
@@ -81,6 +120,7 @@ export const esquemaSalidaDatos = z.object({
   pesoKg: citado(z.number()),
   tallaCm: citado(z.number()),
   alergiasMencionadas: z.array(z.object({ valor: z.string(), cita: z.string() })),
+  otrasAlergiasMencionadas: z.array(z.object({ valor: z.string(), cita: z.string() })), // v5.8 · sin null: no suma uniones
   sinAlergias: soloCita,
   alertas: z.array(z.object({ valor: z.string(), cita: z.string() })),
   atragantamiento: soloCita,
@@ -129,13 +169,74 @@ function delVocabulario<T extends string>(lista: readonly T[], v: string | null 
 const TIPOS = Object.keys(VOCABULARIO) as (keyof typeof VOCABULARIO)[]
 const EFECTOS = ['rechaza', 'requiere'] as const satisfies readonly Regla['efecto'][]
 
-function atributosValidos(a: SalidaPerfil['acepta'][number]['atributos']): Partial<Atributos> {
+/** Los atributos que están en el vocabulario, escritos como en el contrato; los demás, afuera. */
+export function atributosValidos(a: Partial<Record<keyof Atributos, string | null | undefined>> | undefined): Partial<Atributos> {
   const validos: Partial<Record<keyof Atributos, string>> = {}
   for (const k of ATRIBUTOS) {
-    const v = delVocabulario(VOCABULARIO[k], a[k])
+    const v = delVocabulario(VOCABULARIO[k], a?.[k])
     if (v) validos[k] = v
   }
   return validos as Partial<Atributos>
+}
+
+/** Los momentos de MOMENTO, sin repetir ("postre" o "almuerzo " no son momentos del contrato; el segundo, sí). */
+export function momentosValidos(lista: readonly string[] | undefined): Momento[] {
+  return [...new Set((lista ?? []).flatMap((m) => delVocabulario(MOMENTO, m) ?? []))]
+}
+
+export const MAX_GRAMOS_INGREDIENTE = 500
+
+/**
+ * Los ingredientes de algo que no está en el catálogo: alimentoId del catálogo curado (o un genérico), gramos de 1 a
+ * 500 y redondeados, los repetidos sumados. Lo que choca con una alergia del chico se saca (y vuelve en `sacados`):
+ * si lo come, es la versión sin eso.
+ */
+export function ingredientesValidos(
+  lista: readonly { alimentoId: string; gramos: number }[] | undefined,
+  alergias: readonly Alergeno[] = [],
+  alergiasOtras: readonly string[] = [],
+): { ingredientes: { alimentoId: string; gramos: number }[]; sacados: { alimentoId: string; alergia: string }[] } {
+  const validos = new Set(idsIngredientes())
+  const gramos = new Map<string, number>()
+  const sacados: { alimentoId: string; alergia: string }[] = []
+  for (const g of lista ?? []) {
+    if (!validos.has(g.alimentoId) || !Number.isFinite(g.gramos) || g.gramos < 1) continue
+    const alergia = alergiaQueChoca(g.alimentoId, alergias, alergiasOtras)
+    if (alergia) {
+      if (!sacados.some((x) => x.alimentoId === g.alimentoId)) sacados.push({ alimentoId: g.alimentoId, alergia })
+      continue
+    }
+    gramos.set(g.alimentoId, (gramos.get(g.alimentoId) ?? 0) + g.gramos)
+  }
+  const ingredientes = [...gramos].map(([alimentoId, g]) => ({ alimentoId, gramos: Math.round(Math.min(g, MAX_GRAMOS_INGREDIENTE)) }))
+  return { ingredientes, sacados }
+}
+
+/** La pregunta cuando la versión típica llevaba algo a lo que el chico es alérgico y el código lo sacó. */
+/** Las palabras con que una duda puede nombrar cada alergia (para saber si la duda es por una alergia de este chico). */
+const PALABRAS_ALERGENO: Record<Alergeno, string[]> = {
+  leche: ['leche', 'lacteo', 'lactosa', 'queso', 'manteca', 'crema', 'yogur'], huevo: ['huevo', 'clara', 'yema'],
+  gluten: ['gluten', 'harina', 'trigo', 'pan', 'tacc'], mani: ['mani'], frutos_secos: ['frutos secos', 'nuez', 'nueces', 'almendra', 'avellana'],
+  soja: ['soja'], pescado: ['pescado', 'merluza', 'atun', 'salmon'], mariscos: ['marisco', 'camaron', 'langostino'], sesamo: ['sesamo'],
+}
+
+/**
+ * La duda del modelo, solo si es por una alergia de ESTE chico (la nombra). "¿La milanesa lleva huevo?" a una familia
+ * cuyo hijo no es alérgico al huevo no ayuda: se descarta. Sin alergias, ninguna duda del modelo queda.
+ */
+export function dudaRelevante(duda: string | null | undefined, alergias: readonly Alergeno[], alergiasOtras: readonly string[] = []): string | undefined {
+  const d = duda?.replace(/\s+/g, ' ').trim()
+  if (!d) return undefined
+  const n = ` ${normalizar(d)} `
+  const porFija = alergias.some((a) => PALABRAS_ALERGENO[a].some((w) => new RegExp(`\\b${normalizar(w)}`).test(n)))
+  const porOtra = alergiasOtras.some((o) => patronAlergia(o).test(normalizar(d)))
+  return porFija || porOtra ? d : undefined
+}
+
+export function dudaPorAlergia(nombre: string, sacados: { alimentoId: string }[]): string | undefined {
+  if (!sacados.length) return undefined
+  const que = sacados.map((x) => (alimentoPorId(x.alimentoId)?.nombre ?? x.alimentoId.replace(/_/g, ' ')).toLocaleLowerCase('es'))
+  return `¿${nombre} lleva ${que.join(' o ')}? Lo sacamos por su alergia: confirmá que es la versión sin eso.`
 }
 
 /**
@@ -167,23 +268,120 @@ function unicos<T>(lista: T[], clave: (x: T) => string): T[] {
   })
 }
 
-/** Lo que el código no le deja al modelo. Pura: la usan extraerPerfil() y los tests. */
-export function depurarPerfil(salida: SalidaPerfil, catalogo: Pick<PreparacionCatalogo, 'id'>[]): PerfilBorrador {
-  const ids = new Set(catalogo.map((p) => p.id))
-  const idValido = (id: string | null) => (id && ids.has(id) ? id : null)
-  const limpio = (s: string | null) => s?.replace(/\s+/g, ' ').trim() ?? ''
-
-  const acepta = salida.acepta.map((a) => {
-    const marca = limpio(a.marca)
-    return { nombre: limpio(a.nombre), preparacionId: idValido(a.preparacionId), ...(marca ? { marca } : {}), atributos: atributosValidos(a.atributos) }
+/**
+ * ¿La regla choca con algo que acepta? Solo las de los 8 atributos: "rechaza" choca si algo que come cumple todas las
+ * condiciones; "requiere", si algo que come (con esos atributos conocidos) no las cumple. Devuelve lo que come y choca.
+ */
+function choqueConLoQueAcepta<A extends { nombre: string; preparacionId: string | null; atributos: Partial<Atributos> }>(r: Regla, acepta: A[]): A | null {
+  if (!r.condiciones.length || !r.condiciones.every((c) => (ATRIBUTOS as readonly string[]).includes(c.tipo))) return null
+  const valor = (a: { atributos: Partial<Atributos> }, tipo: string) => a.atributos[tipo as keyof Atributos]
+  const chocan = acepta.filter((a) => {
+    if (!r.condiciones.every((c) => valor(a, c.tipo) !== undefined)) return false
+    const cumple = r.condiciones.every((c) => valor(a, c.tipo) === c.valor)
+    return r.efecto === 'rechaza' ? cumple : !cumple
   })
-  const rechaza = salida.rechaza
+  return chocan.find((a) => a.preparacionId !== null) ?? chocan[0] ?? null // primero lo del catálogo: es el choque seguro
+}
+
+/** Lo del chico que el código cruza con la salida: el relato (para el dicho) y sus alergias. */
+export interface ContextoPerfil {
+  relato?: string
+  alergias?: readonly Alergeno[]
+  alergiasOtras?: readonly string[]
+}
+
+type CatalogoPerfil = Pick<PreparacionCatalogo, 'id' | 'nombre'> & Partial<Pick<PreparacionCatalogo, 'atributos' | 'ingredientes' | 'momentos'>>
+
+/**
+ * Lo que el código no le deja al modelo. Pura: la usan extraerPerfil() y los tests.
+ * - preparacionId: tiene que existir y pasar verificarId() contra lo que dijo la familia (y sus alergias, en acepta);
+ *   si no, null (se queda con los atributos y los ingredientes del modelo). Con id, los atributos son los del catálogo
+ *   y no lleva ingredientes: el catálogo es la convención.
+ * - dicho: solo si está tal cual en el relato. Atributos del vocabulario, momentos de MOMENTO, ingredientes válidos y
+ *   sin lo que choca con una alergia (con una duda que lo dice).
+ * - Lo que se evita por alergia no queda en rechaza ni en reglas. Una regla de atributos que choca con algo que acepta
+ *   del catálogo, o que generaliza un grupo, queda solo como texto (la familia la ve y la corrige; el grafo no la usa).
+ */
+export function depurarPerfil(salida: SalidaPerfil, catalogo: CatalogoPerfil[], ctx: ContextoPerfil = {}): PerfilBorrador {
+  const porId = new Map(catalogo.map((p) => [p.id, p]))
+  const alergias = ctx.alergias ?? []
+  const alergiasOtras = ctx.alergiasOtras ?? []
+  const limpio = (s: string | null | undefined) => s?.replace(/\s+/g, ' ').trim() ?? ''
+
+  /** El id que queda (o null) y lo que dijo la familia, si está en el relato. */
+  function identificar(x: { dicho: string; nombre: string; preparacionId: string | null }, conAlergias: boolean) {
+    const nombre = limpio(x.nombre)
+    const crudo = limpio(x.dicho)
+    const dicho = crudo && (!ctx.relato || citaEnTranscripcion(crudo, ctx.relato)) ? crudo : undefined
+    let prep = x.preparacionId ? porId.get(x.preparacionId) : undefined
+    if (prep) {
+      const motivo = verificarId(dicho ?? nombre, prep, conAlergias ? alergias : [], conAlergias ? alergiasOtras : [])
+      if (motivo) {
+        console.warn(JSON.stringify({ evento: 'perfil', aviso: 'id_descartado', id: prep.id, nombre, motivo }))
+        prep = undefined
+      }
+    }
+    return { nombre, dicho, prep }
+  }
+
+  const acepta: PerfilBorrador['acepta'] = salida.acepta.map((a) => {
+    const { nombre, dicho, prep } = identificar(a, true)
+    const marca = limpio(a.marca)
+    const momentos = momentosValidos(a.momentos)
+    const base = { nombre, preparacionId: prep?.id ?? null, ...(dicho ? { dicho } : {}), ...(marca ? { marca } : {}) }
+    if (prep) {
+      const deCatalogo = momentos.length ? momentos : (prep.momentos ?? [])
+      const duda = dudaRelevante(limpio(a.duda), alergias, alergiasOtras)
+      return {
+        ...base,
+        atributos: prep.atributos ? { ...prep.atributos } : atributosValidos(a.atributos),
+        ...(deCatalogo.length ? { momentos: deCatalogo } : {}),
+        ...(duda ? { duda } : {}),
+      }
+    }
+    const atributos = atributosValidos(a.atributos)
+    const { ingredientes, sacados } = ingredientesValidos(a.ingredientes, alergias, alergiasOtras)
+    const duda = dudaRelevante(limpio(a.duda), alergias, alergiasOtras) || dudaPorAlergia(nombre, sacados)
+    return {
+      ...base,
+      atributos,
+      ingredientes,
+      ...(momentos.length ? { momentos } : {}),
+      ...(Object.keys(atributos).length || ingredientes.length ? { inferido: true } : {}),
+      ...(duda ? { duda } : {}),
+    }
+  })
+
+  const rechaza: PerfilBorrador['rechaza'] = salida.rechaza
     .filter((r) => !r.porAlergia)
-    .map((r) => ({ nombre: limpio(r.nombre), preparacionId: idValido(r.preparacionId), motivo: delVocabulario(MOTIVO, r.motivo) ?? 'otro' }))
-  const reglas = salida.reglas.flatMap((r) => reglaValida(r) ?? [])
+    .map((r) => {
+      const { nombre, dicho, prep } = identificar(r, false)
+      const atributos = prep?.atributos ? { ...prep.atributos } : atributosValidos(r.atributos)
+      return {
+        nombre,
+        preparacionId: prep?.id ?? null,
+        ...(dicho ? { dicho } : {}),
+        ...(Object.keys(atributos).length ? { atributos } : {}),
+        ...(!prep && Object.keys(atributos).length ? { inferido: true } : {}),
+        motivo: delVocabulario(MOTIVO, r.motivo) ?? 'otro',
+      }
+    })
+
+  const aceptaUnicos = unicos(acepta, (a) => a.nombre)
+  // Una regla que choca con lo que come queda solo como texto cuando el choque es seguro: con algo del catálogo (sus
+  // atributos son curados) o si generaliza un grupo ("no comemos carne" → grupo=proteina, y come milanesa de soja; el
+  // "no come queso" → lácteos de la eval). Si es sensorial ("nada mezclado") y choca solo con un atributo inferido (la
+  // pizza "mezclado"), la familia la dijo con todas las letras: lo dudoso es el atributo y la regla queda.
+  const reglas = salida.reglas.flatMap((r) => reglaValida(r) ?? []).map((r) => {
+    const choca = choqueConLoQueAcepta(r, aceptaUnicos)
+    if (!choca) return r
+    const seguro = choca.preparacionId !== null || r.condiciones.some((c) => c.tipo === 'grupo')
+    console.warn(JSON.stringify({ evento: 'perfil', aviso: seguro ? 'regla_contradictoria' : 'regla_choca_con_inferido', regla: r.texto, condiciones: r.condiciones, acepta: choca.nombre }))
+    return seguro ? { ...r, condiciones: [] } : r
+  })
 
   return {
-    acepta: unicos(acepta, (a) => a.nombre),
+    acepta: aceptaUnicos,
     rechaza: unicos(rechaza, (r) => r.nombre),
     reglas: unicos(reglas, (r) => r.texto),
   }
@@ -191,6 +389,25 @@ export function depurarPerfil(salida: SalidaPerfil, catalogo: Pick<PreparacionCa
 
 // ---------- Los datos del chico (A8b, código, nunca IA) ----------
 const ALERTAS = ['bajo_peso', 'arcadas_vomitos', 'menos_15_alimentos'] as const
+
+// Cómo se nombran los de ALERGENO en el relato: lo que cae acá no es una "otra" alergia.
+const SINONIMOS_ALERGENO: [Alergeno, string[]][] = [
+  ['leche', ['leche', 'lactosa', 'lacteo', 'caseina', 'proteina de la leche', 'aplv']],
+  ['huevo', ['huevo', 'clara', 'yema']],
+  ['gluten', ['gluten', 'celiac', 'tacc', 'trigo']],
+  ['mani', ['mani', 'cacahuate']],
+  ['frutos_secos', ['frutos secos', 'fruto seco', 'nuez', 'nueces', 'almendra', 'avellana', 'castana', 'pistacho']],
+  ['soja', ['soja', 'soya']],
+  ['pescado', ['pescado', 'merluza', 'atun', 'salmon']],
+  ['mariscos', ['marisco', 'camaron', 'langostino', 'mejillon', 'crustaceo']],
+  ['sesamo', ['sesamo']],
+]
+
+/** El ALERGENO que nombra el texto ("lactosa" → leche, "celíaco" → gluten), o undefined. */
+export function aAlergeno(texto: string): Alergeno | undefined {
+  const t = ` ${normalizar(texto).replace(/_/g, ' ')} `
+  return alergenoDe(texto) ?? SINONIMOS_ALERGENO.find(([, nombres]) => nombres.some((n) => t.includes(` ${n}`)))?.[0]
+}
 const SEXOS = ['masculino', 'femenino'] as const
 
 /**
@@ -209,6 +426,14 @@ export function depurarDatos(x: SalidaDatos, relato: string): DatosExtraidos {
     const v = delVocabulario(ALERGENO, a.valor)
     if (v && !alergias.has(v) && a.cita?.trim() && citaEnTranscripcion(a.cita, relato)) alergias.set(v, { valor: v, cita: a.cita.trim() })
   }
+  // v5.8 · Las que no están en ALERGENO, como las dijo ("kiwi"); las que son de ALERGENO con otro nombre, no
+  const otras = new Map<string, DatoCitado<string>>()
+  for (const a of x.otrasAlergiasMencionadas ?? []) {
+    const valor = a.valor.replace(/\s+/g, ' ').trim()
+    const clave = normalizar(valor)
+    if (!clave || valor.length > 40 || otras.has(clave) || aAlergeno(valor)) continue
+    if (a.cita?.trim() && citaEnTranscripcion(a.cita, relato)) otras.set(clave, { valor, cita: a.cita.trim() })
+  }
   const alertas = new Map<(typeof ALERTAS)[number], DatoCitado<(typeof ALERTAS)[number]>>()
   for (const a of x.alertas) {
     const v = delVocabulario(ALERTAS, a.valor)
@@ -218,7 +443,7 @@ export function depurarDatos(x: SalidaDatos, relato: string): DatosExtraidos {
   const edad = conCita(x.edad, enRango(0, 18))
   const pesoKg = conCita(x.pesoKg, enRango(3, 150))
   const tallaCm = conCita(x.tallaCm, enRango(40, 210))
-  const sinAlergias = alergias.size ? undefined : marca(x.sinAlergias)
+  const sinAlergias = alergias.size || otras.size ? undefined : marca(x.sinAlergias)
   const atragantamiento = marca(x.atragantamiento)
   const sexoCitado = sexo && x.sexo ? conCita({ valor: sexo, cita: x.sexo.cita }, () => true) : undefined
   const dietaCitada = dieta && x.dieta ? conCita({ valor: dieta, cita: x.dieta.cita }, () => true) : undefined
@@ -230,6 +455,7 @@ export function depurarDatos(x: SalidaDatos, relato: string): DatosExtraidos {
     ...(pesoKg ? { pesoKg } : {}),
     ...(tallaCm ? { tallaCm } : {}),
     alergiasMencionadas: [...alergias.values()],
+    ...(otras.size ? { otrasAlergiasMencionadas: [...otras.values()] } : {}),
     ...(sinAlergias ? { sinAlergias } : {}),
     alertas: [...alertas.values()],
     ...(atragantamiento ? { atragantamiento } : {}),
@@ -244,7 +470,7 @@ export function faltanVitales(d: DatosExtraidos, b: Pick<PerfilBorrador, 'acepta
   if (!d.nombre) f.push('nombre')
   if (!d.edad) f.push('edad')
   if (!d.sexo) f.push('sexo')
-  if (!d.alergiasMencionadas.length && !d.sinAlergias) f.push('alergias')
+  if (!d.alergiasMencionadas.length && !d.otrasAlergiasMencionadas?.length && !d.sinAlergias) f.push('alergias')
   if (!b.acepta.length) f.push('acepta')
   if (!b.rechaza.length) f.push('rechaza')
   return f
@@ -358,20 +584,28 @@ export async function extraerPerfil(req: PerfilInicialReq): Promise<PerfilBorrad
   // A8b · Sin datos (alta por voz), los datos del chico salen del mismo relato, en paralelo con el perfil
   const extraidos = req.datos ? undefined : extraerDatos(texto)
   const chico = req.datos ? { nombre: req.datos.nombre, edad: req.datos.edad } : undefined
+  // v5.8 · Con los datos, el modelo conoce sus alergias para elegir la versión que come; en el alta por voz están en el relato
+  const alergiasDatos = req.datos ? [...req.datos.alergias, ...(req.datos.alergiasOtras ?? [])] : []
   // El relato y la foto van en paralelo: la foto suma su latencia solo si tarda más que el relato.
-  const [perfil, objetivos, datos] = await Promise.all([
+  const [salida, objetivos, datos] = await Promise.all([
     generarJSON({
       tarea: 'perfil',
-      sistema: SISTEMA_PERFIL,
-      partes: [{ tipo: 'texto', texto: mensajePerfil({ ...(chico ?? {}), catalogo, texto }) }],
-      schema: esquemaSalidaPerfil,
-    }).then(({ datos }) => depurarPerfil(datos, catalogo)),
+      sistema: sistemaPerfil(alimentos()),
+      partes: [{ tipo: 'texto', texto: mensajePerfil({ ...(chico ?? {}), alergias: alergiasDatos, catalogo, texto }) }],
+      schema: esquemaPerfil(idsIngredientes()),
+    }).then((r) => r.datos),
     !req.fotoIndicacionBase64 ? undefined
       // Con los datos, la foto sale ya; en el alta por voz, cuando se sabe el nombre y la edad
       : chico ? leerIndicacion(req.fotoIndicacionBase64, chico)
       : extraidos!.then((d) => leerIndicacion(req.fotoIndicacionBase64!, { nombre: d.nombre?.valor ?? 'el chico', edad: d.edad?.valor ?? 0 })),
     extraidos,
   ])
+  // v5.8 · Las alergias (las que cargó el padre o, en el alta por voz, las que dijo) entran a la verificación de los ids
+  const perfil = depurarPerfil(salida, catalogo, {
+    relato: texto,
+    alergias: req.datos?.alergias ?? datos?.alergiasMencionadas.map((a) => a.valor) ?? [],
+    alergiasOtras: req.datos?.alergiasOtras ?? datos?.otrasAlergiasMencionadas?.map((a) => a.valor) ?? [],
+  })
   const borrador: PerfilBorrador = objetivos ? { ...perfil, objetivosNutricionista: objetivos } : perfil
   return datos ? { ...borrador, datos, faltan: faltanVitales(datos, borrador) } : borrador
 }

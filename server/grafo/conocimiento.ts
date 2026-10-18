@@ -11,7 +11,7 @@
 // de ese grupo (sumar un ingrediente no cambia el grupo del plato).
 import type { Alergeno, Dieta, Grupo, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Presentacion, Regla, Variedad } from '../../shared/contratos.js'
 import { NUTRIENTE } from '../../shared/contratos.js'
-import { APORTE_MINIMO } from '../aprendizaje/cadena.js'
+import { APORTE_MINIMO, esAncla, esSegura } from '../aprendizaje/cadena.js'
 import { calcularEstado } from '../aprendizaje/estado.js'
 import { menorCobertura } from '../aprendizaje/recomendador.js'
 import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, decimal, grupoSinComer, lista, porciento } from '../aprendizaje/textos.js'
@@ -37,7 +37,7 @@ export interface Conocimiento {
   dieta: Dieta
   momento?: Momento
   energiaReferencia: number // v5.7 · kcal por día para dimensionar el plato completo (no es una meta: ver plato-completo.ts)
-  seguros: PreparacionCatalogo[] // los puntos de partida: lo que acepta y va en esta comida (si nada va, todo lo que acepta)
+  seguros: PreparacionCatalogo[] // los puntos de partida: lo que acepta, va en esta comida y es seguro (puede estar vacío)
   aceptadas: PreparacionCatalogo[] // todo lo que acepta, con todos sus atributos: para "eso ya lo come"
   reglas: Regla[]
   presentacionesAceptadas: Presentacion[]
@@ -94,17 +94,21 @@ export function conocimientoDe(
     return conocida ? completa(conocida) : undefined
   }
 
-  // Lo que come seguro: el punto de partida de la cadena. Primero lo que va en esta comida.
+  // Lo que come seguro: el punto de partida de la cadena. Primero lo que va en esta comida (lo anotado en el catálogo o,
+  // si no es del catálogo, las comidas en que lo come según lo que se sabe de él).
   const estados = [...estado.estados.values()]
   const aceptadas = estados
     .filter((s) => s.estado === 'acepta')
     .flatMap((s) => {
       const p = preparacion(s.prepId)
-      return p ? [{ p, s, vaEnLaComida: !op.momento || (p.momentos?.includes(op.momento) ?? false) }] : []
+      const momentos = p?.momentos ?? estado.conocidas.get(s.prepId)?.momentos ?? []
+      return p ? [{ p, s, vaEnLaComida: !op.momento || momentos.includes(op.momento) }] : []
     })
     .sort((a, b) => Number(b.vaEnLaComida) - Number(a.vaEnLaComida) || b.s.p - a.s.p)
-  // Se parte solo de lo que va en esta comida: la imagen lo sirve al lado ("Servilo al lado de su pizza" en el desayuno no)
-  const seguros = aceptadas.some((x) => x.vaEnLaComida) ? aceptadas.filter((x) => x.vaEnLaComida) : aceptadas
+  // Se parte solo de lo que va en esta comida (la imagen lo sirve al lado: "Servilo al lado de su pizza" en el desayuno
+  // no), se conoce entero y no tiene sus alérgenos. Si nada va en esta comida, no hay punto de partida: la receta
+  // creativa no arranca (mejor eso que partir de la milanesa para el desayuno).
+  const seguros = aceptadas.filter((x) => x.vaEnLaComida && esAncla(x.p) && esSegura(x.p, d.alergias, c.alimentos))
   const otras = aceptadas.filter((x) => !seguros.includes(x))
 
   // Los nutrientes que puede elegir: el pedido o los que faltan. La vitamina D casi no está en los alimentos: solo si se pide.
@@ -153,7 +157,7 @@ export function conocimientoDe(
       const cuanto = s.veces > 0 ? `comió ${s.comio} de ${s.veces}` : 'según contó la familia'
       return `- ${p.id}: ${p.nombre} · ${atributosEnTexto(p)} · ${principal} · ${cuanto}`
     }),
-    ...(otras.length ? [`También come, en otras comidas (no sirven de punto de partida para esta): ${otras.map((x) => x.p.nombre).join(' · ')}.`] : []),
+    ...(otras.length ? [`También come (no sirven de punto de partida para esta comida): ${otras.map((x) => x.p.nombre).join(' · ')}.`] : []),
     `Lo que rechaza o todavía le cuesta: ${rechaza.map((s) => {
       const p = preparacion(s.prepId)
       return `${s.nombre}${s.motivoDeclarado ? ` (${s.motivoDeclarado})` : ''}${p ? ` [${atributosEnTexto(p)}]` : ''}`

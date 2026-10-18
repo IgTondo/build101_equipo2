@@ -2,6 +2,7 @@
 // `tarea` elige el modelo: visión, relato, perfil y resumen → Claude Haiku 5.5; receta → Claude Sonnet 5.5.
 // PROVEEDOR_IA=claude|gemini|groq cambia de proveedor sin tocar a quien llama (MODELO_GEMINI y MODELO_GROQ eligen el
 // modelo de esos dos). Cada proveedor vive en proveedores/; acá están la cadena de respaldo y el reintento.
+import { BadRequestError } from '@anthropic-ai/sdk'
 import type { ZodType } from 'zod'
 import { ErrorIA, type MotivoErrorIA } from './errores.js'
 import { proveedorClaude } from './proveedores/claude.js'
@@ -115,6 +116,7 @@ async function conRespaldo<R>(correr: (proveedor: Proveedor) => Promise<R>, venc
       return await correr(proveedor)
     } catch (e) {
       if (!(e instanceof ErrorIA) || !RESPALDABLE.includes(e.motivo)) throw e
+      if (esPedidoInvalido(e)) throw pedidoInvalido(nombre, e)
       fallos.push([nombre, e])
     }
   }
@@ -122,6 +124,20 @@ async function conRespaldo<R>(correr: (proveedor: Proveedor) => Promise<R>, venc
   if (fallos.length === 1) throw primero
   const resumen = fallos.map(([nombre, e]) => `${nombre} (${e.motivo})`).join(', ')
   throw new ErrorIA(primero.motivo, `fallaron todos: ${resumen}`, { causa: primero })
+}
+
+// v5.8 · Un 400 invalid_request_error de Claude es un error NUESTRO (schema que no acepta, más de 16 parámetros con
+// null o anyOf, thinking o effort que el modelo no soporta): reintentarlo da lo mismo y pasar a Gemini lo esconde
+// detrás de un modelo peor (así estuvo el perfil corriendo con Gemini sin que nadie lo viera). No pasa al respaldo y
+// queda en el log como error.
+function esPedidoInvalido(e: ErrorIA): boolean {
+  return e.cause instanceof BadRequestError
+}
+
+function pedidoInvalido(proveedor: NombreProveedor, e: ErrorIA): ErrorIA {
+  const detalle = e.detalle.detalle
+  console.error(JSON.stringify({ evento: 'ia', error: 'pedido_invalido', proveedor, status: 400, detalle, nota: 'no pasa al respaldo: revisar el schema o los parámetros' }))
+  return new ErrorIA('proveedor', `${proveedor} rechazó el pedido (400, sin respaldo): ${detalle}`, { causa: e.cause })
 }
 
 // Pide, valida y, si no valida, manda la respuesta con los problemas para que la corrija (1 vez). Si se cortó por

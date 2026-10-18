@@ -5,9 +5,9 @@
 // de donde Nibble parte para proponerle algo nuevo. Lo demás queda tranquilo: lo que todavía no y sus reglas sin caja,
 // los datos, las alergias y los cuidados en tarjetas.
 import { cn } from 'cn'
-import { ChevronDown, MessageCircleQuestionMark, Pencil, Plus, Quote, ShieldCheck, Stethoscope, X } from 'lucide-react'
+import { ChevronDown, MessageCircleQuestionMark, Pencil, Quote, ShieldCheck, Stethoscope, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import {
   DIETA, MOTIVO, type CampoVital, type DatosBasicos, type DatosExtraidos, type Grupo, type Motivo, type PerfilBorrador,
 } from '../../../shared/contratos'
@@ -27,7 +27,7 @@ import {
   agregarAcepta, agregarRechaza, agregarRegla, alternarSenal, cambiarMotivo, clave, quitarAcepta, quitarRechaza, quitarRegla,
   renombrarAcepta, SENALES, type FormDatos,
 } from './borrador'
-import { Campo, ChipAlternar, CLASE_INPUT, OpcionUnica } from './Controles'
+import { Agregar, Campo, ChipAlternar, CLASE_INPUT, OpcionUnica } from './Controles'
 import { Aviso, Cita, Falta, ICONO, Inicial, RESORTE, SALIDA, TituloSeccion } from './Piezas'
 import { AVISO_ATRAGANTAMIENTO, AVISO_DECLARADA, AVISO_DIETA, NOMBRE_DIETA, NOMBRE_SENAL, NOMBRE_SEXO } from './textos'
 
@@ -462,34 +462,5 @@ function FilaRechaza({ nombre, motivo, nueva, alCambiarMotivo, alQuitar }: {
         </span>
       </div>
     </motion.li>
-  )
-}
-
-function Agregar({ etiqueta, ejemplo, alAgregar, refInput, error }: {
-  etiqueta: string; ejemplo: string; alAgregar: (v: string) => void; refInput?: Ref<HTMLInputElement>; error?: string
-}) {
-  const id = useId()
-  const [valor, setValor] = useState('')
-  const enviar = (e: FormEvent) => {
-    e.preventDefault()
-    if (!valor.trim()) return
-    alAgregar(valor)
-    setValor('')
-  }
-  return (
-    <form className="flex flex-col gap-1.5" onSubmit={enviar}>
-      <label htmlFor={id} className="px-1 text-sm font-bold text-pino">{etiqueta}</label>
-      <div className="flex gap-2">
-        <Input
-          ref={refInput} id={id} className={cn(CLASE_INPUT, 'min-w-0 flex-1 rounded-full')} value={valor}
-          onChange={(e) => setValor(e.target.value)} placeholder={ejemplo} enterKeyHint="done" autoComplete="off"
-          aria-invalid={error ? true : undefined} aria-describedby={error ? `${id}-error` : undefined}
-        />
-        <Button type="submit" variant="outline" className="shrink-0 bg-background" aria-label={etiqueta}>
-          <Plus aria-hidden="true" /> <span aria-hidden="true">Sumar</span>
-        </Button>
-      </div>
-      {error && <Falta id={`${id}-error`} rol="alert">{error}</Falta>}
-    </form>
   )
 }

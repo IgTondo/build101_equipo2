@@ -7,10 +7,15 @@
 // v5.5 · Modo variedad (no le falta ningún nutriente, Conocimiento.variedad): sin aporte mínimo; si hay un grupo que
 // menos come, el plato tiene que ser de ese grupo (atributos.grupo y el ingrediente principal). La evidencia muestra el
 // nutriente al que más aporta respecto de su meta, y Receta.objetivo dice para qué es.
-import type { Alergeno, Evidencia, Nutriente, Nutrientes, PreparacionCatalogo, Receta, RecetaReq } from '../../shared/contratos.js'
+// v5.8 · Sus otras alergias (DatosBasicos.alergiasOtras, "kiwi", "colorante rojo"): los alimentos que alcanzan
+// (server/alergias.ts) no están en la lista de ingredientes ni en el schema, el LLM las lee en la base de conocimiento y
+// la validación rechaza un ingrediente que alcancen o un texto que las nombre.
+import type { Alergeno, Evidencia, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Receta, RecetaReq } from '../../shared/contratos.js'
+import { alimentosProhibidos, limpiarOtras } from '../alergias.js'
 import { DIMENSIONES, cambios, principal } from '../aprendizaje/cadena.js'
 import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, decimal, slug } from '../aprendizaje/textos.js'
-import { ACOMPANAMIENTOS, type Conocimiento } from '../grafo/conocimiento.js'
+import { cargarNino } from '../datos/cargar.js'
+import { ACOMPANAMIENTOS, conocimientoDe, type Conocimiento } from '../grafo/conocimiento.js'
 import { ErrorNibble } from '../http.js'
 import { CON_META } from '../nutricion/objetivos.js'
 import { calcularAporte, cambiosEntre, problemasPorTipo, aplanar, type ContextoValidacion } from '../validacion/receta.js'
@@ -20,8 +25,18 @@ import { ajustarPorciones, armarPlatoCompleto, problemasDelPlato } from './plato
 import { esquemaSalidaCreativa, promptRecetaCreativa, SISTEMA_RECETA_CREATIVA, type SalidaCreativa } from './prompts/receta-creativa.js'
 import { CORTE_MS, TOPE_NUEVA_LLAMADA_MS, coberturaDeLoQueFalta, sinAlergenos, type IntentoReceta } from './receta.js'
 
+/** v5.8 · La base de conocimiento con sus otras alergias, como las escribió el padre (Conocimiento no las trae). */
+export type ConocimientoReceta = Conocimiento & { alergiasOtras?: string[] }
+
+/** La base de conocimiento del chico (armarConocimiento) más sus otras alergias: lo que usa api/receta.ts. */
+export async function armarConocimientoReceta(ninoId: string, op: { nutriente?: Nutriente; momento?: Momento; motor?: Motor } = {}): Promise<ConocimientoReceta> {
+  const c = await cargarNino(ninoId)
+  const otras = limpiarOtras(c.nino.datos.alergiasOtras)
+  return { ...conocimientoDe(c, op), ...(otras.length ? { alergiasOtras: otras } : {}) }
+}
+
 export interface DepsRecetaCreativa {
-  conocimiento: (ninoId: string, op: { nutriente?: Nutriente; momento?: RecetaReq['momento'] }) => Promise<Conocimiento>
+  conocimiento: (ninoId: string, op: { nutriente?: Nutriente; momento?: RecetaReq['momento'] }) => Promise<ConocimientoReceta>
   ahora?: () => number
   alIntentar?: (intento: Omit<IntentoReceta, 'salida' | 'problemas'> & { salida: SalidaCreativa; problemas: string[] }) => void
 }
@@ -32,6 +47,35 @@ function alergiasDe(k: Conocimiento): Alergeno[] {
 }
 
 const normal = (s: string) => slug(s).replace(/_/g, ' ')
+
+/** v5.8 · Sus otras alergias y los alimentos del catálogo que alcanzan. */
+function otrasAlergiasDe(k: ConocimientoReceta): { otras: string[]; prohibidos: Set<string> } {
+  const otras = limpiarOtras(k.alergiasOtras)
+  return { otras, prohibidos: alimentosProhibidos(otras, alimentos()) }
+}
+
+/** v5.8 · La base de conocimiento que ve el LLM, con sus otras alergias abajo de la línea del chico. */
+export function textoConOtrasAlergias(texto: string, otras: readonly string[]): string {
+  if (!otras.length) return texto
+  const linea = `Otras alergias, como las contó la familia (nada que las lleve, ni en los ingredientes ni en los pasos): ${otras.join(', ')}.`
+  const lineas = texto.split('\n')
+  const i = lineas.findIndex((l) => l.startsWith('Chico:'))
+  lineas.splice(i + 1, 0, linea)
+  return lineas.join('\n')
+}
+
+const ARTICULO: Record<Momento, [string, string]> = {
+  desayuno: ['el', 'un'], almuerzo: ['el', 'un'], merienda: ['la', 'una'], cena: ['la', 'una'], colacion: ['la', 'una'],
+}
+const NOMBRE_MOMENTO: Record<Momento, string> = { desayuno: 'desayuno', almuerzo: 'almuerzo', merienda: 'merienda', cena: 'cena', colacion: 'colación' }
+
+/** Sin un alimento seguro para esta comida no hay de dónde partir: se dice para qué comida falta (v5.8). */
+export function textoSinSeguros(nombre: string, momento?: Momento): string {
+  if (!momento) return `Todavía no sabemos qué come ${nombre} seguro: registrá algunas comidas y aparecen recetas.`
+  const [el, un] = ARTICULO[momento]
+  const m = NOMBRE_MOMENTO[momento]
+  return `Todavía no sabemos qué come ${nombre} en ${el} ${m}: registrá ${un} ${m} o contanos qué come.`
+}
 
 /** v5.6 · Una receta elaborada: al menos estos ingredientes de verdad (sin contar acompañamientos) y estos pasos. */
 export const MIN_INGREDIENTES_COMIDA = 2
@@ -86,7 +130,7 @@ export function nutrienteQueMasAporta(aporte: Nutrientes, meta: Nutrientes): Nut
 }
 
 /** La receta completa: el cambio y lo que se mantiene los cuenta el código (cadena.ts), nunca el LLM. */
-export function completarCreativa(salida: SalidaCreativa, k: Conocimiento, desde: PreparacionCatalogo): Receta {
+export function completarCreativa(salida: SalidaCreativa, k: ConocimientoReceta, desde: PreparacionCatalogo): Receta {
   const base = platoDe(salida)
   const difs = cambiosEntre(desde, base)
   const ingredientes = salida.ingredientes.map(({ alimentoId, gramos }) => ({ alimentoId, nombre: alimentoPorId(alimentoId)?.nombre ?? alimentoId, gramos }))
@@ -131,11 +175,15 @@ export function completarCreativa(salida: SalidaCreativa, k: Conocimiento, desde
 
 /** Lo que valida la receta del catálogo, más lo propio de un plato inventado. */
 export function problemasCreativa(
-  receta: Receta, k: Conocimiento, desde: PreparacionCatalogo, anteriores: readonly string[],
+  receta: Receta, k: ConocimientoReceta, desde: PreparacionCatalogo, anteriores: readonly string[],
   acompanamientos?: readonly { preparacionId: string; gramos: number }[],
 ): string[] {
   const base: PreparacionCatalogo = { id: receta.preparacionBaseId, nombre: receta.nombre, atributos: receta.plato!.atributos, ingredientes: receta.ingredientes }
-  const ctx: ContextoValidacion = { alergias: alergiasDe(k), reglas: k.reglas, desde, base, presentacionesAceptadas: k.presentacionesAceptadas }
+  const { otras, prohibidos } = otrasAlergiasDe(k)
+  const ctx: ContextoValidacion = {
+    alergias: alergiasDe(k), reglas: k.reglas, desde, base, presentacionesAceptadas: k.presentacionesAceptadas,
+    ...(otras.length ? { alergiasOtras: otras, prohibidos } : {}),
+  }
   const p = aplanar(problemasPorTipo(receta, ctx))
   const n = receta.evidencia.nutriente
   // v5.5 · En modo variedad no hay mínimo de nutriente: lo que cuenta es el grupo
@@ -172,12 +220,15 @@ export async function generarRecetaCreativa(req: RecetaReq, deps: DepsRecetaCrea
   const ahora = deps.ahora ?? Date.now
   const t0 = ahora()
   const k = await deps.conocimiento(req.ninoId, { ...(req.nutriente ? { nutriente: req.nutriente } : {}), ...(req.momento ? { momento: req.momento } : {}) })
-  if (k.seguros.length === 0) {
-    throw new ErrorNibble('sin_candidatos', 'Todavía no sabemos qué come seguro: registrá algunas comidas y aparecen recetas.')
-  }
+  // Sin el respaldo de "todo lo que acepta" (conocimiento.ts): si nada de lo que come va en esta comida, se dice cuál falta
+  if (k.seguros.length === 0) throw new ErrorNibble('sin_candidatos', textoSinSeguros(k.nombre, k.momento ?? req.momento))
   const anteriores = (req.anteriores ?? []).slice(-10)
   const alergias = alergiasDe(k)
-  const ingredientes = alimentos().filter((a) => sinAlergenos(a.id, alergias)).map((a) => ({ alimentoId: a.id, nombre: a.nombre }))
+  const { otras, prohibidos } = otrasAlergiasDe(k)
+  const ingredientes = alimentos()
+    .filter((a) => sinAlergenos(a.id, alergias) && !prohibidos.has(a.id))
+    .map((a) => ({ alimentoId: a.id, nombre: a.nombre }))
+  const kPrompt = otras.length ? { ...k, texto: textoConOtrasAlergias(k.texto, otras) } : k
   const schema = esquemaSalidaCreativa(ingredientes.map((i) => i.alimentoId), k.seguros.map((s) => s.id), k.nutrientes.map((x) => x.nutriente))
 
   let anterior: { salida: SalidaCreativa; problemas: string[] } | undefined
@@ -190,7 +241,7 @@ export async function generarRecetaCreativa(req: RecetaReq, deps: DepsRecetaCrea
     const { datos } = await generarJSON({
       tarea: 'receta',
       sistema: SISTEMA_RECETA_CREATIVA,
-      partes: [{ tipo: 'texto', texto: promptRecetaCreativa({ conocimiento: k, ingredientes, anteriores, ...(anterior ? { anterior } : {}) }) }],
+      partes: [{ tipo: 'texto', texto: promptRecetaCreativa({ conocimiento: kPrompt, ingredientes, anteriores, ...(anterior ? { anterior } : {}) }) }],
       schema,
       limiteMs: CORTE_MS - (desdeLlamada - t0),
     })

@@ -1,7 +1,7 @@
 // Tests de modelo.ts (A4) con los tres SDK mockeados: nunca llaman a una API real.
 // El mock de messages.parse imita al SDK: corre output_config.format.parse() sobre el texto y lo deja en parsed_output.
 import {
-  APIConnectionTimeoutError, APIUserAbortError, AuthenticationError, InternalServerError, RateLimitError,
+  APIConnectionTimeoutError, APIUserAbortError, AuthenticationError, BadRequestError, InternalServerError, RateLimitError,
 } from '@anthropic-ai/sdk'
 import { ApiError } from '@google/genai'
 import { RateLimitError as RateLimitGroq } from 'groq-sdk'
@@ -338,6 +338,23 @@ describe('respaldo en cadena (claude → gemini → groq)', () => {
     const e = await errorDe(generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato }))
     expect(e.motivo).toBe('limite')
     expect(e.detalle.detalle).toBe('fallaron todos: claude (limite), groq (limite)')
+  })
+
+  // v5.8 · Antes un 400 de Claude era un 'proveedor' más y pasaba a Gemini: un schema que Claude no acepta (más de 16
+  // uniones) dejó al perfil corriendo con Gemini sin que se viera. Es un error nuestro: ni respaldo ni silencio.
+  it('un 400 invalid_request_error de Claude no pasa al respaldo y queda en el log como error', async () => {
+    vi.stubEnv('GEMINI_API_KEY', 'gemini-test')
+    vi.stubEnv('GROQ_API_KEY', 'groq-test')
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    claudeResponde(new BadRequestError(400, { type: 'error', error: { type: 'invalid_request_error', message: 'Schemas contains too many parameters with union types' } }, 'too many union types', new Headers()))
+    const e = await errorDe(generarJSON({ tarea: 'perfil', partes: PARTES, schema: Plato }))
+    expect(e.motivo).toBe('proveedor')
+    expect(e.detalle.detalle).toMatch(/^claude rechazó el pedido \(400, sin respaldo\)/)
+    expect(e.cause).toBeInstanceOf(BadRequestError)
+    expect(sdk.gemini).not.toHaveBeenCalled()
+    expect(sdk.groq).not.toHaveBeenCalled()
+    expect(JSON.parse(String(error.mock.calls[0][0]))).toMatchObject({ evento: 'ia', error: 'pedido_invalido', proveedor: 'claude', status: 400 })
+    error.mockRestore()
   })
 
   it('json_invalido no pasa al respaldo', async () => {

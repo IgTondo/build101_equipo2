@@ -7,9 +7,12 @@ import { ErrorNibble, HEADER_STUB, type Handler } from '../http.js'
 import perfilInicialHandler from '../../api/perfil-inicial.js'
 import { generarJSON } from './modelo.js'
 import {
-  depurarDatos, depurarIndicacion, depurarPerfil, extraerPerfil, faltanVitales, fijarPreparaciones, preparaciones, RANGO_OBJETIVO,
+  depurarDatos, depurarIndicacion, depurarPerfil, esquemaPerfil, esquemaSalidaDatos, extraerPerfil, faltanVitales, fijarPreparaciones,
+  idsIngredientes, preparaciones, RANGO_OBJETIVO,
   type SalidaDatos, type SalidaIndicacion, type SalidaPerfil,
 } from './perfil.js'
+import { SISTEMA_DATOS } from './prompts/perfil.js'
+import { schemaClaude } from './proveedores/claude.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
 const mockJSON = vi.mocked(generarJSON)
@@ -21,27 +24,25 @@ const RELATO = 'Tomás tiene 6 años. Come papas fritas en bastones, la milanesa
   + 'No come nada mezclado: el arroz con pollo no lo toca. El puré de papa tampoco, por la textura. '
   + 'Es alérgico al huevo, así que la milanesa la hacemos sin huevo.'
 
-const CATALOGO: Pick<PreparacionCatalogo, 'id' | 'nombre'>[] = [
-  { id: 'papas_fritas_baston', nombre: 'Papas fritas en bastones' },
-  { id: 'milanesa_carne_horno', nombre: 'Milanesa de carne al horno' },
-  { id: 'pure_papa', nombre: 'Puré de papa' },
-  { id: 'arroz_con_pollo', nombre: 'Arroz con pollo' },
-]
+// v5.8 · Las preparaciones reales (con atributos e ingredientes): verificarId() las necesita y con id quedan sus atributos.
+const IDS = ['papas_fritas_baston', 'milanesa_carne_horno', 'milanesa_carne_con_huevo', 'pure_papa', 'arroz_con_pollo', 'licuado_banana_leche', 'yogur_bebible']
+const CATALOGO: PreparacionCatalogo[] = preparaciones().filter((p) => IDS.includes(p.id))
+const prep = (id: string) => CATALOGO.find((p) => p.id === id)!
 
 type AtributosLLM = SalidaPerfil['acepta'][number]['atributos']
-const sinAtributos: AtributosLLM = { textura: null, forma: null, color: null, sabor: null, temperatura: null, presentacion: null, grupo: null, coccion: null }
+const TIPICOS: AtributosLLM = { textura: 'blando', forma: 'trozos', color: 'beige', sabor: 'salado', temperatura: 'caliente', presentacion: 'separado', grupo: 'otro', coccion: 'horno' }
 const acepta = (a: Partial<SalidaPerfil['acepta'][number]> & { nombre: string }): SalidaPerfil['acepta'][number] =>
-  ({ preparacionId: null, marca: null, ...a, atributos: { ...sinAtributos, ...a.atributos } })
+  ({ dicho: a.nombre.toLowerCase(), preparacionId: null, marca: null, ingredientes: [], momentos: [], duda: null, ...a, atributos: { ...TIPICOS, ...a.atributos } })
 const rechaza = (r: Partial<SalidaPerfil['rechaza'][number]> & { nombre: string }): SalidaPerfil['rechaza'][number] =>
-  ({ preparacionId: null, motivo: 'otro', porAlergia: false, ...r })
+  ({ dicho: r.nombre.toLowerCase(), preparacionId: null, motivo: 'otro', porAlergia: false, ...r, atributos: { ...TIPICOS, ...r.atributos } })
 const regla = (r: Partial<SalidaPerfil['reglas'][number]> & { texto: string }): SalidaPerfil['reglas'][number] =>
   ({ condiciones: [], efecto: 'rechaza', porAlergia: false, ...r })
 
 function salida(s: Partial<SalidaPerfil> = {}): SalidaPerfil {
   return {
     acepta: [
-      acepta({ nombre: 'Papas fritas en bastones', preparacionId: 'papas_fritas_baston', atributos: { ...sinAtributos, textura: 'crocante', forma: 'baston', coccion: 'frito' } }),
-      acepta({ nombre: 'Yogur', marca: 'Conaprole' }),
+      acepta({ nombre: 'Papas fritas en bastones', preparacionId: 'papas_fritas_baston', atributos: { ...TIPICOS, textura: 'crocante', forma: 'baston', coccion: 'frito' } }),
+      acepta({ nombre: 'Yogur', dicho: 'el yogur Conaprole', marca: 'Conaprole', atributos: { ...TIPICOS, grupo: 'lacteo', coccion: 'listo' }, ingredientes: [{ alimentoId: 'yogur', gramos: 120 }], momentos: ['desayuno'] }),
     ],
     rechaza: [
       rechaza({ nombre: 'Puré de papa', preparacionId: 'pure_papa', motivo: 'textura' }),
@@ -56,20 +57,29 @@ function conLLM(s: SalidaPerfil) {
   mockJSON.mockResolvedValue({ datos: s, modelo: 'claude-haiku-5-5', ms: 1500, reintentos: 0 })
 }
 
-beforeEach(() => { mockJSON.mockReset() }) // con llaves: si devuelve el mock, Vitest lo llama como limpieza
-afterEach(() => fijarPreparaciones(null))
+beforeEach(() => {
+  mockJSON.mockReset() // con llaves: si devuelve el mock, Vitest lo llama como limpieza
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
+})
+afterEach(() => {
+  fijarPreparaciones(null)
+  vi.restoreAllMocks()
+})
 
 // ---------- Depuración ----------
 describe('depurarPerfil', () => {
-  it('deja el borrador como lo dio el modelo cuando todo está en el vocabulario y en el catálogo', () => {
+  it('con id del catálogo: los atributos y los momentos son los del catálogo y no lleva ingredientes; sin id, lo del modelo, inferido', () => {
     expect(depurarPerfil(salida(), CATALOGO)).toEqual({
       acepta: [
-        { nombre: 'Papas fritas en bastones', preparacionId: 'papas_fritas_baston', atributos: { textura: 'crocante', forma: 'baston', coccion: 'frito' } },
-        { nombre: 'Yogur', preparacionId: null, marca: 'Conaprole', atributos: {} },
+        { nombre: 'Papas fritas en bastones', dicho: 'papas fritas en bastones', preparacionId: 'papas_fritas_baston', atributos: prep('papas_fritas_baston').atributos, momentos: prep('papas_fritas_baston').momentos },
+        {
+          nombre: 'Yogur', dicho: 'el yogur Conaprole', preparacionId: null, marca: 'Conaprole', atributos: { ...TIPICOS, grupo: 'lacteo', coccion: 'listo' },
+          ingredientes: [{ alimentoId: 'yogur', gramos: 120 }], momentos: ['desayuno'], inferido: true,
+        },
       ],
       rechaza: [
-        { nombre: 'Puré de papa', preparacionId: 'pure_papa', motivo: 'textura' },
-        { nombre: 'Arroz con pollo', preparacionId: 'arroz_con_pollo', motivo: 'mezcla' },
+        { nombre: 'Puré de papa', dicho: 'puré de papa', preparacionId: 'pure_papa', atributos: prep('pure_papa').atributos, motivo: 'textura' },
+        { nombre: 'Arroz con pollo', dicho: 'arroz con pollo', preparacionId: 'arroz_con_pollo', atributos: prep('arroz_con_pollo').atributos, motivo: 'mezcla' },
       ],
       reglas: [{ texto: 'No come nada mezclado', condiciones: [{ tipo: 'presentacion', valor: 'mezclado' }], efecto: 'rechaza' }],
     } satisfies PerfilBorrador)
@@ -84,9 +94,70 @@ describe('depurarPerfil', () => {
     expect(b.rechaza[0].preparacionId).toBeNull()
   })
 
-  it('atributos fuera del vocabulario se descartan; los demás quedan escritos como en el contrato', () => {
+  it('un id que no es la misma preparación que dijo la familia pasa a null, con los atributos y los ingredientes del modelo, y queda en el log', () => {
+    const atributos: AtributosLLM = { ...TIPICOS, textura: 'crocante', forma: 'plano', grupo: 'proteina' }
+    const ingredientes = [{ alimentoId: 'pollo', gramos: 100 }, { alimentoId: 'pan_rallado', gramos: 20 }]
     const b = depurarPerfil(salida({
-      acepta: [acepta({ nombre: 'Papas fritas', atributos: { ...sinAtributos, textura: 'Crocante', forma: 'bastón', color: 'fucsia', sabor: 'umami', temperatura: 'caliente', grupo: 'cereal_almidon' } })],
+      acepta: [
+        acepta({ nombre: 'Milanesa de pollo al horno', dicho: 'milanesa de pollo al horno', preparacionId: 'milanesa_carne_horno', atributos, ingredientes }),
+        acepta({ nombre: 'Yogur bebible de frutilla', dicho: 'yogur bebible de frutilla', preparacionId: 'yogur_bebible' }),
+      ],
+      rechaza: [rechaza({ nombre: 'Arroz', dicho: 'el arroz blanco solo', preparacionId: 'arroz_con_pollo' })],
+    }), CATALOGO)
+    expect(b.acepta[0]).toMatchObject({ preparacionId: null, atributos, ingredientes, inferido: true })
+    expect(b.acepta[1].preparacionId).toBeNull()
+    expect(b.rechaza[0]).toMatchObject({ preparacionId: null, atributos: TIPICOS, inferido: true })
+    const avisos = vi.mocked(console.warn).mock.calls.map(([m]) => JSON.parse(String(m)))
+    expect(avisos).toContainEqual(expect.objectContaining({ evento: 'perfil', aviso: 'id_descartado', id: 'milanesa_carne_horno', motivo: 'dice pollo y el catálogo no' }))
+    expect(avisos.filter((a) => a.aviso === 'id_descartado')).toHaveLength(3)
+  })
+
+  it('las alergias del chico: el id que las lleva pasa a null y los ingredientes que chocan se sacan, con una duda', () => {
+    const b = depurarPerfil(salida({
+      acepta: [
+        acepta({ nombre: 'Milanesa al horno', dicho: 'la milanesa al horno', preparacionId: 'milanesa_carne_con_huevo' }),
+        acepta({ nombre: 'Licuado de banana con leche', preparacionId: 'licuado_banana_leche' }),
+        acepta({ nombre: 'Sushi de palta', ingredientes: [{ alimentoId: 'arroz', gramos: 80 }, { alimentoId: 'salmon', gramos: 30 }] }),
+      ],
+    }), CATALOGO, { alergias: ['huevo', 'pescado'], alergiasOtras: ['banana'] })
+    expect(b.acepta.map((a) => a.preparacionId)).toEqual([null, null, null])
+    expect(b.acepta[2].ingredientes).toEqual([{ alimentoId: 'arroz', gramos: 80 }])
+    expect(b.acepta[2].duda).toMatch(/^¿Sushi de palta lleva salm[oó]n\?/)
+    // la misma milanesa sin la alergia sí es la del catálogo… si dijo el huevo
+    const sin = depurarPerfil(salida({ acepta: [acepta({ nombre: 'Milanesa con huevo', dicho: 'la milanesa con huevo al horno', preparacionId: 'milanesa_carne_con_huevo' })] }), CATALOGO)
+    expect(sin.acepta[0].preparacionId).toBe('milanesa_carne_con_huevo')
+  })
+
+  it('con el relato, el dicho queda solo si está tal cual; si no, se verifica con el nombre', () => {
+    const b = depurarPerfil(salida({
+      acepta: [
+        acepta({ nombre: 'Papas fritas', dicho: 'papas fritas en bastones', preparacionId: 'papas_fritas_baston' }),
+        acepta({ nombre: 'Yogur', dicho: 'el yogurcito de siempre' }),
+      ],
+    }), CATALOGO, { relato: RELATO })
+    expect(b.acepta[0].dicho).toBe('papas fritas en bastones')
+    expect(b.acepta[0].preparacionId).toBe('papas_fritas_baston')
+    expect('dicho' in b.acepta[1]).toBe(false)
+  })
+
+  it('momentos de MOMENTO; ingredientes del catálogo de alimentos, de 1 a 500 g, repetidos sumados', () => {
+    const b = depurarPerfil(salida({
+      acepta: [acepta({
+        nombre: 'Guiso de la abuela',
+        momentos: ['almuerzo', 'postre', 'Cena', 'almuerzo'],
+        ingredientes: [
+          { alimentoId: 'papa', gramos: 80.4 }, { alimentoId: 'papa', gramos: 40 }, { alimentoId: 'carne_vacuna', gramos: 900 },
+          { alimentoId: 'carne_de_dragon', gramos: 50 }, { alimentoId: 'zanahoria', gramos: 0 }, { alimentoId: 'otro_verdura', gramos: 30 },
+        ],
+      })],
+    }), CATALOGO)
+    expect(b.acepta[0].momentos).toEqual(['almuerzo', 'cena'])
+    expect(b.acepta[0].ingredientes).toEqual([{ alimentoId: 'papa', gramos: 120 }, { alimentoId: 'carne_vacuna', gramos: 500 }, { alimentoId: 'otro_verdura', gramos: 30 }])
+  })
+
+  it('atributos fuera del vocabulario se descartan (un respaldo sin salida estructurada); los demás quedan escritos como en el contrato', () => {
+    const b = depurarPerfil(salida({
+      acepta: [acepta({ nombre: 'Papas fritas', atributos: { textura: 'Crocante', forma: 'bastón', color: 'fucsia', sabor: 'umami', temperatura: 'caliente', presentacion: 'x', grupo: 'cereal_almidon', coccion: 'y' } as unknown as AtributosLLM })],
     }), CATALOGO)
     expect(b.acepta[0].atributos).toEqual({ textura: 'crocante', forma: 'baston', temperatura: 'caliente', grupo: 'cereal_almidon' })
   })
@@ -99,7 +170,7 @@ describe('depurarPerfil', () => {
         acepta({ nombre: '   ' }),
       ],
     }), CATALOGO)
-    expect(b.acepta).toEqual([{ nombre: 'Yogur de vainilla', preparacionId: null, atributos: {} }])
+    expect(b.acepta.map((a) => [a.nombre, a.marca])).toEqual([['Yogur de vainilla', undefined]])
   })
 
   it('motivo fuera de MOTIVO → otro; lo que se evita por alergia no queda en rechaza', () => {
@@ -140,6 +211,29 @@ describe('depurarPerfil', () => {
     expect(b.reglas.map((r) => [r.texto, r.condiciones])).toEqual([['Nada verde mezclado', []], ['Nada con cebolla', []], ['Nada separado', []]])
   })
 
+  it('una regla que choca con lo que acepta queda solo como texto si generaliza un grupo o choca con algo del catálogo', () => {
+    const b = depurarPerfil(salida({
+      acepta: [
+        acepta({ nombre: 'Milanesa de soja', atributos: { ...TIPICOS, grupo: 'proteina', presentacion: 'separado' } }),
+        acepta({ nombre: 'Pizza', atributos: { ...TIPICOS, grupo: 'cereal_almidon', presentacion: 'mezclado' } }),
+        acepta({ nombre: 'Licuado de banana con leche', preparacionId: 'licuado_banana_leche' }),
+      ],
+      reglas: [
+        regla({ texto: 'En casa no comemos carne', condiciones: [{ tipo: 'grupo', valor: 'proteina' }] }),
+        regla({ texto: 'Solo lo crocante', condiciones: [{ tipo: 'textura', valor: 'crocante' }], efecto: 'requiere' }), // el licuado (catálogo) es cremoso
+        regla({ texto: 'No come nada mezclado', condiciones: [{ tipo: 'presentacion', valor: 'mezclado' }] }), // la pizza "mezclado" es inferido
+        regla({ texto: 'Nada verde', condiciones: [{ tipo: 'color', valor: 'verde' }] }),
+      ],
+    }), CATALOGO)
+    expect(b.reglas.map((r) => [r.texto, r.condiciones.length])).toEqual([
+      ['En casa no comemos carne', 0], ['Solo lo crocante', 0], ['No come nada mezclado', 1], ['Nada verde', 1],
+    ])
+    const avisos = vi.mocked(console.warn).mock.calls.map(([m]) => JSON.parse(String(m)))
+    expect(avisos.filter((a) => a.aviso.startsWith('regla_')).map((a) => [a.aviso, a.acepta])).toEqual([
+      ['regla_contradictoria', 'Milanesa de soja'], ['regla_contradictoria', 'Licuado de banana con leche'], ['regla_choca_con_inferido', 'Pizza'],
+    ])
+  })
+
   it('descarta reglas sin texto, con otro efecto, por alergia o repetidas', () => {
     const b = depurarPerfil(salida({
       reglas: [
@@ -155,6 +249,25 @@ describe('depurarPerfil', () => {
 
   it('nunca devuelve alergias ni objetivos del nutricionista', () => {
     expect(Object.keys(depurarPerfil(salida(), CATALOGO))).toEqual(['acepta', 'rechaza', 'reglas'])
+  })
+})
+
+// ---------- Schemas ----------
+/** Parámetros con null o anyOf: la salida estructurada de Claude acepta hasta 16 por schema (si no, 400). */
+function uniones(nodo: unknown): number {
+  if (!nodo || typeof nodo !== 'object') return 0
+  const propio = 'anyOf' in nodo || (Array.isArray((nodo as { type?: unknown }).type)) ? 1 : 0
+  return propio + Object.values(nodo).reduce<number>((n, v) => n + (Array.isArray(v) ? v.reduce<number>((m, x) => m + uniones(x), 0) : uniones(v)), 0)
+}
+
+describe('schemas para la salida estructurada', () => {
+  it('perfil y datos: como mucho 16 uniones; los 8 atributos son enum sin null; alimentoId lleva el enum', () => {
+    const perfil = schemaClaude(esquemaPerfil(idsIngredientes()))
+    expect(uniones(perfil)).toBeLessThanOrEqual(16)
+    expect(uniones(schemaClaude(esquemaSalidaDatos))).toBeLessThanOrEqual(16)
+    const json = JSON.stringify(perfil)
+    expect(json).toContain('"enum":["crocante","blando","cremoso","masticable","jugoso","mixto"]')
+    expect(json).toContain('"otro_verdura"')
   })
 })
 
@@ -252,8 +365,10 @@ describe('depurarIndicacion', () => {
 describe('extraerPerfil', () => {
   const pedido = (extra: Partial<PerfilInicialReq> = {}): PerfilInicialReq => ({ datos: DATOS, texto: RELATO, ...extra })
 
-  it('le pasa al modelo el chico, el catálogo, el vocabulario y el relato, pero no las alergias', async () => {
-    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+  // v5.8 · Antes las alergias no se le pasaban al modelo. Ahora sí (las de los datos): las necesita para elegir la
+  // versión que come (los ingredientes) y para la duda; lo que marque porAlergia se sigue descartando.
+  it('le pasa al modelo el chico, sus alergias, el catálogo con ingredientes, el vocabulario, los alimentos y el relato', async () => {
+    fijarPreparaciones(CATALOGO)
     conLLM(salida())
     const b = await extraerPerfil(pedido({ texto: `  ${RELATO}  ` }))
     expect(b.acepta[0].preparacionId).toBe('papas_fritas_baston')
@@ -263,11 +378,40 @@ describe('extraerPerfil', () => {
     expect(opciones.partes).toHaveLength(1)
     const mensaje = opciones.partes.map((p) => (p.tipo === 'texto' ? p.texto : '')).join('')
     expect(mensaje).toContain('<chico>Tomás, 6 años</chico>')
-    expect(mensaje).toContain('papas_fritas_baston: Papas fritas en bastones')
+    expect(mensaje).toContain('<alergias>huevo, sesamo</alergias>')
+    expect(mensaje).toContain('papas_fritas_baston: Papas fritas en bastones [papa, aceite_girasol]')
     expect(mensaje).toContain(`<relato>\n${RELATO}\n</relato>`)
     expect(opciones.sistema).toContain('- distribucion: separados, tocandose, mezclados')
     expect(opciones.sistema).toContain('"que no se toquen" → distribucion=tocandose, rechaza')
-    expect(`${opciones.sistema}\n${mensaje}`).not.toMatch(/sesamo/)
+    expect(opciones.sistema).toContain('- otro_verdura: ')
+    expect(opciones.sistema).toContain('Ante cualquier duda, null')
+  })
+
+  it('verifica los ids con las alergias de los datos: la milanesa con huevo no es la que come', async () => {
+    fijarPreparaciones(CATALOGO)
+    conLLM(salida({ acepta: [acepta({ nombre: 'Milanesa al horno', dicho: 'la milanesa al horno', preparacionId: 'milanesa_carne_con_huevo' })] }))
+    const b = await extraerPerfil(pedido())
+    expect(b.acepta[0].preparacionId).toBeNull()
+  })
+
+  it('en el alta por voz, las alergias que dijo (de extraerDatos) entran a la verificación', async () => {
+    fijarPreparaciones(CATALOGO)
+    const relato = 'Lola tiene 5 años y es alérgica al huevo. Come la milanesa al horno y el licuado de banana con leche. Le cae mal el kiwi, es alérgica.'
+    const datos: SalidaDatos = {
+      nombre: { valor: 'Lola', cita: 'Lola' }, edad: { valor: 5, cita: 'tiene 5 años' }, sexo: { valor: 'femenino', cita: 'es alérgica al huevo' },
+      pesoKg: null, tallaCm: null, alergiasMencionadas: [{ valor: 'huevo', cita: 'alérgica al huevo' }],
+      otrasAlergiasMencionadas: [{ valor: 'kiwi', cita: 'Le cae mal el kiwi' }], sinAlergias: null, alertas: [], atragantamiento: null, dieta: null, suplementos: null,
+    }
+    const perfil = salida({ acepta: [
+      acepta({ nombre: 'Milanesa al horno', dicho: 'la milanesa al horno', preparacionId: 'milanesa_carne_con_huevo' }),
+      acepta({ nombre: 'Licuado de banana con leche', preparacionId: 'licuado_banana_leche' }),
+    ] })
+    mockJSON.mockImplementation(async (o) => ({ datos: o.sistema === SISTEMA_DATOS ? datos : perfil, modelo: 'claude-haiku-5-5', ms: 1, reintentos: 0 }))
+    const b = await extraerPerfil({ texto: relato })
+    expect(b.acepta.map((a) => a.preparacionId)).toEqual([null, 'licuado_banana_leche'])
+    expect(b.datos?.otrasAlergiasMencionadas).toEqual([{ valor: 'kiwi', cita: 'Le cae mal el kiwi' }])
+    const mensaje = mockJSON.mock.calls.map(([o]) => o).find((o) => o.sistema !== SISTEMA_DATOS)!.partes[0]
+    expect(mensaje.tipo === 'texto' && mensaje.texto).not.toContain('<alergias>')
   })
 
   it('el catálogo real se lee del archivo (el de B o, si no está, el sintético)', () => {
@@ -291,7 +435,7 @@ describe('extraerPerfil', () => {
   ] }
 
   it('sin foto, una sola llamada y sin objetivosNutricionista', async () => {
-    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    fijarPreparaciones(CATALOGO)
     conLLM(salida())
     const b = await extraerPerfil(pedido())
     expect(mockJSON).toHaveBeenCalledTimes(1)
@@ -299,7 +443,7 @@ describe('extraerPerfil', () => {
   })
 
   it('con foto, la lee en paralelo con el relato (imagen JPEG, tarea perfil) y suma los objetivos válidos', async () => {
-    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    fijarPreparaciones(CATALOGO)
     const soltar = conFoto(INDICACION)
     const promesa = extraerPerfil(pedido({ fotoIndicacionBase64: '/9j/FOTO' }))
     expect(mockJSON).toHaveBeenCalledTimes(2) // las dos salieron antes de que respondiera ninguna
@@ -315,7 +459,7 @@ describe('extraerPerfil', () => {
   })
 
   it('si la foto no se lee, el perfil sale igual, sin objetivosNutricionista', async () => {
-    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    fijarPreparaciones(CATALOGO)
     const soltar = conFoto(new Error('la imagen no se pudo procesar'))
     const promesa = extraerPerfil(pedido({ fotoIndicacionBase64: '/9j/FOTO' }))
     soltar()
@@ -325,7 +469,7 @@ describe('extraerPerfil', () => {
   })
 
   it('si la foto no trae objetivos válidos (solo suplementos, o nada), objetivosNutricionista no va', async () => {
-    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    fijarPreparaciones(CATALOGO)
     for (const indicacion of [{ objetivos: [INDICACION.objetivos[1]] }, { objetivos: [] }]) {
       const soltar = conFoto(indicacion)
       const promesa = extraerPerfil(pedido({ fotoIndicacionBase64: '/9j/FOTO' }))
@@ -335,7 +479,7 @@ describe('extraerPerfil', () => {
   })
 
   it('si falla el relato, falla el perfil aunque la foto se lea', async () => {
-    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    fijarPreparaciones(CATALOGO)
     const soltar = conFoto(INDICACION, new ErrorNibble('timeout', 'La IA tardó demasiado.'))
     const promesa = extraerPerfil(pedido({ fotoIndicacionBase64: '/9j/FOTO' }))
     soltar()
@@ -383,7 +527,7 @@ describe('api/perfil-inicial', () => {
   })
 
   it('200 con el PerfilBorrador y sin header de stub', async () => {
-    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    fijarPreparaciones(CATALOGO)
     conLLM(salida())
     const r = await llamar(perfilInicialHandler, { datos: DATOS, texto: RELATO })
     expect(r.statusCode).toBe(200)
@@ -394,7 +538,7 @@ describe('api/perfil-inicial', () => {
   })
 
   it('la foto llega limpia al modelo: sin el prefijo data: ni saltos de línea', async () => {
-    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    fijarPreparaciones(CATALOGO)
     mockJSON.mockImplementation(async (o) => ({
       datos: o.partes.some((p) => p.tipo === 'imagen') ? { objetivos: [objetivo({ nutriente: 'fibra_g', valor: 20, unidad: 'g' })] } : salida(),
       modelo: 'claude-haiku-5-5', ms: 1, reintentos: 0,
@@ -407,7 +551,7 @@ describe('api/perfil-inicial', () => {
   })
 
   it('una foto vacía es como si no viniera', async () => {
-    fijarPreparaciones(CATALOGO as PreparacionCatalogo[])
+    fijarPreparaciones(CATALOGO)
     conLLM(salida())
     const r = await llamar(perfilInicialHandler, { datos: DATOS, texto: RELATO, fotoIndicacionBase64: '  ' })
     expect(r.statusCode).toBe(200)
@@ -438,6 +582,7 @@ describe('(A8b) los datos del chico en el alta por voz', () => {
     pesoKg: { valor: 25, cita: 'pesa veinticinco kilos' },
     tallaCm: { valor: 127, cita: 'mide un metro veintisiete' },
     alergiasMencionadas: [{ valor: 'pescado', cita: 'alérgica al pescado' }, { valor: 'leche', cita: 'a la lactosa' }, { valor: 'pescado', cita: 'alérgica al pescado' }],
+    otrasAlergiasMencionadas: [],
     sinAlergias: null,
     alertas: [],
     atragantamiento: null,
@@ -468,5 +613,23 @@ describe('(A8b) los datos del chico en el alta por voz', () => {
     expect(d.sexo).toBeUndefined()
     expect(d.alergiasMencionadas).toEqual([])
     expect(faltanVitales(d, { acepta: [], rechaza: [] })).toEqual(['nombre', 'edad', 'sexo', 'alergias', 'acepta', 'rechaza'])
+  })
+
+  it('(v5.8) las otras alergias: como las dijo, con cita, sin repetir y sin las que son de ALERGENO con otro nombre', () => {
+    const texto = 'Es alérgico al kiwi y al Kiwi también, intolerante a la lactosa y el colorante rojo le da ronchas. Es celíaco.'
+    const d = depurarDatos(salida({
+      alergiasMencionadas: [],
+      otrasAlergiasMencionadas: [
+        { valor: 'kiwi', cita: 'alérgico al kiwi' }, { valor: 'Kiwi', cita: 'al Kiwi también' }, { valor: 'lactosa', cita: 'intolerante a la lactosa' },
+        { valor: 'colorante  rojo', cita: 'el colorante rojo le da ronchas' }, { valor: 'gluten (celíaco)', cita: 'Es celíaco' },
+        { valor: 'durazno', cita: 'alérgico al durazno' },
+      ],
+    }), texto)
+    expect(d.otrasAlergiasMencionadas).toEqual([
+      { valor: 'kiwi', cita: 'alérgico al kiwi' }, { valor: 'colorante rojo', cita: 'el colorante rojo le da ronchas' },
+    ])
+    // dijo una alergia (aunque no sea de ALERGENO): las alergias no faltan
+    expect(faltanVitales(d, { acepta: [], rechaza: [] })).not.toContain('alergias')
+    expect('otrasAlergiasMencionadas' in depurarDatos(salida(), relato)).toBe(false)
   })
 })

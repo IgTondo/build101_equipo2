@@ -49,3 +49,23 @@ export const GUIA_ALTA = {
 
 /** §10.4 · `atragantamiento`: alerta desde la primera vez. */
 export const AVISO_ATRAGANTAMIENTO = 'Si tose o se atraganta al comer, conviene consultar con su pediatra o con fonoaudiología.'
+
+const conMayuscula = (s: string) => s.charAt(0).toLocaleUpperCase('es') + s.slice(1)
+const listaY = (xs: string[]) => (xs.length <= 1 ? xs[0] ?? '' : `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}`)
+
+/**
+ * v5.8 · Qué pasa con sus otras alergias, con calma: las que cruzan con alimentos se revisan en cada receta; las que
+ * no ("colorante rojo") no se pueden revisar ingrediente por ingrediente. Vacío si no hay otras.
+ * "Kiwi lo revisamos en cada receta. «Colorante rojo» no lo podemos revisar ingrediente por ingrediente: tenelo en cuenta."
+ */
+export function textoOtrasAlergias(otras: readonly string[], sinCruce: readonly string[]): string {
+  const sin = new Set(sinCruce)
+  const cruzan = otras.filter((o) => !sin.has(o))
+  const noCruzan = otras.filter((o) => sin.has(o))
+  const partes: string[] = []
+  if (cruzan.length) partes.push(`${conMayuscula(listaY(cruzan))} ${cruzan.length === 1 ? 'lo' : 'los'} revisamos en cada receta.`)
+  if (noCruzan.length) {
+    partes.push(`${listaY(noCruzan.map((o) => `«${conMayuscula(o)}»`))} no ${noCruzan.length === 1 ? 'lo' : 'los'} podemos revisar ingrediente por ingrediente: tenelo en cuenta.`)
+  }
+  return partes.join(' ')
+}

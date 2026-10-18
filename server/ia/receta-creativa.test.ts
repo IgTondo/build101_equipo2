@@ -9,7 +9,8 @@ import { fijarAlimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
 import type { SalidaCreativa } from './prompts/receta-creativa.js'
 import { calcularAporte } from '../validacion/receta.js'
-import { completarCreativa, generarRecetaCreativa, problemasCreativa, problemasDeCalidad } from './receta-creativa.js'
+import { minimoComponentes } from './plato-completo.js'
+import { completarCreativa, generarRecetaCreativa, problemasCreativa, problemasDeCalidad, textoSinSeguros, type ConocimientoReceta } from './receta-creativa.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
 const llm = vi.mocked(generarJSON)
@@ -147,6 +148,44 @@ describe('generarRecetaCreativa', () => {
   })
 })
 
+describe('(v5.8) sus otras alergias y sin alimento seguro para esta comida', () => {
+  const conOtras = (...alergiasOtras: string[]): ConocimientoReceta => ({ ...conocimiento(), alergiasOtras })
+
+  it('el LLM las lee abajo del chico, y lo que alcanzan no está en la lista ni en el schema', async () => {
+    responde(PAPAS_CON_QUESO)
+    await pedir(undefined, conOtras('frutillas', 'colorante rojo'))
+    const p = promptDe(0)
+    expect(p).toMatch(/Chico: .*\nOtras alergias, como las contó la familia \(nada que las lleve, ni en los ingredientes ni en los pasos\): frutillas, colorante rojo\./)
+    expect(p).not.toContain('- frutilla:')
+    expect(p).toContain('- banana:')
+    const schema = llm.mock.calls[0]![0].schema
+    const conFrutilla = { ...PAPAS_CON_QUESO, ingredientes: [...PAPAS_CON_QUESO.ingredientes, { alimentoId: 'frutilla', gramos: 20 }] }
+    expect(schema.safeParse(conFrutilla).success).toBe(false)
+    expect(schema.safeParse(PAPAS_CON_QUESO).success).toBe(true)
+  })
+
+  it('un ingrediente que alcanzan o un paso que las nombra no pasa: reintenta con el problema', async () => {
+    const conColorante = { ...PAPAS_CON_QUESO, pasos: [...PAPAS_CON_QUESO.pasos, 'Decoralos con colorante rojo.'] }
+    responde(conColorante, PAPAS_CON_QUESO)
+    const r = await pedir(undefined, conOtras('colorante rojo'))
+    expect(promptDe(1)).toContain('aparece «colorante rojo» y tiene alergia declarada a colorante rojo')
+    expect(r.validacion.reintentos).toBe(1)
+
+    const k = conOtras('muzzarella')
+    const receta = completarCreativa(PAPAS_CON_QUESO, k, papasHorno)
+    expect(problemasCreativa(receta, k, papasHorno, [])).toContainEqual(expect.stringContaining('«Queso muzzarella» no puede ir: tiene alergia declarada a muzzarella'))
+  })
+
+  it('sin nada seguro para esta comida, dice cuál falta (sin_candidatos)', async () => {
+    const k = { ...conocimiento(), seguros: [], momento: 'desayuno' as const }
+    const e = await generarRecetaCreativa({ ninoId: 'tomas', momento: 'desayuno' }, { conocimiento: async () => k }).then(() => null, (x: unknown) => x)
+    expect((e as ErrorNibble).codigo).toBe('sin_candidatos')
+    expect((e as ErrorNibble).message).toBe(`Todavía no sabemos qué come ${k.nombre} en el desayuno: registrá un desayuno o contanos qué come.`)
+    expect(textoSinSeguros('Lucía', 'merienda')).toBe('Todavía no sabemos qué come Lucía en la merienda: registrá una merienda o contanos qué come.')
+    expect(llm).not.toHaveBeenCalled()
+  })
+})
+
 describe('(v5.6) calidad: el corazón de la app no puede ser una receta pobre', () => {
   const pureDePapa = catalogo.get('pure_papa')
   const desdePapas = papasHorno
@@ -237,5 +276,16 @@ describe('(v5.7) la comida completa: lo nuevo + lo que ya come, equilibrado para
     expect(promptDe(0)).toMatch(/La receta es una COMIDA COMPLETA para cena: un principal potente/)
     expect(promptDe(0)).toMatch(/- milanesa_carne_horno: Milanesa de carne al horno .* · proteina · ~\d+ g/)
     expect(promptDe(0)).toMatch(/El plato entero tiene que tener entre \d+ y \d+ kcal y al menos \d+ g de proteína/)
+  })
+})
+
+describe('(v5.8) repertorio chico: el plato se completa con lo que haya', () => {
+  it('si lo que ya come no alcanza sin otro principal, el mínimo baja (nunca a menos de 1)', () => {
+    const k = conocimiento()
+    const soloProteinas = { ...k, seguros: k.seguros.map((s) => ({ ...s, atributos: { ...s.atributos, grupo: 'proteina' as const } })) }
+    expect(minimoComponentes(soloProteinas)).toBe(1)
+    const unaGuarnicion = { ...soloProteinas, seguros: [...soloProteinas.seguros.slice(1), { ...k.seguros[0]!, atributos: { ...k.seguros[0]!.atributos, grupo: 'cereal_almidon' as const } }] }
+    expect(minimoComponentes(unaGuarnicion)).toBe(2)
+    expect(minimoComponentes(k)).toBeLessThanOrEqual(3)
   })
 })

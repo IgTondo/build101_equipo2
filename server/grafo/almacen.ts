@@ -25,6 +25,8 @@ export interface AlmacenGrafo {
   /** B6: la comida y el conocimiento actualizado, en una transacción. */
   escribirComida(comida: ComidaDoc, estado: EstadoNino): Promise<void>
   borrarNino(ninoId: string): Promise<void>
+  /** Las preparaciones fuera del catálogo sin chico (de antes de que fueran de cada chico) que ya nadie usa. */
+  borrarHuerfanas(): Promise<number>
   subgrafo(ninoId: string): Promise<GrafoVista>
   ping(): Promise<number>
 }

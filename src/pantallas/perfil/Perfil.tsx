@@ -2,7 +2,7 @@
 // Sin grafo ni números de confianza (C13). Hacia el padre nunca se dice "rechaza".
 // Arriba, la inicial del chico en un círculo, su nombre y su edad. La protagonista es "Lo que sabemos": lo que le
 // gusta como bocados, lo que está probando con las veces y lo que notamos en sus comidas. Abajo, tranquilos, sus
-// reglas, sus alergias y cuidados, y el resumen para el nutricionista. Al pie, callado, "Quitar de este celular".
+// reglas, sus alergias (v5.8: con las otras, "kiwi") y cuidados, y el resumen para el nutricionista. Al pie, callado, "Quitar de este celular".
 import { Camera, ShieldCheck, Stethoscope } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -12,6 +12,7 @@ import { IconoAlimento } from '../../componentes/IconoAlimento'
 import { PlatoVacio } from '../../componentes/Ilustraciones'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { Button } from '../../componentes/ui/button'
+import { useSinCruce } from '../../lib/alergias'
 import { api } from '../../lib/api'
 import { useNinoActivo } from '../../lib/nino'
 import { useApi } from '../../lib/useApi'
@@ -20,7 +21,7 @@ import { textoVeces } from './borrador'
 import { Aviso, ICONO, Inicial, TituloSeccion } from './Piezas'
 import { QuitarHijo } from './QuitarHijo'
 import { loQueSabemos } from './sabemos'
-import { anios, AVISO_DECLARADA, AVISO_DIETA, NOMBRE_DIETA, NOMBRE_SENAL } from './textos'
+import { anios, AVISO_DECLARADA, AVISO_DIETA, NOMBRE_DIETA, NOMBRE_SENAL, textoOtrasAlergias } from './textos'
 
 export function Perfil() {
   const ninoId = useNinoActivo()
@@ -62,6 +63,10 @@ function Fila({ termino, children }: { termino: string; children: ReactNode }) {
 function VistaPerfil({ perfil }: { perfil: PerfilT }) {
   const { ninoId, datos, reglas } = perfil
   const nino = `?nino=${encodeURIComponent(ninoId)}`
+  // v5.8 · Sus otras alergias ("kiwi") van con las de siempre; abajo, cuáles revisamos en cada receta y cuáles no
+  const otras = datos.alergiasOtras ?? []
+  const sinCruce = useSinCruce(otras)
+  const notaOtras = sinCruce ? textoOtrasAlergias(otras, sinCruce) : ''
 
   return (
     <div className="flex flex-col gap-7">
@@ -96,10 +101,16 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
         <TituloSeccion id="pf-t-cuidados" icono={ShieldCheck}>Alergias y cuidados</TituloSeccion>
         <dl className="flex flex-col divide-y">
           <Fila termino="Alergias">
-            {datos.alergias.length
+            {datos.alergias.length || otras.length
               ? (
-                <span className="flex flex-wrap gap-1.5">
-                  {datos.alergias.map((a) => <span key={a} className="rounded-full bg-muted px-3 py-0.5">{NOMBRE_ALERGENO[a]}</span>)}
+                <span className="flex flex-col gap-2">
+                  <span className="flex flex-wrap gap-1.5">
+                    {datos.alergias.map((a) => <span key={a} className="rounded-full bg-muted px-3 py-0.5">{NOMBRE_ALERGENO[a]}</span>)}
+                    {otras.map((o) => (
+                      <span key={o} className="max-w-full rounded-full bg-muted px-3 py-0.5 first-letter:uppercase [overflow-wrap:anywhere]">{o}</span>
+                    ))}
+                  </span>
+                  {notaOtras && <span className="text-sm font-normal text-musgo text-pretty">{notaOtras}</span>}
                 </span>
               )
               : <span className="font-normal">Sin alergias marcadas</span>}
