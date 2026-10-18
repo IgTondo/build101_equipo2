@@ -137,7 +137,7 @@ describe('generarImagen con Nano Banana (y FLUX de respaldo)', () => {
     expect(params).toEqual({
       model: 'gemini-nano-banana-2.1',
       input: PROMPT,
-      response_format: { type: 'image', aspect_ratio: '1:1', image_size: '1K', mime_type: 'image/jpeg', delivery: 'inline' },
+      response_format: { type: 'image', aspect_ratio: '1:1', image_size: '1K', mime_type: 'image/jpeg' },
     })
     expect(opciones).toEqual({ timeout_ms: 25_000, retries: { strategy: 'none' } })
     expect(fetchFalso).not.toHaveBeenCalled()

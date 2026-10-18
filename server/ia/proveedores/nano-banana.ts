@@ -37,7 +37,8 @@ export async function imagenNanoBanana(prompt: string, vence?: Vence) {
     r = await clienteGemini().interactions.create({
       model: modelo,
       input: prompt,
-      response_format: { type: 'image', aspect_ratio: '1:1', image_size: '1K', mime_type: 'image/jpeg', delivery: 'inline' },
+      // Sin `delivery`: el SDK lo tipa, pero la API responde 400 "Image delivery mode is not supported" (17/10/2026).
+      response_format: { type: 'image', aspect_ratio: '1:1', image_size: '1K', mime_type: 'image/jpeg' },
     }, { timeout_ms: porPedido(vence)?.timeout ?? TIMEOUT_MS, retries: { strategy: 'none' } })
   } catch (e) {
     throw errorNanoBanana(e)
