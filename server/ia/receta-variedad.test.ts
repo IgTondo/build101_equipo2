@@ -12,7 +12,7 @@ import { grupoParaVariedad, variedadDe } from '../nutricion/progreso.js'
 import { fijarAlimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
 import type { SalidaCreativa } from './prompts/receta-creativa.js'
-import { generarRecetaCreativa, type ConocimientoReceta } from './receta-creativa.js'
+import { generarRecetaCreativa, type ConocimientoReceta, type DepsRecetaCreativa } from './receta-creativa.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
 const llm = vi.mocked(generarJSON)
@@ -72,12 +72,17 @@ const promptDe = (llamada: number) => {
   const parte = llm.mock.calls[llamada]![0].partes[0]!
   return parte.tipo === 'texto' ? parte.texto : ''
 }
-const pedir = (k: ConocimientoReceta = conFoco(conocimiento())) => generarRecetaCreativa({ ninoId: 'tomas', momento: 'cena' }, { conocimiento: async () => k })
+// v5.10 · Los problemas de cada salida, como los ve alIntentar: el segundo intento es un pedido nuevo (otro foco) y no los lee
+const intentos: Parameters<NonNullable<DepsRecetaCreativa['alIntentar']>>[0][] = []
+const problemasDe = (llamada: number) => intentos[llamada]!.problemas.join('\n')
+const pedir = (k: ConocimientoReceta = conFoco(conocimiento())) =>
+  generarRecetaCreativa({ ninoId: 'tomas', momento: 'cena' }, { conocimiento: async () => k, alIntentar: (x) => { intentos.push(x) } })
 
 beforeAll(() => fijarAlimentos([...alimentos.values()]))
 afterAll(() => fijarAlimentos(null))
 beforeEach(() => {
   llm.mockReset()
+  intentos.length = 0
   vi.spyOn(console, 'info').mockImplementation(() => {})
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
@@ -160,12 +165,12 @@ describe('generarRecetaCreativa en modo variedad', () => {
     expect(p).toContain('devolvé nutriente: null')
   })
 
-  it('un plato de otro grupo no pasa: reintenta con el problema en castellano', async () => {
+  it('un plato de otro grupo no pasa: el problema, en castellano', async () => {
     responde(PAPAS_CON_QUESO, ZANAHORIA_FRITA)
     const r = await pedir()
     expect(llm).toHaveBeenCalledTimes(2)
-    expect(promptDe(1)).toContain('El objetivo es sumar variedad con verdura: el plato tiene que ser de ese grupo (atributos.grupo = verdura)')
-    expect(promptDe(1)).toContain('es de cereales, panes o papas')
+    expect(problemasDe(0)).toContain('El objetivo es sumar variedad con verdura: el plato tiene que ser de ese grupo (atributos.grupo = verdura)')
+    expect(problemasDe(0)).toContain('es de cereales, panes o papas')
     expect(r.nombre).toBe('Bastones de zanahoria fritos')
     expect(r.validacion.reintentos).toBe(1)
   })
@@ -174,7 +179,7 @@ describe('generarRecetaCreativa en modo variedad', () => {
     const disfrazado = { ...PAPAS_CON_QUESO, atributos: { ...PAPAS_CON_QUESO.atributos, grupo: 'verdura' as const } }
     responde(disfrazado, ZANAHORIA_FRITA)
     await pedir()
-    expect(promptDe(1)).toMatch(/sumar variedad con verdura.*ingrediente principal/)
+    expect(problemasDe(0)).toMatch(/sumar variedad con verdura.*ingrediente principal/)
   })
 
   it('en modo nutriente el objetivo es el nutriente', async () => {
@@ -185,17 +190,18 @@ describe('generarRecetaCreativa en modo variedad', () => {
     expect(r.evidencia.nutriente).toBe('calcio_mg')
   })
 
-  it('(v5.10) el ingrediente del foco es el de ese grupo: el prompt lo nombra y otro solo pasa en el reintento', async () => {
+  it('(v5.10) el ingrediente del foco es el de ese grupo: el prompt lo nombra y otro solo pasa en el reintento relajado', async () => {
     responde(ZANAHORIA_FRITA)
     await pedir()
     expect(promptDe(0)).toContain('cambiá el ingrediente principal: el ingrediente principal (el de más gramos) es «Zanahoria» (zanahoria); mantené la forma, la textura, el sabor, la temperatura y la cocción, para sumar variedad: el plato tiene que ser del grupo verdura.')
     expect(promptDe(0)).toContain('Es lo que pide la app: no partas de otro alimento seguro ni cambies de ingrediente.')
 
-    responde(ZANAHORIA_FRITA, ZANAHORIA_FRITA)
+    responde(ZANAHORIA_FRITA, ZANAHORIA_FRITA, ZANAHORIA_FRITA)
     const r = await pedir(conFoco(conocimiento(), { ...FOCO_ZANAHORIA, ingrediente: 'zapallo' }))
-    expect(promptDe(2)).toContain('tiene que ser Zapallo cocido (zapallo), y en «Bastones de zanahoria fritos» es Zanahoria')
-    expect(promptDe(2)).toContain('Si así no se puede cumplir alguna regla, elegí otro alimento seguro u otro ingrediente de verdura.')
-    expect(r.validacion.reintentos).toBe(1)
+    expect(problemasDe(1)).toContain('tiene que ser Zapallo cocido (zapallo), y en «Bastones de zanahoria fritos» es Zanahoria')
+    expect(promptDe(3)).toContain('tiene que ser Zapallo cocido (zapallo), y en «Bastones de zanahoria fritos» es Zanahoria')
+    expect(promptDe(3)).toContain('Si así no se puede cumplir alguna regla, elegí otro alimento seguro u otro ingrediente de verdura.')
+    expect(r.validacion.reintentos).toBe(2)
   })
 })
 
