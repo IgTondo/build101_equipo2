@@ -1,10 +1,11 @@
-// C7 · Receta con food chaining (PLAN.md §9). Ruta: /receta?nino=&nutriente=&preparacionId=&motor=
+// C7 · Receta con food chaining (PLAN.md §9). Ruta: /receta?nino=&nutriente=&preparacionId=&motor=&momento=
+// v5.1: `momento` es la comida para la que es (la próxima comida del inicio): viaja en RecetaReq y titula la pantalla.
 // Sin preparacionId: el padre elige el nutriente (por defecto, el primero de semana.faltan) y pide la receta.
 // Con preparacionId (viene de una tarjeta de sugerencia del tablero): la receta se pide sola.
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
-import { MOTOR, NUTRIENTE } from '../../../shared/contratos'
-import type { Motor, Nutriente, Receta as RecetaT, Regla } from '../../../shared/contratos'
+import { Link, useSearchParams } from 'react-router-dom'
+import { MOMENTO, MOTOR, NUTRIENTE } from '../../../shared/contratos'
+import type { Momento, Motor, Nutriente, Receta as RecetaT, Regla } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { useNinoActivo } from '../../lib/nino'
@@ -26,17 +27,25 @@ const SIN_REGLAS: Regla[] = []
 
 const esNutriente = (x: string | null): x is Nutriente => x !== null && x !== 'energia_kcal' && (NUTRIENTE as readonly string[]).includes(x)
 const esMotor = (x: string | null): x is Motor => x !== null && (MOTOR as readonly string[]).includes(x)
+const esMomento = (x: string | null): x is Momento => x !== null && (MOMENTO as readonly string[]).includes(x)
+
+/** "para el almuerzo" · "para la cena" · "para la merienda" (la comida de ?momento=). */
+export const PARA_LA_COMIDA: Record<Momento, string> = {
+  desayuno: 'para el desayuno', almuerzo: 'para el almuerzo', merienda: 'para la merienda', cena: 'para la cena', colacion: 'para la colación',
+}
 
 export function Receta() {
   const ninoId = useNinoActivo()
-  const { search } = useLocation()
   const [params, setParams] = useSearchParams()
   const nutrienteUrl = params.get('nutriente')
   const motorUrl = params.get('motor')
   const motor = esMotor(motorUrl) ? motorUrl : undefined
+  const momentoUrl = params.get('momento')
+  const momento = esMomento(momentoUrl) ? momentoUrl : undefined
+  const para = momento ? PARA_LA_COMIDA[momento] : null
   const preparacionInicial = useRef(params.get('preparacionId') ?? undefined)
 
-  const progreso = useApi((s) => api.progreso(ninoId, { dias: 7, motor }, s), [ninoId, motor])
+  const progreso = useApi((s) => api.progreso(ninoId, { dias: 7, motor, momento }, s), [ninoId, motor, momento])
   const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
   const nombre = perfil.tipo === 'ok' ? perfil.datos.datos.nombre : null
   const reglas = perfil.tipo === 'ok' ? perfil.datos.reglas : perfil.tipo === 'error' ? SIN_REGLAS : null
@@ -64,7 +73,7 @@ export function Receta() {
       setPedido((p) => (p.tipo === 'pidiendo' ? { tipo: 'pidiendo', etapa: i + 1 } : p))
     }, ms))
     relojes.current = mios
-    api.receta({ ninoId, nutriente: para, preparacionId }, motor, c.signal)
+    api.receta({ ninoId, nutriente: para, preparacionId, ...(momento ? { momento } : {}) }, motor, c.signal)
       .then((receta) => {
         if (c.signal.aborted) return
         mostradas.current.add(receta.preparacionBaseId)
@@ -102,13 +111,15 @@ export function Receta() {
     setPedido({ tipo: 'eligiendo' })
   }
 
-  const alTablero = <Link className="nb-boton nb-boton-secundario" to={{ pathname: '/tablero', search }}>Volver al tablero</Link>
+  // Desde el inicio (con ?momento=) se vuelve al inicio; desde el tablero, a la semana.
+  const volverA = { pathname: momento ? '/' : '/tablero', search: `?${new URLSearchParams({ nino: ninoId, ...(motor ? { motor } : {}) })}` }
+  const alTablero = <Link className="nb-boton nb-boton-secundario" to={volverA}>{momento ? 'Volver al inicio' : 'Volver a la semana'}</Link>
 
   if (pedido.tipo === 'pidiendo') {
     const etapas = [nombre ? `Buscando en el grafo de ${nombre}…` : 'Buscando en su grafo…', 'Escribiendo la receta…', 'Validando alergias…']
     return (
       <section className="nb-tarjeta rc-progreso" aria-labelledby="rc-progreso-titulo">
-        <h1 id="rc-progreso-titulo">Preparando una receta</h1>
+        <h1 id="rc-progreso-titulo">Preparando una receta{para ? ` ${para}` : ''}</h1>
         <Cargando texto={etapas[pedido.etapa]} />
         <ol className="rc-etapas" aria-hidden="true">
           {etapas.map((t, i) => (
@@ -122,7 +133,7 @@ export function Receta() {
   if (pedido.tipo === 'ok') {
     return (
       <>
-        <TarjetaReceta receta={pedido.receta} reglas={reglas} />
+        <TarjetaReceta receta={pedido.receta} reglas={reglas} para={para} />
         <div className="rc-acciones">
           <button type="button" className="nb-boton" onClick={() => otraOpcion(pedido.receta)}>Otra opción</button>
           <button type="button" className="nb-boton nb-boton-secundario" onClick={elegirOtroNutriente}>Elegir otro nutriente</button>
@@ -137,7 +148,7 @@ export function Receta() {
       <>
         <Vacio titulo={`Todavía no encontramos un paso chico para ${nutriente ? nutrienteEnFrase(nutriente) : 'lo que le falta'}`}>
           <p className="nb-suave">Registrá algunas comidas más: con cada una aprendemos qué le gusta y aparecen nuevas ideas.</p>
-          <Link className="nb-boton" to={{ pathname: '/registrar', search }}>Registrar una comida</Link>
+          <Link className="nb-boton" to={{ pathname: '/registrar', search: volverA.search }}>Registrar una comida</Link>
         </Vacio>
         <div className="rc-acciones">
           <button type="button" className="nb-boton nb-boton-secundario" onClick={elegirOtroNutriente}>Elegir otro nutriente</button>
@@ -152,8 +163,7 @@ export function Receta() {
   return (
     <>
       <section className="nb-tarjeta rc-elegir" aria-labelledby="rc-elegir-titulo">
-        <h1 id="rc-elegir-titulo">Una receta para dar un pasito</h1>
-        <p className="nb-suave">Parte de algo que {nombre ?? 'ya'} come y cambia una sola cosa.</p>
+        <h1 id="rc-elegir-titulo">{para ? `Una receta ${para}` : 'Una receta para dar un pasito'}</h1>
         {sinNutrienteTodavia
           ? <Cargando texto="Mirando qué le falta esta semana…" />
           : <SelectorNutriente semana={progreso.tipo === 'ok' ? progreso.datos.semana : null} valor={nutriente} onCambiar={setElegido} />}

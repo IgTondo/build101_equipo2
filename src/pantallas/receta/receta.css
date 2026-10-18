@@ -132,3 +132,6 @@
   .rc-acciones .nb-boton:active { transform: none; }
   .rc-imagen-marco img, .rc-etapas li, .rc-etapas li::before { transition: none; }
 }
+
+/* v5.1 · "Para el almuerzo": la comida para la que es la receta */
+.rc-para { margin: 0 0 -14px; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--nb-primario); }

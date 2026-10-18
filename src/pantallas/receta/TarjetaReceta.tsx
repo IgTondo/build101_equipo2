@@ -4,7 +4,8 @@ import { NOMBRE_CAMBIO, formatoNutriente, porcentaje, textoParaPadres } from '..
 import { ImagenPlato } from './ImagenPlato'
 import { aceptacionLegible, alergenoEnFrase, listaLegible, nutrienteEnFrase } from './legible'
 
-export function TarjetaReceta({ receta, reglas }: { receta: Receta; reglas: Regla[] | null }) {
+/** `para`: "para el almuerzo" cuando la receta es para la próxima comida (v5.1). */
+export function TarjetaReceta({ receta, reglas, para = null }: { receta: Receta; reglas: Regla[] | null; para?: string | null }) {
   const { evidencia } = receta
   const n = evidencia.nutriente
   const candidato = evidencia.candidatos.find((c) => c.preparacionId === receta.preparacionBaseId)
@@ -19,6 +20,7 @@ export function TarjetaReceta({ receta, reglas }: { receta: Receta; reglas: Regl
         {receta.seMantiene.length > 0 && <div><dt>Se mantiene</dt><dd>{listaLegible(receta.seMantiene)}</dd></div>}
       </dl>
 
+      {para && <p className="rc-para">{para[0].toLocaleUpperCase('es') + para.slice(1)}</p>}
       <h1 id="rc-titulo" className="rc-titulo">{receta.nombre}</h1>
 
       <section className="rc-seccion" aria-labelledby="rc-porque">
