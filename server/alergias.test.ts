@@ -13,7 +13,7 @@ describe('alimentosProhibidos', () => {
   it('kiwi y durazno: el alimento, en singular o plural y con mayúsculas', () => {
     expect(prohibidos('kiwi')).toEqual(['kiwi'])
     expect(prohibidos('Kiwis')).toEqual(['kiwi'])
-    expect(prohibidos('duraznos')).toEqual(['durazno'])
+    expect(prohibidos('duraznos')).toEqual(['durazno', 'durazno_almibar']) // v5.10: el catálogo suma los duraznos en almíbar
     expect(prohibidos('melocotón')).toEqual(['durazno'])
   })
 
@@ -29,7 +29,7 @@ describe('alimentosProhibidos', () => {
   })
 
   it('un alimento nombrado dentro de la alergia cuenta (ante la duda, se bloquea)', () => {
-    expect(prohibidos('durazno en almíbar')).toEqual(['durazno'])
+    expect(prohibidos('durazno en almíbar')).toEqual(['durazno', 'durazno_almibar']) // v5.10: y ahora también el propio
     expect(prohibidos('jugo de naranja')).toEqual(['jugo_naranja', 'naranja'])
   })
 

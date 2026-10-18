@@ -1,13 +1,16 @@
 // Catálogo de alimentos desde USDA FoodData Central (PLAN.md §7 A3, §10.1).
-// Uso: npx tsx scripts/usda.ts [--subir]
+// Uso: npx tsx scripts/usda.ts [--subir] [--solo-curado]
 // Lee los CSV descargados en data/usda/{fndds,sr_legacy,foundation}/ (ignorado; ver DESCARGAS) y genera:
 //  (1) data/alimentos.json: el catálogo curado (scripts/usda/curados.ts) con nutrientes reales, según MAPEO (abajo).
 //  (2) data/usda/alimentos_fdc.jsonl: todos los alimentos de FNDDS + SR Legacy + Foundation en formato Alimento.
 //      Con --subir y MONGODB_URI reemplaza la colección alimentos_fdc y le crea el índice de texto.
+//      v5.10 · Con --solo-curado no se escribe (sale solo de los CSV, no de la tabla curada): para regenerar el
+//      catálogo desde un worktree que comparte data/usda con otros.
 // Sale con código 1 si algo no cierra (un id sin mapeo, un fdcId que no está, un nutriente fuera de rango).
 import { createWriteStream, existsSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { esCondimento } from '../server/ia/condimentos.js'
 import { ALERGENO, GRUPO, NUTRIENTE, type Alergeno, type Alimento, type Nutrientes } from '../shared/contratos.js'
 import { CURADOS, NOMBRE_GENERICO } from './usda/curados.js'
 import { filasCsv } from './usda/csv.js'
@@ -101,6 +104,28 @@ const MAPEO: Record<string, Mapeo> = {
   pepino: { fdc: [2709784], porcion: 40 },                    // Cucumber, raw
   coliflor: { fdc: [2709897], porcion: 50 },                  // Cauliflower, fresh, cooked, no added fat
   remolacha: { fdc: [2709872, 169146], porcion: 50 },         // Beets, fresh, cooked, no added fat
+  // v5.10 · Más verduras
+  repollo: { fdc: [2709773], porcion: 40 },                   // Cabbage, green, raw: en ensalada
+  repollo_colorado: { fdc: [2709775], porcion: 40 },          // Cabbage, red, raw
+  repollitos_bruselas: { fdc: [2709881], porcion: 50 },       // Brussels sprouts, fresh, cooked, no added fat
+  kale: { fdc: [2709600], porcion: 50 },                      // Kale, fresh, cooked, no added fat
+  rucula: { fdc: [169387], porcion: 20 },                     // Arugula, raw (SR: FNDDS no la tiene)
+  berro: { fdc: [2709639], porcion: 20 },                     // Watercress, raw
+  radicheta: { fdc: [169992], porcion: 20 },                  // Chicory greens, raw (SR)
+  apio: { fdc: [2709778], porcion: 30 },                      // Celery, raw
+  puerro: { fdc: [168426], porcion: 40 },                     // Leeks, cooked, boiled (SR): el "Leeks" de FNDDS viene con grasa
+  hinojo: { fdc: [2709779], porcion: 40 },                    // Fennel bulb, raw
+  berenjena: { fdc: [2709929], porcion: 60 },                 // Eggplant, cooked, no added fat
+  morron_verde: { fdc: [2709800], porcion: 20 },              // Peppers, sweet, green, raw
+  morron_amarillo: { fdc: [169383], porcion: 20 },            // Peppers, sweet, yellow, raw (SR)
+  rabanito: { fdc: [2709803], porcion: 20 },                  // Radish
+  nabo: { fdc: [2710002], porcion: 50 },                      // Turnip, cooked
+  champinones: { fdc: [2709937], porcion: 40 },               // Mushrooms, fresh, cooked, no added fat
+  esparragos: { fdc: [2709834], porcion: 50 },                // Asparagus, fresh, cooked, no added fat
+  alcaucil: { fdc: [2709766], porcion: 60 },                  // Artichoke
+  palmitos: { fdc: [168569], porcion: 40 },                   // Hearts of palm, canned (SR): el de FNDDS viene cocido con grasa
+  habas: { fdc: [170378], porcion: 50 },                      // Broadbeans, immature seeds, cooked, boiled (SR): las frescas; las de FNDDS son secas
+  jardinera: { fdc: [2710013], porcion: 60 },                 // Classic mixed vegetables, frozen, cooked, no added fat
   // Frutas (crudas)
   banana: { fdc: [2709224], porcion: 100 },
   manzana: { fdc: [2709215], porcion: 120 },
@@ -115,6 +140,29 @@ const MAPEO: Record<string, Mapeo> = {
   sandia: { fdc: [2709270], porcion: 150 },
   melon: { fdc: [2709226], porcion: 120 },                    // Cantaloupe, raw
   anana: { fdc: [2709260], porcion: 100 },
+  // v5.10 · Más frutas (crudas, salvo las secas y las listas)
+  ciruela: { fdc: [2709265], porcion: 70 },
+  damasco: { fdc: [2709221], porcion: 70 },                   // Apricot, raw
+  pelon: { fdc: [2709245], porcion: 120 },                    // Nectarine, raw
+  cereza: { fdc: [2709231], porcion: 80 },
+  higo: { fdc: [2709235], porcion: 50 },
+  arandanos: { fdc: [2709275], porcion: 70 },                 // Blueberries, raw
+  frambuesa: { fdc: [2709281], porcion: 70 },
+  mora: { fdc: [2709273], porcion: 70 },                      // Blackberries, raw
+  nispero: { fdc: [169908], porcion: 60 },                    // Loquats, raw (SR)
+  caqui: { fdc: [2709259], porcion: 100 },                    // Persimmon, raw
+  granada: { fdc: [2709267], porcion: 50 },                   // Pomegranate, raw: los granos
+  pomelo: { fdc: [2709165], porcion: 120 },                   // Grapefruit, raw
+  mango: { fdc: [2709242], porcion: 100 },
+  mamon: { fdc: [2709246], porcion: 100 },                    // Papaya, raw
+  maracuya: { fdc: [2709248], porcion: 30 },                  // Passion fruit, raw: la pulpa de una o dos
+  palta: { fdc: [2709223], porcion: 40 },                     // Avocado, raw
+  pasas_uva: { fdc: [2709212], porcion: 20 },                 // Raisins
+  ciruela_pasa: { fdc: [2709211], porcion: 25 },              // Prune, dried
+  orejones: { fdc: [2709197], porcion: 25 },                  // Apricot, dried
+  compota_manzana: { fdc: [171695], porcion: 120 },           // Applesauce, unsweetened, without added ascorbic acid (SR): la de FNDDS trae 44 mg de vitamina C agregada
+  durazno_almibar: { fdc: [2709251], porcion: 120 },          // Peach, canned, in syrup
+  ensalada_frutas: { fdc: [2709288], porcion: 150 },          // Fruit salad, fresh or raw, including citrus fruits, no dressing
   // Lácteos. La leche común de Uruguay no viene con vitamina D: la base es la de SR sin vitaminas agregadas y la
   // fortificada es su par de SR con vitamina D (el mismo alimento, solo cambia la fortificación).
   leche: { fdc: [172217], porcion: 200 },                     // Milk, whole, 3.25% milkfat, without added vitamin A and vitamin D (SR)
@@ -145,6 +193,26 @@ const MAPEO: Record<string, Mapeo> = {
   chocolate: { fdc: [167587], porcion: 25 },                  // Candies, milk chocolate (SR): el FNDDS no distingue chocolate con leche
   miel: { fdc: [2710281], porcion: 10 },
   bizcochuelo: { fdc: [2707886], porcion: 50 },               // Cake, sponge
+  // v5.10 · Condimentos y hierbas (server/ia/condimentos.ts), con lo que lleva un plato para un chico. Frescas las que
+  // acá se usan frescas (perejil, albahaca, romero, verdeo); secas las de frasco (SR "Spices, …": FNDDS no las tiene)
+  oregano: { fdc: [171328], porcion: 1 },                     // Spices, oregano, dried
+  pimenton: { fdc: [171329], porcion: 1 },                    // Spices, paprika
+  comino: { fdc: [170923], porcion: 1 },                      // Spices, cumin seed
+  perejil: { fdc: [2709796, 170416], porcion: 5 },            // Parsley, raw
+  albahaca: { fdc: [2709780, 172232], porcion: 3 },           // Basil, raw
+  ajo: { fdc: [2709786], porcion: 5 },                        // Garlic, raw: un diente
+  cebolla_verdeo: { fdc: [2709794], porcion: 10 },            // Onions, green, raw
+  nuez_moscada: { fdc: [171326], porcion: 1 },                // Spices, nutmeg, ground
+  canela: { fdc: [171320], porcion: 1 },                      // Spices, cinnamon, ground
+  vainilla: { fdc: [172236], porcion: 2 },                    // Vanilla extract, imitation, no alcohol: la esencia de acá
+  tomillo: { fdc: [170938], porcion: 1 },                     // Spices, thyme, dried
+  laurel: { fdc: [170917], porcion: 1 },                      // Spices, bay leaf
+  jugo_limon: { fdc: [2709181, 167747], porcion: 10 },        // Lemon juice, 100%, freshly squeezed
+  curcuma: { fdc: [172231], porcion: 1 },                     // Spices, turmeric, ground
+  romero: { fdc: [173473], porcion: 2 },                      // Rosemary, fresh (SR)
+  pimienta: { fdc: [170931], porcion: 1 },                    // Spices, pepper, black
+  vinagre: { fdc: [2709351], porcion: 10 },
+  cacao_amargo: { fdc: [2705587, 169593], porcion: 5 },       // Cocoa powder, not reconstituted: sin azúcar, para repostería
 }
 
 // ---------- Lectura de los CSV ----------
@@ -222,8 +290,9 @@ function curar(foods: Map<number, AlimentoFdc>, nutrientes: Map<number, Crudos>,
   const curados = CURADOS.map((c) => porId.get(c.id)!)
 
   // Genéricos otro_<grupo>: mediana de los curados del grupo; alérgenos, la unión (un "otro" puede ser cualquiera de ellos)
+  // v5.10 · Sin los condimentos: un "otro alimento" del plato no es una especia (le subían el calcio y el hierro)
   const genericos = GRUPO.map((g): Alimento => {
-    const delGrupo = curados.filter((a) => a.grupo === g)
+    const delGrupo = curados.filter((a) => a.grupo === g && !esCondimento(a.id))
     const alergenos = new Set<Alergeno>(delGrupo.flatMap((a) => a.alergenos))
     if (g === 'proteina') alergenos.add('mariscos')
     return {
@@ -235,16 +304,20 @@ function curar(foods: Map<number, AlimentoFdc>, nutrientes: Map<number, Crudos>,
   return [...curados, ...genericos]
 }
 
-// Topes cada 100 g para detectar unidades mal leídas (µg por mg, kJ por kcal): ningún curado se les acerca
+// Topes cada 100 g para detectar unidades mal leídas (µg por mg, kJ por kcal): ningún curado se les acerca.
+// v5.10 · B12 hasta 100 (el hígado vacuno tiene 82 µg) y omega-3 hasta 25 (las semillas de lino, 19 g). Los condimentos
+// secos concentran (tomillo: 1890 mg de calcio y 124 mg de hierro; canela: 53 g de fibra) y tienen su propio tope.
 const TOPE: Nutrientes = {
-  energia_kcal: 900, proteina_g: 100, calcio_mg: 1500, vitamina_d_ug: 50, hierro_mg: 60, fibra_g: 50, omega3_g: 15, b12_ug: 50, vitamina_c_mg: 200,
+  energia_kcal: 900, proteina_g: 100, calcio_mg: 1500, vitamina_d_ug: 50, hierro_mg: 60, fibra_g: 50, omega3_g: 25, b12_ug: 100, vitamina_c_mg: 200,
 }
+const TOPE_CONDIMENTO: Nutrientes = { ...TOPE, calcio_mg: 2500, hierro_mg: 150, fibra_g: 70 }
 
 function controlar(lista: Alimento[]): void {
   for (const a of lista) {
+    const tope = esCondimento(a.id) ? TOPE_CONDIMENTO : TOPE
     for (const n of NUTRIENTE) {
       const x = a.por100g[n]
-      if (!Number.isFinite(x) || x < 0 || x > TOPE[n]) fallar(`${a.id}: ${n} = ${x} fuera de rango`)
+      if (!Number.isFinite(x) || x < 0 || x > tope[n]) fallar(`${a.id}: ${n} = ${x} fuera de rango`)
     }
     if (!(a.porcionMedianaG > 0)) fallar(`${a.id}: porcionMedianaG inválida`)
   }
@@ -291,6 +364,7 @@ async function main(): Promise<void> {
   console.log(`usda: ${SALIDA_CURADO}: ${catalogo.length} alimentos (${conFaltantes.length} con faltantes)`)
   for (const a of conFaltantes) console.log(`  ${a.id} (${a.dataset} ${a.fdcId}): sin ${a.faltantes!.join(', ')}`)
 
+  if (process.argv.includes('--solo-curado')) return // v5.10
   const todos = [...foods.values()].map((f) => aAlimentoFdc(f, nutrientes.get(f.fdcId), porciones.get(f.fdcId) ?? []))
   const salida = createWriteStream(SALIDA_FDC)
   for (const a of todos) salida.write(JSON.stringify(a) + '\n')

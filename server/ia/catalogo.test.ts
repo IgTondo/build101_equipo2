@@ -3,8 +3,27 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ALERGENO, GRUPO, NUTRIENTE, type Alergeno, type Alimento, type Nutriente } from '../../shared/contratos.js'
 import { alimentoPorId, alimentos, esGenerico, fijarAlimentos, idGenerico, idsAlimentos } from './catalogo.js'
+import { CONDIMENTOS, esCondimento } from './condimentos.js'
 
 const leer = (...ruta: string[]): unknown => JSON.parse(readFileSync(join(process.cwd(), ...ruta), 'utf8'))
+
+// v5.10 · Los 96 curados hasta v5.9: los usan B, C, el dataset sintético y los tests. Se suman alimentos, nunca se renombran.
+const IDS_V5_9 = `arroz fideos fideos_huevo noquis pan_blanco pan_integral pan_rallado galletitas_agua galletitas_integrales
+galletitas_dulces galletitas_avena grisines avena cereal_fortificado harina_trigo polenta papa boniato choclo
+prepizza medialuna carne_vacuna carne_picada pollo nuggets_pollo hamburguesa_comercial carne_cerdo salchicha
+jamon chorizo huevo huevo_enriquecido merluza palitos_pescado atun salmon lentejas garbanzos porotos
+pasta_mani zanahoria zapallo zapallito brocoli chauchas arvejas tomate salsa_tomate lechuga espinaca acelga
+cebolla morron pepino coliflor remolacha banana manzana pera naranja jugo_naranja mandarina frutilla kiwi
+durazno uva sandia melon anana leche leche_vitamina_d yogur yogur_vitamina_d yogur_bebible queso_dambo
+queso_muzzarella queso_rallado queso_crema ricota helado postre_lacteo aceite_girasol aceite_canola
+aceite_oliva manteca azucar cacao_azucarado dulce_de_leche alfajor mermelada mayonesa ketchup papas_chips
+chocolate miel bizcochuelo`.split(/\s+/)
+
+const mediana = (xs: number[]) => {
+  const o = [...xs].sort((a, b) => a - b)
+  const m = Math.floor(o.length / 2)
+  return o.length % 2 ? o[m] : (o[m - 1] + o[m]) / 2
+}
 
 // Todos los alimentoId que aparezcan en cualquier nivel del JSON
 function alimentoIds(o: unknown, ids = new Set<string>()): Set<string> {
@@ -27,12 +46,41 @@ describe('data/alimentos.json', () => {
     for (const id of ids) expect(id).toMatch(/^[a-z][a-z0-9_]*$/)
   })
 
-  it('tiene entre 80 y 100 alimentos curados, más los 6 genéricos', () => {
+  it('tiene los curados de v5.9 y los que suma v5.10 (hasta 270), más los 6 genéricos', () => {
     const genericos = idsAlimentos().filter(esGenerico)
     expect(genericos.sort()).toEqual(GRUPO.map(idGenerico).sort())
     const curados = alimentos().length - genericos.length
-    expect(curados).toBeGreaterThanOrEqual(80)
-    expect(curados).toBeLessThanOrEqual(100)
+    expect(curados).toBeGreaterThan(IDS_V5_9.length)
+    expect(curados).toBeLessThanOrEqual(270)
+  })
+
+  it('v5.10 · siguen los 96 ids de v5.9, con su grupo de siempre', () => {
+    expect(IDS_V5_9).toHaveLength(96)
+    expect(IDS_V5_9.filter((id) => !alimentoPorId(id))).toEqual([])
+    expect(alimentoPorId('papa')?.grupo).toBe('cereal_almidon')
+    expect(alimentoPorId('pasta_mani')?.grupo).toBe('proteina')
+    expect(alimentoPorId('choclo')?.grupo).toBe('cereal_almidon')
+  })
+
+  it('v5.10 · los condimentos existen, son del grupo otro, sin alérgenos y con porción chica', () => {
+    expect(CONDIMENTOS.size).toBeGreaterThanOrEqual(15)
+    for (const id of CONDIMENTOS) {
+      const a = alimentoPorId(id)
+      expect(a, id).toBeDefined()
+      expect(a!.grupo, id).toBe('otro')
+      expect(a!.alergenos, id).toEqual([])
+      expect(a!.porcionMedianaG, id).toBeLessThanOrEqual(10)
+      expect(esCondimento(id)).toBe(true)
+    }
+    expect(esCondimento('oregano')).toBe(true)
+    expect(esCondimento('queso_rallado')).toBe(false)
+  })
+
+  it('v5.10 · el genérico otro_otro no cuenta los condimentos (las especias secas le subían el calcio y el hierro)', () => {
+    const otros = alimentos().filter((a) => a.grupo === 'otro' && !esGenerico(a.id) && !esCondimento(a.id))
+    const generico = alimentoPorId(idGenerico('otro'))!
+    for (const n of NUTRIENTE) expect(generico.por100g[n], n).toBeCloseTo(mediana(otros.map((a) => a.por100g[n])), 3)
+    expect(generico.porcionMedianaG).toBe(Math.round(mediana(otros.map((a) => a.porcionMedianaG))))
   })
 
   it('cada genérico pertenece a su grupo', () => {
@@ -106,6 +154,14 @@ describe('data/alimentos.json', () => {
     expect(v('lentejas', 'hierro_mg')).toBeGreaterThan(2)
     expect(v('aceite_girasol', 'energia_kcal')).toBeGreaterThan(850)
     expect(v('pollo', 'proteina_g')).toBeGreaterThan(25)
+    // v5.10
+    expect(v('kale', 'calcio_mg')).toBeGreaterThan(200)
+    expect(v('rucula', 'calcio_mg')).toBeGreaterThan(100)
+    expect(v('morron_amarillo', 'vitamina_c_mg')).toBeGreaterThan(150)
+    expect(v('perejil', 'vitamina_c_mg')).toBeGreaterThan(100)
+    expect(v('palta', 'energia_kcal')).toBeGreaterThan(140)
+    expect(v('compota_manzana', 'vitamina_c_mg')).toBeLessThan(5) // sin el ácido ascórbico que le agrega EE. UU.
+    expect(v('tomillo', 'hierro_mg')).toBeGreaterThan(60) // seco: por eso los condimentos tienen su propio tope
   })
 
   it('las versiones fortificadas aportan más que su base', () => {

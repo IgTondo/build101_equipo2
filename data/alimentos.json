@@ -2472,7 +2472,6 @@
     "alias": [
       "morrón",
       "pimiento",
-      "pimentón",
       "ají dulce",
       "bell pepper"
     ],
@@ -2639,6 +2638,790 @@
       {
         "descripcion": "1 slice",
         "gramos": 10
+      }
+    ]
+  },
+  {
+    "id": "repollo",
+    "nombre": "Repollo",
+    "alias": [
+      "repollo blanco",
+      "col",
+      "berza",
+      "cabbage"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709773,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 40,
+    "por100g": {
+      "energia_kcal": 31,
+      "proteina_g": 0.96,
+      "calcio_mg": 42,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.07,
+      "fibra_g": 2.5,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 40.3
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 90
+      },
+      {
+        "descripcion": "1 leaf",
+        "gramos": 25
+      },
+      {
+        "descripcion": "1 head",
+        "gramos": 900
+      }
+    ]
+  },
+  {
+    "id": "repollo_colorado",
+    "nombre": "Repollo colorado",
+    "alias": [
+      "repollo morado",
+      "col lombarda",
+      "red cabbage"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709775,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 40,
+    "por100g": {
+      "energia_kcal": 34,
+      "proteina_g": 1.24,
+      "calcio_mg": 31,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0,
+      "fibra_g": 2.1,
+      "omega3_g": 0.045,
+      "b12_ug": 0,
+      "vitamina_c_mg": 53.9
+    },
+    "porciones": [
+      {
+        "descripcion": "1 head",
+        "gramos": 840
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 90
+      },
+      {
+        "descripcion": "1 leaf",
+        "gramos": 25
+      }
+    ]
+  },
+  {
+    "id": "repollitos_bruselas",
+    "nombre": "Repollitos de Bruselas",
+    "alias": [
+      "repollitos",
+      "coles de bruselas",
+      "brussels sprouts"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709881,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 45,
+      "proteina_g": 3.51,
+      "calcio_mg": 44,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.45,
+      "fibra_g": 3.9,
+      "omega3_g": 0.103,
+      "b12_ug": 0,
+      "vitamina_c_mg": 75
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 155
+      },
+      {
+        "descripcion": "1 sprout",
+        "gramos": 20
+      }
+    ]
+  },
+  {
+    "id": "kale",
+    "nombre": "Kale",
+    "alias": [
+      "col rizada",
+      "col crespa",
+      "berza rizada"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709600,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 46,
+      "proteina_g": 3.13,
+      "calcio_mg": 272,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.72,
+      "fibra_g": 4.4,
+      "omega3_g": 0.405,
+      "b12_ug": 0,
+      "vitamina_c_mg": 70.1
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 130
+      }
+    ]
+  },
+  {
+    "id": "rucula",
+    "nombre": "Rúcula",
+    "alias": [
+      "rucula",
+      "rúcola",
+      "rúgula",
+      "arúgula",
+      "arugula"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 169387,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 25,
+      "proteina_g": 2.58,
+      "calcio_mg": 160,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.46,
+      "fibra_g": 1.6,
+      "omega3_g": 0.17,
+      "b12_ug": 0,
+      "vitamina_c_mg": 15
+    },
+    "porciones": [
+      {
+        "descripcion": "1 leaf",
+        "gramos": 2
+      },
+      {
+        "descripcion": "0.5 cup",
+        "gramos": 10
+      }
+    ]
+  },
+  {
+    "id": "berro",
+    "nombre": "Berro",
+    "alias": [
+      "berros",
+      "watercress"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709639,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 11,
+      "proteina_g": 2.3,
+      "calcio_mg": 120,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.2,
+      "fibra_g": 0.5,
+      "omega3_g": 0.023,
+      "b12_ug": 0,
+      "vitamina_c_mg": 43
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 34
+      },
+      {
+        "descripcion": "1 sprig",
+        "gramos": 2.5
+      }
+    ]
+  },
+  {
+    "id": "radicheta",
+    "nombre": "Radicheta",
+    "alias": [
+      "achicoria",
+      "chicoria",
+      "chicory"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 169992,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 23,
+      "proteina_g": 1.7,
+      "calcio_mg": 100,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.9,
+      "fibra_g": 4,
+      "omega3_g": 0.019,
+      "b12_ug": 0,
+      "vitamina_c_mg": 24
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup, chopped",
+        "gramos": 29
+      }
+    ]
+  },
+  {
+    "id": "apio",
+    "nombre": "Apio",
+    "alias": [
+      "celery"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709778,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 30,
+    "por100g": {
+      "energia_kcal": 17,
+      "proteina_g": 0.49,
+      "calcio_mg": 46,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0,
+      "fibra_g": 1.6,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 3.1
+    },
+    "porciones": [
+      {
+        "descripcion": "1 stick",
+        "gramos": 4
+      },
+      {
+        "descripcion": "1 piece",
+        "gramos": 4
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 120
+      },
+      {
+        "descripcion": "1 stalk",
+        "gramos": 40
+      }
+    ]
+  },
+  {
+    "id": "puerro",
+    "nombre": "Puerro",
+    "alias": [
+      "puerros",
+      "leek"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 168426,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 40,
+    "por100g": {
+      "energia_kcal": 31,
+      "proteina_g": 0.81,
+      "calcio_mg": 30,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.1,
+      "fibra_g": 1,
+      "omega3_g": 0.066,
+      "b12_ug": 0,
+      "vitamina_c_mg": 4.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 leek",
+        "gramos": 124
+      },
+      {
+        "descripcion": "0.25 cup, chopped or diced",
+        "gramos": 26
+      }
+    ]
+  },
+  {
+    "id": "hinojo",
+    "nombre": "Hinojo",
+    "alias": [
+      "fennel"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709779,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 40,
+    "por100g": {
+      "energia_kcal": 31,
+      "proteina_g": 1.24,
+      "calcio_mg": 49,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.73,
+      "fibra_g": 3.1,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 12
+    },
+    "porciones": [
+      {
+        "descripcion": "1 fennel bulb",
+        "gramos": 235
+      }
+    ]
+  },
+  {
+    "id": "berenjena",
+    "nombre": "Berenjena",
+    "alias": [
+      "berenjenas",
+      "eggplant",
+      "aubergine"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709929,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 60,
+    "por100g": {
+      "energia_kcal": 27,
+      "proteina_g": 1.05,
+      "calcio_mg": 10,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.25,
+      "fibra_g": 3.2,
+      "omega3_g": 0.014,
+      "b12_ug": 0,
+      "vitamina_c_mg": 2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice",
+        "gramos": 55
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 95
+      },
+      {
+        "descripcion": "1 whole",
+        "gramos": 540
+      }
+    ]
+  },
+  {
+    "id": "morron_verde",
+    "nombre": "Morrón verde",
+    "alias": [
+      "pimiento verde",
+      "ají verde",
+      "green pepper"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709800,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 23,
+      "proteina_g": 0.72,
+      "calcio_mg": 7,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.19,
+      "fibra_g": 0.9,
+      "omega3_g": 0.008,
+      "b12_ug": 0,
+      "vitamina_c_mg": 99.5
+    },
+    "porciones": [
+      {
+        "descripcion": "1 ring",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 regular",
+        "gramos": 120
+      },
+      {
+        "descripcion": "1 miniature",
+        "gramos": 30
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      },
+      {
+        "descripcion": "1 piece",
+        "gramos": 10
+      }
+    ]
+  },
+  {
+    "id": "morron_amarillo",
+    "nombre": "Morrón amarillo",
+    "alias": [
+      "pimiento amarillo",
+      "yellow pepper"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 169383,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 27,
+      "proteina_g": 1,
+      "calcio_mg": 11,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.46,
+      "fibra_g": 0.9,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 183.5
+    },
+    "faltantes": [
+      "omega3_g"
+    ],
+    "porciones": [
+      {
+        "descripcion": "1 pepper, large (3-3/4\" long, 3\" dia)",
+        "gramos": 186
+      },
+      {
+        "descripcion": "10 strips",
+        "gramos": 52
+      }
+    ]
+  },
+  {
+    "id": "rabanito",
+    "nombre": "Rabanito",
+    "alias": [
+      "rabanitos",
+      "rábano",
+      "radish"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709803,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 16,
+      "proteina_g": 0.68,
+      "calcio_mg": 25,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.34,
+      "fibra_g": 1.6,
+      "omega3_g": 0.031,
+      "b12_ug": 0,
+      "vitamina_c_mg": 14.8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice",
+        "gramos": 1
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 115
+      },
+      {
+        "descripcion": "1 whole",
+        "gramos": 5
+      }
+    ]
+  },
+  {
+    "id": "nabo",
+    "nombre": "Nabo",
+    "alias": [
+      "nabos",
+      "naba",
+      "turnip"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2710002,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 54,
+      "proteina_g": 0.95,
+      "calcio_mg": 32,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.32,
+      "fibra_g": 1.9,
+      "omega3_g": 0.129,
+      "b12_ug": 0,
+      "vitamina_c_mg": 18.6
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 160
+      },
+      {
+        "descripcion": "1 cup, mashed",
+        "gramos": 235
+      },
+      {
+        "descripcion": "1 whole",
+        "gramos": 120
+      }
+    ]
+  },
+  {
+    "id": "champinones",
+    "nombre": "Champiñones",
+    "alias": [
+      "champiñón",
+      "hongos",
+      "setas",
+      "mushrooms"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709937,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 40,
+    "por100g": {
+      "energia_kcal": 39,
+      "proteina_g": 3.61,
+      "calcio_mg": 6,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.28,
+      "fibra_g": 2.2,
+      "omega3_g": 0,
+      "b12_ug": 0.05,
+      "vitamina_c_mg": 2.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 piece/slice",
+        "gramos": 6
+      },
+      {
+        "descripcion": "1 whole",
+        "gramos": 13
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 155
+      }
+    ]
+  },
+  {
+    "id": "esparragos",
+    "nombre": "Espárragos",
+    "alias": [
+      "espárrago",
+      "asparagus"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709834,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 21,
+      "proteina_g": 2.36,
+      "calcio_mg": 26,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 2.29,
+      "fibra_g": 2.3,
+      "omega3_g": 0.011,
+      "b12_ug": 0,
+      "vitamina_c_mg": 5.1
+    },
+    "porciones": [
+      {
+        "descripcion": "1 piece",
+        "gramos": 4
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 180
+      },
+      {
+        "descripcion": "1 spear",
+        "gramos": 16
+      }
+    ]
+  },
+  {
+    "id": "alcaucil",
+    "nombre": "Alcaucil",
+    "alias": [
+      "alcauciles",
+      "alcachofa",
+      "artichoke"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2709766,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 60,
+    "por100g": {
+      "energia_kcal": 53,
+      "proteina_g": 2.89,
+      "calcio_mg": 21,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.61,
+      "fibra_g": 5.7,
+      "omega3_g": 0.038,
+      "b12_ug": 0,
+      "vitamina_c_mg": 7.4
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      },
+      {
+        "descripcion": "1 whole",
+        "gramos": 125
+      },
+      {
+        "descripcion": "1 heart",
+        "gramos": 30
+      }
+    ]
+  },
+  {
+    "id": "palmitos",
+    "nombre": "Palmitos",
+    "alias": [
+      "palmito",
+      "corazones de palmito",
+      "hearts of palm"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 168569,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 40,
+    "por100g": {
+      "energia_kcal": 28,
+      "proteina_g": 2.52,
+      "calcio_mg": 58,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 3.13,
+      "fibra_g": 2.4,
+      "omega3_g": 0.019,
+      "b12_ug": 0,
+      "vitamina_c_mg": 7.9
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 146
+      },
+      {
+        "descripcion": "1 piece",
+        "gramos": 33
+      }
+    ]
+  },
+  {
+    "id": "habas",
+    "nombre": "Habas",
+    "alias": [
+      "haba",
+      "habas frescas",
+      "fava",
+      "broad beans"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 170378,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 62,
+      "proteina_g": 4.8,
+      "calcio_mg": 18,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.5,
+      "fibra_g": 3.6,
+      "omega3_g": 0.182,
+      "b12_ug": 0,
+      "vitamina_c_mg": 19.8
+    }
+  },
+  {
+    "id": "jardinera",
+    "nombre": "Jardinera",
+    "alias": [
+      "jardinera de verduras",
+      "mix de verduras",
+      "macedonia de verduras",
+      "verduras congeladas",
+      "mixed vegetables"
+    ],
+    "grupo": "verdura",
+    "alergenos": [],
+    "fdcId": 2710013,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 60,
+    "por100g": {
+      "energia_kcal": 65,
+      "proteina_g": 2.85,
+      "calcio_mg": 25,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.82,
+      "fibra_g": 4.4,
+      "omega3_g": 0.019,
+      "b12_ug": 0,
+      "vitamina_c_mg": 3.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 180
       }
     ]
   },
@@ -3235,6 +4018,843 @@
       {
         "descripcion": "1 cup",
         "gramos": 165
+      }
+    ]
+  },
+  {
+    "id": "ciruela",
+    "nombre": "Ciruela",
+    "alias": [
+      "ciruelas",
+      "plum"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709265,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 70,
+    "por100g": {
+      "energia_kcal": 46,
+      "proteina_g": 0.7,
+      "calcio_mg": 6,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.17,
+      "fibra_g": 1.4,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 9.5
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 155
+      },
+      {
+        "descripcion": "1 fruit",
+        "gramos": 75
+      }
+    ]
+  },
+  {
+    "id": "damasco",
+    "nombre": "Damasco",
+    "alias": [
+      "damascos",
+      "albaricoque",
+      "apricot"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709221,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 70,
+    "por100g": {
+      "energia_kcal": 48,
+      "proteina_g": 1.4,
+      "calcio_mg": 13,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.39,
+      "fibra_g": 2,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 10
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice/chunk",
+        "gramos": 10
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 155
+      },
+      {
+        "descripcion": "1 apricot",
+        "gramos": 35
+      }
+    ]
+  },
+  {
+    "id": "pelon",
+    "nombre": "Pelón",
+    "alias": [
+      "pelones",
+      "nectarina",
+      "nectarine"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709245,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 120,
+    "por100g": {
+      "energia_kcal": 43,
+      "proteina_g": 1.06,
+      "calcio_mg": 2,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.3,
+      "fibra_g": 1.5,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 2.9
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice/chunk",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 155
+      },
+      {
+        "descripcion": "1 fruit",
+        "gramos": 140
+      }
+    ]
+  },
+  {
+    "id": "cereza",
+    "nombre": "Cereza",
+    "alias": [
+      "cerezas",
+      "guindas",
+      "cherries"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709231,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 80,
+    "por100g": {
+      "energia_kcal": 71,
+      "proteina_g": 1.04,
+      "calcio_mg": 12,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.11,
+      "fibra_g": 2.1,
+      "omega3_g": 0.026,
+      "b12_ug": 0,
+      "vitamina_c_mg": 10.4
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cherry",
+        "gramos": 7
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      }
+    ]
+  },
+  {
+    "id": "higo",
+    "nombre": "Higo",
+    "alias": [
+      "higos",
+      "brevas",
+      "figs"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709235,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 74,
+      "proteina_g": 0.75,
+      "calcio_mg": 35,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.37,
+      "fibra_g": 2.9,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 fig",
+        "gramos": 50
+      }
+    ]
+  },
+  {
+    "id": "arandanos",
+    "nombre": "Arándanos",
+    "alias": [
+      "arándano",
+      "blueberries"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709275,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 70,
+    "por100g": {
+      "energia_kcal": 64,
+      "proteina_g": 0.7,
+      "calcio_mg": 12,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.34,
+      "fibra_g": 2.4,
+      "omega3_g": 0.058,
+      "b12_ug": 0,
+      "vitamina_c_mg": 8.1
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      },
+      {
+        "descripcion": "1 berry",
+        "gramos": 2
+      }
+    ]
+  },
+  {
+    "id": "frambuesa",
+    "nombre": "Frambuesa",
+    "alias": [
+      "frambuesas",
+      "raspberries"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709281,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 70,
+    "por100g": {
+      "energia_kcal": 57,
+      "proteina_g": 1.01,
+      "calcio_mg": 16,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.45,
+      "fibra_g": 6.5,
+      "omega3_g": 0.126,
+      "b12_ug": 0,
+      "vitamina_c_mg": 23
+    },
+    "porciones": [
+      {
+        "descripcion": "1 berry",
+        "gramos": 2
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      }
+    ]
+  },
+  {
+    "id": "mora",
+    "nombre": "Mora",
+    "alias": [
+      "moras",
+      "zarzamora",
+      "blackberries"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709273,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 70,
+    "por100g": {
+      "energia_kcal": 43,
+      "proteina_g": 1.39,
+      "calcio_mg": 29,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.62,
+      "fibra_g": 5.3,
+      "omega3_g": 0.094,
+      "b12_ug": 0,
+      "vitamina_c_mg": 21
+    },
+    "porciones": [
+      {
+        "descripcion": "1 blackberry",
+        "gramos": 5
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      }
+    ]
+  },
+  {
+    "id": "nispero",
+    "nombre": "Níspero",
+    "alias": [
+      "nísperos",
+      "loquat"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 169908,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 60,
+    "por100g": {
+      "energia_kcal": 47,
+      "proteina_g": 0.43,
+      "calcio_mg": 16,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.28,
+      "fibra_g": 1.7,
+      "omega3_g": 0.013,
+      "b12_ug": 0,
+      "vitamina_c_mg": 1
+    },
+    "faltantes": [
+      "vitamina_d_ug"
+    ],
+    "porciones": [
+      {
+        "descripcion": "1 cup, cubed",
+        "gramos": 149
+      },
+      {
+        "descripcion": "1 large",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 medium",
+        "gramos": 16
+      },
+      {
+        "descripcion": "1 small",
+        "gramos": 13.6
+      }
+    ]
+  },
+  {
+    "id": "caqui",
+    "nombre": "Caqui",
+    "alias": [
+      "kaki",
+      "persimón",
+      "persimmon"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709259,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 100,
+    "por100g": {
+      "energia_kcal": 70,
+      "proteina_g": 0.58,
+      "calcio_mg": 8,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.15,
+      "fibra_g": 3.6,
+      "omega3_g": 0.004,
+      "b12_ug": 0,
+      "vitamina_c_mg": 7.5
+    },
+    "porciones": [
+      {
+        "descripcion": "1 fruit",
+        "gramos": 170
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 20
+      }
+    ]
+  },
+  {
+    "id": "granada",
+    "nombre": "Granada",
+    "alias": [
+      "granadas",
+      "pomegranate"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709267,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 50,
+    "por100g": {
+      "energia_kcal": 83,
+      "proteina_g": 1.67,
+      "calcio_mg": 10,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.3,
+      "fibra_g": 4,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 10.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 175
+      },
+      {
+        "descripcion": "1 fruit",
+        "gramos": 250
+      }
+    ]
+  },
+  {
+    "id": "pomelo",
+    "nombre": "Pomelo",
+    "alias": [
+      "pomelos",
+      "toronja",
+      "grapefruit"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709165,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 120,
+    "por100g": {
+      "energia_kcal": 42,
+      "proteina_g": 0.77,
+      "calcio_mg": 22,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.08,
+      "fibra_g": 1.6,
+      "omega3_g": 0.008,
+      "b12_ug": 0,
+      "vitamina_c_mg": 31.2
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 180
+      },
+      {
+        "descripcion": "1 half",
+        "gramos": 154
+      },
+      {
+        "descripcion": "1 section/slice",
+        "gramos": 25
+      },
+      {
+        "descripcion": "1 fruit",
+        "gramos": 308
+      }
+    ]
+  },
+  {
+    "id": "mango",
+    "nombre": "Mango",
+    "alias": [
+      "mangos"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709242,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 100,
+    "por100g": {
+      "energia_kcal": 60,
+      "proteina_g": 0.82,
+      "calcio_mg": 11,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.16,
+      "fibra_g": 1.6,
+      "omega3_g": 0.051,
+      "b12_ug": 0,
+      "vitamina_c_mg": 36.4
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice/chunk",
+        "gramos": 25
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 165
+      },
+      {
+        "descripcion": "1 mango",
+        "gramos": 210
+      }
+    ]
+  },
+  {
+    "id": "mamon",
+    "nombre": "Mamón",
+    "alias": [
+      "papaya",
+      "lechosa"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709246,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 100,
+    "por100g": {
+      "energia_kcal": 43,
+      "proteina_g": 0.47,
+      "calcio_mg": 20,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.25,
+      "fibra_g": 1.7,
+      "omega3_g": 0.047,
+      "b12_ug": 0,
+      "vitamina_c_mg": 60.9
+    },
+    "porciones": [
+      {
+        "descripcion": "1 slice/chunk",
+        "gramos": 40
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 165
+      },
+      {
+        "descripcion": "1 fruit",
+        "gramos": 330
+      },
+      {
+        "descripcion": "1 cup, mashed",
+        "gramos": 230
+      }
+    ]
+  },
+  {
+    "id": "maracuya",
+    "nombre": "Maracuyá",
+    "alias": [
+      "mburucuyá",
+      "fruta de la pasión",
+      "granadilla",
+      "passion fruit"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709248,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 30,
+    "por100g": {
+      "energia_kcal": 97,
+      "proteina_g": 2.2,
+      "calcio_mg": 12,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.6,
+      "fibra_g": 10.4,
+      "omega3_g": 0.001,
+      "b12_ug": 0,
+      "vitamina_c_mg": 30
+    },
+    "porciones": [
+      {
+        "descripcion": "1 fruit",
+        "gramos": 18
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 236
+      }
+    ]
+  },
+  {
+    "id": "palta",
+    "nombre": "Palta",
+    "alias": [
+      "paltas",
+      "aguacate",
+      "avocado"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709223,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 40,
+    "por100g": {
+      "energia_kcal": 160,
+      "proteina_g": 2,
+      "calcio_mg": 12,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.55,
+      "fibra_g": 6.7,
+      "omega3_g": 0.125,
+      "b12_ug": 0,
+      "vitamina_c_mg": 10
+    },
+    "porciones": [
+      {
+        "descripcion": "1 fruit",
+        "gramos": 150
+      },
+      {
+        "descripcion": "1 cup, mashed or pureed",
+        "gramos": 230
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
+      },
+      {
+        "descripcion": "1 slice",
+        "gramos": 15
+      }
+    ]
+  },
+  {
+    "id": "pasas_uva",
+    "nombre": "Pasas de uva",
+    "alias": [
+      "pasas",
+      "uvas pasas",
+      "raisins"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709212,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 20,
+    "por100g": {
+      "energia_kcal": 299,
+      "proteina_g": 3.3,
+      "calcio_mg": 62,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.79,
+      "fibra_g": 4.5,
+      "omega3_g": 0.014,
+      "b12_ug": 0,
+      "vitamina_c_mg": 2.3
+    },
+    "porciones": [
+      {
+        "descripcion": "1 miniature box (.5 oz)",
+        "gramos": 14
+      },
+      {
+        "descripcion": "1 small box (1.5 oz)",
+        "gramos": 43
+      },
+      {
+        "descripcion": "1 raisin",
+        "gramos": 0.5
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 160
+      }
+    ]
+  },
+  {
+    "id": "ciruela_pasa",
+    "nombre": "Ciruela pasa",
+    "alias": [
+      "ciruelas pasas",
+      "ciruelas secas",
+      "prunes"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709211,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 25,
+    "por100g": {
+      "energia_kcal": 240,
+      "proteina_g": 2.18,
+      "calcio_mg": 43,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.93,
+      "fibra_g": 7.1,
+      "omega3_g": 0.017,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0.6
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 160
+      },
+      {
+        "descripcion": "1 prune",
+        "gramos": 8
+      }
+    ]
+  },
+  {
+    "id": "orejones",
+    "nombre": "Orejones",
+    "alias": [
+      "orejones de damasco",
+      "damascos secos",
+      "dried apricots"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709197,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 25,
+    "por100g": {
+      "energia_kcal": 241,
+      "proteina_g": 3.39,
+      "calcio_mg": 55,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 2.66,
+      "fibra_g": 7.3,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 1
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 160
+      },
+      {
+        "descripcion": "1 slice/chunk",
+        "gramos": 8
+      }
+    ]
+  },
+  {
+    "id": "compota_manzana",
+    "nombre": "Compota de manzana",
+    "alias": [
+      "compota",
+      "puré de manzana",
+      "manzana cocida",
+      "applesauce"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 171695,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 120,
+    "por100g": {
+      "energia_kcal": 42,
+      "proteina_g": 0.17,
+      "calcio_mg": 4,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.23,
+      "fibra_g": 1.1,
+      "omega3_g": 0.003,
+      "b12_ug": 0,
+      "vitamina_c_mg": 1
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 244
+      }
+    ]
+  },
+  {
+    "id": "durazno_almibar",
+    "nombre": "Duraznos en almíbar",
+    "alias": [
+      "durazno en almíbar",
+      "duraznos en lata",
+      "canned peaches"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709251,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 120,
+    "por100g": {
+      "energia_kcal": 54,
+      "proteina_g": 0.4,
+      "calcio_mg": 2,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.3,
+      "fibra_g": 1.2,
+      "omega3_g": 0.001,
+      "b12_ug": 0,
+      "vitamina_c_mg": 2.7
+    },
+    "porciones": [
+      {
+        "descripcion": "1 half",
+        "gramos": 75
+      },
+      {
+        "descripcion": "1 slice/chunk",
+        "gramos": 20
+      },
+      {
+        "descripcion": "1 snack size container",
+        "gramos": 113
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 250
+      }
+    ]
+  },
+  {
+    "id": "ensalada_frutas",
+    "nombre": "Ensalada de frutas",
+    "alias": [
+      "macedonia",
+      "macedonia de frutas",
+      "fruit salad"
+    ],
+    "grupo": "fruta",
+    "alergenos": [],
+    "fdcId": 2709288,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 150,
+    "por100g": {
+      "energia_kcal": 56,
+      "proteina_g": 0.71,
+      "calcio_mg": 16,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.16,
+      "fibra_g": 1.7,
+      "omega3_g": 0.013,
+      "b12_ug": 0,
+      "vitamina_c_mg": 26.7
+    },
+    "porciones": [
+      {
+        "descripcion": "1 cup",
+        "gramos": 150
       }
     ]
   },
@@ -4465,6 +6085,693 @@
     ]
   },
   {
+    "id": "oregano",
+    "nombre": "Orégano",
+    "alias": [
+      "orégano seco",
+      "oregano"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 171328,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 1,
+    "por100g": {
+      "energia_kcal": 265,
+      "proteina_g": 9,
+      "calcio_mg": 1597,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 36.8,
+      "fibra_g": 42.5,
+      "omega3_g": 0.621,
+      "b12_ug": 0,
+      "vitamina_c_mg": 2.3
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tsp, leaves",
+        "gramos": 1
+      },
+      {
+        "descripcion": "1 tsp, ground",
+        "gramos": 1.8
+      }
+    ]
+  },
+  {
+    "id": "pimenton",
+    "nombre": "Pimentón",
+    "alias": [
+      "pimentón dulce",
+      "pimentón en polvo",
+      "paprika"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 171329,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 1,
+    "por100g": {
+      "energia_kcal": 282,
+      "proteina_g": 14.14,
+      "calcio_mg": 229,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 21.14,
+      "fibra_g": 34.9,
+      "omega3_g": 0.453,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0.9
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tsp",
+        "gramos": 2.3
+      },
+      {
+        "descripcion": "1 tbsp",
+        "gramos": 6.8
+      }
+    ]
+  },
+  {
+    "id": "comino",
+    "nombre": "Comino",
+    "alias": [
+      "comino molido",
+      "cumin"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 170923,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 1,
+    "por100g": {
+      "energia_kcal": 375,
+      "proteina_g": 17.81,
+      "calcio_mg": 931,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 66.36,
+      "fibra_g": 10.5,
+      "omega3_g": 0.176,
+      "b12_ug": 0,
+      "vitamina_c_mg": 7.7
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tsp, whole",
+        "gramos": 2.1
+      },
+      {
+        "descripcion": "1 tbsp, whole",
+        "gramos": 6
+      }
+    ]
+  },
+  {
+    "id": "perejil",
+    "nombre": "Perejil",
+    "alias": [
+      "perejil fresco",
+      "perejil picado",
+      "parsley"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 2709796,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 5,
+    "por100g": {
+      "energia_kcal": 36,
+      "proteina_g": 2.97,
+      "calcio_mg": 138,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 6.2,
+      "fibra_g": 3.3,
+      "omega3_g": 0.008,
+      "b12_ug": 0,
+      "vitamina_c_mg": 133
+    },
+    "porciones": [
+      {
+        "descripcion": "1 sprig",
+        "gramos": 1
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 60
+      }
+    ]
+  },
+  {
+    "id": "albahaca",
+    "nombre": "Albahaca",
+    "alias": [
+      "albahaca fresca",
+      "basil"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 2709780,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 3,
+    "por100g": {
+      "energia_kcal": 23,
+      "proteina_g": 3.15,
+      "calcio_mg": 177,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 3.17,
+      "fibra_g": 1.6,
+      "omega3_g": 0.316,
+      "b12_ug": 0,
+      "vitamina_c_mg": 18
+    },
+    "porciones": [
+      {
+        "descripcion": "1 leaf",
+        "gramos": 0.5
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 24
+      },
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 3
+      }
+    ]
+  },
+  {
+    "id": "ajo",
+    "nombre": "Ajo",
+    "alias": [
+      "diente de ajo",
+      "dientes de ajo",
+      "garlic"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 2709786,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 5,
+    "por100g": {
+      "energia_kcal": 143,
+      "proteina_g": 6.62,
+      "calcio_mg": 181,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.7,
+      "fibra_g": 2.7,
+      "omega3_g": 0.02,
+      "b12_ug": 0,
+      "vitamina_c_mg": 10
+    },
+    "porciones": [
+      {
+        "descripcion": "1 clove",
+        "gramos": 3
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 135
+      },
+      {
+        "descripcion": "1 teaspoon",
+        "gramos": 5
+      }
+    ]
+  },
+  {
+    "id": "cebolla_verdeo",
+    "nombre": "Cebolla de verdeo",
+    "alias": [
+      "verdeo",
+      "cebollita de verdeo",
+      "cebolleta",
+      "cebollín",
+      "green onion"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 2709794,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 10,
+    "por100g": {
+      "energia_kcal": 32,
+      "proteina_g": 1.83,
+      "calcio_mg": 72,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 1.48,
+      "fibra_g": 2.6,
+      "omega3_g": 0.004,
+      "b12_ug": 0,
+      "vitamina_c_mg": 18.8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 whole",
+        "gramos": 15
+      },
+      {
+        "descripcion": "1 cup",
+        "gramos": 100
+      }
+    ]
+  },
+  {
+    "id": "nuez_moscada",
+    "nombre": "Nuez moscada",
+    "alias": [
+      "nutmeg"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 171326,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 1,
+    "por100g": {
+      "energia_kcal": 525,
+      "proteina_g": 5.84,
+      "calcio_mg": 184,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 3.04,
+      "fibra_g": 20.8,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 3
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tsp",
+        "gramos": 2.2
+      },
+      {
+        "descripcion": "1 tbsp",
+        "gramos": 7
+      }
+    ]
+  },
+  {
+    "id": "canela",
+    "nombre": "Canela",
+    "alias": [
+      "canela en polvo",
+      "canela en rama",
+      "cinnamon"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 171320,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 1,
+    "por100g": {
+      "energia_kcal": 247,
+      "proteina_g": 3.99,
+      "calcio_mg": 1002,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 8.32,
+      "fibra_g": 53.1,
+      "omega3_g": 0.011,
+      "b12_ug": 0,
+      "vitamina_c_mg": 3.8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tsp",
+        "gramos": 2.6
+      },
+      {
+        "descripcion": "1 tbsp",
+        "gramos": 7.8
+      }
+    ]
+  },
+  {
+    "id": "vainilla",
+    "nombre": "Esencia de vainilla",
+    "alias": [
+      "vainilla",
+      "extracto de vainilla",
+      "vanilla"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 172236,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 2,
+    "por100g": {
+      "energia_kcal": 56,
+      "proteina_g": 0.03,
+      "calcio_mg": 3,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.05,
+      "fibra_g": 0,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tsp",
+        "gramos": 4.2
+      },
+      {
+        "descripcion": "1 tbsp",
+        "gramos": 13
+      }
+    ]
+  },
+  {
+    "id": "tomillo",
+    "nombre": "Tomillo",
+    "alias": [
+      "tomillo seco",
+      "thyme"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 170938,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 1,
+    "por100g": {
+      "energia_kcal": 276,
+      "proteina_g": 9.11,
+      "calcio_mg": 1890,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 123.6,
+      "fibra_g": 37,
+      "omega3_g": 0.69,
+      "b12_ug": 0,
+      "vitamina_c_mg": 50
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tsp, leaves",
+        "gramos": 1
+      },
+      {
+        "descripcion": "1 tbsp, leaves",
+        "gramos": 2.7
+      },
+      {
+        "descripcion": "1 tsp, ground",
+        "gramos": 1.4
+      },
+      {
+        "descripcion": "1 tbsp, ground",
+        "gramos": 4.3
+      }
+    ]
+  },
+  {
+    "id": "laurel",
+    "nombre": "Laurel",
+    "alias": [
+      "hoja de laurel",
+      "hojas de laurel",
+      "bay leaf"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 170917,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 1,
+    "por100g": {
+      "energia_kcal": 313,
+      "proteina_g": 7.61,
+      "calcio_mg": 834,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 43,
+      "fibra_g": 26.3,
+      "omega3_g": 1.05,
+      "b12_ug": 0,
+      "vitamina_c_mg": 46.5
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tsp, crumbled",
+        "gramos": 0.6
+      },
+      {
+        "descripcion": "1 tbsp, crumbled",
+        "gramos": 1.8
+      }
+    ]
+  },
+  {
+    "id": "jugo_limon",
+    "nombre": "Jugo de limón",
+    "alias": [
+      "limón",
+      "limones",
+      "zumo de limón",
+      "lemon juice"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 2709181,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 10,
+    "por100g": {
+      "energia_kcal": 22,
+      "proteina_g": 0.35,
+      "calcio_mg": 6,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.08,
+      "fibra_g": 0.3,
+      "omega3_g": 0.009,
+      "b12_ug": 0,
+      "vitamina_c_mg": 38.7
+    },
+    "porciones": [
+      {
+        "descripcion": "Juice of 1 lemon (2-1/8\" dia)",
+        "gramos": 47
+      },
+      {
+        "descripcion": "1 fl oz (NFS)",
+        "gramos": 31
+      },
+      {
+        "descripcion": "1 fl oz (no ice)",
+        "gramos": 31
+      },
+      {
+        "descripcion": "Guideline amount per fl oz of beverage",
+        "gramos": 0.9
+      },
+      {
+        "descripcion": "Juice of 1 wedge or slice",
+        "gramos": 6
+      },
+      {
+        "descripcion": "1 fl oz (with ice)",
+        "gramos": 23
+      },
+      {
+        "descripcion": "1 drop",
+        "gramos": 0.1
+      }
+    ]
+  },
+  {
+    "id": "curcuma",
+    "nombre": "Cúrcuma",
+    "alias": [
+      "curcuma",
+      "turmeric"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 172231,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 1,
+    "por100g": {
+      "energia_kcal": 312,
+      "proteina_g": 9.68,
+      "calcio_mg": 168,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 55,
+      "fibra_g": 22.7,
+      "omega3_g": 0.003,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0.7
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tsp",
+        "gramos": 3
+      },
+      {
+        "descripcion": "1 tbsp",
+        "gramos": 9.4
+      }
+    ]
+  },
+  {
+    "id": "romero",
+    "nombre": "Romero",
+    "alias": [
+      "romero fresco",
+      "rosemary"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 173473,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 2,
+    "por100g": {
+      "energia_kcal": 131,
+      "proteina_g": 3.31,
+      "calcio_mg": 317,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 6.65,
+      "fibra_g": 14.1,
+      "omega3_g": 0.414,
+      "b12_ug": 0,
+      "vitamina_c_mg": 21.8
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tsp",
+        "gramos": 0.7
+      },
+      {
+        "descripcion": "1 tbsp",
+        "gramos": 1.7
+      }
+    ]
+  },
+  {
+    "id": "pimienta",
+    "nombre": "Pimienta",
+    "alias": [
+      "pimienta negra",
+      "pimienta molida",
+      "black pepper"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 170931,
+    "dataset": "sr_legacy",
+    "fuente": "USDA",
+    "porcionMedianaG": 1,
+    "por100g": {
+      "energia_kcal": 251,
+      "proteina_g": 10.39,
+      "calcio_mg": 443,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 9.71,
+      "fibra_g": 25.3,
+      "omega3_g": 0.152,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 tsp, ground",
+        "gramos": 2.3
+      },
+      {
+        "descripcion": "1 tbsp, ground",
+        "gramos": 6.9
+      },
+      {
+        "descripcion": "1 tsp, whole",
+        "gramos": 2.9
+      },
+      {
+        "descripcion": "1 dash",
+        "gramos": 0.1
+      }
+    ]
+  },
+  {
+    "id": "vinagre",
+    "nombre": "Vinagre",
+    "alias": [
+      "vinagre de vino",
+      "vinagre de manzana",
+      "vinegar"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 2709351,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 10,
+    "por100g": {
+      "energia_kcal": 21,
+      "proteina_g": 0,
+      "calcio_mg": 7,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 0.2,
+      "fibra_g": 0,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "1 packet",
+        "gramos": 9
+      },
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 15
+      }
+    ]
+  },
+  {
+    "id": "cacao_amargo",
+    "nombre": "Cacao amargo",
+    "alias": [
+      "cacao en polvo amargo",
+      "cacao sin azúcar",
+      "cocoa powder"
+    ],
+    "grupo": "otro",
+    "alergenos": [],
+    "fdcId": 2705587,
+    "dataset": "fndds",
+    "fuente": "USDA",
+    "porcionMedianaG": 5,
+    "por100g": {
+      "energia_kcal": 228,
+      "proteina_g": 19.6,
+      "calcio_mg": 128,
+      "vitamina_d_ug": 0,
+      "hierro_mg": 13.86,
+      "fibra_g": 37,
+      "omega3_g": 0,
+      "b12_ug": 0,
+      "vitamina_c_mg": 0
+    },
+    "porciones": [
+      {
+        "descripcion": "Guideline amount per fl oz of beverage",
+        "gramos": 0.6
+      },
+      {
+        "descripcion": "1 tablespoon",
+        "gramos": 5
+      }
+    ]
+  },
+  {
     "id": "otro_cereal_almidon",
     "nombre": "Otro cereal, pan o almidón",
     "alias": [],
@@ -4530,15 +6837,15 @@
     "fuente": "equipo",
     "porcionMedianaG": 50,
     "por100g": {
-      "energia_kcal": 35.5,
-      "proteina_g": 1.25,
-      "calcio_mg": 22.5,
+      "energia_kcal": 31,
+      "proteina_g": 1.3,
+      "calcio_mg": 26,
       "vitamina_d_ug": 0,
-      "hierro_mg": 0.58,
-      "fibra_g": 1.7,
-      "omega3_g": 0.023,
+      "hierro_mg": 0.61,
+      "fibra_g": 2.1,
+      "omega3_g": 0.022,
       "b12_ug": 0,
-      "vitamina_c_mg": 10.35
+      "vitamina_c_mg": 14.8
     }
   },
   {
@@ -4549,17 +6856,17 @@
     "alergenos": [],
     "fdcId": null,
     "fuente": "equipo",
-    "porcionMedianaG": 120,
+    "porcionMedianaG": 100,
     "por100g": {
-      "energia_kcal": 53,
+      "energia_kcal": 57,
       "proteina_g": 0.81,
-      "calcio_mg": 9,
+      "calcio_mg": 12,
       "vitamina_d_ug": 0,
-      "hierro_mg": 0.18,
-      "fibra_g": 1.7,
+      "hierro_mg": 0.25,
+      "fibra_g": 1.8,
       "omega3_g": 0.009,
       "b12_ug": 0,
-      "vitamina_c_mg": 12
+      "vitamina_c_mg": 10
     }
   },
   {
