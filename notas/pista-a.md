@@ -117,4 +117,15 @@ Qué cambió:
 - **Catálogo**: de 96 a 239 alimentos curados (más los 6 genéricos), con 18 condimentos para variar el sabor, que no cuentan como lo nuevo.
 - **Afinidades** (`data/afinidades.json`, `server/ia/afinidades.ts`): co-ocurrencia en las 57.320 recetas de Ahn et al. 2011 (CC BY 4.0), 2.762 pares entre 150 alimentos, y relación `COMBINA` en el grafo. El ingrediente sorteado tiene que combinar con lo que queda del plato y, al cambiar el principal, ser del mismo grupo o de uno compatible.
 
-Pendiente: (1) si el primer intento falla, sortear otro foco en vez de solo relajar (hoy 2 de 12 terminan en "sin candidatos"); (2) no repetir el alimento de partida de las recetas recientes (la cena de Valentina sale casi siempre de su milanesa). Fuentes evaluadas y descartadas, con licencias: ver el historial (RecipeNLG y Recipe1M+ son no comerciales; BEDCA, Argenfood y la tabla uruguaya no tienen descarga en bloque).
+Hechos después (corrida 5, `variedad-5-otro-foco.md`: 11 principales en 11 familias, 3 de 11 con queso, 1 sin candidatos): si el primer intento falla, otro foco estricto con `evitar`; el alimento de partida no repite el tipo de plato reciente. Fuentes evaluadas y descartadas, con licencias: ver el historial (RecipeNLG y Recipe1M+ son no comerciales; BEDCA, Argenfood y la tabla uruguaya no tienen descarga en bloque).
+
+### Lo que reportó el usuario probando la app (18/10)
+
+| Reporte | Arreglo | Estado |
+|---|---|---|
+| Ravioles con tostadas en el desayuno; ravioles con pizza en la cena | `server/ia/momentos.ts`: el ingrediente del foco va en esa comida; un solo plato principal por comida; el cereal o pan del desayuno es pan, tostadas, galletitas o un cereal | en main (d95e786, 435f9c2, ec52d92) |
+| Nombres con la comparación ("Milanesa de arvejas al horno, crocante como la de lentejas") | prompt sin comparaciones y `limpiarNombre` sin gastar reintento | en main (7d5edd5) |
+| Casi nunca queso, ni pidiendo calcio | 3 por grupo entre los ricos (entran yogur, leche y queso) y los quesos de plato (muzzarella, fresco, ricota) pueden ser el principal. Simulado con calcio: de 0% a 17–33% en almuerzo y cena | en main (c1dbf5d) |
+| "Pizza con masa de fideos" | `claseDePreparacion`: pastas, masas y panes no son ricos ni se suman; cambiando el principal, solo por otro de su clase. Si no queda con qué cambiar, el foco suma | en main (b8e6ca2) |
+| Separar desayuno y merienda de almuerzo y cena, sin mezclar | franjas estrictas por preparación (no por la hora en que la comió); la fruta como postre es la única excepción | carril receta-foco, en curso |
+| Platos comunes, de cantina o restaurante | prompt y `server/ia/platos-comunes.ts` (tipos de plato por franja, nada hecho con otra preparación como base) | carril comida-comun, en curso |
