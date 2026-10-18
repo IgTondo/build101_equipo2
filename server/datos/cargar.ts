@@ -16,7 +16,8 @@ export interface Cargado {
 
 export async function leerNino(ninoId: string): Promise<NinoDoc> {
   const nino = await col.ninos().findOne({ _id: ninoId })
-  if (!nino) throw new ErrorNibble('no_encontrado', `No encontramos el perfil "${ninoId}".`)
+  // Sin el id en el mensaje: lo ve el padre (y no hace falta repetir lo que mandó)
+  if (!nino) throw new ErrorNibble('no_encontrado', 'No encontramos ese perfil.')
   return nino
 }
 
@@ -31,8 +32,15 @@ export function idsDeAlimentos(catalogo: ReadonlyMap<string, PreparacionCatalogo
   return ids
 }
 
+/** Async a propósito: si col.comidas() tira (sin MONGODB_URI), queda como promesa rechazada y no como excepción. */
+async function leerComidas(ninoId: string): Promise<ComidaDoc[]> {
+  return col.comidas().find({ ninoId }).sort({ fechaISO: 1 }).toArray()
+}
+
 export async function cargarNino(ninoId: string): Promise<Cargado> {
-  const [nino, comidas] = await Promise.all([leerNino(ninoId), col.comidas().find({ ninoId }).sort({ fechaISO: 1 }).toArray()])
+  // Las dos lecturas son promesas antes del Promise.all: si una tirara sincrónico, la otra quedaría rechazada sin
+  // atrapar y Node mataría la API local
+  const [nino, comidas] = await Promise.all([leerNino(ninoId), leerComidas(ninoId)])
   const catalogo = preparacionesCatalogo()
   const alimentos = await resolverAlimentos(idsDeAlimentos(catalogo, comidas))
   return { nino, comidas, catalogo, alimentos, objetivo: objetivoDe(nino) }
