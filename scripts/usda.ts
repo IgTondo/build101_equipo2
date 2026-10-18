@@ -115,6 +115,31 @@ const MAPEO: Record<string, Mapeo> = {
   garbanzos: { fdc: [2707416, 173757], porcion: 60 },         // Chickpeas, from dried, no added fat
   porotos: { fdc: [2707355], porcion: 60 },                   // White beans, from dried, no added fat
   pasta_mani: { fdc: [2707537], porcion: 16 },                // Peanut butter
+  // v5.10 · Más carnes, pescados, huevos y legumbres
+  muslo_pollo: { fdc: [2706030], porcion: 80 },               // Chicken thigh, baked, broiled, or roasted, skin not eaten, from raw
+  pavo: { fdc: [2706109], porcion: 80 },                      // Turkey, light meat, roasted, skin not eaten
+  higado: { fdc: [2706153], porcion: 70 },                    // Liver, beef
+  higado_pollo: { fdc: [2706154], porcion: 60 },              // Liver, chicken
+  asado: { fdc: [168613], porcion: 80, nota: 'asado de tira: las costillas con su grasa (braseadas en USDA; a la parrilla es parecido)' }, // Beef, rib, shortribs, separable lean and fat, cooked, braised (SR)
+  carne_guiso: { fdc: [2705849], porcion: 80 },               // Beef, stew meat
+  cordero: { fdc: [2705905], porcion: 80 },                   // Lamb, NS as to cut
+  panceta: { fdc: [2705889], porcion: 15 },                   // Pork bacon, smoked or cured, cooked
+  corvina: { fdc: [2706246], porcion: 90 },                   // Fish, croaker
+  lenguado: { fdc: [2706249], porcion: 90 },                  // Fish, flounder, baked or broiled
+  pejerrey: { fdc: [175147], porcion: 90, nota: 'USDA no tiene pejerrey: el eperlano (smelt), otro pescado chico de carne magra' }, // Fish, smelt, rainbow, cooked, dry heat (SR)
+  sardina: { fdc: [2706293], porcion: 50 },                   // Fish, sardines, canned: en aceite y con las espinas (de ahí el calcio)
+  caballa: { fdc: [2706268], porcion: 50 },                   // Fish, mackerel, canned
+  camarones: { fdc: [2706363], porcion: 60 },                 // Shrimp, steamed or boiled
+  huevo_revuelto: { fdc: [2707200], porcion: 60 },            // Egg omelet or scrambled egg, made with oil
+  huevo_frito: { fdc: [2707158], porcion: 50 },               // Egg, whole, fried with oil
+  porotos_negros: { fdc: [2707361], porcion: 60 },            // Black beans, from dried, no added fat
+  porotos_rojos: { fdc: [2707381], porcion: 60 },             // Kidney beans, from dried, no added fat
+  porotos_manteca: { fdc: [2707369], porcion: 60 },           // Lima beans, from dried
+  porotos_soja: { fdc: [2707388], porcion: 60 },              // Soybeans, cooked
+  arvejas_partidas: { fdc: [2707420], porcion: 80 },          // Split peas, from dried, no added fat
+  hummus: { fdc: [2707402], porcion: 30 },                    // Hummus, plain
+  tofu: { fdc: [172448], porcion: 60 },                       // Tofu, firm, prepared with calcium sulfate and magnesium chloride (SR)
+  harina_garbanzo: { fdc: [174288], porcion: 30, nota: 'cruda: se usa como ingrediente (fainá)' }, // Chickpea flour (besan) (SR)
   // Verduras (cocidas sin grasa las que se comen cocidas)
   zanahoria: { fdc: [2709664, 170394], porcion: 50 },         // Carrots, fresh, cooked, no added fat
   zapallo: { fdc: [2709692, 168449], porcion: 80 },           // Pumpkin, cooked
@@ -235,6 +260,26 @@ const MAPEO: Record<string, Mapeo> = {
   chocolate: { fdc: [167587], porcion: 25 },                  // Candies, milk chocolate (SR): el FNDDS no distingue chocolate con leche
   miel: { fdc: [2710281], porcion: 10 },
   bizcochuelo: { fdc: [2707886], porcion: 50 },               // Cake, sponge
+  // v5.10 · Más del grupo otro
+  crema_leche: { fdc: [2705597], porcion: 15 },               // Cream, heavy
+  salsa_blanca: { fdc: [174542], porcion: 50 },               // Sauce, white, thin, prepared-from-recipe, with butter (SR): la de FNDDS supone leche con vitamina D
+  dulce_batata: { fdc: [2710308], porcion: 30 },              // Sweet potato paste: el dulce de boniato
+  aceitunas: { fdc: [2710089], porcion: 15 },                 // Olives, green
+  barra_cereal: { fdc: [2708101], porcion: 25 },              // Cereal or Granola bar, NFS
+  jugo_envasado: { fdc: [2709340], porcion: 200 },            // Fruit nectar, NFS
+  refresco: { fdc: [2710541], porcion: 200 },                 // Soft drink, cola
+  // v5.10 · Frutos secos y semillas: de a puñado o espolvoreados
+  mani: { fdc: [2707516], porcion: 20 },                      // Peanuts, roasted, unsalted
+  nueces: { fdc: [2707531], porcion: 15 },                    // Walnuts
+  almendras: { fdc: [2707485], porcion: 15 },                 // Almonds, NFS
+  castanas_caju: { fdc: [2707493], porcion: 15 },             // Cashews, NFS
+  avellanas: { fdc: [2707502], porcion: 15 },                 // Hazelnuts
+  coco_rallado: { fdc: [170170], porcion: 10 },               // Nuts, coconut meat, dried (desiccated), not sweetened (SR)
+  semillas_chia: { fdc: [2707590], porcion: 10 },             // Chia seeds
+  semillas_lino: { fdc: [2707588], porcion: 10 },             // Flax seeds
+  semillas_girasol: { fdc: [2707582], porcion: 10 },          // Sunflower seeds, plain, unsalted
+  semillas_sesamo: { fdc: [2707586], porcion: 5 },            // Sesame seeds: el pelado, 60 mg de calcio (el entero de SR tiene 975)
+  semillas_zapallo: { fdc: [2707581], porcion: 10 },          // Pumpkin seeds, unsalted
   // v5.10 · Condimentos y hierbas (server/ia/condimentos.ts), con lo que lleva un plato para un chico. Frescas las que
   // acá se usan frescas (perejil, albahaca, romero, verdeo); secas las de frasco (SR "Spices, …": FNDDS no las tiene)
   oregano: { fdc: [171328], porcion: 1 },                     // Spices, oregano, dried

@@ -46,12 +46,19 @@ describe('data/alimentos.json', () => {
     for (const id of ids) expect(id).toMatch(/^[a-z][a-z0-9_]*$/)
   })
 
-  it('tiene los curados de v5.9 y los que suma v5.10 (hasta 270), más los 6 genéricos', () => {
+  it('tiene entre 230 y 270 alimentos curados (v5.10: eran 96), más los 6 genéricos', () => {
     const genericos = idsAlimentos().filter(esGenerico)
     expect(genericos.sort()).toEqual(GRUPO.map(idGenerico).sort())
     const curados = alimentos().length - genericos.length
-    expect(curados).toBeGreaterThan(IDS_V5_9.length)
+    expect(curados).toBeGreaterThanOrEqual(230)
     expect(curados).toBeLessThanOrEqual(270)
+  })
+
+  it('v5.10 · cada grupo tiene variedad (al menos 20 alimentos sin contar los condimentos)', () => {
+    for (const g of GRUPO) {
+      const n = alimentos().filter((a) => a.grupo === g && !esGenerico(a.id) && !esCondimento(a.id)).length
+      expect(n, g).toBeGreaterThanOrEqual(20)
+    }
   })
 
   it('v5.10 · siguen los 96 ids de v5.9, con su grupo de siempre', () => {
@@ -167,6 +174,15 @@ describe('data/alimentos.json', () => {
     expect(v('salvado_avena', 'fibra_g')).toBeGreaterThan(10)
     expect(v('arroz_integral', 'fibra_g')).toBeGreaterThan(v('arroz', 'fibra_g'))
     expect(v('fideos_integrales', 'fibra_g')).toBeGreaterThan(v('fideos', 'fibra_g'))
+    expect(v('higado', 'hierro_mg')).toBeGreaterThan(5)
+    expect(v('higado', 'b12_ug')).toBeGreaterThan(50) // por eso el tope de B12 es 100
+    expect(v('sardina', 'calcio_mg')).toBeGreaterThan(300) // en lata, con las espinas
+    expect(v('caballa', 'omega3_g')).toBeGreaterThan(1)
+    expect(v('semillas_chia', 'omega3_g')).toBeGreaterThan(15)
+    expect(v('semillas_lino', 'omega3_g')).toBeGreaterThan(15)
+    expect(v('nueces', 'omega3_g')).toBeGreaterThan(5)
+    expect(v('porotos_negros', 'fibra_g')).toBeGreaterThan(7)
+    expect(v('tofu', 'calcio_mg')).toBeGreaterThan(150)
   })
 
   it('v5.10 · sin los agregados de EE. UU. que acá no vienen', () => {
@@ -203,7 +219,15 @@ describe('data/alimentos.json', () => {
       expect(tiene(id, 'leche'), id).toBe(true)
     }
     for (const id of ['ravioles', 'panqueques', 'flan']) expect(tiene(id, 'huevo'), id).toBe(true)
-    for (const id of ['pan_arabe', 'pan_hamburguesa']) expect(tiene(id, 'sesamo'), id).toBe(true)
+    for (const id of ['pan_arabe', 'pan_hamburguesa', 'hummus', 'semillas_sesamo']) expect(tiene(id, 'sesamo'), id).toBe(true)
+    for (const id of ['corvina', 'lenguado', 'pejerrey', 'sardina', 'caballa']) expect(tiene(id, 'pescado'), id).toBe(true)
+    for (const id of ['nueces', 'almendras', 'castanas_caju', 'avellanas', 'coco_rallado', 'barra_cereal']) expect(tiene(id, 'frutos_secos'), id).toBe(true)
+    for (const id of ['mani', 'barra_cereal']) expect(tiene(id, 'mani'), id).toBe(true)
+    for (const id of ['porotos_soja', 'tofu']) expect(tiene(id, 'soja'), id).toBe(true)
+    for (const id of ['huevo_revuelto', 'huevo_frito']) expect(tiene(id, 'huevo'), id).toBe(true)
+    expect(tiene('camarones', 'mariscos')).toBe(true)
+    expect(tiene('crema_leche', 'leche')).toBe(true)
+    expect(tiene('salsa_blanca', 'gluten')).toBe(true)
   })
 
   it('v5.10 · lo sin gluten no lleva gluten (para la dieta sin gluten ni caseína)', () => {
