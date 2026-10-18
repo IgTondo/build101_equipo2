@@ -1,8 +1,9 @@
 // A1 (PLAN.md §7): prueba las keys contra los proveedores reales. Uso: `npx tsx scripts/probar-ia.ts`.
-// Visión con hasta 3 fotos de eval/fotos/ (¿reconoce bien?, ¿las cajas sirven?), una imagen con FLUX y Whisper con
+// Visión con hasta 3 fotos de eval/fotos/ (¿reconoce bien?, ¿las cajas sirven?), una imagen con Nano Banana (o FLUX) y Whisper con
 // una nota de iPhone (.mp4/.m4a) y otra de Android (.webm) de eval/voz/. Pasa por server/ia: prueba el mismo código
 // que usa la app. Imprime OK/FALLA, latencia y los headers de límites (x-ratelimit-*); nunca las keys.
-// Costo: < USD 0,01 (3 fotos en Claude Haiku 5.5; FLUX y Whisper entran en los free tiers).
+// Costo: < USD 0,05 (3 fotos en Claude Haiku 5.5 y una imagen de Nano Banana, USD 0,0336; FLUX y Whisper entran en
+// los free tiers).
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { extname, join } from 'node:path'
@@ -20,7 +21,7 @@ const KEYS: [string, string][] = [
   ['GROQ_API_KEY', 'Whisper en Groq (y Llama 4 Scout de respaldo)'],
   ['CLOUDFLARE_ACCOUNT_ID', 'Workers AI: FLUX y Whisper de respaldo'],
   ['CLOUDFLARE_API_TOKEN', 'Workers AI: FLUX y Whisper de respaldo'],
-  ['GEMINI_API_KEY', 'opcional: respaldo del LLM'],
+  ['GEMINI_API_KEY', 'Nano Banana (imagen, con billing) y respaldo del LLM'],
 ]
 const KEY_DEL_PROVEEDOR: Record<string, string> = { claude: 'ANTHROPIC_API_KEY', gemini: 'GEMINI_API_KEY', groq: 'GROQ_API_KEY' }
 
@@ -120,11 +121,12 @@ async function probarVision(): Promise<void> {
 const PROMPT_IMAGEN = 'Foto cenital realista de un plato playo blanco sobre una mesa de madera. A la izquierda, papas fritas en bastones (porción normal). A la derecha, separados y sin tocarlas, 2 bastones de queso horneados (porción chica). Sin salsa, sin texto, sin personas, sin decoración.'
 
 async function probarImagen(): Promise<void> {
-  const faltan = ['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN'].filter((k) => !hay(k))
-  if (faltan.length > 0) return saltear('Imagen (FLUX.1 schnell)', `falta ${faltan.join(' y ')}`)
-  await probar('Imagen (FLUX.1 schnell)', async () => {
+  const flux = hay('CLOUDFLARE_ACCOUNT_ID') && hay('CLOUDFLARE_API_TOKEN')
+  const nombre = hay('GEMINI_API_KEY') ? `Nano Banana${flux ? ', respaldo FLUX' : ''}` : 'FLUX.1 schnell'
+  if (!hay('GEMINI_API_KEY') && !flux) return saltear('Imagen', 'falta GEMINI_API_KEY (Nano Banana) o las credenciales de Cloudflare (FLUX)')
+  await probar(`Imagen (${nombre})`, async () => {
     const r = await generarImagen({ prompt: PROMPT_IMAGEN })
-    const ruta = join(tmpdir(), `nibble-flux-${Date.now()}.${r.mime === 'image/png' ? 'png' : 'jpg'}`)
+    const ruta = join(tmpdir(), `nibble-imagen-${Date.now()}.${r.mime === 'image/png' ? 'png' : 'jpg'}`)
     writeFileSync(ruta, Buffer.from(r.imagenBase64, 'base64'))
     return `${r.modelo} · guardada en ${ruta}`
   })

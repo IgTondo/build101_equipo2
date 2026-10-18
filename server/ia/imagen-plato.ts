@@ -1,5 +1,5 @@
-// A10 · Imagen de cómo servir la receta (PLAN.md §7): FLUX.1 schnell en Workers AI (generarImagen, server/ia/imagen.ts).
-// Prompt de presentación funcional, en inglés porque FLUX lo entiende mejor: foto cenital y realista, plato playo blanco
+// A10 · Imagen de cómo servir la receta (PLAN.md §7): Nano Banana 2.1, con FLUX.1 schnell de respaldo (generarImagen, server/ia/imagen.ts).
+// Prompt de presentación funcional, en inglés porque los dos modelos lo entienden mejor: foto cenital y realista, plato playo blanco
 // (o con divisiones si una regla del chico lo pide), su alimento seguro en porción normal y el nuevo separado en porción
 // chica, sin salsa encima, sin texto, sin personas y sin decoración. Los alimentos se describen con los atributos del
 // catálogo (textura, color, cocción, ingrediente principal y forma), no con el nombre en español. Siempre es ilustrativa.

@@ -1,5 +1,5 @@
 // Estado de los servicios de IA para /api/salud (B). Pings que no gastan cupo, de 5 s, en paralelo:
-// Claude models.retrieve, Groq listar modelos y Cloudflare verificar el token.
+// Claude models.retrieve, Groq listar modelos, Cloudflare verificar el token y la ficha del modelo de Nano Banana.
 import type { EstadoServicio } from '../../shared/contratos.js'
 import { ErrorIA } from './errores.js'
 import { modeloPara } from './modelo.js'
@@ -7,6 +7,7 @@ import { pingClaude } from './proveedores/claude.js'
 import { verificarCloudflare } from './proveedores/cloudflare.js'
 import { descripcion } from './proveedores/comun.js'
 import { pingGroq } from './proveedores/groq.js'
+import { pingNanoBanana, tieneClaveGemini } from './proveedores/nano-banana.js'
 
 export interface EstadoIA {
   claude: EstadoServicio
@@ -26,12 +27,16 @@ async function medir(ping: () => Promise<void>): Promise<EstadoServicio> {
 }
 
 export async function estadoIA(): Promise<EstadoIA> {
-  const [claude, groq, cloudflare] = await Promise.all([
+  const [claude, groq, cloudflare, nanoBanana] = await Promise.all([
     medir(() => pingClaude(modeloPara('vision'))),
     medir(pingGroq),
     medir(verificarCloudflare),
+    tieneClaveGemini() ? medir(pingNanoBanana) : null,
   ])
-  // Si Groq no anda pero Workers AI sí, la transcripción sigue andando por el respaldo.
+  // Si el principal no anda pero Workers AI sí, la transcripción y la imagen siguen andando por el respaldo.
   const transcripcion = groq.ok || !cloudflare.ok ? groq : { ...cloudflare, error: `Groq: ${groq.error}; anda el respaldo de Workers AI` }
-  return { claude, transcripcion, imagen: cloudflare }
+  const imagen = !nanoBanana ? cloudflare
+    : nanoBanana.ok || !cloudflare.ok ? nanoBanana
+      : { ...cloudflare, error: `Nano Banana: ${nanoBanana.error}; anda el respaldo FLUX` }
+  return { claude, transcripcion, imagen }
 }

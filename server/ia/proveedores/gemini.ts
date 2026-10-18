@@ -11,7 +11,7 @@ import {
 
 let cliente: GoogleGenAI | null = null
 
-function clienteGemini(): GoogleGenAI {
+export function clienteGemini(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY?.trim()
   if (!apiKey) throw new ErrorIA('sin_clave', 'falta GEMINI_API_KEY')
   cliente ??= new GoogleGenAI({ apiKey, httpOptions: { timeout: 25_000 } })
