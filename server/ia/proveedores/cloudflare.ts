@@ -34,8 +34,16 @@ async function pedir<T>(url: string, token: string, init: RequestInit, timeoutMs
   }
 }
 
+// 4006: se terminaron las 10.000 neuronas gratis del día (vuelven a las 00:00 UTC). Reintentar no sirve hasta entonces.
+const SIN_CUPO_DIARIO = 4006
+
 function errorHttp(status: number, json: Respuesta<unknown> | null, que: string): ErrorIA {
   const mensaje = json?.errors?.[0]?.message ?? ''
+  if (json?.errors?.some((e) => e.code === SIN_CUPO_DIARIO)) {
+    return new ErrorIA('limite', `${que}: sin cupo diario (${SIN_CUPO_DIARIO}) ${mensaje}`.trim(), {
+      mensaje: 'Por hoy se terminó el cupo gratuito de este servicio. Vuelve a estar disponible mañana.',
+    })
+  }
   if (status === 429) return new ErrorIA('limite', `${que}: ${mensaje || 'sin cupo'}`)
   if (status === 401 || status === 403) return new ErrorIA('sin_clave', `${que}: token inválido o sin permiso (${status})`)
   return new ErrorIA('proveedor', `${que}: HTTP ${status} ${mensaje}`.trim())

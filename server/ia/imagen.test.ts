@@ -170,6 +170,17 @@ describe('generarImagen con Nano Banana (y FLUX de respaldo)', () => {
     expect(e.detalle.detalle).toContain('No puedo generar esa imagen.')
   })
 
+  it('Nano Banana sin billing y Workers AI sin cupo diario (4006) → limite enseguida, con un solo pedido a cada uno', async () => {
+    gemini.interaccion.mockRejectedValueOnce(errorGemini(429, 'limit: 0 on Free Tier'))
+    cloudflareResponde({ success: false, errors: [{ code: 4006, message: 'you have used up your daily free allocation of 10,000 neurons' }] }, 429)
+    const e = await errorDe(generarImagen({ prompt: PROMPT }))
+    expect(e.motivo).toBe('limite')
+    expect(e.codigo).toBe('limite_proveedor')
+    expect(e.message).toContain('mañana')
+    expect(gemini.interaccion).toHaveBeenCalledTimes(1)
+    expect(fetchFalso).toHaveBeenCalledTimes(1)
+  })
+
   it('con timeout no pasa a FLUX (la función corta a los 60 s)', async () => {
     gemini.interaccion.mockRejectedValueOnce(Object.assign(new Error('timed out'), { name: 'RequestTimeoutError' }))
     const e = await errorDe(generarImagen({ prompt: PROMPT }))
