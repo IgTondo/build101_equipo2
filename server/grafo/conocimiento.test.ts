@@ -502,3 +502,43 @@ describe('conocimientoDe: cambiando el principal, del mismo grupo o de uno que p
     expect([...grupos(focos)]).toEqual(['proteina'])
   })
 })
+
+describe('conocimientoDe: lo que pide evitar el reintento', () => {
+  let info: ReturnType<typeof vi.spyOn>
+  beforeEach(() => {
+    info = vi.spyOn(console, 'info').mockImplementation(() => {})
+  })
+  afterAll(() => vi.restoreAllMocks())
+  const evitoLog = (que: string) =>
+    info.mock.calls.map((x: unknown[]) => JSON.parse(String(x[0])) as Record<string, unknown>).find((x: Record<string, unknown>) => x.evento === 'foco_evitar_ignorado' && x.que === que)
+
+  it('evitar.desdeIds saca ese alimento seguro del sorteo; si no queda otro, se ignora y queda en el log', { timeout: 30_000 }, () => {
+    const evitar = ['milanesa_carne_horno', conocimiento({ momento: 'cena', azar: () => 0 }).foco.desdeId]
+    for (const a of AZARES) expect(evitar, String(a)).not.toContain(conocimiento({ momento: 'cena', azar: () => a, evitar: { desdeIds: evitar } }).foco.desdeId)
+    expect(evitoLog('desde')).toBeUndefined()
+    const todos = conocimiento({ momento: 'cena' }).seguros.map((p) => p.id)
+    const k = conocimiento({ momento: 'cena', azar: () => 0.4, evitar: { desdeIds: todos } })
+    expect(k.foco.desdeId).toBe(conocimiento({ momento: 'cena', azar: () => 0.4 }).foco.desdeId)
+    expect(evitoLog('desde')).toMatchObject({ evitar: todos })
+  })
+
+  it('evitar.ingredientes saca ese ingrediente (mismo alimento de partida, otro ingrediente); si era el único, se ignora', { timeout: 30_000 }, () => {
+    let probados = 0
+    for (const a of AZARES) {
+      const antes = conocimiento({ azar: () => a }).foco
+      if (!antes.ingrediente) continue
+      info.mockClear()
+      const k = conocimiento({ azar: () => a, evitar: { ingredientes: [antes.ingrediente] } })
+      if (evitoLog('ingrediente')) continue // era el único posible
+      probados++
+      expect(k.foco.desdeId, String(a)).toBe(antes.desdeId)
+      expect(k.foco.ingrediente, String(a)).not.toBe(antes.ingrediente)
+    }
+    expect(probados).toBeGreaterThanOrEqual(4)
+    info.mockClear()
+    const k = conocimiento({ azar: () => 0.4, evitar: { ingredientes: [...alimentos.keys()] } })
+    expect(k.foco.ingrediente).toBeDefined()
+    expect(k.foco.ingrediente).toBe(conocimiento({ azar: () => 0.4 }).foco.ingrediente)
+    expect(evitoLog('ingrediente')).toBeDefined()
+  })
+})

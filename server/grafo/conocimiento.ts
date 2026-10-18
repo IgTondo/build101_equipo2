@@ -14,6 +14,7 @@
 // que ya usó en las recetas que vio la familia (`anteriores`) no se repite: sale de los ricos y del sorteo.
 // v5.10 · El sorteo del ingrediente pesa por lo que combina con lo que queda del plato de partida (afinidades de Ahn
 // 2011, server/ia/afinidades.ts): sin eso salían "licuado de queso dambo y banana" y "milanesa de yogur".
+// v5.10 · `evitar` deja sortear OTRO foco en el reintento de la receta.
 import type { Alergeno, Alimento, Dieta, Grupo, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Presentacion, Regla, Variedad } from '../../shared/contratos.js'
 import { NUTRIENTE } from '../../shared/contratos.js'
 import { alimentosProhibidos, limpiarOtras, normalizar } from '../alergias.js'
@@ -131,6 +132,9 @@ const MAX_COMBINACIONES = 6 // v5.10 · las "combinaciones probadas" del princip
 /** v5.10 · Ni un genérico otro_<grupo> ni uno de alimentos_fdc (fdc_…, sin alérgenos curados ni en la lista del LLM). */
 const esCurado = (id: string) => !id.startsWith('otro_') && !id.startsWith('fdc_')
 
+/** v5.10 · Lo que el reintento de la receta pide no volver a sortear: alimentos de partida e ingredientes del foco. */
+export interface Evitar { desdeIds?: string[]; ingredientes?: string[] }
+
 /**
  * v5.10 · Los alimentos que identifican las recetas que ya vio la familia: los que aparecen en sus nombres, en palabras
  * completas y sin mayúsculas ni tildes, por el nombre o los alias de cada alimento curado, o por la familia cuando nombra
@@ -172,7 +176,10 @@ const atributosEnTexto = (p: PreparacionCatalogo) => {
 
 export function conocimientoDe(
   c: Cargado,
-  op: { nutriente?: Nutriente; momento?: Momento; motor?: Motor; hoy?: string; ahora?: Date; azar?: () => number; anteriores?: string[] } = {},
+  op: {
+    nutriente?: Nutriente; momento?: Momento; motor?: Motor; hoy?: string; ahora?: Date; azar?: () => number; anteriores?: string[]
+    evitar?: Evitar // v5.10
+  } = {},
 ): Conocimiento {
   const azar = op.azar ?? Math.random
   const hoy = op.hoy ?? hoyUruguay(op.ahora)
@@ -263,17 +270,25 @@ export function conocimientoDe(
 
   // El foco, al azar: el alimento seguro entre los que van en esta comida, el modo y el nutriente (el primero pesa doble).
   // v5.5 · En modo variedad, sin nutriente; con un grupo, siempre cambiar el principal por uno de ese grupo.
-  const paraFoco = seguros
   const elegir = <T>(xs: readonly T[]): T | undefined => xs[Math.min(xs.length - 1, Math.floor(azar() * xs.length))]
   const porNutriente = nutrientes.map((x) => x.nutriente)
-  let desde = elegir(paraFoco)?.p
+  // v5.10 · Lo que pide evitar el reintento no se sortea, salvo que no quede otro (entonces se ignora, y queda en el log)
+  const evitarDesde = new Set(op.evitar?.desdeIds ?? [])
+  const evitarIngrediente = new Set(op.evitar?.ingredientes ?? [])
+  const evitado = (que: 'desde' | 'ingrediente', evitar: Set<string>) =>
+    console.info(JSON.stringify({ evento: 'foco_evitar_ignorado', que, evitar: [...evitar], ninoId: c.nino._id }))
+  const sinEvitar = seguros.filter((x) => !evitarDesde.has(x.p.id))
+  if (!sinEvitar.length && seguros.length && evitarDesde.size) evitado('desde', evitarDesde)
+  const paraFoco = sinEvitar.length ? sinEvitar : seguros
+  const sortearDesde = (xs: typeof seguros) => elegir(xs)?.p
+  let desde = sortearDesde(paraFoco)
   const sorteado = elegir(MODOS_FOCO) ?? 'cambiar_principal'
   let modo: Modo = variedad?.grupo ? 'cambiar_principal' : sorteado
   // v5.10 · Sumando un ingrediente, el principal del plato nuevo sigue siendo el de su plato: si ya lo usó hace poco, se
   // parte de otro alimento seguro o, si todos lo tienen reciente, se cambia el principal
   const principalReciente = (p: PreparacionCatalogo) => esReciente.has(principal(p.ingredientes) ?? '')
   if (modo === 'sumar_ingrediente' && desde && principalReciente(desde)) {
-    const otro = elegir(paraFoco.filter((x) => !principalReciente(x.p)))?.p
+    const otro = sortearDesde(paraFoco.filter((x) => !principalReciente(x.p)))
     if (otro) desde = otro
     else modo = 'cambiar_principal'
   }
@@ -304,13 +319,17 @@ export function conocimientoDe(
     !esReciente.has(id) && !deSuPlato.has(id) && !rechazaGrupo(c.alimentos.get(id)?.grupo) && (!cambia || puedeSerPrincipal(id))
   // Cambiando el principal, los que más aportan entre los que pueden reemplazarlo (no solo los 8 ricos de la lista, que
   // tienen como mucho 2 por grupo: desde sus papas fritas quedaban 2 cereales y 2 verduras)
-  const candidatos = variedad
-    ? delGrupo.filter(posible)
+  const candidatosSi = (ok: (id: string) => boolean) => variedad
+    ? delGrupo.filter(ok)
     : !foco.nutriente
       ? []
       : cambia
-        ? unoPorFamilia(foco.nutriente).map((a) => a.id).filter(posible).slice(0, MAX_RICOS)
-        : (nutrientes.find((x) => x.nutriente === foco.nutriente)?.ricos ?? []).map((r) => r.alimentoId).filter(posible)
+        ? unoPorFamilia(foco.nutriente).map((a) => a.id).filter(ok).slice(0, MAX_RICOS)
+        : (nutrientes.find((x) => x.nutriente === foco.nutriente)?.ricos ?? []).map((r) => r.alimentoId).filter(ok)
+  // v5.10 · Sin los que pide evitar el reintento; si eran los únicos, se ignora (y queda en el log)
+  const sinEvitarIngrediente = candidatosSi((id) => posible(id) && !evitarIngrediente.has(id))
+  const candidatos = sinEvitarIngrediente.length || !evitarIngrediente.size ? sinEvitarIngrediente : candidatosSi(posible)
+  if (candidatos.length && !sinEvitarIngrediente.length) evitado('ingrediente', evitarIngrediente)
   const base = candidatos.map((_, i) => (variedad ? 1 : candidatos.length - i))
   // v5.10 · El peso se multiplica por lo que combina con su plato. Cambiando el principal, solo entre los que combinan
   // (con uno alcanza); sumando, si hay al menos MIN_AFINES. Si no (o sin datos de afinidad), el sorteo por lugar entre los
@@ -437,7 +456,7 @@ function lineasVariedad(v: Variedad, delGrupo: string[]): string[] {
 }
 
 export async function armarConocimiento(
-  ninoId: string, op: { nutriente?: Nutriente; momento?: Momento; motor?: Motor; anteriores?: string[] } = {},
+  ninoId: string, op: { nutriente?: Nutriente; momento?: Momento; motor?: Motor; anteriores?: string[]; evitar?: Evitar } = {},
 ): Promise<Conocimiento> {
   return conocimientoDe(await cargarNino(ninoId), op)
 }
