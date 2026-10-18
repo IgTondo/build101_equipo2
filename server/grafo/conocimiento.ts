@@ -76,6 +76,7 @@ export interface Foco {
 export const ACOMPANAMIENTOS: ReadonlySet<string> = new Set([
   'aceite_girasol', 'aceite_canola', 'aceite_oliva', 'manteca', 'azucar', 'dulce_de_leche', 'mermelada', 'miel',
   'mayonesa', 'ketchup', 'cacao_azucarado',
+  'crema_leche', 'dulce_batata', // v5.10 · la crema y el dulce de batata acompañan: no son el plato
 ])
 
 /**
@@ -87,6 +88,8 @@ export const GOLOSINAS_Y_ULTRAPROCESADOS: ReadonlySet<string> = new Set([
   // Golosinas, postres y masas dulces
   'chocolate', 'alfajor', 'bizcochuelo', 'helado', 'postre_lacteo', 'galletitas_dulces', 'galletitas_avena', 'medialuna',
   'galletitas_rellenas', 'postre_chocolate', 'flan', 'torta_frita', // v5.10 · los de la tanda 2 del catálogo
+  // Bebidas azucaradas y barras de paquete (v5.10): el jugo de verdad es la fruta, o jugo_naranja
+  'refresco', 'jugo_envasado', 'barra_cereal',
   // Snacks y galletitas o grisines de paquete: el omega-3 y el hierro les vienen del aceite y de la harina fortificada
   'papas_chips', 'galletitas_agua', 'galletitas_integrales', 'grisines', 'pororo',
   // Carnes procesadas, rebozados comerciales y fiambres: la versión casera (pollo, carne, merluza) es la que suma

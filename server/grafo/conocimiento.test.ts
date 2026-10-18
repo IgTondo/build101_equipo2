@@ -60,6 +60,16 @@ describe('conocimientoDe: los ricos en cada nutriente', () => {
     for (const [i, r] of ricos.entries()) if (i > 0) expect(r.por100g).toBeLessThanOrEqual(ricos[i - 1]!.por100g)
   })
 
+  it('la crema y el dulce de batata acompañan; el refresco, el jugo envasado y la barra de cereal son golosinas', () => {
+    for (const id of ['crema_leche', 'dulce_batata']) expect(ACOMPANAMIENTOS.has(id), id).toBe(true)
+    for (const id of ['refresco', 'jugo_envasado', 'barra_cereal']) expect(GOLOSINAS_Y_ULTRAPROCESADOS.has(id), id).toBe(true)
+    for (const id of ['crema_leche', 'dulce_batata', 'refresco', 'jugo_envasado', 'barra_cereal']) {
+      expect(alimentos.has(id), `${id} está en el catálogo`).toBe(true)
+      for (const n of NUTRIENTE) expect(ricosDe(porNutriente.get(n)!, n), `${n}: ${id}`).not.toContain(id)
+    }
+    expect(recientesDe(['Bastones de boniato con dulce de batata y crema de leche, y un refresco'], alimentos)).toEqual(['boniato'])
+  })
+
   it('un solo alimento por familia en cada lista (un yogur, una leche, un pan)', () => {
     for (const n of NUTRIENTE) {
       const ids = ricosDe(porNutriente.get(n)!, n)
