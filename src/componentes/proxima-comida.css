@@ -1,0 +1,41 @@
+/* Tarjeta "Próxima comida" (PLAN v5.1): el botón grande del inicio y el cierre del registro. Solo tokens de marca. */
+.pc {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 18px 20px; border-radius: var(--nb-radio);
+  text-decoration: none; -webkit-tap-highlight-color: transparent;
+}
+.pc-enlace {
+  min-height: 140px;
+  background: var(--nb-primario); color: var(--nb-sobre-primario);
+  box-shadow: 0 1px 2px rgba(22, 53, 42, 0.12), 0 6px 20px rgba(22, 53, 42, 0.14);
+  transition-property: background-color, transform; transition-duration: 150ms; transition-timing-function: ease-out;
+}
+.pc-enlace:hover { background: var(--nb-primario-hover); }
+.pc-enlace:active { background: var(--nb-primario-hover); transform: scale(0.98); }
+.pc-enlace:focus-visible { outline-offset: 3px; }
+.pc-quieta {
+  background: var(--nb-superficie); color: var(--nb-texto);
+  border: 1px solid var(--nb-borde); box-shadow: var(--nb-sombra);
+}
+
+.pc-cuando {
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.pc-quieta .pc-cuando { color: var(--nb-texto-suave); }
+.pc-nombre {
+  font-family: var(--nb-font-titulos); font-weight: 800; font-size: 1.45rem; line-height: 1.15;
+  text-wrap: balance;
+}
+.pc-porque { margin: 0; font-size: 0.98rem; line-height: 1.4; text-wrap: pretty; }
+.pc-quieta .pc-porque { color: var(--nb-texto-suave); }
+.pc-accion {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
+  font-weight: 700; font-size: 1rem;
+}
+.pc-accion svg { flex: none; }
+.pc .nb-cargando { margin: 4px 0 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-enlace { transition: none; }
+  .pc-enlace:active { transform: none; }
+}

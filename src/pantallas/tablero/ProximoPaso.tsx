@@ -2,6 +2,7 @@
 import { useId } from 'react'
 import { Link } from 'react-router-dom'
 import type { Candidato, Motor, Nutriente, Sugerencia } from '../../../shared/contratos'
+import { sugerenciasDe } from '../../lib/proximaComida'
 import { NOMBRE_CAMBIO } from '../../lib/vocabulario'
 import { rutaReceta, valorAtributo } from './calculos'
 import { SwitchMotor } from './SwitchMotor'
@@ -20,15 +21,7 @@ interface Props {
 
 export function ProximoPaso({ ninoId, sugerencias, proximoPaso, nutriente, motor, onMotor, recargando }: Props) {
   const id = useId()
-  const tarjetas: Sugerencia[] = sugerencias?.length
-    ? sugerencias
-    : proximoPaso
-      ? [{
-          tipo: 'un_paso', preparacionId: proximoPaso.preparacionId, nombre: proximoPaso.nombre, probAcepta: proximoPaso.puntaje,
-          aporte: proximoPaso.aportePorcion, candidato: proximoPaso,
-          porQue: `Se parece a ${proximoPaso.camino.desde.toLocaleLowerCase('es')}: cambia solo ${NOMBRE_CAMBIO[proximoPaso.cambio]}.`,
-        }]
-      : []
+  const tarjetas = sugerenciasDe({ sugerencias, proximoPaso })
 
   return (
     <section className="nb-tarjeta tb-seccion" aria-labelledby={`${id}-t`} aria-busy={recargando}>
@@ -36,7 +29,6 @@ export function ProximoPaso({ ninoId, sugerencias, proximoPaso, nutriente, motor
         <h2 id={`${id}-t`}>Próximo paso</h2>
         <SwitchMotor motor={motor} onCambio={onMotor} />
       </div>
-      <p className="nb-suave tb-bajada">Ideas para la próxima comida. Ofrecelo sin pedirle que lo coma: que esté en el plato ya es un avance.</p>
 
       {tarjetas.length === 0 ? (
         <p className="tb-vacio-chico">Todavía no tenemos una sugerencia. Con algunas comidas más registradas, vamos a poder proponerte una.</p>

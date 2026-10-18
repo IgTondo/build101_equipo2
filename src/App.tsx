@@ -5,7 +5,7 @@ import { avisoStubs } from './lib/api'
 import { useNino } from './lib/nino'
 import { Estado } from './pantallas/Estado'
 import { Grafo } from './pantallas/grafo/Grafo'
-import { Inicio } from './pantallas/Inicio'
+import { Inicio } from './pantallas/inicio/Inicio'
 import { Pendiente } from './pantallas/Pendiente'
 import { Perfil } from './pantallas/perfil/Perfil'
 import { PerfilNuevo } from './pantallas/perfil/PerfilNuevo'
@@ -16,9 +16,10 @@ import { Tablero } from './pantallas/tablero/Tablero'
 
 // Cada pantalla vive en su carpeta de src/pantallas/. La navegación conserva ?nino= (§9). Las que necesitan un chico
 // activo van dentro de <ConNino>: sin chico (la primera vez, §5.2) se va al alta por voz y no se muestra la navegación.
+// v5.1: registrar se abre desde los botones del inicio (la ruta /registrar sigue igual).
 const NAV = [
-  { a: '/registrar', texto: 'Registrar' },
-  { a: '/tablero', texto: 'Tablero' },
+  { a: '/', texto: 'Inicio' },
+  { a: '/tablero', texto: 'Semana' },
   { a: '/perfil', texto: 'Perfil' },
 ]
 
@@ -27,7 +28,7 @@ const QUE_ES: Record<string, string> = {
   'analizar-comida': 'la lectura de la foto', 'relato-comida': 'la nota de voz', transcribir: 'la transcripción',
   'perfil-inicial': 'lo que entendimos del relato', receta: 'la receta', 'imagen-plato': 'la imagen del plato',
   perfil: 'el perfil', 'registrar-comida': 'el registro de la comida', nutricion: 'los nutrientes del día',
-  progreso: 'el tablero', salud: 'el estado de los servicios', resumen: 'los números del resumen',
+  progreso: 'el tablero y la próxima comida', salud: 'el estado de los servicios', resumen: 'los números del resumen',
 }
 
 function AvisoDatosDeEjemplo() {
@@ -44,12 +45,16 @@ function AvisoDatosDeEjemplo() {
 
 export function App() {
   const { search, pathname } = useLocation()
-  const hayNino = useNino() !== null
+  const nino = useNino()
+  const hayNino = nino !== null
+  // La navegación lleva solo el chico (y el motor de la demo): no arrastra ?momento= ni ?preparacionId= de otra pantalla.
+  const motor = new URLSearchParams(search).get('motor')
+  const navSearch = nino ? `?${new URLSearchParams({ nino, ...(motor ? { motor } : {}) })}` : ''
   useEffect(() => avisoStubs.limpiar(), [pathname])
   return (
     <div className="nb-app">
       <header className="nb-cabecera">
-        <Link to={{ pathname: '/', search }} aria-label="Nibble, inicio">
+        <Link to={{ pathname: '/', search: navSearch }} aria-label="Nibble, inicio">
           <img src="/nibble-logo.svg" alt="Nibble" height={32} />
         </Link>
       </header>
@@ -73,7 +78,7 @@ export function App() {
       {hayNino && (
         <nav className="nb-nav" aria-label="Principal">
           {NAV.map((n) => (
-            <NavLink key={n.a} to={{ pathname: n.a, search }}>{n.texto}</NavLink>
+            <NavLink key={n.a} to={{ pathname: n.a, search: navSearch }} end={n.a === '/'}>{n.texto}</NavLink>
           ))}
         </nav>
       )}

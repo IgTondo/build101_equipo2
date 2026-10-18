@@ -21,6 +21,8 @@ p { margin: 0 0 0.75rem; }
   padding: 16px;
 }
 .nb-suave { color: var(--nb-texto-suave); }
+/* Solo para lectores de pantalla */
+.nb-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .nb-frase { font-size: 1.1rem; }
 
 .nb-boton {
