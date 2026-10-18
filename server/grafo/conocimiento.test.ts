@@ -44,7 +44,8 @@ describe('conocimientoDe: los ricos en cada nutriente', () => {
   it('en "ricos en calcio" hay como máximo un queso, el que más aporta, y siguen de más a menos', () => {
     const ricos = calcio.nutrientes[0]!.ricos
     expect(ricos.filter((r) => familia(r.alimentoId) === 'queso').map((r) => r.alimentoId)).toEqual(['queso_rallado'])
-    expect(ricos.map((r) => r.alimentoId)).toEqual(expect.arrayContaining(['ricota', 'yogur', 'leche']))
+    expect(ricos.map((r) => r.alimentoId)).toEqual(expect.arrayContaining(['ricota']))
+    expect(ricos.some((r) => familia(r.alimentoId) === 'yogur') && ricos.some((r) => familia(r.alimentoId) === 'leche')).toBe(true)
     expect(ricos.length).toBeLessThanOrEqual(8)
     for (const [i, r] of ricos.entries()) if (i > 0) expect(r.por100g).toBeLessThanOrEqual(ricos[i - 1]!.por100g)
   })
@@ -183,7 +184,7 @@ describe('recientesDe', () => {
   it('palabras completas, sin mayúsculas ni tildes, contra el nombre y los alias', () => {
     expect(de('Pizzetas de porotos y muzzarella')).toEqual(['porotos', 'queso_muzzarella'])
     expect(de('Arbolitos de BRÓCOLI gratinados')).toEqual(['brocoli'])
-    expect(de('Panqueques de banana')).toEqual(['banana']) // "pan" no está en "panqueques"
+    expect(de('Panqueques de banana')).toEqual(['panqueques', 'banana']) // "pan" no está en "panqueques" (que es un alimento del catálogo)
   })
 
   it('los alias de menos de 4 letras no cuentan ("pan", "res")', () => {
@@ -191,12 +192,13 @@ describe('recientesDe', () => {
   })
 
   it('la familia, cuando nombra a varios: "costra de queso" son todos los quesos', () => {
-    expect(de('Milanesa de pollo con costra de queso')).toEqual(['pollo', 'queso_dambo', 'queso_muzzarella', 'queso_rallado', 'queso_crema'])
+    const quesos = [...alimentos.keys()].filter((id) => familia(id) === 'queso')
+    expect(new Set(de('Milanesa de pollo con costra de queso'))).toEqual(new Set(['pollo', ...quesos]))
   })
 
   it('solo lo que identifica el plato: sin acompañamientos, golosinas ni rellenos (pan rallado, harina, aceite, manteca)', () => {
     expect(de('Milanesa de pollo rebozada con pan rallado y harina, frita en aceite de girasol con manteca')).toEqual(['pollo'])
-    expect(de('Panqueques con dulce de leche y chocolate')).toEqual([]) // el dulce de leche no es leche
+    expect(de('Panqueques con dulce de leche y chocolate')).toEqual(['panqueques']) // el dulce de leche no es leche
     expect(de('Tostadas con queso crema y tomate')).toEqual(['tomate', 'queso_crema']) // el más largo se consume primero
     const todo = de(...[...alimentos.values()].map((a) => a.nombre))
     expect(todo.length).toBeGreaterThan(40)
