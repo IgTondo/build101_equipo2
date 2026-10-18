@@ -8,7 +8,7 @@ import type { Recomendacion } from '../aprendizaje/recomendador.js'
 import { NOMBRE_NUTRIENTE, lista, porciento } from '../aprendizaje/textos.js'
 import { diaDe, diasEntre, sumarDias } from '../datos/fechas.js'
 import type { ComidaDoc, NinoDoc } from '../datos/tipos.js'
-import { alertas } from './alertas.js'
+import { CONFIG_ALERTAS, alertas } from './alertas.js'
 import {
   cero, cobertura, escalar, faltanDia, faltanSemana, redondearCobertura, redondearRango, sumar, sumarRangos,
 } from './calcular.js'
@@ -131,6 +131,8 @@ export function evaluarAlertas(
     segurasPerdidas: perdidas,
     grupos: gruposDesde(hasta, hoy),
     diasDeHistorial,
+    diasRegistrados: new Set(hasta.map((c) => c.dia)).size,
+    comidasRecientes: comidasEntre(hasta, sumarDias(hoy, -(CONFIG_ALERTAS.diasRepertorioBaja - 1)), hoy).length,
     coberturaSemana: sem.cobertura,
     diasRegistradosSemana: sem.diasRegistrados,
     conductasSemana: comidasEntre(hasta, sumarDias(hoy, -6), hoy).map((c) => c.conducta),
