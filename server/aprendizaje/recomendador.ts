@@ -1,6 +1,6 @@
 // Recomendador enchufable (PLAN.md §4.3 y §8): `grafo` (propagación + patrones, el de producción) o `base`
 // (α/β por atributo, la misma base de la curva de §11.4). Los dos usan los mismos candidatos de cadena.ts.
-import type { Cambio, Candidato, IdeaReceta, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Sugerencia } from '../../shared/contratos.js'
+import type { Cambio, Candidato, IdeaReceta, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Sugerencia, Variedad } from '../../shared/contratos.js'
 import { aporte, cero, redondearParcial } from '../nutricion/calcular.js'
 import { CON_META } from '../nutricion/objetivos.js'
 import { alfaBeta, pAtributos } from './aceptacion.js'
@@ -8,7 +8,7 @@ import { type EntradaCadena, type PasoCadena, DIFICULTAD, candidatosCadena, prin
 import { type Contexto, type Observacion, cumple } from './condiciones.js'
 import type { Patron } from './patrones.js'
 import { importanciaPorTipo, propagar } from './propagacion.js'
-import { DEL_NUTRIENTE, NOMBRE_NUTRIENTE, TEXTO_CAMBIO, porciento, su } from './textos.js'
+import { DEL_NUTRIENTE, NOMBRE_NUTRIENTE, TEXTO_CAMBIO, porciento, sinComer, su } from './textos.js'
 
 export interface EntradaRecomendador extends EntradaCadena {
   observaciones: readonly Observacion[]
@@ -17,6 +17,7 @@ export interface EntradaRecomendador extends EntradaCadena {
   coberturaSemana: Nutrientes
   evitarSegura?: readonly string[] // lo que se sirvió en la última comida del mismo momento: no repetir el mismo tema
   momento?: Momento // v5.2 · la comida para la que se sugiere: solo lo que el catálogo anota para esa comida
+  variedad?: Variedad // v5.5 · modo variedad (variedadDe, nutricion/progreso.ts): no falta ningún nutriente clave esta semana
 }
 
 export interface Recomendacion {
@@ -25,6 +26,7 @@ export interface Recomendacion {
   candidatos: Candidato[]
   sugerencias: Sugerencia[] // siempre en el orden segura, un_paso, mas_nutritiva
   ideas?: IdeaReceta[] // v5.4 · solo con momento: para que "Generar receta" no repita
+  variedad?: Variedad // v5.5 · modo variedad: mas_nutritiva suma el grupo que menos come (o algo nuevo) en vez de un nutriente
 }
 
 /** Cómo se va a servir lo nuevo (§7): separado y al lado de su alimento seguro. Los patrones de contexto se miran con esto. */
@@ -110,8 +112,15 @@ export function esParaMomento(prep: Pick<PreparacionCatalogo, 'momentos'> | unde
   return !momento || (prep?.momentos?.includes(momento) ?? false)
 }
 
+/**
+ * Con `variedad` (v5.5, no falta ningún nutriente y no se pidió uno): la segura y el pasito siguen con el nutriente de
+ * menor cobertura, y la "más nutritiva" pasa a ser la que suma variedad: entre los candidatos a un cambio de cualquier
+ * nutriente (todos aportan al menos el 15% de alguno), la de más puntaje del grupo que menos come; si no hay de ese
+ * grupo, o come de todos, la de más puntaje que no sea el pasito. El tipo sigue siendo mas_nutritiva (la pantalla lo usa).
+ */
 export function recomendar(e: EntradaRecomendador, motor: Motor = 'grafo', nutrienteElegido?: Nutriente): Recomendacion {
   const nutriente = nutrienteElegido ?? e.faltan[0] ?? menorCobertura(e.coberturaSemana)
+  const variedad = nutrienteElegido ? undefined : e.variedad
   const puntuar1 = puntuador(e, motor)
   const puntuar = (n: Nutriente): Puntuado[] =>
     candidatosCadena(e, n)
@@ -137,19 +146,41 @@ export function recomendar(e: EntradaRecomendador, motor: Motor = 'grafo', nutri
   if (!unPaso && lista[0]) unPaso = { x: lista[0], n: nutriente, enCurso: false }
   if (unPaso) sugerencias.push(sugerenciaPaso('un_paso', unPaso.x, unPaso.n, unPaso.enCurso, e))
 
-  // Más nutritiva: la que más aporta al nutriente que más falta, aunque tenga menos puntaje
-  const masNutritiva = lista
-    .filter((c) => c.paso.cand.id !== unPaso?.x.paso.cand.id)
-    .sort((a, b) => b.paso.aporte[nutriente] - a.paso.aporte[nutriente] || b.puntaje - a.puntaje)[0]
-  if (masNutritiva) sugerencias.push(sugerenciaPaso('mas_nutritiva', masNutritiva, nutriente, false, e))
+  // v5.5 · Modo variedad: los candidatos a un cambio de cualquier nutriente, una vez cada uno, primero los del grupo que menos come
+  const variadas = variedad ? candidatosVariedad(puntuar, variedad) : []
 
-  const rec: Recomendacion = { motor, nutriente, candidatos: lista.map(aCandidato), sugerencias }
+  if (variedad) {
+    // Más variada (v5.5): la de más puntaje del grupo que menos come; si no hay, cualquier cosa nueva a un cambio
+    const sinPaso = variadas.filter((c) => c.paso.cand.id !== unPaso?.x.paso.cand.id)
+    const delGrupo = sinPaso.find((c) => c.paso.cand.atributos.grupo === variedad.grupo)
+    const x = delGrupo ?? sinPaso[0]
+    if (x) sugerencias.push(sugerenciaPaso('mas_nutritiva', x, nutriente, false, e, delGrupo ? variedad : {}))
+  } else {
+    // Más nutritiva: la que más aporta al nutriente que más falta, aunque tenga menos puntaje
+    const masNutritiva = lista
+      .filter((c) => c.paso.cand.id !== unPaso?.x.paso.cand.id)
+      .sort((a, b) => b.paso.aporte[nutriente] - a.paso.aporte[nutriente] || b.puntaje - a.puntaje)[0]
+    if (masNutritiva) sugerencias.push(sugerenciaPaso('mas_nutritiva', masNutritiva, nutriente, false, e))
+  }
+
+  const rec: Recomendacion = { motor, nutriente, candidatos: lista.map(aCandidato), sugerencias, ...(variedad ? { variedad } : {}) }
   if (!e.momento) return rec
   // v5.4 · Las ideas de "Generar receta": los candidatos de cada nutriente que falta, sin lo que está en exposición
-  // (eso lo repite la tarjeta de la próxima comida, a propósito; acá el padre busca ideas nuevas).
+  // (eso lo repite la tarjeta de la próxima comida, a propósito; acá el padre busca ideas nuevas). v5.5 · En modo
+  // variedad, las variadas (primero las del grupo que menos come).
   const enExposicion = e.catalogo.filter((p) => enCurso(e, p.id))
-  const porNutriente = [nutriente, ...e.faltan.filter((f) => f !== nutriente)].map((n) => ({ n, lista: n === nutriente ? lista : puntuar(n) }))
+  const porNutriente = variedad
+    ? [{ n: nutriente, lista: variadas }]
+    : [nutriente, ...e.faltan.filter((f) => f !== nutriente)].map((n) => ({ n, lista: n === nutriente ? lista : puntuar(n) }))
   return { ...rec, ideas: ideasReceta(porNutriente, enExposicion, (id) => enCurso(e, id)) }
+}
+
+/** v5.5 · Los candidatos a un cambio de todos los nutrientes con meta, sin repetir, por puntaje; los del grupo pedido primero. */
+function candidatosVariedad(puntuar: (n: Nutriente) => Puntuado[], variedad: Variedad): Puntuado[] {
+  const vistos = new Set<string>()
+  const todos = CON_META.flatMap(puntuar).filter((c) => !vistos.has(c.paso.cand.id) && Boolean(vistos.add(c.paso.cand.id)))
+  const delGrupo = (c: Puntuado) => Number(c.paso.cand.atributos.grupo === variedad.grupo)
+  return todos.sort((a, b) => delGrupo(b) - delGrupo(a) || b.puntaje - a.puntaje || a.paso.cand.id.localeCompare(b.paso.cand.id))
 }
 
 /** ¿Está en exposición? En proceso, ofrecido al menos una vez y todavía sin las 10 exposiciones (§8). */
@@ -218,7 +249,10 @@ function sugerenciaSegura(e: EntradaRecomendador, n: Nutriente): Sugerencia | nu
   }
 }
 
-function sugerenciaPaso(tipo: 'un_paso' | 'mas_nutritiva', x: Puntuado, n: Nutriente, enCurso: boolean, e: EntradaRecomendador): Sugerencia {
+/** Con `variedad` (v5.5, solo mas_nutritiva): el porQué habla de la variedad que suma, no de un nutriente. */
+function sugerenciaPaso(
+  tipo: 'un_paso' | 'mas_nutritiva', x: Puntuado, n: Nutriente, enCurso: boolean, e: EntradaRecomendador, variedad?: Variedad,
+): Sugerencia {
   const { paso } = x
   const estado = e.estados.get(paso.cand.id)
   const pct = e.objetivo[n] > 0 ? porciento(paso.aporte[n] / e.objetivo[n]) : ''
@@ -235,7 +269,14 @@ function sugerenciaPaso(tipo: 'un_paso' | 'mas_nutritiva', x: Puntuado, n: Nutri
             : []),
           ...(pct ? [`Aporta ${pct} ${DEL_NUTRIENTE[n]} del día.`] : []),
         ]
-      : [`Es la que más ${NOMBRE_NUTRIENTE[n]} aporta: ${pct} de lo que necesita por día.`, parecido]
+      : variedad
+        ? [
+            variedad.grupo
+              ? `No le falta ningún nutriente clave esta semana: esta suma variedad, porque ${sinComer(variedad.grupo, variedad.diasSinComer)}.`
+              : 'No le falta ningún nutriente clave esta semana: esta suma variedad, algo nuevo a un solo cambio de lo que ya come.',
+            parecido,
+          ]
+        : [`Es la que más ${NOMBRE_NUTRIENTE[n]} aporta: ${pct} de lo que necesita por día.`, parecido]
   return {
     tipo,
     preparacionId: paso.cand.id,
@@ -245,5 +286,6 @@ function sugerenciaPaso(tipo: 'un_paso' | 'mas_nutritiva', x: Puntuado, n: Nutri
     porQue: partes.join(' '),
     candidato: aCandidato(x),
     grupo: paso.cand.atributos.grupo,
+    ...(variedad ? { objetivo: { tipo: 'variedad' as const, ...variedad } } : {}),
   }
 }

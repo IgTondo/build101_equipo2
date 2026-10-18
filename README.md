@@ -56,9 +56,9 @@ Celular (React + Vite) ──► Vercel Functions (api/*, 12) ──► server/
 | Visión, preguntas, transcripción y extracción del relato, perfil, receta, imagen, resumen | IA real (Claude, Whisper en Groq, FLUX en Workers AI) |
 | Nutrientes | Código + USDA FoodData Central (descarga completa; cada valor muestra su `fdcId`) |
 | Grafo, aceptación, exposiciones, patrones, propagación, food chaining, alertas | Código propio + Neo4j y MongoDB |
-| Tomás | Caso ficticio, cargado con el flujo real; historial con fechas retroactivas |
+| Valentina (`sint-valentina`, la de la demo) | Caso ficticio del dataset sintético: 181 comidas en 6 semanas, cargadas con el flujo real (`scripts/cargar-sinteticos.ts valentina --hasta=<hoy>`) |
 | Catálogo semilla de preparaciones | Curado por el equipo (borrador asistido por LLM, revisado a mano) |
-| Dataset sintético de Tomás y Lucía (`data/sinteticos/`) | Simulación, para desarrollar y testear el aprendizaje |
+| Dataset sintético (`data/sinteticos/`) | Simulación, para desarrollar y testear el aprendizaje |
 | Fixtures (`fixtures/`) | Datos de ejemplo derivados del dataset sintético. Mientras un endpoint responde con fixture, manda el header `x-nibble-stub: 1` y la app muestra "Datos de ejemplo" |
 | Foto de lo que quedó en el plato, comunidad, notificaciones, login | Pendiente |
 
@@ -73,7 +73,7 @@ Celular (React + Vite) ──► Vercel Functions (api/*, 12) ──► server/
 | Visión | 15–20 fotos etiquetadas (`eval/`), recall y precisión por alimento, atributos, latencia | Pendiente |
 | Voz | 5–8 notas reales (iPhone y Android): `cuanto` correcto, ítems inventados (tiene que dar 0) | Pendiente |
 | Recetas | 12 recetas: alergias, un solo cambio y lenguaje, sin y con validación por código | Pendiente |
-| Aprendizaje | Dataset sintético: los tests tienen que encontrar las reglas ocultas de Tomás y Lucía | Pendiente |
+| Aprendizaje | Dataset sintético: los tests tienen que encontrar las reglas ocultas de cada chico (las cuatro de Valentina, entre ellas) | Pendiente |
 
 ## Correrlo
 

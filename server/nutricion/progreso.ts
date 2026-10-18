@@ -1,11 +1,11 @@
 // El tablero "¿está comiendo bien?" (PLAN.md §1 y §9): todo por código, sin LLM. Funciones puras.
-import type { Alerta, CoberturaDia, ComidaResumen, Grupo, Nutriente, Nutrientes, Progreso } from '../../shared/contratos.js'
+import type { Alerta, CoberturaDia, ComidaResumen, Grupo, Nutriente, Nutrientes, Progreso, Variedad } from '../../shared/contratos.js'
 import { exposiciones } from '../aprendizaje/aceptacion.js'
 import { comio } from '../aprendizaje/escalera.js'
 import { type EstadoNino, contar } from '../aprendizaje/estado.js'
 import type { Patron } from '../aprendizaje/patrones.js'
 import type { Recomendacion } from '../aprendizaje/recomendador.js'
-import { NOMBRE_NUTRIENTE, lista, porciento } from '../aprendizaje/textos.js'
+import { NOMBRE_NUTRIENTE, lista, porciento, sinComer } from '../aprendizaje/textos.js'
 import { diaDe, diasEntre, sumarDias } from '../datos/fechas.js'
 import type { ComidaDoc, NinoDoc } from '../datos/tipos.js'
 import { CONFIG_ALERTAS, alertas } from './alertas.js'
@@ -83,6 +83,29 @@ export function gruposDesde(comidas: readonly ComidaDoc[], hoy: string): Progres
   })
 }
 
+/**
+ * v5.5 · Desde cuántos días sin comer un grupo cuenta para sumar variedad. Menos que la alerta de grupo ausente (7 días,
+ * alertas.ts): acá no es una señal para consultar, es la próxima idea cuando no falta ningún nutriente.
+ */
+export const DIAS_VARIEDAD = 3
+
+/** v5.5 · El grupo que menos come: el que nunca registramos o el de más días sin comer (desde DIAS_VARIEDAD); {} si come de todos. */
+export function grupoParaVariedad(grupos: Progreso['grupos']): Variedad {
+  const dias = (d: number | null) => d ?? Number.MAX_SAFE_INTEGER
+  const g = grupos
+    .filter((x) => x.diasSinComer === null || x.diasSinComer >= DIAS_VARIEDAD)
+    .sort((a, b) => dias(b.diasSinComer) - dias(a.diasSinComer))[0] // estable: a igualdad, el orden del tablero
+  return g ? { grupo: g.grupo, diasSinComer: g.diasSinComer } : {}
+}
+
+/**
+ * v5.5 · Modo variedad: si hay comidas esta semana y no falta ningún nutriente clave (todos ≥ 70%, faltanSemana vacío),
+ * el objetivo es sumar variedad. null = modo nutriente (falta alguno, o no hay datos de la semana para saberlo).
+ */
+export function variedadDe(diasRegistrados: number, faltan: readonly Nutriente[], grupos: Progreso['grupos']): Variedad | null {
+  return diasRegistrados > 0 && faltan.length === 0 ? grupoParaVariedad(grupos) : null
+}
+
 export function patronesVista(patrones: readonly Patron[]): Progreso['patrones'] {
   return patrones.map((p) => ({
     texto: p.texto, resultado: p.resultado, apoyo: p.n, confianza: Math.round(p.confianza * 100) / 100, fuente: p.fuente,
@@ -93,7 +116,9 @@ export function patronesVista(patrones: readonly Patron[]): Progreso['patrones']
  * "Esta semana Tomás cubrió 5 de 8 nutrientes. Lo que más le falta: calcio (48%) y vitamina D (20%). Come 14 preparaciones (1 más que la semana pasada)."
  * `tendencia` null = no hay semana pasada (el chico es nuevo): no se compara.
  */
-export function frase(nombre: string, sem: Semana, faltan: readonly Nutriente[], aceptadas: number, tendencia: number | null): string {
+export function frase(
+  nombre: string, sem: Semana, faltan: readonly Nutriente[], aceptadas: number, tendencia: number | null, variedad?: Variedad | null,
+): string {
   if (sem.diasRegistrados === 0) {
     return `Todavía no hay comidas registradas esta semana. Cuando registres la próxima, vas a ver cómo viene ${nombre}.`
   }
@@ -104,6 +129,8 @@ export function frase(nombre: string, sem: Semana, faltan: readonly Nutriente[],
       ? `Lo que más le falta: ${lista(faltan.slice(0, 2).map((n) => `${NOMBRE_NUTRIENTE[n]} (${porciento(sem.cobertura[n])})`))}.`
       : 'Ningún nutriente clave está por debajo del 70%.',
   )
+  // v5.5 · Modo variedad: viene bien de nutrientes; lo que suma ahora es el grupo que menos come
+  if (!faltan.length && variedad?.grupo) partes.push(`¡Viene muy bien! Lo próximo es sumar variedad: ${sinComer(variedad.grupo, variedad.diasSinComer)}.`)
   const t =
     tendencia === null ? '' : tendencia > 0 ? `${tendencia} más que la semana pasada` : tendencia < 0 ? `${-tendencia} menos que la semana pasada` : 'igual que la semana pasada'
   partes.push(`Come ${aceptadas} ${aceptadas === 1 ? 'preparación' : 'preparaciones'}${t ? ` (${t})` : ''}.`)
@@ -168,6 +195,8 @@ export function armarProgreso(e: EntradaProgreso): Progreso {
   const dias = [...new Set(enVentana.map((c) => c.dia))].sort().map((d) => coberturaDia(d, enVentana, e.objetivo, (c) => conMiniatura.has(c._id)))
   const sem = semana(hasta, e.hoy, e.objetivo)
   const faltan = sem.diasRegistrados ? faltanSemana(sem.cobertura) : []
+  const grupos = gruposDesde(hasta, e.hoy)
+  const variedad = variedadDe(sem.diasRegistrados, faltan, grupos) // v5.5
   const aceptadas = contar(e.estado, 'acepta')
   const tendencia = aceptadas - contar(e.estadoHace7, 'acepta')
   const semanas = [3, 2, 1, 0]
@@ -183,13 +212,14 @@ export function armarProgreso(e: EntradaProgreso): Progreso {
     enProceso: contar(e.estado, 'en_proceso'),
     patrones: patronesVista(e.estado.patrones),
     // Si el chico es de esta semana no hay "semana pasada" con qué comparar
-    frase: frase(e.nino.datos.nombre, sem, faltan, aceptadas, diasEntre(inicioDe(e.nino, hasta, e.hoy), e.hoy) >= 7 ? tendencia : null),
+    frase: frase(e.nino.datos.nombre, sem, faltan, aceptadas, diasEntre(inicioDe(e.nino, hasta, e.hoy), e.hoy) >= 7 ? tendencia : null, variedad),
     semanas,
     repertorioTendencia: tendencia,
-    grupos: gruposDesde(hasta, e.hoy),
+    grupos,
     exposiciones: exposiciones(e.estado.estados),
     alertas: evaluarAlertas(e.nino, hasta, e.estado, e.estadoHace14, e.hoy, sem),
     ...(proximoPaso ? { proximoPaso } : {}),
     ...(sugerencias.length ? { sugerencias } : {}),
+    ...(variedad ? { variedad } : {}),
   }
 }

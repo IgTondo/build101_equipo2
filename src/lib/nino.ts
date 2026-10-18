@@ -1,6 +1,7 @@
 // El chico activo (§9): vive en la URL (?nino=) y en localStorage, con try/catch porque puede no haber storage.
 // Si no hay ninguno (la primera vez que se abre la app, §5.2), no hay chico activo: las pantallas que lo necesitan
 // van dentro de <ConNino> (src/componentes/ConNino.tsx), que manda al alta por voz.
+// Los demás chicos de este celular (para cambiar de uno a otro) viven en src/lib/familia.ts.
 import { useSearchParams } from 'react-router-dom'
 
 const CLAVE = 'nibble:nino'
@@ -14,6 +15,11 @@ function leerGuardado(): string | null {
 
 export function guardarNino(ninoId: string): void {
   try { localStorage.setItem(CLAVE, ninoId) } catch { /* sin storage: queda solo en la URL */ }
+}
+
+/** Sin chico activo (se quitó el último de este celular): la próxima pantalla con chico manda al alta. */
+export function olvidarNino(): void {
+  try { localStorage.removeItem(CLAVE) } catch { /* sin storage: no había nada guardado */ }
 }
 
 /** El chico activo, o null si todavía no se dio de alta ninguno en este celular. */

@@ -3,15 +3,15 @@
 // qué aporta, ingredientes y pasos. Lo largo (cómo servirlo, por qué esta con la cadena en su historial, lo que va
 // adentro) queda plegado.
 import { cn } from 'cn'
-import { Check, Info, Leaf, ShieldCheck } from 'lucide-react'
+import { Check, Info, Leaf, ShieldCheck, Sprout } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
-import type { Momento, Receta, Regla } from '../../../shared/contratos'
+import type { Momento, Receta, Regla, Variedad } from '../../../shared/contratos'
 import { Anillo } from '../../componentes/Anillo'
 import { IconoAlimento } from '../../componentes/IconoAlimento'
 import { NumeroAnimado } from '../../componentes/NumeroAnimado'
 import { fraccionBarra, porcentajeTope } from '../../lib/cobertura'
 import { COLOR_GRUPO, VISUAL_MOMENTO } from '../../lib/colores'
-import { NOMBRE_CAMBIO, formatoNutriente, textoParaPadres } from '../../lib/vocabulario'
+import { NOMBRE_CAMBIO, NOMBRE_GRUPO, formatoNutriente, textoParaPadres } from '../../lib/vocabulario'
 import { Cadena } from './Cadena'
 import { grupoDePreparacion } from './catalogo'
 import { ImagenPlato } from './ImagenPlato'
@@ -22,6 +22,14 @@ export const OFRECER_SIN_PRESION = 'Ofrecelo sin pedirle que lo coma.'
 
 const mayuscula = (s: string) => s[0].toLocaleUpperCase('es') + s.slice(1)
 const enteroPorciento = (v: number) => `${Math.round(v)}%`
+
+/** v5.5 · "Suma verduras: hace 6 días que no come." · "Algo nuevo, a un solo cambio de lo que ya come." */
+export function textoVariedad(v: Variedad): string {
+  if (!v.grupo) return 'Algo nuevo, a un solo cambio de lo que ya come.'
+  const grupo = NOMBRE_GRUPO[v.grupo].toLocaleLowerCase('es')
+  if (v.diasSinComer === null || v.diasSinComer === undefined) return `Suma ${grupo}: no registramos que coma.`
+  return `Suma ${grupo}: hace ${v.diasSinComer} ${v.diasSinComer === 1 ? 'día' : 'días'} que no come.`
+}
 
 /** El renglón de un bloque plegado (Por qué esta, Lo que va adentro): se lee como un título y se toca entero. */
 const RENGLON = 'flex min-h-14 w-full justify-between rounded-xl font-titulo text-xl font-extrabold text-pino'
@@ -105,32 +113,47 @@ export function TarjetaReceta({ receta, reglas, para = null, momento }: {
         </details>
       </section>
 
-      <section aria-labelledby="rc-aporta" className="flex items-center gap-5 rounded-2xl border bg-card p-5">
-        <h2 id="rc-aporta" className="sr-only">Qué aporta</h2>
-        {/* El verde llena lo que le falta hoy (la pista Zapallo) y no pasa del 100%. El número se lee en el texto. */}
-        <div aria-hidden="true">
-          <Anillo valor={fraccionBarra(cubre)} tamano={88} grosor={10} pista="var(--nb-zapallo-claro)" retraso={0.2}>
-            {cubreTodo
-              ? <Check className="size-8 text-verde-hondo" strokeWidth={3} />
-              : <NumeroAnimado valor={fraccionBarra(cubre) * 100} formato={enteroPorciento} className="font-titulo text-xl font-black text-pino" />}
-          </Anillo>
-        </div>
-        <div className="flex min-w-0 flex-col gap-2">
-          <p className="flex flex-col">
-            <NumeroAnimado
-              valor={receta.aporte[n]}
-              formato={(v) => formatoNutriente(n, v)}
-              className="font-titulo text-[2.25rem] leading-none font-black text-verde-hondo"
-            />
-            <span className="mt-1.5 text-pretty">de {nutrienteEnFrase(n)} por porción</span>
-          </p>
-          <p className="text-sm text-musgo text-pretty">
-            {cubreTodo
-              ? <>Cubre todo lo que le falta hoy.</>
-              : <>Cubre <strong className="text-pino tabular-nums">{porcentajeTope(cubre)}</strong> de lo que le falta hoy.</>}
-          </p>
-        </div>
-      </section>
+      {/* v5.5 · Si no le falta ningún nutriente, la receta apunta a sumar variedad: se dice eso, sin anillo de nutriente. */}
+      {receta.objetivo?.tipo === 'variedad' ? (
+        <section aria-labelledby="rc-aporta" className="flex items-center gap-5 rounded-2xl border bg-card p-5">
+          <h2 id="rc-aporta" className="sr-only">Qué suma</h2>
+          <span aria-hidden="true" className="grid size-[88px] shrink-0 place-items-center rounded-full bg-brote">
+            <Sprout className="size-9 text-verde-hondo" strokeWidth={2.25} />
+          </span>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <p className="font-titulo text-2xl leading-tight font-black text-verde-hondo">Suma variedad</p>
+            <p className="text-pretty">{textoVariedad(receta.objetivo)}</p>
+            <p className="text-sm text-musgo text-pretty">Esta semana no le falta ningún nutriente clave.</p>
+          </div>
+        </section>
+      ) : (
+        <section aria-labelledby="rc-aporta" className="flex items-center gap-5 rounded-2xl border bg-card p-5">
+          <h2 id="rc-aporta" className="sr-only">Qué aporta</h2>
+          {/* El verde llena lo que le falta hoy (la pista Zapallo) y no pasa del 100%. El número se lee en el texto. */}
+          <div aria-hidden="true">
+            <Anillo valor={fraccionBarra(cubre)} tamano={88} grosor={10} pista="var(--nb-zapallo-claro)" retraso={0.2}>
+              {cubreTodo
+                ? <Check className="size-8 text-verde-hondo" strokeWidth={3} />
+                : <NumeroAnimado valor={fraccionBarra(cubre) * 100} formato={enteroPorciento} className="font-titulo text-xl font-black text-pino" />}
+            </Anillo>
+          </div>
+          <div className="flex min-w-0 flex-col gap-2">
+            <p className="flex flex-col">
+              <NumeroAnimado
+                valor={receta.aporte[n]}
+                formato={(v) => formatoNutriente(n, v)}
+                className="font-titulo text-[2.25rem] leading-none font-black text-verde-hondo"
+              />
+              <span className="mt-1.5 text-pretty">de {nutrienteEnFrase(n)} por porción</span>
+            </p>
+            <p className="text-sm text-musgo text-pretty">
+              {cubreTodo
+                ? <>Cubre todo lo que le falta hoy.</>
+                : <>Cubre <strong className="text-pino tabular-nums">{porcentajeTope(cubre)}</strong> de lo que le falta hoy.</>}
+            </p>
+          </div>
+        </section>
+      )}
 
       <Seccion id="rc-ingredientes" titulo={<>Ingredientes <span className="font-sans text-sm font-normal text-musgo">(una porción)</span></>}>
         <ul role="list" className="flex flex-col divide-y">

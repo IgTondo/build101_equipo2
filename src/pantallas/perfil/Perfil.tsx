@@ -2,7 +2,7 @@
 // Sin grafo ni números de confianza (C13). Hacia el padre nunca se dice "rechaza".
 // Arriba, la inicial del chico en un círculo, su nombre y su edad. La protagonista es "Lo que sabemos": lo que le
 // gusta como bocados, lo que está probando con las veces y lo que notamos en sus comidas. Abajo, tranquilos, sus
-// reglas, sus alergias y cuidados, y el resumen para el nutricionista.
+// reglas, sus alergias y cuidados, y el resumen para el nutricionista. Al pie, callado, "Quitar de este celular".
 import { Camera, ShieldCheck, Stethoscope } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -18,6 +18,7 @@ import { useApi } from '../../lib/useApi'
 import { NOMBRE_ALERGENO } from '../../lib/vocabulario'
 import { textoVeces } from './borrador'
 import { Aviso, ICONO, Inicial, TituloSeccion } from './Piezas'
+import { QuitarHijo } from './QuitarHijo'
 import { loQueSabemos } from './sabemos'
 import { anios, AVISO_DECLARADA, AVISO_DIETA, NOMBRE_DIETA, NOMBRE_SENAL } from './textos'
 
@@ -124,6 +125,8 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
           <Stethoscope aria-hidden="true" /> Resumen para el nutricionista
         </Link>
       </Button>
+
+      <QuitarHijo ninoId={ninoId} nombre={datos.nombre} />
     </div>
   )
 }

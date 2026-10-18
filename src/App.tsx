@@ -7,6 +7,7 @@ import { Cargando } from './componentes/Estados'
 import { NavInferior } from './componentes/NavInferior'
 import { TransicionPantalla } from './componentes/TransicionPantalla'
 import { avisoStubs } from './lib/api'
+import { recordarHijo } from './lib/familia'
 import { useNino } from './lib/nino'
 import { Inicio } from './pantallas/inicio/Inicio'
 import { Pendiente } from './pantallas/Pendiente'
@@ -52,6 +53,8 @@ export function App() {
   // La navegación lleva solo el chico: no arrastra ?momento= ni ?preparacionId= de otra pantalla.
   const navSearch = nino ? `?${new URLSearchParams({ nino })}` : ''
   useEffect(() => avisoStubs.limpiar(), [pathname])
+  // El chico activo siempre está en "Tus hijos" de este celular: el que llegó por ?nino= o el de antes de la lista.
+  useEffect(() => { if (nino) recordarHijo(nino) }, [nino])
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[560px] flex-col">
       {/* Al imprimir (el resumen para el nutricionista) queda solo el contenido: sin cabecera, avisos ni navegación. */}

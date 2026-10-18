@@ -1,8 +1,9 @@
 // Alta desde cero por voz (C6, PLAN §5.2). La primera vez que se abre la app (no hay chico activo) y con "Agregar otro
-// chico". Una pantalla con una máquina de pasos:
+// hijo" (desde "Tus hijos" del inicio, con otro chico activo). Una pantalla con una máquina de pasos:
 //   bienvenida → relato (audio de hasta 3 min con la guía → /api/transcribir → texto editable)
 //   → entendiendo (/api/perfil-inicial solo con el texto) → "Esto entendí" (datos con citas, alergias a confirmar,
-//   lo que falta) → POST /api/perfil → el chico nuevo pasa a ser el activo → un festejo corto → registrar su primera comida.
+//   lo que falta) → POST /api/perfil → el chico nuevo pasa a ser el activo y entra a "Tus hijos" (src/lib/familia.ts)
+//   → un festejo corto → registrar su primera comida.
 // TRANSICIÓN hasta A8b: si /api/perfil-inicial todavía exige `datos` (400 entrada_invalida), se piden a mano (PasoDatos)
 // y se reenvía con ellos. Borrar el paso 'datos' cuando A8b esté en main.
 // Arriba, un indicador de los dos pasos (contarlo y revisarlo) que se llena al avanzar. La bienvenida es la primera
@@ -17,6 +18,7 @@ import { Celebracion } from '../../componentes/Celebracion'
 import { Bocaditos } from '../../componentes/Estados'
 import { Button } from '../../componentes/ui/button'
 import { api, type ErrorDeApi } from '../../lib/api'
+import { recordarHijo } from '../../lib/familia'
 import { guardarNino } from '../../lib/nino'
 import { aErrorDeApi } from '../../lib/useApi'
 import { altaInicial, faltanDe, sanearExtraidos, type Alta } from './alta'
@@ -134,6 +136,7 @@ export function PerfilNuevo() {
       // armarCrearPerfilReq copia solo acepta, rechaza, reglas y objetivos: `datos` y `faltan` del borrador no viajan.
       const { ninoId } = await api.crearPerfil(armarCrearPerfilReq(datos, entendido.borrador), c.signal)
       guardarNino(ninoId)
+      recordarHijo(ninoId, datos.nombre)
       setCreado({ ninoId, nombre: datos.nombre })
       setPaso('creado')
     } catch (e) {

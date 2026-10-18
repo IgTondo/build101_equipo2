@@ -13,6 +13,8 @@ import { grupoDe } from './visual'
 
 const TITULO: Record<Sugerencia['tipo'], string> = { segura: 'Va a gustarle', un_paso: 'Un pasito', mas_nutritiva: 'Más nutritiva' }
 const ICONO: Record<Sugerencia['tipo'], LucideIcon> = { segura: Heart, un_paso: Footprints, mas_nutritiva: Sprout }
+/** v5.5 · Si no le falta ningún nutriente, la tercera apunta a la variedad (Sugerencia.objetivo), no a un nutriente. */
+const titulo = (s: Sugerencia) => (s.objetivo?.tipo === 'variedad' ? 'Más variada' : TITULO[s.tipo])
 
 interface Props {
   ninoId: string
@@ -54,7 +56,7 @@ function Protagonista({ s, ruta }: { s: Sugerencia; ruta: string }) {
       <div className="mordisco flex flex-col gap-4 rounded-3xl bg-primary p-5 pt-6 text-primary-foreground">
         <p className="flex items-center gap-2 text-sm font-bold text-white/85">
           <Icono className="size-4.5" strokeWidth={2.25} aria-hidden="true" />
-          {TITULO[s.tipo]}
+          {titulo(s)}
         </p>
         <div className="flex items-center gap-3.5">
           <IconoAlimento nombre={s.nombre} grupo={s.grupo ?? grupoDe(s.preparacionId, s.nombre)} tamano="lg" className="ring-4 ring-white/15" />
@@ -79,7 +81,7 @@ function Otra({ s, ruta }: { s: Sugerencia; ruta: string }) {
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p className="flex items-center gap-1.5 text-sm font-bold text-musgo">
           <Icono className="size-4" strokeWidth={2.25} aria-hidden="true" />
-          {TITULO[s.tipo]}
+          {titulo(s)}
         </p>
         <h3 className="text-lg leading-snug">{s.nombre}</h3>
         {s.porQue && <p className="text-sm text-musgo text-pretty">{lineaPorQue(s.porQue)}</p>}

@@ -2,10 +2,11 @@
 // próxima comida (la protagonista: abre la receta para esa comida), "Registrar comida" (con la comida que acaba de
 // terminar preseleccionada), "Generar receta" (v5.3: para la comida que elija el padre), "Hoy" (nutrientes del día +
 // una línea de la semana), las alertas si hay y "Ver la semana".
+// El nombre es un botón: abre "Tus hijos" para cambiar de chico o agregar otro (SelectorHijo, src/lib/familia.ts).
 // Un solo pedido a /api/progreso (7 días, con ?momento= de la próxima comida) y el perfil en paralelo, solo por el nombre.
 import { CalendarDays, Camera } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AvisoConsulta } from '../../componentes/AvisoConsulta'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
@@ -18,6 +19,7 @@ import { comidaRecienPorHora, comidasDelDia, horaUruguay, leerUltimaComida, prox
 import { useApi } from '../../lib/useApi'
 import { hayComidas } from '../tablero/calculos'
 import { Hoy } from './Hoy'
+import { SelectorHijo } from './SelectorHijo'
 
 const RESORTE = { type: 'spring', stiffness: 420, damping: 34 } as const
 
@@ -30,18 +32,24 @@ export function Inicio() {
   // Antes de tener el progreso, la próxima comida sale de la última registrada en este celular (si fue hoy) y la hora.
   const ultima = leerUltimaComida(ninoId, ahora.dia)
   const estimada = proximaComida(ultima ? [ultima] : [], ahora.hora)
+  // Se pide para la comida estimada; si con las comidas de hoy la próxima resulta otra (registradas en otro celular, o
+  // un historial cargado), se vuelve a pedir una vez para esa: si no, la tarjeta no tiene sugerencias de esa comida.
+  const [momentoPedido, setMomentoPedido] = useState(estimada.momento)
   const progreso = useApi(
-    (s) => api.progreso(ninoId, { dias: 7, momento: estimada.momento }, s),
-    [ninoId],
+    (s) => api.progreso(ninoId, { dias: 7, momento: momentoPedido }, s),
+    [ninoId, momentoPedido],
   )
   const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
   const nombre = perfil.tipo === 'ok' ? perfil.datos.datos.nombre : null
 
-  if (progreso.tipo === 'error' && progreso.error.codigo === 'no_encontrado') return <PerfilNoEncontrado />
-
   const datos = progreso.tipo === 'ok' ? progreso.datos : null
   const diaHoy = datos?.dias.find((d) => d.dia === ahora.dia) ?? null
   const proxima = datos ? proximaComida(comidasDelDia(datos.dias, ahora.dia), ahora.hora) : estimada
+  useEffect(() => {
+    if (datos?.momento && datos.momento !== proxima.momento) setMomentoPedido(proxima.momento)
+  }, [datos?.momento, proxima.momento])
+
+  if (progreso.tipo === 'error' && progreso.error.codigo === 'no_encontrado') return <PerfilNoEncontrado />
 
   const registrar = new URLSearchParams(search)
   registrar.set('momento', comidaRecienPorHora(ahora.hora))
@@ -49,7 +57,7 @@ export function Inicio() {
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col px-1">
-        <h1 className="min-h-[2.2rem] text-3xl font-black">{nombre ?? <span className="sr-only">Inicio</span>}</h1>
+        <SelectorHijo ninoId={ninoId} nombre={nombre} />
         <p className="text-sm text-musgo">{fechaLarga(ahora.dia)}</p>
       </header>
 

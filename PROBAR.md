@@ -16,25 +16,26 @@ No hay que instalar nada, y es la única forma de probar la cámara y el micróf
 5. En **"Esto entendimos"** revisá lo que come, lo que no y sus reglas. **No te deja crear el perfil hasta que contestes las alergias**: tocá las que tiene, o "No tiene alergias".
 6. **Listo, crear** → te lleva a Registrar con el chico nuevo.
 
-**Audio de ejemplo (Tomás, ~45 s):**
-> Hola, te cuento de Tomás. Tiene seis años, pesa veintiún kilos y mide un metro dieciséis. Es alérgico al huevo, eso es lo más importante. No tiene ninguna dieta especial ni toma suplementos. Come pocas cosas, pero las que come las come siempre: papas fritas en bastones, bien crocantes; la milanesa de carne al horno, que se la hacemos sin huevo; tostadas de pan blanco; las galletitas de agua, las de siempre; y la leche chocolatada fría a la mañana. Lo que no come es nada mezclado: el arroz con pollo, por ejemplo, no lo toca. El puré de papa tampoco, por la textura, dice que es raro. No tiene arcadas ni se atraganta.
+**Audio de ejemplo (Valentina el primer día, ~45 s):**
+> Hola, te cuento de Valentina. Tiene ocho años, pesa veinticinco kilos y mide un metro veintisiete. Es alérgica al pescado, eso es lo más importante. No tiene ninguna dieta especial ni toma suplementos. Come pocas cosas, pero las que come las come siempre: la leche chocolatada fría a la mañana, la Conaprole; las galletitas de agua Maestro Cubano; tostadas de pan blanco; la milanesa de carne al horno; el puré de papa; y las papas fritas en bastones. Lo que no come son los fideos con salsa de tomate, porque está todo mezclado, y el brócoli, por el olor. Come solo en su plato con divisiones y no quiere que las comidas se toquen. Verduras, ninguna. No tiene arcadas ni se atraganta.
 
-Tiene que entender 5 cosas que acepta, 2 que rechaza (puré por la textura, arroz con pollo por estar mezclado) y la regla "nada mezclado".
+Tiene que entender 6 cosas que acepta, 2 que rechaza (los fideos con salsa por estar mezclados, el brócoli por el olor) y 3 reglas: "plato con divisiones", "que no se toquen" y "no come verduras".
 
 ### B · Registrar una comida (el ciclo principal)
 1. En el inicio, **Registrar comida** (ya viene marcada la comida que corresponde por la hora) → sacale una foto a un plato de verdad (la del catering sirve).
 2. Tienen que aparecer los alimentos con sus **cajas** sobre la foto. Podés renombrar, borrar o cambiar la porción.
-3. **¿Cómo le fue?** → **Contame cómo le fue** y hablá, por ejemplo: *"Las papas se las comió todas; la milanesa la probó y la dejó; estuvo tranquilo"*. Los botones se marcan solos y cada uno muestra la frase que dijiste. Lo que no nombraste queda sin marcar.
+3. **¿Cómo le fue?** → **Contame cómo le fue** y hablá, por ejemplo: *"Las papas se las comió todas; la milanesa la probó y la dejó; estuvo tranquila"*. Los botones se marcan solos y cada uno muestra la frase que dijiste. Lo que no nombraste queda sin marcar.
 4. **Guardar** → nutrientes con su rango, **"Qué aprendí"** y al final la **próxima comida** (después del almuerzo, "Para la cena").
 5. **Volver al inicio** → "Hoy" tiene que contar la comida (las barras del día y "Desayuno y almuerzo") y el botón grande sugiere la comida que sigue. Tocalo: abre la receta "Para la cena".
 6. **Semana** (abajo) → el tablero completo tiene que mostrar la comida en "Últimas comidas" ("Hoy · Almuerzo").
 
 ### C · Tablero, receta, perfil y resumen (con datos ya cargados)
-Los chicos sintéticos del dataset (§10.5, simulación declarada) tienen 20 comidas cada uno:
-- **Tablero:** https://nibble-eight-vert.vercel.app/tablero?nino=sint-tomas (y `sint-lucia`). Tocá una barra de nutrientes para ver el detalle.
+Valentina (`sint-valentina`, del dataset sintético de §10.5: simulación declarada) tiene 181 comidas en 6 semanas, cargadas con el flujo real y corridas para que la última caiga hoy (`scripts/cargar-sinteticos.ts valentina --hasta=<hoy>`). 8 años, alérgica al pescado, come en su plato con divisiones y la familia dice que no come verduras:
+- **Tablero:** https://nibble-eight-vert.vercel.app/tablero?nino=sint-valentina. Cargada con `--hasta` del mismo día, dice "cubrió 3 de 8 nutrientes" (le faltan calcio y vitamina D) y "Come 19 preparaciones (2 más que la semana pasada)". Tocá una barra de nutrientes para ver el detalle.
 - **Receta:** en el tablero, **Un pasito** o **Más nutritiva** → **Ver la receta**. Tarda unos 10 s; la imagen carga aparte (unos 3 s).
-- **Perfil:** https://nibble-eight-vert.vercel.app/perfil?nino=sint-tomas → "Lo que sabemos de Tomás": le gusta, está probando y lo que notamos.
-- **Resumen para el nutricionista:** https://nibble-eight-vert.vercel.app/resumen?nino=sint-tomas → **Copiar**.
+- **Generar receta → Cena:** inventa un plato nuevo a partir de lo que ya come (19 alimentos seguros), sin pescado y con cada cosa en su lugar.
+- **Perfil:** https://nibble-eight-vert.vercel.app/perfil?nino=sint-valentina → "Lo que sabemos de Valentina": le gusta, está probando y lo que notamos. Fijate que lo dulce lo acepta aunque sea verdura (contradice "no come verduras"): el puré de zapallo, que al principio ni tocaba, llegó a aceptarlo, igual que los bastones de zanahoria. El brócoli sigue trabado: 11 veces sin pasar de tocarlo.
+- **Resumen para el nutricionista:** https://nibble-eight-vert.vercel.app/resumen?nino=sint-valentina → **Copiar**.
 
 Al entrar con `?nino=…`, ese chico queda como activo. Para volver a uno tuyo, entrá con su `?nino=`.
 

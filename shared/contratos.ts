@@ -175,7 +175,17 @@ export interface Progreso {
   proximoPaso?: Candidato                                    // v2 · el mejor candidato del grafo, sin LLM, para la tarjeta del tablero
   sugerencias?: Sugerencia[]                                 // v4 · siempre en el orden segura, un_paso, mas_nutritiva (§8); proximoPaso = la de un_paso
   momento?: Momento                                          // v5.2 · vino ?momento=: las sugerencias (y proximoPaso) son solo de esa comida; pueden ser menos de 3 o ninguna
+  variedad?: Variedad                                        // v5.5 · solo si hay comidas esta semana y ningún nutriente clave falta (semana.faltan vacío): modo variedad
 }
+// v5.5 · Modo variedad: cuando ningún nutriente clave falta esta semana (todos ≥ 70%), el objetivo pasa a ser sumar
+// variedad: entre los grupos del tablero (fruta, verdura, lácteo, proteína), el que menos come (el que nunca registramos
+// o el de más días sin comer, desde 3 días). Sin `grupo`: come de todos y la idea es algo nuevo a un cambio de lo que come.
+export interface Variedad {               // v5.5
+  grupo?: Grupo
+  diasSinComer?: number | null           // viene con `grupo`: null = no registramos que lo haya comido
+}
+// v5.5 · Para qué es la receta (Receta.objetivo) o la sugerencia (Sugerencia.objetivo): un nutriente que falta o sumar variedad.
+export type ObjetivoReceta = { tipo: 'nutriente'; nutriente: Nutriente } | ({ tipo: 'variedad' } & Variedad)
 // v5.4 · Ideas del catálogo del grafo para una comida (Recomendacion.ideas, server): la receta creativa las usa solo de referencia.
 export interface IdeaReceta { preparacionId: string; nombre: string; nutriente: Nutriente }
 export interface Sugerencia {            // v4 · las tres opciones del tablero: explotar, explorar de a un cambio, priorizar lo que falta
@@ -186,6 +196,7 @@ export interface Sugerencia {            // v4 · las tres opciones del tablero:
   porQue: string                         // plantilla, sin LLM: "La come 8 de cada 8 veces" · "Se parece a sus papas fritas: cambia solo el ingrediente"
   candidato?: Candidato                  // en un_paso y mas_nutritiva; abre la receta
   grupo?: Grupo                          // v5.1 · el grupo de la preparación: la pantalla elige la que encaja con la próxima comida
+  objetivo?: ObjetivoReceta              // v5.5 · solo en mas_nutritiva en modo variedad ({ tipo: 'variedad', grupo? }): no apunta a un nutriente sino al grupo que menos come (el tipo sigue siendo mas_nutritiva)
 }
 // v5.1 · la próxima comida (PLAN §9, "La pantalla principal"): desayuno → almuerzo → cena → desayuno; la merienda y la
 // colación llevan a la principal que sigue. /api/progreso acepta ?momento= para que B ordene las sugerencias para esa comida.
@@ -281,6 +292,7 @@ export interface Receta {
   validacion: { ok: boolean; problemas: string[]; reintentos: number }
   evidencia: Evidencia
   plato?: PlatoNuevo                     // v5.4 · solo en la receta creativa: el plato inventado (preparacionBaseId empieza con "nuevo_")
+  objetivo?: ObjetivoReceta              // v5.5 · la receta creativa lo trae siempre: el nutriente que falta, o variedad (sin mínimo de nutriente; evidencia.nutriente es solo para mostrar: al que más aporta respecto de su meta)
 }
 export interface PlatoNuevo {            // v5.4
   atributos: Atributos & { coccion: Coccion }

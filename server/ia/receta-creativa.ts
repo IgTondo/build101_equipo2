@@ -4,11 +4,15 @@
 // y los ingredientes que declaró, cuenta los cambios con cadena.ts y valida como la receta del catálogo
 // (validacion/receta.ts), más el aporte mínimo, que no sea algo que ya come y que no repita una receta que ya vio
 // → si falla, 1 reintento con los problemas → si sigue mal, ErrorNibble('sin_candidatos'): otro pedido sortea otro foco.
-import type { Alergeno, Evidencia, Nutriente, PreparacionCatalogo, Receta, RecetaReq } from '../../shared/contratos.js'
-import { DIMENSIONES, cambios } from '../aprendizaje/cadena.js'
-import { NOMBRE_NUTRIENTE, decimal, slug } from '../aprendizaje/textos.js'
+// v5.5 · Modo variedad (no le falta ningún nutriente, Conocimiento.variedad): sin aporte mínimo; si hay un grupo que
+// menos come, el plato tiene que ser de ese grupo (atributos.grupo y el ingrediente principal). La evidencia muestra el
+// nutriente al que más aporta respecto de su meta, y Receta.objetivo dice para qué es.
+import type { Alergeno, Evidencia, Nutriente, Nutrientes, PreparacionCatalogo, Receta, RecetaReq } from '../../shared/contratos.js'
+import { DIMENSIONES, cambios, principal } from '../aprendizaje/cadena.js'
+import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, decimal, slug } from '../aprendizaje/textos.js'
 import type { Conocimiento } from '../grafo/conocimiento.js'
 import { ErrorNibble } from '../http.js'
+import { CON_META } from '../nutricion/objetivos.js'
 import { calcularAporte, cambiosEntre, problemasPorTipo, aplanar, type ContextoValidacion } from '../validacion/receta.js'
 import { alimentoPorId, alimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
@@ -38,18 +42,26 @@ export function platoDe(salida: SalidaCreativa): PreparacionCatalogo {
   }
 }
 
+/** v5.5 · El nutriente al que más aporta la porción respecto de su meta diaria: el que se muestra en modo variedad. */
+export function nutrienteQueMasAporta(aporte: Nutrientes, meta: Nutrientes): Nutriente {
+  const parte = (n: Nutriente) => (meta[n] > 0 ? aporte[n] / meta[n] : 0)
+  return [...CON_META].sort((a, b) => parte(b) - parte(a))[0] ?? 'calcio_mg'
+}
+
 /** La receta completa: el cambio y lo que se mantiene los cuenta el código (cadena.ts), nunca el LLM. */
 export function completarCreativa(salida: SalidaCreativa, k: Conocimiento, desde: PreparacionCatalogo): Receta {
   const base = platoDe(salida)
-  const n = salida.nutriente
-  const opcion = k.nutrientes.find((x) => x.nutriente === n) ?? k.nutrientes[0]!
   const difs = cambiosEntre(desde, base)
   const ingredientes = salida.ingredientes.map(({ alimentoId, gramos }) => ({ alimentoId, nombre: alimentoPorId(alimentoId)?.nombre ?? alimentoId, gramos }))
   const aporte = calcularAporte(ingredientes)
+  // En modo variedad no hay nutriente pedido: se muestra al que más aporta (v5.5)
+  const n = k.variedad
+    ? nutrienteQueMasAporta(aporte, k.metaDiaria)
+    : k.nutrientes.some((x) => x.nutriente === salida.nutriente) ? salida.nutriente! : (k.foco.nutriente ?? k.nutrientes[0]!.nutriente)
   const evidencia: Evidencia = {
     nutriente: n,
-    coberturaSemana: opcion.coberturaSemana,
-    faltaHoy: opcion.faltaHoy,
+    coberturaSemana: k.coberturas[n].coberturaSemana,
+    faltaHoy: k.coberturas[n].faltaHoy,
     candidatos: [],
     reglas: k.reglas.map((r) => r.texto),
     alergias: k.alergias,
@@ -75,6 +87,7 @@ export function completarCreativa(salida: SalidaCreativa, k: Conocimiento, desde
     validacion: { ok: false, problemas: [], reintentos: 0 },
     evidencia,
     plato: { atributos: salida.atributos, imagen: salida.imagen },
+    objetivo: k.variedad ? { tipo: 'variedad', ...k.variedad } : { tipo: 'nutriente', nutriente: n }, // v5.5
   }
 }
 
@@ -84,7 +97,17 @@ export function problemasCreativa(receta: Receta, k: Conocimiento, desde: Prepar
   const ctx: ContextoValidacion = { alergias: alergiasDe(k), reglas: k.reglas, desde, base, presentacionesAceptadas: k.presentacionesAceptadas }
   const p = aplanar(problemasPorTipo(receta, ctx))
   const n = receta.evidencia.nutriente
-  const minimo = k.nutrientes.find((x) => x.nutriente === n)?.minimo ?? 0
+  // v5.5 · En modo variedad no hay mínimo de nutriente: lo que cuenta es el grupo
+  const minimo = k.variedad ? 0 : k.nutrientes.find((x) => x.nutriente === n)?.minimo ?? 0
+  const g = k.variedad?.grupo
+  if (g) {
+    const idPrincipal = principal(receta.ingredientes)
+    const delPrincipal = idPrincipal ? alimentoPorId(idPrincipal)?.grupo : undefined
+    const declarado = receta.plato!.atributos.grupo
+    if (declarado !== g || (delPrincipal && delPrincipal !== g)) {
+      p.push(`El objetivo es sumar variedad con ${NOMBRE_GRUPO[g]}: el plato tiene que ser de ese grupo (atributos.grupo = ${g}) y su ingrediente principal, el de más gramos, también; «${receta.nombre}» es de ${NOMBRE_GRUPO[delPrincipal && delPrincipal !== g ? delPrincipal : declarado]}. Cambiá el ingrediente principal de su alimento seguro por uno de ${NOMBRE_GRUPO[g]}.`)
+    }
+  }
   if (receta.aporte[n] < minimo) {
     const ricos = k.nutrientes.find((x) => x.nutriente === n)?.ricos.slice(0, 4).map((r) => r.alimentoId) ?? []
     p.push(`La porción aporta ${decimal(receta.aporte[n], 1)} de ${NOMBRE_NUTRIENTE[n]} y el mínimo es ${decimal(minimo, 1)}: subí los gramos de un ingrediente rico en ${NOMBRE_NUTRIENTE[n]} (${ricos.join(', ')}) o elegí otro plato.`)
@@ -132,7 +155,7 @@ export async function generarRecetaCreativa(req: RecetaReq, deps: DepsRecetaCrea
     const problemas = problemasCreativa(receta, k, desde, anteriores)
     deps.alIntentar?.({ llamada: intento + 1, preparacionId: receta.preparacionBaseId, reintento: intento > 0, salida: datos, problemas, ms: ahora() - desdeLlamada })
     if (problemas.length === 0) {
-      registrar({ ninoId: req.ninoId, nombre: receta.nombre, desde: desde.id, cambio: receta.cambio, nutriente: receta.evidencia.nutriente, foco: k.foco, llamadas: intento + 1, ms: ahora() - t0 })
+      registrar({ ninoId: req.ninoId, nombre: receta.nombre, desde: desde.id, cambio: receta.cambio, nutriente: receta.evidencia.nutriente, objetivo: receta.objetivo, foco: k.foco, llamadas: intento + 1, ms: ahora() - t0 })
       return { ...receta, validacion: { ok: true, problemas: [], reintentos: intento } }
     }
     anterior = { salida: datos, problemas }

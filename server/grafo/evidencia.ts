@@ -6,6 +6,7 @@ import { NOMBRE_NUTRIENTE, TEXTO_CAMBIO, decimal, lista, porciento } from '../ap
 import { type Cargado, cargarNino } from '../datos/cargar.js'
 import { hoyUruguay } from '../datos/fechas.js'
 import { recomendacionDe } from '../datos/tablero.js'
+import { faltanSemana } from '../nutricion/calcular.js'
 import { coberturaDia, semana } from '../nutricion/progreso.js'
 
 const MAX_CANDIDATOS = 3
@@ -34,7 +35,10 @@ export function evidenciaDe(c: Cargado, op: { nutriente?: Nutriente; motor?: Mot
   const d = c.nino.datos
   const lineas = [
     `Chico: ${d.nombre}, ${d.edad} años. Alergias: ${d.alergias.length ? lista(d.alergias) : 'ninguna'}${d.dieta === 'sin_gluten_caseina' ? '. Dieta sin gluten ni caseína' : ''}.`,
-    `Le falta: ${NOMBRE_NUTRIENTE[n]} (esta semana cubre ${porciento(sem.cobertura[n])}; hoy le faltan ${decimal(faltaHoy, 0)} ${UNIDAD[n]}).`,
+    // v5.5 · Si no le falta ninguno, no se dice "le falta": es el que menos cubre, y la receta suma variedad
+    sem.diasRegistrados && !faltanSemana(sem.cobertura).length
+      ? `No le falta ningún nutriente clave esta semana; el que menos cubre es ${NOMBRE_NUTRIENTE[n]} (${porciento(sem.cobertura[n])}).`
+      : `Le falta: ${NOMBRE_NUTRIENTE[n]} (esta semana cubre ${porciento(sem.cobertura[n])}; hoy le faltan ${decimal(faltaHoy, 0)} ${UNIDAD[n]}).`,
     `Reglas de la familia: ${c.nino.reglas.length ? c.nino.reglas.map((r) => r.texto).join(' · ') : 'ninguna'}.`,
     `Patrones: ${estado.patrones.filter((p) => p.fuente === 'aprendido').slice(0, 4).map((p) => p.texto).join(' · ') || 'todavía pocos datos'}.`,
     ...candidatos.flatMap((x, i) => [

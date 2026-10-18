@@ -4,7 +4,7 @@ import type { EstadoNino } from '../aprendizaje/estado.js'
 import { calcularEstado } from '../aprendizaje/estado.js'
 import { type EntradaRecomendador, type Recomendacion, recomendar } from '../aprendizaje/recomendador.js'
 import { faltanSemana } from '../nutricion/calcular.js'
-import { armarProgreso, coberturaDia, semana } from '../nutricion/progreso.js'
+import { armarProgreso, coberturaDia, gruposDesde, semana, variedadDe } from '../nutricion/progreso.js'
 import { type Cargado, cargarNino } from './cargar.js'
 import { horaUruguay, hoyUruguay, momentoSegunHora, sumarDias } from './fechas.js'
 
@@ -24,6 +24,8 @@ export function entradaRecomendador(c: Cargado, estado: EstadoNino, hoy: string,
   const sem = semana(estado.comidas, hoy, c.objetivo)
   const momento = para ?? momentoSegunHora(horaUruguay(ahora))
   const ultima = [...estado.comidas].reverse().find((m) => m.momento === momento)
+  const faltan = sem.diasRegistrados ? faltanSemana(sem.cobertura) : []
+  const variedad = variedadDe(sem.diasRegistrados, faltan, gruposDesde(estado.comidas, hoy)) // v5.5
   return {
     catalogo: [...c.catalogo.values()],
     conocidas: estado.conocidas,
@@ -34,10 +36,11 @@ export function entradaRecomendador(c: Cargado, estado: EstadoNino, hoy: string,
     objetivo: c.objetivo,
     observaciones: estado.observaciones,
     patrones: estado.patrones,
-    faltan: sem.diasRegistrados ? faltanSemana(sem.cobertura) : [],
+    faltan,
     coberturaSemana: sem.cobertura,
     evitarSegura: ultima ? ultima.items.map((it) => it.preparacionId) : [],
     ...(para ? { momento: para } : {}),
+    ...(variedad ? { variedad } : {}),
   }
 }
 

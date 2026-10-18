@@ -34,6 +34,19 @@ export const DEL_NUTRIENTE: Record<Nutriente, string> = {
   hierro_mg: 'del hierro', fibra_g: 'de la fibra', omega3_g: 'del omega-3', b12_ug: 'de la vitamina B12', vitamina_c_mg: 'de la vitamina C',
 }
 
+/** v5.5 · El grupo en palabras, para el modo variedad: "no come fruta", "carne, huevo o legumbres: hace 6 días que no come". */
+export const NOMBRE_GRUPO: Record<Grupo, string> = {
+  cereal_almidon: 'cereales, panes o papas', proteina: 'carne, huevo o legumbres', verdura: 'verdura', fruta: 'fruta',
+  lacteo: 'lácteos', otro: 'otros alimentos',
+}
+const dias = (n: number) => `${n} ${n === 1 ? 'día' : 'días'}`
+/** v5.5 · "hace 6 días que no come fruta" · "no registramos que coma verdura" (diasSinComer null = nunca). */
+export const sinComer = (grupo: Grupo, diasSinComer: number | null | undefined): string =>
+  diasSinComer == null ? `no registramos que coma ${NOMBRE_GRUPO[grupo]}` : `hace ${dias(diasSinComer)} que no come ${NOMBRE_GRUPO[grupo]}`
+/** v5.5 · "fruta: hace 6 días que no come" · "verdura: no registramos que haya comido". */
+export const grupoSinComer = (grupo: Grupo, diasSinComer: number | null | undefined): string =>
+  `${NOMBRE_GRUPO[grupo]}: ${diasSinComer == null ? 'no registramos que haya comido' : `hace ${dias(diasSinComer)} que no come`}`
+
 export const TEXTO_CAMBIO: Record<Cambio, string> = {
   fortificar: 'que es la versión fortificada', coccion: 'la cocción', forma: 'la forma', sabor: 'el sabor',
   ingrediente: 'el ingrediente', temperatura: 'la temperatura', textura: 'la textura',
