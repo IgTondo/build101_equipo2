@@ -1,6 +1,6 @@
 // Recomendador enchufable (PLAN.md §4.3 y §8): `grafo` (propagación + patrones, el de producción) o `base`
 // (α/β por atributo, la misma base de la curva de §11.4). Los dos usan los mismos candidatos de cadena.ts.
-import type { Cambio, Candidato, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Sugerencia } from '../../shared/contratos.js'
+import type { Cambio, Candidato, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Sugerencia } from '../../shared/contratos.js'
 import { aporte, cero, redondearParcial } from '../nutricion/calcular.js'
 import { CON_META } from '../nutricion/objetivos.js'
 import { alfaBeta, pAtributos } from './aceptacion.js'
@@ -16,6 +16,7 @@ export interface EntradaRecomendador extends EntradaCadena {
   faltan: readonly Nutriente[] // en el orden de prioridad de §1
   coberturaSemana: Nutrientes
   evitarSegura?: readonly string[] // lo que se sirvió en la última comida del mismo momento: no repetir el mismo tema
+  momento?: Momento // v5.2 · la comida para la que se sugiere: solo lo que el catálogo anota para esa comida
 }
 
 export interface Recomendacion {
@@ -98,11 +99,22 @@ function aCandidato({ paso, puntaje, patrones }: Puntuado): Candidato {
   }
 }
 
+/**
+ * v5.2 · ¿Se sugiere para esa comida? Sin momento, todo vale (el tablero de la semana). Con momento, solo lo que el
+ * catálogo anota para esa comida (`momentos`); lo que no está en el catálogo o no está anotado no sale: mejor ninguna
+ * sugerencia que la chocolatada para la cena. No se mapean comidas entre sí: el desayuno solo acepta lo anotado
+ * `desayuno` (lo de merienda que va al desayuno ya lo dice su anotación).
+ */
+export function esParaMomento(prep: Pick<PreparacionCatalogo, 'momentos'> | undefined, momento?: Momento): boolean {
+  return !momento || (prep?.momentos?.includes(momento) ?? false)
+}
+
 export function recomendar(e: EntradaRecomendador, motor: Motor = 'grafo', nutrienteElegido?: Nutriente): Recomendacion {
   const nutriente = nutrienteElegido ?? e.faltan[0] ?? menorCobertura(e.coberturaSemana)
   const puntuar1 = puntuador(e, motor)
   const puntuar = (n: Nutriente): Puntuado[] =>
     candidatosCadena(e, n)
+      .filter((paso) => esParaMomento(paso.cand, e.momento))
       .map((paso) => ({ paso, ...puntuar1(paso.cand, paso.cambio) }))
       .sort((a, b) => b.puntaje - a.puntaje || a.paso.cand.id.localeCompare(b.paso.cand.id))
   const lista = puntuar(nutriente)
@@ -139,8 +151,9 @@ export function recomendar(e: EntradaRecomendador, motor: Motor = 'grafo', nutri
 /** Entre lo que acepta, la de mayor p × aporte al nutriente que más falta, salteando lo de la última comida del mismo momento. */
 function sugerenciaSegura(e: EntradaRecomendador, n: Nutriente): Sugerencia | null {
   const evitar = new Set(e.evitarSegura ?? [])
+  const delCatalogo = e.momento ? new Map(e.catalogo.map((p) => [p.id, p])) : null
   const opciones = [...e.estados.values()]
-    .filter((s) => s.estado === 'acepta')
+    .filter((s) => s.estado === 'acepta' && (!delCatalogo || esParaMomento(delCatalogo.get(s.prepId), e.momento)))
     .map((s) => {
       const prep = e.conocidas.get(s.prepId)
       const ap = prep && prep.ingredientes.length ? aporte(prep.ingredientes, e.alimentos).nutrientes : cero()
@@ -152,6 +165,7 @@ function sugerenciaSegura(e: EntradaRecomendador, n: Nutriente): Sugerencia | nu
   const s = mejor.s
   const partes = [s.veces > 0 ? `La come ${s.comio} de cada ${s.veces} ${s.veces === 1 ? 'vez' : 'veces'}` : 'Según contaste, la come seguido']
   if (mejor.valor > 0) partes.push(`aporta ${porciento(mejor.ap[n] / e.objetivo[n])} ${DEL_NUTRIENTE[n]} del día`)
+  const grupo = mejor.prep?.atributos.grupo
   return {
     tipo: 'segura',
     preparacionId: s.prepId,
@@ -159,6 +173,7 @@ function sugerenciaSegura(e: EntradaRecomendador, n: Nutriente): Sugerencia | nu
     probAcepta: redondear(s.p, 2),
     aporte: redondearParcial(mejor.ap),
     porQue: `${partes.join(' y ')}.`,
+    ...(grupo ? { grupo } : {}),
   }
 }
 
@@ -188,5 +203,6 @@ function sugerenciaPaso(tipo: 'un_paso' | 'mas_nutritiva', x: Puntuado, n: Nutri
     aporte: redondearParcial(paso.aporte),
     porQue: partes.join(' '),
     candidato: aCandidato(x),
+    grupo: paso.cand.atributos.grupo,
   }
 }

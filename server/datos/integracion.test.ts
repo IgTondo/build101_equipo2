@@ -110,6 +110,21 @@ describe.skipIf(!URI)('pista B de punta a punta contra Mongo', () => {
     expect(base.body.sugerencias?.length).toBe(3)
   })
 
+  it('(v5.2) GET /api/progreso?momento=: solo sugerencias para esa comida, y lo dice', async () => {
+    const pedir = (momento: string) => llamar<Progreso>(progresoApi, { method: 'GET', query: { ninoId: 'tomas', hasta: '2026-10-16', momento } })
+    const desayuno = await pedir('desayuno')
+    expect(desayuno.status).toBe(200)
+    expect(desayuno.body.momento).toBe('desayuno')
+    expect(desayuno.body.sugerencias?.map((s) => s.preparacionId)).toEqual(['leche_chocolatada', 'tostadas_queso', 'yogur_bebible'])
+    const cena = await pedir('cena')
+    expect(cena.body.sugerencias?.map((s) => s.preparacionId)).toEqual(['milanesa_carne_horno', 'bastones_queso_horno', 'bastones_queso_fritos'])
+    expect((await pedir('once')).status).toBe(400)
+    const sin = await llamar<Progreso>(progresoApi, { method: 'GET', query: { ninoId: 'tomas', hasta: '2026-10-16' } })
+    expect(sin.body.momento).toBeUndefined()
+    const e = evidenciaDe(await cargarNino('tomas'), { hoy: '2026-10-16', momento: 'desayuno' })
+    expect(e.candidatos.map((c) => c.preparacionId)).not.toContain('bastones_queso_horno')
+  })
+
   it('GET /api/nutricion y GET /api/perfil', async () => {
     const n = await llamar<{ comidas: unknown[]; faltan: string[] }>(nutricionApi, { method: 'GET', query: { ninoId: 'tomas', dia: '2026-10-16' } })
     expect(n.body.comidas).toHaveLength(2)

@@ -1,5 +1,5 @@
 // GET /api/nutricion y GET /api/progreso (B7): el tablero "¿está comiendo bien?" y las tres sugerencias (§8).
-import type { CoberturaDia, Motor, Nutriente, Progreso } from '../../shared/contratos.js'
+import type { CoberturaDia, Momento, Motor, Nutriente, Progreso } from '../../shared/contratos.js'
 import type { EstadoNino } from '../aprendizaje/estado.js'
 import { calcularEstado } from '../aprendizaje/estado.js'
 import { type EntradaRecomendador, type Recomendacion, recomendar } from '../aprendizaje/recomendador.js'
@@ -13,12 +13,16 @@ export interface OpcionesTablero {
   motor?: Motor // recomendador: grafo (por defecto) o base (§4.3)
   hasta?: string // 'YYYY-MM-DD': "hoy" para el tablero (por defecto, hoy en Uruguay)
   ahora?: Date
+  momento?: Momento // v5.2 · la próxima comida (?momento=): las sugerencias son solo para esa comida
 }
 
-/** Lo que el recomendador necesita, con lo que se sirvió en la última comida del mismo momento (para no repetir). */
-export function entradaRecomendador(c: Cargado, estado: EstadoNino, hoy: string, ahora: Date = new Date()): EntradaRecomendador {
+/**
+ * Lo que el recomendador necesita, con lo que se sirvió en la última comida del mismo momento (para no repetir). Con
+ * `para` (v5.2), las sugerencias son solo para esa comida y "el mismo momento" es esa comida; si no, el de la hora.
+ */
+export function entradaRecomendador(c: Cargado, estado: EstadoNino, hoy: string, ahora: Date = new Date(), para?: Momento): EntradaRecomendador {
   const sem = semana(estado.comidas, hoy, c.objetivo)
-  const momento = momentoSegunHora(horaUruguay(ahora))
+  const momento = para ?? momentoSegunHora(horaUruguay(ahora))
   const ultima = [...estado.comidas].reverse().find((m) => m.momento === momento)
   return {
     catalogo: [...c.catalogo.values()],
@@ -33,17 +37,20 @@ export function entradaRecomendador(c: Cargado, estado: EstadoNino, hoy: string,
     faltan: sem.diasRegistrados ? faltanSemana(sem.cobertura) : [],
     coberturaSemana: sem.cobertura,
     evitarSegura: ultima ? ultima.items.map((it) => it.preparacionId) : [],
+    ...(para ? { momento: para } : {}),
   }
 }
 
-export function recomendacionDe(c: Cargado, estado: EstadoNino, hoy: string, motor: Motor = 'grafo', nutriente?: Nutriente, ahora?: Date): Recomendacion {
-  return recomendar(entradaRecomendador(c, estado, hoy, ahora), motor, nutriente)
+export function recomendacionDe(
+  c: Cargado, estado: EstadoNino, hoy: string, motor: Motor = 'grafo', nutriente?: Nutriente, ahora?: Date, momento?: Momento,
+): Recomendacion {
+  return recomendar(entradaRecomendador(c, estado, hoy, ahora, momento), motor, nutriente)
 }
 
 export function progresoDe(c: Cargado, op: OpcionesTablero = {}): Progreso {
   const hoy = op.hasta ?? hoyUruguay(op.ahora)
   const estado = calcularEstado(c.nino, c.comidas, c.catalogo, { hasta: hoy })
-  return armarProgreso({
+  const progreso = armarProgreso({
     nino: c.nino,
     comidas: c.comidas,
     objetivo: c.objetivo,
@@ -52,8 +59,9 @@ export function progresoDe(c: Cargado, op: OpcionesTablero = {}): Progreso {
     estado,
     estadoHace7: calcularEstado(c.nino, c.comidas, c.catalogo, { hasta: sumarDias(hoy, -7) }),
     estadoHace14: calcularEstado(c.nino, c.comidas, c.catalogo, { hasta: sumarDias(hoy, -14) }),
-    recomendacion: recomendacionDe(c, estado, hoy, op.motor ?? 'grafo', undefined, op.ahora),
+    recomendacion: recomendacionDe(c, estado, hoy, op.motor ?? 'grafo', undefined, op.ahora, op.momento),
   })
+  return op.momento ? { ...progreso, momento: op.momento } : progreso
 }
 
 export async function obtenerProgreso(ninoId: string, op: OpcionesTablero = {}): Promise<Progreso> {

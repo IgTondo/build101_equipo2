@@ -1,6 +1,6 @@
 // armarEvidencia(ninoId, nutriente?) (PLAN.md §8, B12): el paquete de ~20 líneas que es lo ÚNICO que ve el LLM de
 // la receta (A9). Lo que falta → candidatos a UN cambio de un alimento seguro → propagación + patrones.
-import type { Candidato, Evidencia, Motor, Nutriente } from '../../shared/contratos.js'
+import type { Candidato, Evidencia, Momento, Motor, Nutriente } from '../../shared/contratos.js'
 import { calcularEstado } from '../aprendizaje/estado.js'
 import { NOMBRE_NUTRIENTE, TEXTO_CAMBIO, decimal, lista, porciento } from '../aprendizaje/textos.js'
 import { type Cargado, cargarNino } from '../datos/cargar.js'
@@ -15,10 +15,11 @@ const UNIDAD: Record<Nutriente, string> = {
 /** Lo que la receta tiene que respetar siempre (§7): va en el paquete aunque el chico no tenga reglas propias. */
 const PRESENTACION = 'Presentación: separado, porción mínima, al lado de su alimento seguro, salsas aparte. Un solo alimento nuevo por comida. Nada escondido.'
 
-export function evidenciaDe(c: Cargado, op: { nutriente?: Nutriente; motor?: Motor; hoy?: string; ahora?: Date } = {}): Evidencia {
+/** Con `momento` (v5.2, RecetaReq.momento), los candidatos son solo los que el catálogo anota para esa comida. */
+export function evidenciaDe(c: Cargado, op: { nutriente?: Nutriente; motor?: Motor; hoy?: string; ahora?: Date; momento?: Momento } = {}): Evidencia {
   const hoy = op.hoy ?? hoyUruguay(op.ahora)
   const estado = calcularEstado(c.nino, c.comidas, c.catalogo, { hasta: hoy })
-  const rec = recomendacionDe(c, estado, hoy, op.motor ?? 'grafo', op.nutriente, op.ahora)
+  const rec = recomendacionDe(c, estado, hoy, op.motor ?? 'grafo', op.nutriente, op.ahora, op.momento)
   const n = rec.nutriente
   const sem = semana(estado.comidas, hoy, c.objetivo)
   const faltaHoy = Math.max(0, c.objetivo[n] - coberturaDia(hoy, estado.comidas, c.objetivo).consumido.valor[n])
@@ -57,6 +58,6 @@ export function evidenciaDe(c: Cargado, op: { nutriente?: Nutriente; motor?: Mot
   }
 }
 
-export async function armarEvidencia(ninoId: string, nutriente?: Nutriente, motor: Motor = 'grafo'): Promise<Evidencia> {
-  return evidenciaDe(await cargarNino(ninoId), { ...(nutriente ? { nutriente } : {}), motor })
+export async function armarEvidencia(ninoId: string, nutriente?: Nutriente, motor: Motor = 'grafo', momento?: Momento): Promise<Evidencia> {
+  return evidenciaDe(await cargarNino(ninoId), { ...(nutriente ? { nutriente } : {}), motor, ...(momento ? { momento } : {}) })
 }

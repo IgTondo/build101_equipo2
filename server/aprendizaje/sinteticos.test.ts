@@ -1,7 +1,7 @@
 // B14 (PLAN.md §10.5): el aprendizaje tiene que encontrar solo, a partir de las comidas, las reglas ocultas de
 // Tomás y Lucía. Las reglas ocultas son la verdad de base: la app nunca las lee; acá solo se comparan.
 import { describe, expect, it } from 'vitest'
-import type { Motor, Nutriente } from '../../shared/contratos.js'
+import type { Momento, Motor, Nutriente } from '../../shared/contratos.js'
 import { alimentosPrueba, catalogoPrueba, comidasSinteticas, ninoDoc, sintetico } from '../datos/prueba/catalogos.js'
 import { sumarDias } from '../datos/fechas.js'
 import { faltanSemana } from '../nutricion/calcular.js'
@@ -11,7 +11,7 @@ import { queAprendi } from './aprendi.js'
 import { cambios } from './cadena.js'
 import { cumple } from './condiciones.js'
 import { calcularEstado } from './estado.js'
-import { recomendar } from './recomendador.js'
+import { esParaMomento, recomendar } from './recomendador.js'
 
 const catalogo = catalogoPrueba()
 const alimentos = alimentosPrueba()
@@ -226,5 +226,57 @@ describe('tablero "¿está comiendo bien?" con el historial sintético', () => {
     expect(p.alertas.map((a) => a.tipo)).toEqual(['sin_vitamina_c', 'repertorio_chico'])
     expect(p.semana.faltan[0]).toBe('vitamina_c_mg')
     expect(p.aceptadas).toBe(7)
+  })
+})
+
+describe('(v5.2) sugerencias para la próxima comida (?momento=)', () => {
+  const para = (id: 'tomas' | 'lucia', momento?: Momento, motor: Motor = 'grafo') => {
+    const { entrada } = recomendacion(id)
+    return recomendar({ ...entrada, ...(momento ? { momento } : {}) }, motor)
+  }
+  const ids = (r: ReturnType<typeof para>) => [...r.sugerencias.map((s) => s.preparacionId), ...r.candidatos.map((c) => c.preparacionId)]
+  const tipos = (id: 'tomas' | 'lucia', momento: Momento) => para(id, momento).sugerencias.map((s) => `${s.tipo}:${s.preparacionId}`)
+
+  it('esParaMomento: sin momento todo vale; con momento, solo lo anotado (lo que no está anotado no sale)', () => {
+    expect(esParaMomento(catalogo.get('milanesa_carne_horno'))).toBe(true)
+    expect(esParaMomento(catalogo.get('milanesa_carne_horno'), 'desayuno')).toBe(false)
+    expect(esParaMomento(catalogo.get('leche_chocolatada'), 'desayuno')).toBe(true)
+    expect(esParaMomento(catalogo.get('leche_chocolatada'), 'cena')).toBe(false)
+    expect(esParaMomento(undefined, 'almuerzo')).toBe(false)
+    expect(esParaMomento({}, 'almuerzo')).toBe(false)
+  })
+
+  it.each(['tomas', 'lucia'] as const)('%s: cada sugerencia y cada candidato es para esa comida, con su grupo', (id) => {
+    for (const momento of ['desayuno', 'almuerzo', 'cena'] as const) {
+      for (const motor of ['grafo', 'base'] as const) {
+        const r = para(id, momento, motor)
+        for (const x of ids(r)) expect(catalogo.get(x)?.momentos, `${id} ${momento} ${x}`).toContain(momento)
+        for (const s of r.sugerencias) expect(s.grupo, s.preparacionId).toBe(catalogo.get(s.preparacionId)?.atributos.grupo)
+      }
+    }
+  })
+
+  it('el desayuno nunca trae milanesas, papas fritas ni bastones de queso; la cena nunca chocolatada ni yogur', () => {
+    for (const id of ['tomas', 'lucia'] as const) {
+      expect(ids(para(id, 'desayuno')).filter((x) => /milanesa|papas|bastones_queso|nuggets/.test(x)), id).toEqual([])
+      expect(ids(para(id, 'cena')).filter((x) => /leche_chocolatada|yogur|licuado/.test(x)), id).toEqual([])
+    }
+  })
+
+  it('Tomás: desayuno con su chocolatada y tostadas con queso; almuerzo y cena con milanesa y los bastones de queso', () => {
+    expect(tipos('tomas', 'desayuno')).toEqual(['segura:leche_chocolatada', 'un_paso:tostadas_queso', 'mas_nutritiva:yogur_bebible'])
+    expect(tipos('tomas', 'almuerzo')).toEqual(['segura:milanesa_carne_horno', 'un_paso:bastones_queso_horno', 'mas_nutritiva:bastones_queso_fritos'])
+    expect(tipos('tomas', 'cena')).toEqual(tipos('tomas', 'almuerzo'))
+  })
+
+  it('Lucía: si nada a un cambio encaja con la comida, menos sugerencias (nunca una de otra comida)', () => {
+    expect(tipos('lucia', 'desayuno')).toEqual(['segura:banana_pisada', 'un_paso:frutilla_pisada'])
+    expect(tipos('lucia', 'almuerzo')).toEqual(['segura:pure_papa'])
+    expect(tipos('lucia', 'cena')).toEqual(['segura:pure_papa'])
+  })
+
+  it('sin momento no cambia nada (el tablero de la semana), salvo que ahora viene el grupo', () => {
+    expect(para('tomas').sugerencias.map((s) => s.preparacionId)).toEqual(['leche_chocolatada', 'bastones_queso_horno', 'yogur_bebible'])
+    expect(para('tomas').candidatos.length).toBeGreaterThan(para('tomas', 'almuerzo').candidatos.length)
   })
 })
