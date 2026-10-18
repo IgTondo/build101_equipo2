@@ -7,7 +7,6 @@ import { MOMENTO, type Momento, type RegistrarComidaReq, type RegistrarComidaRes
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { diaUruguay, useNinoActivo } from '../../lib/nino'
-import { olvidarProgresos } from '../../lib/progresoComida'
 import { guardarUltimaComida } from '../../lib/proximaComida'
 import { aErrorDeApi } from '../../lib/useApi'
 import { NOMBRE_MOMENTO } from '../../lib/vocabulario'
@@ -126,7 +125,6 @@ export function Registrar() {
       const res = await api.registrarComida(req, senal)
       if (senal.aborted) return
       guardarUltimaComida(ninoId, { id: res.comidaId, dia: req.dia, momento: req.momento, fechaISO: req.fechaISO })
-      olvidarProgresos(ninoId) // el día y el plato cambiaron con esta comida
       setPaso({ tipo: 'resultado', res, req })
     } catch (e) {
       if (!senal.aborted) setErrorGuardar(aErrorDeApi(e))

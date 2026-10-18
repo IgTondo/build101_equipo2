@@ -2,7 +2,6 @@
 import type { CoberturaDia, Momento, Motor, Nutriente, Progreso } from '../../shared/contratos.js'
 import type { EstadoNino } from '../aprendizaje/estado.js'
 import { calcularEstado } from '../aprendizaje/estado.js'
-import { armarPlato } from '../aprendizaje/plato.js'
 import { type EntradaRecomendador, type Recomendacion, recomendar } from '../aprendizaje/recomendador.js'
 import { faltanSemana } from '../nutricion/calcular.js'
 import { armarProgreso, coberturaDia, semana } from '../nutricion/progreso.js'
@@ -51,8 +50,6 @@ export function recomendacionDe(
 export function progresoDe(c: Cargado, op: OpcionesTablero = {}): Progreso {
   const hoy = op.hasta ?? hoyUruguay(op.ahora)
   const estado = calcularEstado(c.nino, c.comidas, c.catalogo, { hasta: hoy })
-  const entrada = entradaRecomendador(c, estado, hoy, op.ahora, op.momento)
-  const recomendacion = recomendar(entrada, op.motor ?? 'grafo')
   const progreso = armarProgreso({
     nino: c.nino,
     comidas: c.comidas,
@@ -62,18 +59,9 @@ export function progresoDe(c: Cargado, op: OpcionesTablero = {}): Progreso {
     estado,
     estadoHace7: calcularEstado(c.nino, c.comidas, c.catalogo, { hasta: sumarDias(hoy, -7) }),
     estadoHace14: calcularEstado(c.nino, c.comidas, c.catalogo, { hasta: sumarDias(hoy, -14) }),
-    recomendacion,
+    recomendacion: recomendacionDe(c, estado, hoy, op.motor ?? 'grafo', undefined, op.ahora, op.momento),
   })
-  if (!op.momento) return progreso
-  // v5.3 · el plato de esa comida (PLAN §5.3), con lo mismo que ya usó el recomendador: sin otra lectura
-  const plato = armarPlato({
-    ...entrada,
-    momento: op.momento,
-    hoy: progreso.dias.find((d) => d.dia === hoy),
-    ultima: entrada.evitarSegura ?? [],
-    sugerencias: recomendacion.sugerencias,
-  })
-  return { ...progreso, momento: op.momento, plato }
+  return op.momento ? { ...progreso, momento: op.momento } : progreso
 }
 
 export async function obtenerProgreso(ninoId: string, op: OpcionesTablero = {}): Promise<Progreso> {

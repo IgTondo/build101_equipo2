@@ -103,18 +103,14 @@ export function faltanDia(cob: Nutrientes): Nutriente[] {
  * → (vitamina C, si hay alguna fuente) → B12 y proteína.
  */
 export function faltanSemana(cob: Nutrientes): Nutriente[] {
-  return ordenPrioridad(cob).filter((n) => cob[n] < UMBRAL_FALTA)
-}
-
-/** El orden de gravedad de §1 para los 8 nutrientes con meta, según la cobertura semanal de vitamina C. */
-export function ordenPrioridad(cobSemana: Pick<Nutrientes, 'vitamina_c_mg'>): Nutriente[] {
-  const sinFuenteC = cobSemana.vitamina_c_mg < UMBRAL_SIN_VITAMINA_C
-  return [
+  const sinFuenteC = cob.vitamina_c_mg < UMBRAL_SIN_VITAMINA_C
+  const orden: Nutriente[] = [
     ...(sinFuenteC ? (['vitamina_c_mg'] as const) : []),
     'calcio_mg', 'vitamina_d_ug', 'hierro_mg', 'fibra_g', 'omega3_g',
     ...(sinFuenteC ? [] : (['vitamina_c_mg'] as const)),
     'b12_ug', 'proteina_g',
   ]
+  return orden.filter((n) => cob[n] < UMBRAL_FALTA)
 }
 
 // ---------- Redondeo para las respuestas (los cálculos usan los valores completos) ----------

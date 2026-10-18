@@ -10,8 +10,8 @@ import { fileURLToPath } from 'node:url'
 import { CUANTO, GRUPO, NUTRIENTE } from '../shared/contratos.js'
 import type {
   AnalisisComida, Alerta, Aprendizaje, Atributos, Candidato, Cambio, CoberturaDia, ComidaResumen, Conducta, CrearPerfilRes,
-  Cuanto, DatosBasicos, DatosExtraidos, Evidencia, Grupo, ImagenPlatoRes, ItemDetectado, ItemPlato, Nutriente, Nutrientes, PatronVista, Perfil,
-  PerfilBorrador, PlatoComida, Porcion, PreparacionCatalogo, Progreso, Rango, Receta, RegistrarComidaReq, RegistrarComidaRes,
+  Cuanto, DatosBasicos, DatosExtraidos, Evidencia, Grupo, ImagenPlatoRes, ItemDetectado, Nutriente, Nutrientes, PatronVista, Perfil,
+  PerfilBorrador, Porcion, PreparacionCatalogo, Progreso, Rango, Receta, RegistrarComidaReq, RegistrarComidaRes,
   RelatoComida, ResumenRes, SaludRes, Sugerencia, TranscribirRes,
 } from '../shared/contratos.js'
 
@@ -368,50 +368,6 @@ const progreso: Progreso = {
   sugerencias,
 }
 
-// ---------- v5.3 · El plato de la cena (Progreso.plato con ?momento=cena, PLAN §5.3) ----------
-// Las mismas reglas que server/aprendizaje/plato.ts, con la tabla de acá: lo seguro es lo que acepta, que el catálogo
-// anota para la cena (los `momentos` están en data/preparaciones.json), sin huevo ni nada mezclado (su regla), uno por
-// grupo, ordenado por p × aporte al nutriente; el pasito es la sugerencia un_paso, en porción chica. El nutriente: lo
-// que falta hoy, en el orden de §1, el primero cuyo plato cubre al menos el 15% de lo que falta hoy (si ninguno, el
-// primero). Solo va en fixtures/progreso.json: /api/resumen pide el progreso sin momento, así que el resumen no lo trae.
-const MOMENTOS = new Map(leer<PreparacionCatalogo[]>('data/preparaciones.json').map((p) => [p.id, p.momentos ?? []]))
-const HOY_COB = coberturaDia(HOY)
-const ORDEN_PRIORIDAD: Nutriente[] = coberturaSem.vitamina_c_mg < 0.3 ? ['vitamina_c_mg', ...PRIORIDAD] : [...PRIORIDAD, 'vitamina_c_mg']
-const CANDIDATOS_CENA = ORDEN_PRIORIDAD.filter((n) => HOY_COB.faltan.includes(n))
-const ULTIMA_CENA = new Set(COMIDAS.filter((c) => c.momento === 'cena' && c.dia <= HOY).at(-1)?.analisis.items.map((i) => i.preparacionId) ?? [])
-const pasitoCena = sugerencias.find((s) => s.tipo === 'un_paso')
-function platoCenaPara(n: Nutriente): PlatoComida {
-  const opciones = [...ACEPT.entries()]
-    .filter(([id, e]) => estadoDe(e) === 'acepta' && MOMENTOS.get(id)?.includes('cena') && prep(id).atributos.presentacion !== 'mezclado' &&
-      !prep(id).ingredientes.some((i) => i.alimentoId.includes('huevo')))
-    .map(([id, e]) => ({ id, e, grupo: prep(id).atributos.grupo, ap: aportePorcion(id) }))
-    .sort((a, b) => b.e.p * b.ap[n] - a.e.p * a.ap[n] || b.e.p - a.e.p || a.id.localeCompare(b.id))
-  const seguros = opciones.filter((o, i) => opciones.findIndex((x) => x.grupo === o.grupo) === i).slice(0, 3)
-  // Si lo seguro se repite entero respecto de la última cena, rota uno (del mismo grupo)
-  if (seguros.length && seguros.every((o) => ULTIMA_CENA.has(o.id))) {
-    const ultimo = seguros.at(-1)
-    const otra = opciones.find((o) => o.grupo === ultimo?.grupo && !ULTIMA_CENA.has(o.id))
-    if (otra) seguros[seguros.length - 1] = otra
-  }
-  const delPasito = pasitoCena ? aportePorcion(pasitoCena.preparacionId)[n] * PORCION.chica : 0
-  const falta = Math.max(OBJETIVO[n] - HOY_COB.consumido.valor[n], 1e-6)
-  return {
-    momento: 'cena',
-    seguros: seguros.map((o): ItemPlato => ({
-      preparacionId: o.id, nombre: prep(o.id).nombre, porcion: 'mediana', grupo: o.grupo, aporte: o.ap,
-      porQue: `La come ${o.e.comio} de cada ${o.e.veces} veces${o.ap[n] >= 0.1 * OBJETIVO[n] ? ` y aporta ${NOMBRE_NUTRIENTE[n]}` : ''}.`,
-    })),
-    ...(pasitoCena ? { pasito: pasitoCena } : {}),
-    nutriente: n,
-    cubre: redondear(Math.min(1, (seguros.reduce((t, o) => t + o.ap[n], 0) + delPasito) / falta)),
-    porQue: `Lo que ya come para la cena, y un pasito ${pasitoCena && delPasito >= 0.05 * OBJETIVO[n]
-      ? `hacia ${['calcio_mg', 'hierro_mg', 'omega3_g'].includes(n) ? 'el' : 'la'} ${NOMBRE_NUTRIENTE[n]}` : 'nuevo, en porción chica'}.`,
-  }
-}
-const platosCena = (CANDIDATOS_CENA.length ? CANDIDATOS_CENA : [NUTRIENTE_OBJ]).map(platoCenaPara)
-const platoCena: PlatoComida = platosCena.find((p) => p.cubre >= 0.15) ?? platosCena[0] ?? platoCenaPara(NUTRIENTE_OBJ)
-const progresoConPlato: Progreso = { ...progreso, plato: platoCena }
-
 // ---------- La comida de ejemplo: el almuerzo del 16/10 (analizar → relato → registrar) ----------
 const ALMUERZO = TOMAS.comidas.find((c) => c.dia === HOY && c.momento === 'almuerzo')
 if (!ALMUERZO) throw new Error('Falta el almuerzo del 16/10 en el dataset')
@@ -681,11 +637,6 @@ exigir(progreso.exposiciones.some((e) => e.preparacionId === 'bastones_queso_hor
 exigir(progreso.alertas.some((a) => a.tipo === 'repertorio_chico'), 'progreso: alerta repertorio_chico')
 exigir(sugerencias.map((s) => s.tipo).join() === 'segura,un_paso,mas_nutritiva', 'sugerencias: orden segura, un_paso, mas_nutritiva')
 exigir(progreso.proximoPaso?.preparacionId === sugerencias[1]?.preparacionId, 'proximoPaso = la sugerencia un_paso')
-exigir(platoCena.seguros.length >= 1 && platoCena.seguros.length <= 3, 'plato: de 1 a 3 seguros')
-exigir(new Set(platoCena.seguros.map((s) => s.grupo)).size === platoCena.seguros.length, 'plato: un seguro por grupo')
-exigir(platoCena.seguros.every((s) => MOMENTOS.get(s.preparacionId)?.includes('cena')), 'plato: lo seguro es para la cena')
-exigir(!platoCena.seguros.some((s) => s.preparacionId === platoCena.pasito?.preparacionId), 'plato: el pasito no repite un seguro')
-exigir(platoCena.cubre >= 0 && platoCena.cubre <= 1, 'plato: cubre entre 0 y 1')
 for (const n of ['calcio_mg', 'vitamina_d_ug', 'fibra_g'] as const) exigir(faltan.includes(n), `Tomás debería estar bajo en ${n}`)
 exigir(NUTRIENTE_OBJ === 'calcio_mg', 'la receta está escrita para el calcio')
 exigir(!receta.ingredientes.some((i) => i.alimentoId.includes('huevo')), 'receta: sin huevo (alergia)')
@@ -703,7 +654,7 @@ for (const p of PATRONES.filter((x) => x.fuente === 'aprendido')) {
   exigir(p.apoyo >= 3 && p.confianza >= 0.75, `patrón ${s} no pasa los umbrales de §8 (n ${p.apoyo}, ${p.confianza})`)
 }
 const PROHIBIDAS = ['que termine', 'premio', 'una probadita más', 'caloría']
-const textos = JSON.stringify([progreso.frase, sugerencias, platoCena, receta, registrar.aprendi, resumen.texto, relato.comentario]).toLowerCase()
+const textos = JSON.stringify([progreso.frase, sugerencias, receta, registrar.aprendi, resumen.texto, relato.comentario]).toLowerCase()
 for (const f of PROHIBIDAS) exigir(!textos.includes(f), `lenguaje prohibido: "${f}"`)
 exigir(resumen.texto.trimEnd().endsWith('Valores aproximados, no es un diagnóstico.'), 'resumen: termina con la aclaración')
 if (errores.length) {
@@ -721,7 +672,7 @@ const FIXTURES: Record<string, unknown> = {
   perfil,
   'registrar-comida': registrar,
   nutricion,
-  progreso: progresoConPlato,
+  progreso,
   receta,
   'imagen-plato': imagenPlato,
   resumen,

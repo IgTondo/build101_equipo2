@@ -1,21 +1,16 @@
-// La pantalla principal (PLAN v5.1, §9; v5.3, §5.3): el día se organiza en comidas. De arriba hacia abajo: el nombre
-// del chico, "Hoy" (nutrientes del día + una línea de la semana), la tarjeta grande con el selector de comida y el plato
-// (marcada la próxima comida), la invitación a registrar con "Registrar comida" (la comida que acaba de terminar
-// preseleccionada), las alertas si hay y "Ver la semana".
-// Un pedido a /api/progreso por comida (7 días, ?momento=), en caché en memoria, y el perfil en paralelo por el nombre.
-// Al elegir otra comida se pide la suya y, mientras llega, la tarjeta anterior queda atenuada. No se guarda la elección.
+// La pantalla principal (PLAN v5.1, §9): el día se organiza en comidas. De arriba hacia abajo: el nombre del chico,
+// "Hoy" (nutrientes del día + una línea de la semana), la próxima comida (el botón grande, abre la receta para esa
+// comida), "Registrar comida" (con la comida que acaba de terminar preseleccionada), las alertas si hay y "Ver la semana".
+// Un solo pedido a /api/progreso (7 días, con ?momento= de la próxima comida) y el perfil en paralelo, solo por el nombre.
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AvisoConsulta } from '../../componentes/AvisoConsulta'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
-import { TarjetaComida } from '../../componentes/ProximaComida'
-import { SelectorComida } from '../../componentes/SelectorComida'
+import { TarjetaProximaComida } from '../../componentes/ProximaComida'
 import { api } from '../../lib/api'
 import { diaUruguay, useNinoActivo } from '../../lib/nino'
-import { etiquetaComida, lineaDespues } from '../../lib/platoComida'
-import { useProgresoComida } from '../../lib/progresoComida'
-import { comidaRecienPorHora, comidasDelDia, horaUruguay, leerUltimaComida, proximaComida, type ComidaPlan } from '../../lib/proximaComida'
+import { comidaRecienPorHora, comidasDelDia, horaUruguay, leerUltimaComida, proximaComida } from '../../lib/proximaComida'
 import { useApi } from '../../lib/useApi'
 import { hayComidas } from '../tablero/calculos'
 import { Hoy } from './Hoy'
@@ -30,24 +25,18 @@ export function Inicio() {
   // Antes de tener el progreso, la próxima comida sale de la última registrada en este celular (si fue hoy) y la hora.
   const ultima = leerUltimaComida(ninoId, ahora.dia)
   const estimada = proximaComida(ultima ? [ultima] : [], ahora.hora)
-  // La comida elegida en el selector; sin elegir, la próxima (primero la estimada y, con el progreso, la calculada).
-  const [elegida, setElegida] = useState<ComidaPlan | null>(null)
-  const [calculada, setCalculada] = useState<{ ninoId: string; proxima: typeof estimada } | null>(null)
-  const proxima = calculada?.ninoId === ninoId ? calculada.proxima : estimada
-  const momento = elegida ?? proxima.momento
-  const progreso = useProgresoComida(ninoId, momento)
+  const progreso = useApi(
+    (s) => api.progreso(ninoId, { dias: 7, momento: estimada.momento }, s),
+    [ninoId],
+  )
   const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
   const nombre = perfil.tipo === 'ok' ? perfil.datos.datos.nombre : null
 
-  // Las comidas de hoy son las mismas para cualquier ?momento=: con el primer progreso se corrige la próxima comida.
-  const datos = progreso.datos
-  if (datos && calculada?.ninoId !== ninoId) {
-    setCalculada({ ninoId, proxima: proximaComida(comidasDelDia(datos.dias, ahora.dia), ahora.hora) })
-  }
+  if (progreso.tipo === 'error' && progreso.error.codigo === 'no_encontrado') return <PerfilNoEncontrado />
 
-  if (progreso.error?.codigo === 'no_encontrado') return <PerfilNoEncontrado />
-
+  const datos = progreso.tipo === 'ok' ? progreso.datos : null
   const diaHoy = datos?.dias.find((d) => d.dia === ahora.dia) ?? null
+  const proxima = datos ? proximaComida(comidasDelDia(datos.dias, ahora.dia), ahora.hora) : estimada
 
   const registrar = new URLSearchParams(search)
   registrar.set('momento', comidaRecienPorHora(ahora.hora))
@@ -56,27 +45,17 @@ export function Inicio() {
     <div className="in">
       <h1 className="in-nombre">{nombre ?? <span className="nb-oculto">Inicio</span>}</h1>
 
-      {!datos && !progreso.error && (
+      {progreso.tipo === 'cargando' && (
         <div className="nb-tarjeta in-hoy in-cargando"><Cargando texto="Mirando cómo viene hoy…" /></div>
       )}
-      {!datos && progreso.error && <ErrorConReintento error={progreso.error} reintentar={progreso.reintentar} />}
+      {progreso.tipo === 'error' && <ErrorConReintento error={progreso.error} reintentar={progreso.reintentar} />}
       {datos && <Hoy dia={diaHoy} semana={datos.semana} hayComidasSemana={hayComidas(datos.dias)} />}
 
-      {(datos || !progreso.error) && (
-        <TarjetaComida
-          ninoId={ninoId}
-          etiqueta={etiquetaComida(momento, proxima)}
-          progreso={progreso}
-          selector={<SelectorComida valor={momento} onCambiar={setElegida} />}
-        />
-      )}
+      {progreso.tipo !== 'error' && <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={datos} />}
 
-      <div className="in-registrar-bloque">
-        <p className="in-despues">{lineaDespues(momento)}</p>
-        <Link className="nb-boton nb-boton-secundario in-registrar" to={{ pathname: '/registrar', search: `?${registrar}` }}>
-          <IconoCamara /> Registrar comida
-        </Link>
-      </div>
+      <Link className="nb-boton nb-boton-secundario in-registrar" to={{ pathname: '/registrar', search: `?${registrar}` }}>
+        <IconoCamara /> Registrar comida
+      </Link>
 
       {datos && <AvisoConsulta alertas={datos.alertas} />}
 

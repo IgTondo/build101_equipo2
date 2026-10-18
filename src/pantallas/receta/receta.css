@@ -126,7 +126,3 @@
   .rc-acciones .nb-boton:active { transform: none; }
   .rc-imagen-marco img, .rc-etapas li, .rc-etapas li::before { transition: none; }
 }
-
-/* v5.3 · "Ver cómo servirlo" baja hasta la imagen del plato: que quede un respiro arriba y sin anillo de foco. */
-.rc-servir { scroll-margin-top: 16px; }
-.rc-servir:focus { outline: none; }

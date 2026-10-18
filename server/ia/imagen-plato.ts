@@ -8,8 +8,6 @@
 //    que dice la presentación de la receta ("2 bastones", "media tostada") o una por defecto;
 //  - las bebidas van en vaso y el yogur en un bol, nunca "en el plato";
 //  - plato playo blanco (hondo o con divisiones si una regla del chico lo pide), cenital, separados, nada más.
-// v5.3 · con `plato` (PlatoComida) se dibuja el plato completo de la comida: cada seguro en porción normal y el pasito
-// en porción chica, al costado (promptPlatoCompleto). Sin `plato`, el prompt es exactamente el de antes.
 // Siempre es ilustrativa.
 import { z } from 'zod'
 import { CAMBIO, type Atributos, type Coccion, type Color, type ImagenPlatoRes, type PreparacionCatalogo, type Regla, type Textura } from '../../shared/contratos.js'
@@ -28,8 +26,6 @@ const esquemaRegla = z.object({
   efecto: z.enum(['rechaza', 'requiere']),
 })
 
-const esquemaItemPlato = z.object({ preparacionId: z.string().min(1), nombre: z.string().min(1) })
-
 export const esquemaImagenPlatoReq = z.object({
   receta: z.object({
     nombre: z.string().min(1),
@@ -43,12 +39,6 @@ export const esquemaImagenPlatoReq = z.object({
     cambio: z.enum(CAMBIO).optional(),
   }),
   reglas: z.array(esquemaRegla).default([]),
-  // v5.3 · el plato de una comida (PlatoComida): si viene con algo, se dibuja el plato completo. De cada ítem solo se usa
-  // la preparación; el resto (porción, aporte, porQue) pasa sin validar.
-  plato: z.object({
-    seguros: z.array(esquemaItemPlato).max(3),
-    pasito: esquemaItemPlato.optional(),
-  }).optional(),
 })
 export type PedidoImagenPlato = z.infer<typeof esquemaImagenPlatoReq>
 
@@ -176,13 +166,6 @@ export function visuales(req: PedidoImagenPlato, preparacion: BuscarPreparacion 
 }
 
 export function promptImagenPlato(req: PedidoImagenPlato, preparacion: BuscarPreparacion = preparacionCatalogo): string {
-  const { plato } = req
-  if (plato && (plato.seguros.length || plato.pasito)) return promptPlatoCompleto(req, plato, preparacion)
-  return promptReceta(req, preparacion)
-}
-
-/** Sin `plato` (el de siempre): su alimento seguro (receta.desde) a la izquierda y el nuevo, chico, a la derecha. */
-function promptReceta(req: PedidoImagenPlato, preparacion: BuscarPreparacion): string {
   const { receta, reglas } = req
   const { seguro, nuevo } = visuales(req, preparacion)
   const izquierda = porcionNormal(seguro)
@@ -213,116 +196,6 @@ function promptReceta(req: PedidoImagenPlato, preparacion: BuscarPreparacion): s
     ...escena,
     mismaForma ? `The ${nuevo.varios} have the same shape and size as the ${seguro.varios}.` : '',
     `Only these two foods${conSalsa ? '' : ', plain, with no sauce or garnish on top'}; nothing else in the picture: no cutlery, no napkin, no text, no people, no hands.`,
-    'Soft natural daylight, sharp focus, true-to-life colors and textures.',
-  ].filter(Boolean).join(' ')
-}
-
-// ---------- v5.3 · El plato completo de una comida (PLAN.md §5.3) ----------
-// Lo seguro (0 a 3) en porción normal y el pasito en porción chica, al costado, todos separados. Lo que va en el plato
-// se reparte por zonas según cuántos son; las bebidas van en vaso y el yogur en bol, al lado del plato. El pasito va
-// siempre último: a la derecha (2 en el plato), abajo a la derecha (3 o 4), o al lado del plato, abajo a la derecha.
-type PlatoPedido = NonNullable<PedidoImagenPlato['plato']>
-
-/** Las zonas del plato, en el orden en que se llenan: [plato playo u hondo, plato con divisiones]. */
-const ZONAS: Record<number, [string, string][]> = {
-  1: [['In the center of the plate', 'In one section of the plate']],
-  2: [['On the left half of the plate', 'In the left section of the plate'], ['On the right half of the plate', 'In the right section of the plate']],
-  3: [['On the left half of the plate', 'In the large left section of the plate'],
-    ['In the upper right part of the plate', 'In the upper right section of the plate'],
-    ['In the lower right part of the plate', 'In the lower right section of the plate']],
-  4: [['In the upper left quarter of the plate', 'In the upper left section of the plate'],
-    ['In the upper right quarter of the plate', 'In the upper right section of the plate'],
-    ['In the lower left quarter of the plate', 'In the lower left section of the plate'],
-    ['In the lower right quarter of the plate', 'In the lower right section of the plate']],
-}
-/** Al lado del plato: lo seguro arriba, el pasito abajo a la derecha (cerca, como en el plato). */
-const AL_LADO_SEGURO = ['On the table just above the plate, to the right', 'On the table just above the plate, to the left']
-const AL_LADO_PASITO = 'On the table to the lower right of the plate, set a little apart'
-const CUANTOS_EN = ['', 'one', 'two', 'three', 'four']
-
-const platoConZonas = (plato: PlatoImagen, n: number): string =>
-  plato === 'con_divisiones' ? `one plain white divided plate with ${CUANTOS_EN[n]} separate sections` : PLATO_EN[plato]
-
-/** Cómo se ve una preparación del plato: el catálogo visual, lo que trae la receta (si es la suya) o sus atributos. */
-function visualDe(item: { preparacionId: string; nombre: string }, req: PedidoImagenPlato, preparacion: BuscarPreparacion): Visual {
-  if (VISUAL[item.preparacionId]) return VISUAL[item.preparacionId]
-  const { receta } = req
-  if (item.preparacionId === receta.preparacionBaseId) return visuales(req, preparacion).nuevo
-  if (item.preparacionId === receta.desde.preparacionId) return visuales(req, preparacion).seguro
-  const prep = preparacion(item.preparacionId)
-  return visualPorAtributos(prep
-    ? { nombre: prep.nombre, atributos: prep.atributos, ingredientes: prep.ingredientes }
-    : { nombre: item.nombre, atributos: {}, ingredientes: [] })
-}
-
-interface ItemImagen { id: string; visual: Visual; frase: string; pasito: boolean }
-
-/** "The glass stands" · "The two glasses stand" · "The glass and the bowl stand". */
-function recipientesEn(items: ItemImagen[]): string {
-  const vasos = items.filter((i) => i.visual.recipiente === 'vaso').length
-  const boles = items.length - vasos
-  const de = (n: number, uno: string, varios: string) => (n === 1 ? `the ${uno}` : `the ${CUANTOS_EN[n]} ${varios}`)
-  const cuales = [vasos ? de(vasos, 'glass', 'glasses') : '', boles ? de(boles, 'bowl', 'bowls') : ''].filter(Boolean).join(' and ')
-  return `${cuales[0].toUpperCase()}${cuales.slice(1)} ${items.length > 1 ? 'stand' : 'stands'}`
-}
-
-function promptPlatoCompleto(req: PedidoImagenPlato, pedido: PlatoPedido, preparacion: BuscarPreparacion): string {
-  const { receta, reglas } = req
-  const plato = platoPara(reglas)
-  const seguros: ItemImagen[] = pedido.seguros.map((s) => {
-    const visual = visualDe(s, req, preparacion)
-    return { id: s.preparacionId, visual, frase: porcionNormal(visual), pasito: false }
-  })
-  let pasito: ItemImagen | undefined
-  if (pedido.pasito) {
-    const visual = visualDe(pedido.pasito, req, preparacion)
-    // La cantidad de la presentación vale solo si la receta es la del pasito.
-    const cantidad = pedido.pasito.preparacionId === receta.preparacionBaseId ? cantidadEnPresentacion(receta.presentacion) : undefined
-    pasito = { id: pedido.pasito.preparacionId, visual, frase: porcionChica(visual, cantidad), pasito: true }
-  }
-  const todos = pasito ? [...seguros, pasito] : seguros
-  const enPlato = todos.filter((i) => i.visual.recipiente === 'plato')
-  const alLado = todos.filter((i) => i.visual.recipiente !== 'plato')
-  const conVaso = alLado.some((i) => i.visual.recipiente === 'vaso')
-
-  let escena: string[]
-  if (enPlato.length) {
-    const zonas = ZONAS[enPlato.length]
-    const division = plato === 'con_divisiones' ? 1 : 0
-    let lado = 0
-    escena = [
-      conVaso
-        ? `Realistic food photograph taken from a high angle, about 60 degrees, looking down at ${platoConZonas(plato, enPlato.length)} on a light wooden table.`
-        : `Realistic overhead food photograph taken from directly above, a 90-degree top-down view of ${platoConZonas(plato, enPlato.length)} on a light wooden table.`,
-      ...enPlato.map((i, k) => `${zonas[k][division]}: ${i.frase}.`),
-      ...alLado.map((i) => `${i.pasito ? AL_LADO_PASITO : AL_LADO_SEGURO[lado++ % AL_LADO_SEGURO.length]}: ${i.frase}.`),
-      enPlato.length > 1
-        ? `Each food sits in its own spot, with a wide strip of empty white plate between them: no two foods touch${pide(reglas, 'rechaza', 'distribucion', 'tocandose') ? ', with plenty of space' : ''}.`
-        : '',
-      alLado.length ? `${recipientesEn(alLado)} on the table beside the plate, not on it.` : '',
-      `The whole plate${alLado.length ? ` and the ${alLado.length > 1 ? 'containers beside it' : alLado[0].visual.recipiente === 'vaso' ? 'glass' : 'bowl'}` : ''} ${alLado.length ? 'fit' : 'fits'} fully inside the frame.`,
-    ]
-  } else {
-    // Todo en vaso o bol (chocolatada y yogur): sin plato, de izquierda a derecha, el pasito último.
-    escena = [
-      'Realistic food photograph taken from a high angle, about 45 degrees, of a light wooden table.',
-      `From left to right: ${alLado.map((i) => (i.pasito ? `and, set a little apart, ${i.frase}` : i.frase)).join('; ')}.`,
-      'They are clearly separate and do not touch.',
-    ]
-  }
-  // El pasito es lo más chico: la mayor parte del plato es lo que ya come.
-  const masChico = pasito && seguros.length ? `The portion of ${pasito.visual.varios} is clearly the smallest one in the picture.` : ''
-  const desde = seguros.find((s) => s.id === receta.desde.preparacionId)
-  const mismaForma = pasito && desde && pasito.id === receta.preparacionBaseId && receta.seMantiene?.some((s) => s.startsWith('forma='))
-    && desde.visual.normal >= 4 && pasito.visual.normal >= 4 && desde.visual.recipiente === 'plato' && pasito.visual.recipiente === 'plato'
-    ? `The ${pasito.visual.varios} have the same shape and size as the ${desde.visual.varios}.`
-    : ''
-  const conSalsa = todos.some((i) => preparacion(i.id)?.atributos.presentacion === 'con_salsa')
-  return [
-    ...escena,
-    masChico,
-    mismaForma,
-    `Only these ${todos.length > 1 ? `${CUANTOS_EN[todos.length]} foods` : 'food'}${conSalsa ? '' : ', plain, with no sauce or garnish on top'}; nothing else ${enPlato.length ? 'on the plate or ' : ''}in the picture: no other food, no cutlery, no napkin, no text, no people, no hands.`,
     'Soft natural daylight, sharp focus, true-to-life colors and textures.',
   ].filter(Boolean).join(' ')
 }

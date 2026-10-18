@@ -38,15 +38,6 @@ Los chicos sintéticos del dataset (§10.5, simulación declarada) tienen 20 com
 
 Al entrar con `?nino=…`, ese chico queda como activo. Para volver a uno tuyo, entrá con su `?nino=`.
 
-### D · Planificar una comida: el plato (PLAN §5.3)
-1. Entrá a https://nibble-eight-vert.vercel.app/?nino=sint-tomas. La tarjeta grande tiene arriba **Desayuno · Almuerzo · Merienda · Cena**, con la próxima comida ya marcada.
-2. Debajo, **el plato**: *Lo seguro* (1 a 3 cosas que ya come) y **+ Un pasito** (lo nuevo, "nuevo · porción chica"), una línea de cuánto cubre del nutriente que más le falta (nunca un porcentaje) y la invitación "Después de la cena, sacale una foto…" con **Registrar comida**.
-3. Tocá otra comida: la tarjeta anterior queda atenuada mientras llega la nueva; volver a una que ya viste es instantáneo. La merienda también se puede elegir. Si para esa comida no hay nada, lo dice con calma.
-4. **Ver la receta del pasito** abre la receta para esa comida. **Ver cómo servirlo** abre la misma receta, bajando directo a la imagen: si la receta es la del pasito, la imagen es **el plato completo** (lo seguro + el pasito al costado).
-5. Registrá una comida (B): el resultado termina con **el plato de la comida que sigue**.
-
-Mientras B no mande `Progreso.plato`, la tarjeta muestra la sugerencia sola de antes (es el respaldo, no un error).
-
 ### Qué reportar
 Mandá en el grupo: **qué celular y navegador** (iPhone Safari / Android Chrome), **en qué paso**, **qué esperabas y qué pasó**, y una captura. Lo más valioso: si la cámara o el micrófono fallan, si una foto buena aparece como "movida" (o al revés), y si la IA marca algo que no dijiste.
 

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ErrorApi, ImagenPlatoReq, ItemPlato, Receta, Regla, Sugerencia } from '../../shared/contratos.js'
+import type { ErrorApi, ImagenPlatoReq, Receta, Regla } from '../../shared/contratos.js'
 import handler from '../../api/imagen-plato.js'
 import { HEADER_STUB } from '../http.js'
 import { preparacion } from '../validacion/ejemplos.js'
@@ -134,106 +134,6 @@ describe('promptImagenPlato', () => {
   })
 })
 
-// v5.3 · el plato completo de una comida (ImagenPlatoReq.plato): lo seguro + el pasito.
-const seguro = (preparacionId: string): ItemPlato => ({ preparacionId, nombre: preparacionId, porcion: 'mediana', aporte: {}, porQue: '' })
-const pasito = (preparacionId: string): Sugerencia => ({ tipo: 'un_paso', preparacionId, nombre: preparacionId, probAcepta: 0.5, aporte: {}, porQue: '' })
-const conPlato = (seguros: string[], pas?: string, receta: Receta = RECETA, reglas: Regla[] = []): ImagenPlatoReq => ({
-  receta, reglas,
-  plato: { momento: 'cena', seguros: seguros.map(seguro), pasito: pas ? pasito(pas) : undefined, nutriente: 'calcio_mg', cubre: 0.5, porQue: '' },
-})
-
-describe('promptImagenPlato con el plato completo (v5.3)', () => {
-  it('sin plato, el prompt es exactamente el de antes (su alimento seguro + el nuevo de la receta)', () => {
-    const antes = 'Realistic overhead food photograph taken from directly above, a 90-degree top-down view of one plain round white flat plate on a light wooden table. On the left half of the plate: a normal portion of about 12 oven-baked potato fries: potato cut into long thin sticks shaped exactly like French fries, about 8 cm long and 1 cm thick, oven-baked until golden and crispy. On the right half of the plate: exactly 2 breaded mozzarella sticks, a very small portion: long rectangular mozzarella cheese sticks, the same length as French fries, coated in golden breadcrumbs and oven-baked until crispy. A wide strip of empty white plate separates the two foods: they do not touch each other. The breaded mozzarella sticks have the same shape and size as the oven-baked potato fries. Only these two foods, plain, with no sauce or garnish on top; nothing else in the picture: no cutlery, no napkin, no text, no people, no hands. Soft natural daylight, sharp focus, true-to-life colors and textures.'
-    expect(promptImagenPlato(pedido(), preparacion)).toBe(antes)
-    // Un plato vacío (nada para esa comida) tampoco cambia nada.
-    expect(promptImagenPlato(conPlato([]), preparacion)).toBe(antes)
-  })
-
-  it('2 ítems: lo seguro a la izquierda en porción normal, el pasito a la derecha en porción chica', () => {
-    const p = promptImagenPlato(conPlato(['fideos_manteca_queso'], 'pure_papa_queso',
-      otra('pure_papa_queso', ['pure_papa', 'Puré'], 'Una cucharada de puré con queso al costado.')), preparacion)
-    expect(p).toMatch(/^Realistic overhead food photograph taken from directly above, a 90-degree top-down view of one plain round white flat plate/)
-    expect(p).toContain('On the left half of the plate: a generous scoop of buttered pasta: short pasta tossed with butter')
-    expect(p).toContain('On the right half of the plate: just one small spoonful of cheesy mashed potatoes')
-    expect(p).toContain('The portion of cheesy mashed potatoes is clearly the smallest one in the picture.')
-    expect(p).toContain('Only these two foods, plain, with no sauce or garnish on top; nothing else on the plate or in the picture')
-  })
-
-  it('3 ítems: dos seguros (izquierda y arriba a la derecha) y el pasito abajo a la derecha, con la cantidad de la receta', () => {
-    const p = promptImagenPlato(conPlato(['milanesa_carne_horno', 'papas_horno_baston'], 'bastones_queso_horno'), preparacion)
-    expect(p).toContain('On the left half of the plate: one whole breaded beef cutlet')
-    expect(p).toContain('In the upper right part of the plate: a normal portion of about 12 oven-baked potato fries')
-    expect(p).toContain('In the lower right part of the plate: exactly 2 breaded mozzarella sticks, a very small portion')
-    expect(p).toContain('no two foods touch.')
-    expect(p).toContain('The breaded mozzarella sticks have the same shape and size as the oven-baked potato fries.')
-    expect(p).toContain('Only these three foods')
-    expect(p.indexOf('upper right')).toBeLessThan(p.indexOf('lower right'))
-  })
-
-  it('4 ítems: uno por cuarto, el pasito en el de abajo a la derecha; con divisiones, cuatro secciones', () => {
-    const p = promptImagenPlato(conPlato(['milanesa_carne_horno', 'papas_horno_baston', 'manzana_bastones'], 'bastones_queso_horno'), preparacion)
-    expect(p).toContain('In the upper left quarter of the plate: one whole breaded beef cutlet')
-    expect(p).toContain('In the upper right quarter of the plate: a normal portion of about 12 oven-baked potato fries')
-    expect(p).toContain('In the lower left quarter of the plate: a normal portion of about 8 peeled apple sticks')
-    expect(p).toContain('In the lower right quarter of the plate: exactly 2 breaded mozzarella sticks, a very small portion')
-    expect(p).toContain('Only these four foods')
-    const d = promptImagenPlato(conPlato(['milanesa_carne_horno', 'papas_horno_baston', 'manzana_bastones'], 'bastones_queso_horno', RECETA,
-      [regla('requiere', 'plato', 'con_divisiones')]), preparacion)
-    expect(d).toContain('one plain white divided plate with four separate sections')
-    expect(d).toContain('In the lower right section of the plate: exactly 2 breaded mozzarella sticks')
-  })
-
-  it('la bebida va en un vaso al lado del plato (con más ángulo, para que se vea el vaso), nunca en el plato', () => {
-    const p = promptImagenPlato(conPlato(['leche_chocolatada', 'tostadas'], 'tostadas_queso',
-      otra('tostadas_queso', ['tostadas', 'Tostadas'], 'Media tostada con queso al costado.')), preparacion)
-    expect(p).toMatch(/^Realistic food photograph taken from a high angle, about 60 degrees, looking down at one plain round white flat plate/)
-    expect(p).toContain('On the left half of the plate: a normal portion of 2 slices of white bread toast')
-    expect(p).toContain('On the right half of the plate: just half of one slice of cheese toast, a small piece')
-    expect(p).toContain('On the table just above the plate, to the right: a tall clear drinking glass filled with chocolate milk')
-    expect(p).toContain('The glass stands on the table beside the plate, not on it.')
-    expect(p).not.toMatch(/plate: a tall clear drinking glass/)
-  })
-
-  it('el pasito en bol (yogur) va al lado del plato, abajo a la derecha y chico', () => {
-    const p = promptImagenPlato(conPlato(['leche_chocolatada', 'galletitas_agua'], 'yogur_vainilla'), preparacion)
-    expect(p).toContain('In the center of the plate: a normal portion of 4 square water crackers')
-    expect(p).toContain('On the table to the lower right of the plate, set a little apart: a very small plain white bowl with just two spoonfuls of vanilla yogurt')
-    expect(p).toContain('The glass and the bowl stand on the table beside the plate, not on it.')
-  })
-
-  it('todo en vaso o bol: sin plato, de izquierda a derecha y el pasito último', () => {
-    const p = promptImagenPlato(conPlato(['leche_chocolatada'], 'yogur_bebible'), preparacion)
-    expect(p).toMatch(/^Realistic food photograph taken from a high angle, about 45 degrees/)
-    expect(p).toContain('From left to right: a tall clear drinking glass filled with chocolate milk (smooth light brown chocolate milk); and, set a little apart, a small short clear glass with only a few sips of drinkable vanilla yogurt')
-    expect(p).not.toContain('plate')
-  })
-
-  it('el pasito usa la cantidad de la receta solo si la receta es la suya', () => {
-    const otraReceta = otra('tostadas_queso', ['tostadas', 'Tostadas'], '3 bastones de algo.')
-    expect(promptImagenPlato(conPlato(['papas_horno_baston'], 'bastones_queso_horno', otraReceta), preparacion))
-      .toContain('exactly 2 breaded mozzarella sticks') // la cantidad por defecto, no los 3 de otra receta
-  })
-
-  it('sin pasito: solo lo seguro, sin "lo más chico"; con salsa no se pide "sin salsa"', () => {
-    const p = promptImagenPlato(conPlato(['milanesa_carne_horno', 'papas_horno_baston']), preparacion)
-    expect(p).toContain('On the left half of the plate: one whole breaded beef cutlet')
-    expect(p).not.toContain('smallest')
-    expect(promptImagenPlato(conPlato(['fideos_con_salsa'], 'pure_papa_queso'), preparacion)).not.toContain('no sauce')
-  })
-
-  it('cada preparación como pasito de un plato de 4 (lo más largo del catálogo) entra en 2048 caracteres, en inglés y sin comillas', () => {
-    const ids = (JSON.parse(readFileSync(join(process.cwd(), 'data', 'preparaciones.json'), 'utf8')) as { id: string }[]).map((x) => x.id)
-    const largos = [...ids].sort((a, b) => promptImagenPlato(conPlato([b])).length - promptImagenPlato(conPlato([a])).length).slice(0, 3)
-    for (const id of ids) {
-      const prompt = promptImagenPlato(conPlato(largos, id, RECETA, [regla('requiere', 'plato', 'con_divisiones')]))
-      expect(prompt.length, id).toBeLessThanOrEqual(2048)
-      expect(prompt, id).not.toMatch(/[^\x20-\x7e]/)
-      expect(prompt, id).not.toContain('"')
-    }
-  })
-})
-
 describe('cantidadEnPresentacion', () => {
   it.each([
     ['2 bastones de queso a la derecha', 2],
@@ -279,19 +179,6 @@ describe('POST /api/imagen-plato', () => {
     expect(r.body).toEqual({ imagenBase64: 'AAAA', mime: 'image/jpeg', ilustrativa: true })
     expect(r.headers[HEADER_STUB]).toBeUndefined()
     expect(flux.mock.calls[0][0].prompt).toContain('divided plate')
-  })
-
-  it('con plato (v5.3) dibuja el plato completo, sigue siendo ilustrativa y acepta el PlatoComida entero', async () => {
-    const r = await llamar('POST', conPlato(['milanesa_carne_horno', 'papas_horno_baston'], 'bastones_queso_horno'))
-    expect(r.statusCode).toBe(200)
-    expect(r.body).toEqual({ imagenBase64: 'AAAA', mime: 'image/jpeg', ilustrativa: true })
-    expect(flux.mock.calls[0][0].prompt).toContain('Only these three foods')
-  })
-
-  it('un plato con más de 3 seguros → 400', async () => {
-    const r = await llamar('POST', conPlato(['tostadas', 'papas_horno_baston', 'manzana_bastones', 'milanesa_carne_horno']))
-    expect(r.statusCode).toBe(400)
-    expect(flux).not.toHaveBeenCalled()
   })
 
   it('las reglas son opcionales', async () => {

@@ -175,7 +175,6 @@ export interface Progreso {
   proximoPaso?: Candidato                                    // v2 · el mejor candidato del grafo, sin LLM, para la tarjeta del tablero
   sugerencias?: Sugerencia[]                                 // v4 · siempre en el orden segura, un_paso, mas_nutritiva (§8); proximoPaso = la de un_paso
   momento?: Momento                                          // v5.2 · vino ?momento=: las sugerencias (y proximoPaso) son solo de esa comida; pueden ser menos de 3 o ninguna
-  plato?: PlatoComida                                        // v5.3 · con ?momento=: el plato de esa comida (PLAN §5.3)
 }
 export interface Sugerencia {            // v4 · las tres opciones del tablero: explotar, explorar de a un cambio, priorizar lo que falta
   tipo: 'segura' | 'un_paso' | 'mas_nutritiva'
@@ -278,10 +277,7 @@ export interface Receta {
 }
 // POST /api/imagen-plato (A) { receta, reglas } → { imagenBase64, mime, ilustrativa: true }
 // GET  /api/resumen?ninoId (C) → { texto, progreso: Progreso, generadoISO }
-export interface ImagenPlatoReq {                                                     // C1
-  receta: Receta; reglas: Regla[]
-  plato?: PlatoComida                    // v5.3 · si viene, se dibuja el plato completo (lo seguro + el pasito) en vez de solo el pasito
-}
+export interface ImagenPlatoReq { receta: Receta; reglas: Regla[] }                     // C1
 export interface ImagenPlatoRes { imagenBase64: string; mime: string; ilustrativa: true } // C1
 export interface ResumenRes { texto: string; progreso: Progreso; generadoISO: string }   // C1
 
@@ -322,23 +318,4 @@ export interface ErrorApi {
     reintentable: boolean                // la UI muestra "Reintentar" solo si es true
     detalle?: unknown
   }
-}
-
-// ---------- El plato de una comida (PLAN §5.3) · v5.3 ----------
-// Lo que la app propone servir en una comida: lo seguro (lo que ya acepta, para esa comida) + un pasito (un solo
-// alimento nuevo, en porción chica). Lo arma el código con el grafo, sin LLM; viene en Progreso con ?momento=.
-export interface ItemPlato {
-  preparacionId: string; nombre: string
-  porcion: Porcion                       // lo seguro, mediana; el pasito, chica
-  grupo?: Grupo
-  aporte: Partial<Nutrientes>            // por esa porción
-  porQue: string                         // plantilla, una línea: "La come 8 de cada 8 veces" · "Aporta calcio"
-}
-export interface PlatoComida {
-  momento: Momento
-  seguros: ItemPlato[]                   // de 1 a 3, distintos entre sí (no tres almidones); puede ser [] si no hay nada para esa comida
-  pasito?: Sugerencia                    // el alimento nuevo (la de un_paso; si no hay, la de mas_nutritiva); abre la receta
-  nutriente: Nutriente                   // el que más le falta hoy (o en la semana, si hoy no hay registros)
-  cubre: number                          // 0..1, con tope 1: cuánto de lo que le falta hoy de ese nutriente cubre el plato
-  porQue: string                         // plantilla, una línea: "Lo que ya come para la cena, y un pasito hacia el calcio"
 }

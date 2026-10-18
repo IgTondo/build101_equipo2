@@ -28,9 +28,6 @@
 }
 
 /* ---------- Acciones ---------- */
-/* La invitación a registrar, pegada a su botón. */
-.in-registrar-bloque { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-.in-despues { margin: 0; padding: 0 4px; font-size: 0.95rem; line-height: 1.4; color: var(--nb-texto-suave); text-align: center; text-wrap: balance; }
 .in-registrar { gap: 10px; min-height: 60px; font-size: 1.05rem; }
 .in-registrar { transition-property: background-color, transform; transition-duration: 150ms; transition-timing-function: ease-out; }
 .in-registrar:active { transform: scale(0.98); }
