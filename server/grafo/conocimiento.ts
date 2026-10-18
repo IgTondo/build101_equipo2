@@ -52,6 +52,15 @@ export type Modo = (typeof MODO)[number]
 /** En modo nutriente trae `nutriente`; en modo variedad (v5.5) no, y trae `grupo` si hay uno que menos come. */
 export interface Foco { desdeId: string; modo: Modo; nutriente?: Nutriente; grupo?: Grupo }
 
+/**
+ * v5.6 · Lo que acompaña pero no es el plato: grasas, dulces y aderezos. No cuentan como "rico en" un nutriente (el
+ * omega-3 del aceite de canola daba "puré con aceite"), ni alcanzan para el cambio ni para el aporte de la receta creativa.
+ */
+export const ACOMPANAMIENTOS: ReadonlySet<string> = new Set([
+  'aceite_girasol', 'aceite_canola', 'aceite_oliva', 'manteca', 'azucar', 'dulce_de_leche', 'mermelada', 'miel',
+  'mayonesa', 'ketchup', 'cacao_azucarado',
+])
+
 const UNIDAD: Record<Nutriente, string> = {
   energia_kcal: 'kcal', proteina_g: 'g', calcio_mg: 'mg', vitamina_d_ug: 'µg', hierro_mg: 'mg', fibra_g: 'g', omega3_g: 'g', b12_ug: 'µg', vitamina_c_mg: 'mg',
 }
@@ -111,7 +120,7 @@ export function conocimientoDe(
     ...coberturas[n],
     minimo: Math.round(APORTE_MINIMO * c.objetivo[n] * 100) / 100,
     ricos: [...c.alimentos.values()]
-      .filter((a) => !a.id.startsWith('otro_') && a.por100g[n] > 0 && sinAlergenos(a.id))
+      .filter((a) => !a.id.startsWith('otro_') && !ACOMPANAMIENTOS.has(a.id) && a.por100g[n] > 0 && sinAlergenos(a.id))
       .sort((a, b) => b.por100g[n] - a.por100g[n])
       .slice(0, MAX_RICOS)
       .map((a) => ({ alimentoId: a.id, nombre: a.nombre, por100g: a.por100g[n] })),

@@ -65,10 +65,10 @@ const EFFORT: Record<Tarea, Effort> = { vision: 'low', relato: 'low', perfil: 'm
 
 // Medido el 17/10 con Haiku 5.5 y las keys reales: con el contexto del chico, la visión tardaba 7–10 s pensando y
 // 2,4–3,7 s sin pensar, con la misma precisión en la eval (eval/resultados/); el perfil, 16,7 s contra 4–6 s.
-// El relato piensa: ahí pesa más acertar que la latencia. La receta no (18/10, Sonnet 5.5 con Valentina): pensando
-// tardaba 11–13 s y sin pensar 2,5–3 s, con las mismas recetas válidas; la seguridad la valida el código igual.
+// Relato y receta piensan: ahí pesa más acertar que la latencia. La receta es el corazón de la app: sin pensar tardaba
+// 3 s en vez de 12, pero salían recetas pobres ("puré con aceite de canola"); la espera la tapa la precarga (recetaPrevia).
 // CLAUDE_SIN_THINKING (lista, o vacío) pisa esto.
-const SIN_THINKING = 'vision,perfil,receta'
+const SIN_THINKING = 'vision,perfil'
 
 /** ¿Va con thinking disabled? Haiku 5.5 lo acepta con effort high o menor. Se lee en cada llamada. */
 export function sinThinking(tarea: Tarea): boolean {

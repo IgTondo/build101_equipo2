@@ -10,7 +10,7 @@
 import type { Alergeno, Evidencia, Nutriente, Nutrientes, PreparacionCatalogo, Receta, RecetaReq } from '../../shared/contratos.js'
 import { DIMENSIONES, cambios, principal } from '../aprendizaje/cadena.js'
 import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, decimal, slug } from '../aprendizaje/textos.js'
-import type { Conocimiento } from '../grafo/conocimiento.js'
+import { ACOMPANAMIENTOS, type Conocimiento } from '../grafo/conocimiento.js'
 import { ErrorNibble } from '../http.js'
 import { CON_META } from '../nutricion/objetivos.js'
 import { calcularAporte, cambiosEntre, problemasPorTipo, aplanar, type ContextoValidacion } from '../validacion/receta.js'
@@ -31,6 +31,42 @@ function alergiasDe(k: Conocimiento): Alergeno[] {
 }
 
 const normal = (s: string) => slug(s).replace(/_/g, ' ')
+
+/** v5.6 · Una receta elaborada: al menos estos ingredientes de verdad (sin contar acompañamientos) y estos pasos. */
+export const MIN_INGREDIENTES_COMIDA = 2
+export const MIN_INGREDIENTES = 3
+export const MIN_PASOS = 4
+
+/**
+ * v5.6 · Lo que hace que una receta sea pobre aunque sea segura (el corazón de la app no puede ser "puré con aceite"):
+ * el cambio es solo una grasa o un dulce, es más de lo mismo (los mismos ingredientes que su alimento seguro), tiene
+ * pocos ingredientes o pocos pasos, o llega al nutriente solo gracias a un acompañamiento.
+ */
+export function problemasDeCalidad(receta: Receta, desde: PreparacionCatalogo, minimo: number): string[] {
+  const p: string[] = []
+  const ids = receta.ingredientes.map((i) => i.alimentoId)
+  const deSuPlato = new Set(desde.ingredientes.map((i) => i.alimentoId))
+  const nuevos = ids.filter((id) => !deSuPlato.has(id))
+  const comida = ids.filter((id) => !ACOMPANAMIENTOS.has(id))
+  if (nuevos.length === 0) {
+    p.push(`«${receta.nombre}» usa los mismos ingredientes que «${desde.nombre}»: es más de lo mismo. Proponé un plato de verdad distinto, con un ingrediente nuevo.`)
+  } else if (nuevos.every((id) => ACOMPANAMIENTOS.has(id))) {
+    p.push(`Lo único nuevo de «${receta.nombre}» es ${nuevos.map((id) => alimentoPorId(id)?.nombre ?? id).join(' y ')}: un aceite, una grasa o un dulce no es un plato nuevo. El cambio tiene que ser un alimento (una verdura, una legumbre, un lácteo, una carne, un cereal…).`)
+  }
+  if (/\baceite\b/i.test(receta.nombre)) p.push(`El nombre «${receta.nombre}» habla del aceite: el plato es lo que se come, no con qué se cocina. Poné un nombre que dé ganas.`)
+  if (comida.length < MIN_INGREDIENTES_COMIDA || ids.length < MIN_INGREDIENTES) {
+    p.push(`La receta es muy simple (${ids.length} ingredientes): tiene que ser una preparación casera elaborada, con al menos ${MIN_INGREDIENTES} ingredientes y ${MIN_INGREDIENTES_COMIDA} de ellos alimentos de verdad (no aceite, manteca ni dulces).`)
+  }
+  if (receta.pasos.length < MIN_PASOS) p.push(`Tiene ${receta.pasos.length} pasos: una receta elaborada lleva al menos ${MIN_PASOS} (preparar, armar o rebozar, cocinar y servir).`)
+  const n = receta.evidencia.nutriente
+  if (minimo > 0) {
+    const sinAcompanar = calcularAporte(receta.ingredientes.filter((i) => !ACOMPANAMIENTOS.has(i.alimentoId)))[n]
+    if (receta.aporte[n] >= minimo && sinAcompanar < minimo) {
+      p.push(`El ${NOMBRE_NUTRIENTE[n]} sale casi todo del aceite o de un dulce (sin eso aporta ${decimal(sinAcompanar, 1)} y el mínimo es ${decimal(minimo, 1)}): tiene que venir de un alimento. Si con ${NOMBRE_NUTRIENTE[n]} no se puede, elegí otro nutriente de la lista.`)
+    }
+  }
+  return p
+}
 
 /** El plato que inventó el LLM, como una preparación más (no está en el catálogo: el id empieza con "nuevo_"). */
 export function platoDe(salida: SalidaCreativa): PreparacionCatalogo {
@@ -112,6 +148,7 @@ export function problemasCreativa(receta: Receta, k: Conocimiento, desde: Prepar
     const ricos = k.nutrientes.find((x) => x.nutriente === n)?.ricos.slice(0, 4).map((r) => r.alimentoId) ?? []
     p.push(`La porción aporta ${decimal(receta.aporte[n], 1)} de ${NOMBRE_NUTRIENTE[n]} y el mínimo es ${decimal(minimo, 1)}: subí los gramos de un ingrediente rico en ${NOMBRE_NUTRIENTE[n]} (${ricos.join(', ')}) o elegí otro plato.`)
   }
+  p.push(...problemasDeCalidad(receta, desde, minimo))
   const igual = k.aceptadas.find((s) => s.id !== desde.id && cambios(s, base).length === 0)
   if (igual) p.push(`«${receta.nombre}» es lo mismo que «${igual.nombre}», que ya come: proponé un plato nuevo.`)
   if (anteriores.some((a) => normal(a) === normal(receta.nombre))) p.push(`«${receta.nombre}» ya lo vio la familia: proponé un plato distinto.`)

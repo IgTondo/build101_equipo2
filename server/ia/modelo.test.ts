@@ -122,7 +122,7 @@ describe('generarJSON con Claude', () => {
     }])
   })
 
-  it('manda effort dentro de output_config y nunca temperature ni top_p; visión y receta sin thinking (la receta, desde el 18/10: 4 veces más rápida)', async () => {
+  it('manda effort dentro de output_config y nunca temperature ni top_p; visión sin thinking, receta con el adaptativo', async () => {
     claudeResponde(VALIDO, VALIDO)
     await generarJSON({ tarea: 'vision', partes: PARTES, schema: Plato })
     await generarJSON({ tarea: 'receta', partes: PARTES, schema: Plato })
@@ -132,7 +132,7 @@ describe('generarJSON con Claude', () => {
     expect(vision.thinking).toEqual({ type: 'disabled' })
     expect(receta.model).toBe('claude-sonnet-5-5')
     expect(receta.output_config?.effort).toBe('medium')
-    expect(receta.thinking).toEqual({ type: 'disabled' })
+    expect(receta).not.toHaveProperty('thinking')
     for (const p of [vision, receta]) {
       expect(p).not.toHaveProperty('temperature')
       expect(p).not.toHaveProperty('top_p')

@@ -8,7 +8,8 @@ import { objetivosPara } from '../nutricion/objetivos.js'
 import { fijarAlimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
 import type { SalidaCreativa } from './prompts/receta-creativa.js'
-import { generarRecetaCreativa } from './receta-creativa.js'
+import { calcularAporte } from '../validacion/receta.js'
+import { completarCreativa, generarRecetaCreativa, problemasDeCalidad } from './receta-creativa.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
 const llm = vi.mocked(generarJSON)
@@ -29,7 +30,7 @@ const PAPAS_CON_QUESO: SalidaCreativa = {
   atributos: { ...papasHorno.atributos, coccion: 'horno' },
   imagen: { uno: 'cheesy oven fry', varios: 'cheesy oven fries', aspecto: 'oven-baked potato sticks with golden melted mozzarella on top' },
   ingredientes: [{ alimentoId: 'papa', gramos: 120 }, { alimentoId: 'queso_muzzarella', gramos: 35 }, { alimentoId: 'aceite_girasol', gramos: 5 }],
-  pasos: ['Cortá las papas en bastones.', 'Horneá 25 minutos hasta que estén crocantes.', 'Poné una feta de muzzarella arriba y gratiná 3 minutos.'],
+  pasos: ['Cortá las papas en bastones.', 'Pincelalas con aceite.', 'Horneá 25 minutos hasta que estén crocantes.', 'Poné una feta de muzzarella arriba y gratiná 3 minutos.'],
   porQue: 'Parte de sus papas al horno en bastones, que come siempre; cambia solo el ingrediente: se suma muzzarella, que aporta calcio.',
   presentacion: 'Separado, dos bastones con queso al lado de sus papas fritas, sin tocarse.',
   comoOfrecer: 'Ofrecelo sin pedirle que lo coma; que esté en el plato ya es un avance. Cada paso cuenta. Conviene servirlo igual de 8 a 15 veces antes de cambiar algo.',
@@ -141,5 +142,47 @@ describe('generarRecetaCreativa', () => {
     expect(e).toBeInstanceOf(ErrorNibble)
     expect((e as ErrorNibble).codigo).toBe('sin_candidatos')
     expect(promptDe(1)).toMatch(/huevo/i)
+  })
+})
+
+describe('(v5.6) calidad: el corazón de la app no puede ser una receta pobre', () => {
+  const pureDePapa = catalogo.get('pure_papa')
+  const desdePapas = papasHorno
+  const receta = (s: Partial<SalidaCreativa>) => {
+    const salida = { ...PAPAS_CON_QUESO, ...s }
+    const k = conocimiento()
+    return completarCreativa(salida, k, desdePapas)
+  }
+
+  it('el cambio no puede ser solo aceite: "puré con aceite de canola" no pasa', () => {
+    const conAceite = receta({ nombre: 'Papas al horno con aceite de canola', ingredientes: [{ alimentoId: 'papa', gramos: 120 }, { alimentoId: 'aceite_canola', gramos: 10 }, { alimentoId: 'aceite_girasol', gramos: 5 }] })
+    const p = problemasDeCalidad(conAceite, desdePapas, 0)
+    expect(p.join(' ')).toMatch(/un aceite, una grasa o un dulce no es un plato nuevo/)
+    expect(p.join(' ')).toMatch(/habla del aceite/)
+    expect(pureDePapa).toBeDefined()
+  })
+
+  it('más de lo mismo (sus mismos ingredientes) no pasa', () => {
+    const mismo = receta({ nombre: 'Papas al horno extra crocantes', ingredientes: desdePapas.ingredientes.map((i) => ({ ...i, gramos: i.gramos + 10 })) })
+    expect(problemasDeCalidad(mismo, desdePapas, 0).join(' ')).toMatch(/es más de lo mismo/)
+  })
+
+  it('pocos ingredientes o pocos pasos no pasan', () => {
+    const simple = receta({ ingredientes: [{ alimentoId: 'queso_muzzarella', gramos: 40 }], pasos: ['Cortá.', 'Horneá.'] })
+    const p = problemasDeCalidad(simple, desdePapas, 0).join(' ')
+    expect(p).toMatch(/muy simple/)
+    expect(p).toMatch(/al menos 4/)
+  })
+
+  it('el nutriente tiene que venir de un alimento, no del aceite', () => {
+    const omega = receta({ nutriente: 'calcio_mg', ingredientes: [{ alimentoId: 'papa', gramos: 120 }, { alimentoId: 'zanahoria', gramos: 20 }, { alimentoId: 'aceite_canola', gramos: 15 }] })
+    // Con un mínimo que solo el aceite haría alcanzar: el aporte total llega y sin el aceite no
+    const sinAceite = omega.aporte.omega3_g - calcularAporte([{ alimentoId: 'aceite_canola', gramos: 15 }]).omega3_g
+    const conOmega = { ...omega, evidencia: { ...omega.evidencia, nutriente: 'omega3_g' as const } }
+    expect(problemasDeCalidad(conOmega, desdePapas, (omega.aporte.omega3_g + sinAceite) / 2).join(' ')).toMatch(/sale casi todo del aceite/)
+  })
+
+  it('una receta elaborada de verdad pasa', () => {
+    expect(problemasDeCalidad(receta({}), desdePapas, 0)).toEqual([])
   })
 })
