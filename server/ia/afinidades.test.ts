@@ -116,7 +116,7 @@ describe('data/afinidades.json (el real)', () => {
   })
 
   it('tiene sentido: los fideos van con el queso rallado y la salsa de tomate; la papa con la zanahoria', () => {
-    const deFideos = afines('fideos', 6).map((x) => x.alimentoId)
+    const deFideos = afines('fideos', 10).map((x) => x.alimentoId) // 10: con los condimentos del catálogo que viene entran albahaca, ajo…
     expect(deFideos).toContain('queso_rallado')
     expect(deFideos).toContain('salsa_tomate')
     expect(afines('papa', 3).map((x) => x.alimentoId)).toContain('zanahoria')
