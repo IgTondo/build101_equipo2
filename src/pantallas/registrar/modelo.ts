@@ -1,5 +1,6 @@
 // Estado puro de la pantalla Registrar (C2/C5): lo que el padre corrige sobre el análisis y el relato,
 // y cómo se arma el RegistrarComidaReq. Sin React ni DOM, para poder testearlo (registrar.test.ts).
+import { MOMENTO } from '../../../shared/contratos'
 import type {
   AnalisisComida, Conducta, Cuanto, Momento, Motivo, Nutriente, Porcion, RegistrarComidaReq, RelatoComida,
 } from '../../../shared/contratos'
@@ -162,16 +163,12 @@ export function armarRegistro(b: Borrador, ctx: Contexto): RegistrarComidaReq {
 }
 
 // ---------- Momento por defecto (hora de Uruguay) ----------
-export function horaUruguay(fecha = new Date()): number {
-  const h = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Montevideo', hour: 'numeric', hourCycle: 'h23' }).format(fecha)
-  return Number(h) % 24
-}
+// Viven en src/lib/proximaComida.ts (las usa también el inicio, PLAN v5.1); se reexportan para no romper a nadie.
+export { horaUruguay, comidaRecienPorHora as momentoPorHora } from '../../lib/proximaComida'
 
-export function momentoPorHora(hora: number): Momento {
-  if (hora < 10) return 'desayuno'
-  if (hora < 15) return 'almuerzo'
-  if (hora < 19) return 'merienda'
-  return 'cena'
+/** El momento que llega en ?momento= (lo manda el botón "Registrar comida" del inicio), si es válido. */
+export function momentoDeUrl(valor: string | null): Momento | null {
+  return valor && (MOMENTO as readonly string[]).includes(valor) ? (valor as Momento) : null
 }
 
 /** "63–131 mg" (o un solo valor si el rango colapsa al redondear). */

@@ -2,7 +2,7 @@
 // si la respuesta no es 2xx, tiran ErrorDeApi con el ErrorApi del contrato (mensaje para el padre + reintentable).
 import type {
   AnalisisComida, AnalizarComidaReq, CoberturaDia, CrearPerfilReq, CrearPerfilRes, ErrorApi,
-  ImagenPlatoReq, ImagenPlatoRes, Motor, Perfil, PerfilBorrador, PerfilInicialReq, Progreso, Receta,
+  ImagenPlatoReq, ImagenPlatoRes, Momento, Motor, Perfil, PerfilBorrador, PerfilInicialReq, Progreso, Receta,
   RecetaReq, RegistrarComidaReq, RegistrarComidaRes, RelatoComida, RelatoComidaReq, ResumenRes,
   SaludRes, TranscribirReq, TranscribirRes,
 } from '../../shared/contratos'
@@ -85,9 +85,12 @@ export const api = {
   perfil: (ninoId: string, senal?: AbortSignal) => pedir<Perfil>(`/api/perfil?${q({ ninoId })}`, { senal }),
   registrarComida: (req: RegistrarComidaReq, senal?: AbortSignal) => pedir<RegistrarComidaRes>('/api/registrar-comida', { metodo: 'POST', cuerpo: req, senal }),
   nutricion: (ninoId: string, dia: string, senal?: AbortSignal) => pedir<CoberturaDia>(`/api/nutricion?${q({ ninoId, dia })}`, { senal }),
-  /** `hasta` ('YYYY-MM-DD') fija el "hoy" del tablero: para mirar la última semana con comidas si la de hoy está vacía. */
-  progreso: (ninoId: string, { dias = 28, motor, hasta }: { dias?: number; motor?: Motor; hasta?: string } = {}, senal?: AbortSignal) =>
-    pedir<Progreso>(`/api/progreso?${q({ ninoId, dias, motor, hasta })}`, { senal }),
+  /**
+   * `hasta` ('YYYY-MM-DD') fija el "hoy" del tablero: para mirar la última semana con comidas si la de hoy está vacía.
+   * `momento` (v5.1) es la próxima comida: para que B ordene las sugerencias para esa comida (PLAN §9).
+   */
+  progreso: (ninoId: string, { dias = 28, motor, hasta, momento }: { dias?: number; motor?: Motor; hasta?: string; momento?: Momento } = {}, senal?: AbortSignal) =>
+    pedir<Progreso>(`/api/progreso?${q({ ninoId, dias, motor, hasta, momento })}`, { senal }),
   salud: (senal?: AbortSignal) => pedir<SaludRes>('/api/salud', { senal }),
   resumen: (ninoId: string, senal?: AbortSignal) => pedir<ResumenRes>(`/api/resumen?${q({ ninoId })}`, { timeoutMs: 40_000, senal }),
 }
