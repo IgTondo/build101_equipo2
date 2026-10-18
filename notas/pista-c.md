@@ -7,7 +7,9 @@
 - **Producción:** https://nibble-eight-vert.vercel.app (proyecto `nibble` de Vercel, cuenta de la pista C, plan Hobby).
 - **Cómo se despliega:** todavía no con cada push (el repo es de IgTondo y Vercel no está conectado a GitHub). Plan B de §13: **la pista C corre `npm run deploy`**. Avisen en el grupo cuando quieran ver algo en producción.
 - **Para que despliegue solo**, IgTondo carga en el repo (Settings → Secrets → Actions) `VERCEL_TOKEN` (se lo pasa C por privado), `VERCEL_ORG_ID=team_ekrauFrt3XXmjZ9CszBjDlpj` y `VERCEL_PROJECT_ID=prj_b2AXoi50UoDQU1hksfRZTIOHwxKj`, y C suma el workflow.
-- **Variables en Vercel:** hoy solo `PROVEEDOR_IA=claude` y `MOTOR_GRAFO=neo4j`. `/api/salud` en producción dice qué falta. Las keys se las pasan a C por privado: van a `.env.local`, `npm run env:vercel` (las sube sin imprimirlas) y `npm run deploy`.
+- **Variables en Vercel (17/10, 21 h): todas cargadas** (Anthropic, Groq, Cloudflare, Mongo, Neo4j). `/api/salud` en producción: los 5 servicios en verde. Para cambiar una: `.env.local` → `npm run env:vercel` (no imprime valores) → `npm run deploy`.
+- **La red de la sede bloquea los puertos de las bases** (27017 y 7687; también SSH, el 22: para pushear, `git -c url."https://github.com/".insteadOf="git@github.com:" push`). Los scripts que hablan directo con Mongo o Neo4j (`seed-grafo.ts`, `cargar-sinteticos.ts`, `usda.ts --subir`) no corren desde acá: hace falta otra red (hotspot del celular). Lo que sí anda es cargar por la API de producción.
+- **Datos en producción:** `sint-tomas` y `sint-lucia` (los sintéticos de §10.5, simulación declarada), cargados por la API con los algoritmos reales de B. Falta el seed del grafo y `alimentos_fdc` (sin red; no bloquean: la receta real funcionó).
 - **MongoDB Atlas (B2):** https://vercel.com/integrations/mongodbatlas sobre el proyecto `nibble`, o el `MONGODB_URI` de un cluster Free (permitir 0.0.0.0/0, §13). **Si Neo4j no está listo, pasar `MOTOR_GRAFO=mongo`.**
 - **Antes de la demo:** crear al Tomás de la demo con id `tomas` (`crearPerfil({ ninoId: 'tomas', … })`): la app lo abre por defecto (`NINO_DEMO` en `src/lib/nino.ts`). Sin eso, la primera apertura sin `?nino` muestra "No encontramos este perfil".
 
@@ -47,6 +49,10 @@
 9. Si el padre renombra un ítem llega `preparacionId: null` (B ya lo acepta); las reglas escritas a mano llegan con `condiciones: []`.
 
 ## Para A
+
+- **Prueba en producción (17/10):** visión 5,8 s, relato 1,8 s, transcripción 1,8 s, receta 9,5 s (validación OK sin reintentos), imagen 3,0 s, resumen 8,7 s por LLM. Todo con una llamada por función.
+- **Visión:** con `sint-tomas` (alérgico al huevo), la foto de milanesa con papas devolvió `milanesa_carne_con_huevo`. Su milanesa conocida es `milanesa_carne_horno` (sin huevo): con el contexto del chico, conviene preferir su preparación conocida y preguntar si duda.
+- **Imagen del plato:** la receta "parte de papas al horno **en bastones**", pero FLUX dibujó las papas **en cubos**. En food chaining la forma del alimento seguro es justo lo que se mantiene: el prompt tendría que fijar la forma (y la textura) de `desde`.
 
 - `api/receta.ts`: C le sumó el respaldo de B (sin `MONGODB_URI` responde el fixture con `x-nibble-stub: 1`), porque sin base daba 500 `interno` en producción. Una línea después de validar; cámbienlo si prefieren otra cosa.
 - Propuesta aditiva para contratos: `excluir?: string[]` en `RecetaReq`, para que "Otra opción" no repita recetas.
