@@ -13,7 +13,7 @@
 | A7 | `interpretarRelato()`: la cita se comprueba por código; lo no mencionado va a `sinMencion`. **`/api/relato-comida` y `/api/transcribir` reales** | `server/ia/relato.ts`, `prompts/relato.ts` |
 | A8 | `extraerPerfil()`: las alergias nunca salen de la IA. **`/api/perfil-inicial` real** | `server/ia/perfil.ts`, `prompts/perfil.ts` |
 | A9 | `validarReceta()` por código (alérgenos en ingredientes y en texto, reglas, un solo cambio con `cambios()` de `cadena.ts`, mezclas, gramos, lenguaje prohibido, aporte recalculado) y `generarReceta()` (evidencia → Sonnet 5.5 → validación → 1 reintento → siguiente candidato, corte a los 55 s). **`/api/receta` real** con `armarEvidencia()` y `obtenerPerfil()` de B y `?motor=`; "Más nutritiva" encuentra su candidato aunque no esté en el top 3; el alimento seguro puede ser algo que comió fuera del catálogo si la visión lo vio completo | `server/validacion/receta.ts`, `server/ia/receta.ts`, `candidato.ts`, `prompts/receta.ts` |
-| A10 | `imagenPlato()`: prompt en inglés (cenital, separado, porción chica, sin texto ni personas; plato con divisiones si una regla lo pide). **`/api/imagen-plato` real** | `server/ia/imagen-plato.ts` |
+| A10 | `imagenPlato()`: prompt en inglés (cenital, separado, porción chica, sin texto ni personas; plato con divisiones si una regla lo pide). **`/api/imagen-plato` real**. La imagen la genera **Nano Banana 2.1** (`gemini-nano-banana-2.1`), con FLUX.1 schnell de respaldo | `server/ia/imagen-plato.ts`, `imagen.ts`, `proveedores/nano-banana.ts` |
 | A11 | `eval-vision.ts` (Haiku y Sonnet) y `eval-voz.ts` (`--texto` sin Whisper); 8 fotos CC0 o de dominio público (`fuente: 'internet'`); 40 relatos del dataset sintético (`fuente: 'sintetico'`) | `scripts/eval-*.ts`, `scripts/eval/`, `eval/` |
 | A12 | `eval-recetas.ts` (§11.3): 12 casos (Tomás y Lucía con `evidenciaDe()` de B sobre los sintéticos; Bruno, con leche y gluten, inventado y declarado): primera salida del LLM contra la validación y resultado final. Foto de la indicación del nutricionista → `objetivosNutricionista` (unidades por código; **los suplementos nunca se convierten en objetivos**) | `scripts/eval-recetas.ts`, `eval/recetas/`, `server/ia/perfil.ts` |
 
@@ -44,6 +44,7 @@ Los errores son `ErrorIA`, que extiende `ErrorNibble` (`server/http.ts`): si el 
 - `MODELO_<TAREA>` por env pisa el modelo de una tarea (la eval de visión compara Haiku y Sonnet). Respaldos: `MODELO_GEMINI` (Gemini 3.5 Flash-Lite) y `MODELO_GROQ` (Llama 4 Scout).
 - **El SDK 0.135 saca los `enum` del JSON Schema** (`lib/transform-json-schema.mjs` los pasa a la `description`). Por eso `proveedores/claude.ts` arma su propio schema (`schemaClaude`), que conserva `enum` y `const`. En los schemas: `z.enum` restringe la salida; `.min`/`.max` viajan como pista y los valida Zod; `z.record` no se puede usar.
 - **Validador de receta sin aflojar**: papas fritas en bastones → bastones de queso al horno da **2 cambios** (ingrediente + cocción frito → horno, por la v4). El test que lo muestra quedó como pendiente (`it.skip` en `server/validacion/receta.test.ts`). El tablero de B ya parte de las papas al horno en bastones. Alérgenos en el texto: ante la duda, se detectan (un falso positivo cuesta un reintento). El alimento seguro fuera del catálogo solo vale si se observó con todos sus atributos.
+- **Imagen con Nano Banana 2.1** (`gemini-nano-banana-2.1`, API `interactions` de `@google/genai`), 1K cuadrada en JPEG. Cuesta USD 0,0336 por imagen y **no tiene free tier**: la `GEMINI_API_KEY` necesita billing. La primera Nano Banana (`gemini-2.5-flash-image`) se dio de baja el 2/10/2026. FLUX queda de respaldo: entra si Nano Banana falla por cupo, por la key o por error del proveedor (no con timeout), y es el único camino si no hay `GEMINI_API_KEY`. `MODELO_IMAGEN` cambia el modelo (`gemini-3.1-flash-lite-image` es más rápido, al mismo precio). Falta probarla en vivo: hoy no hay `GEMINI_API_KEY`.
 - Sin el respaldo del lado del servidor para Sonnet (`fallbacks`): para Sonnet 5.5 solo cubre rechazos `cyber` y `frontier_llm`, que no aplican a recetas, y no se puede probar sin keys.
 - `sinComida` responde 200 con `sinComida: true` (lo que ya maneja la pantalla Registrar).
 - El prompt de visión se itera con la API de Claude, no con AI Studio.
@@ -80,11 +81,11 @@ El proyecto está en la cuenta Hobby de C y la de IgTondo no lo ve (403), así q
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Visión, relato, perfil, receta y resumen | console.anthropic.com (con límite de gasto) |
 | `GROQ_API_KEY` | Whisper (notas de voz y `/api/transcribir`) | console.groq.com |
-| `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` | FLUX (imagen del plato) y Whisper de respaldo | dash.cloudflare.com; token de **usuario** (My Profile → API Tokens, plantilla Workers AI). Con un token de cuenta FLUX anda igual, pero `/api/salud` lo marca como caído |
+| `GEMINI_API_KEY` | **Nano Banana (imagen del plato), con billing activado**; respaldo del LLM | aistudio.google.com |
+| `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` | FLUX (respaldo de la imagen) y Whisper de respaldo | dash.cloudflare.com; token de **usuario** (My Profile → API Tokens, plantilla Workers AI). Con un token de cuenta FLUX anda igual, pero `/api/salud` lo marca como caído |
 | `MONGODB_URI` | Todo lo de B (registrar, tablero, perfil, evidencia de la receta) y el contexto de la visión | Integración de MongoDB Atlas del Marketplace, o un cluster Free con 0.0.0.0/0 |
 | `MOTOR_GRAFO` | `mongo` mientras Neo4j no esté (hoy vale `neo4j`) | — |
 | `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD` | Solo si se usa Neo4j | Aura Free |
-| `GEMINI_API_KEY` | Opcional: respaldo del LLM | aistudio.google.com |
 
 Pasos: completar `.env.local` (copia de `.env.example`) → `npm run env:vercel` (sube sin imprimir los valores) → `npm run deploy` → `GET /api/salud` tiene que dar `ok: true`. Con el mismo `.env.local`, A corre `npx tsx scripts/probar-ia.ts`, las evals y `npx tsx scripts/usda.ts --subir` (carga `alimentos_fdc`). Para las evals desde Actions, las mismas keys de IA van como secretos del repo.
 
