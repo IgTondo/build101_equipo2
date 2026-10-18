@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { Progreso, Sugerencia } from '../../shared/contratos'
 import progresoFixture from '../../fixtures/progreso.json'
+import type { ComponentePlato } from '../../shared/contratos'
 import {
+  componenteNuevo, enDosRenglones, listaEnCastellano, restoDelPlato, textoArmando,
   comidaRecienPorHora, comidasDelDia, elegirSugerencia, encaja, lineaPorQue, primeraFrase, proximaComida, rutaRecetaComida, rutaRecetaNueva, sugerenciasDe, ultimosSinRepetir,
   type ComidaDelDia,
 } from './proximaComida'
@@ -135,5 +137,53 @@ describe('ultimosSinRepetir (anteriores de la receta creativa, v5.4)', () => {
     expect(ultimosSinRepetir(['a', 'b', 'a', 'c'])).toEqual(['b', 'a', 'c'])
     expect(ultimosSinRepetir(['a', 'b', 'c', 'd'], 2)).toEqual(['c', 'd'])
     expect(ultimosSinRepetir([])).toEqual([])
+  })
+})
+
+describe('la comida completa de la tarjeta (v5.7)', () => {
+  const comp = (nombre: string, nuevo = false, rol: ComponentePlato['rol'] = 'guarnicion'): ComponentePlato =>
+    ({ rol, preparacionId: nuevo ? 'nuevo_x' : nombre, nombre, nuevo, gramos: 100, grupo: 'verdura' })
+  const plato = (...componentes: ComponentePlato[]) => ({
+    platoCompleto: { componentes, aporte: {} as never, cubreDelDia: {} },
+  })
+
+  it('arma la lista en castellano: "a", "a y b", "a, b y c"', () => {
+    expect(listaEnCastellano([])).toBe('')
+    expect(listaEnCastellano(['puré'])).toBe('puré')
+    expect(listaEnCastellano(['puré', 'zanahoria'])).toBe('puré y zanahoria')
+    expect(listaEnCastellano(['puré', 'zanahoria', 'pan'])).toBe('puré, zanahoria y pan')
+  })
+
+  it('la "y" pasa a "e" antes de "i" o "hi" (no antes de "hie")', () => {
+    expect(listaEnCastellano(['papa', 'hinojo'])).toBe('papa e hinojo')
+    expect(listaEnCastellano(['arroz', 'Isla flotante'])).toBe('arroz e Isla flotante')
+    expect(listaEnCastellano(['agua', 'hielo'])).toBe('agua y hielo')
+    expect(listaEnCastellano(['pan', 'yogur'])).toBe('pan y yogur')
+  })
+
+  it('lo que completa el plato: sin el nuevo, en minúscula, sin repetir', () => {
+    const r = plato(comp('Milanesas de ricota y pollo', true, 'principal'), comp('Puré de papa'), comp('Bastones de zanahoria', false, 'verdura_fruta'))
+    expect(restoDelPlato(r)).toBe('con puré de papa y bastones de zanahoria')
+    expect(componenteNuevo(r)?.nombre).toBe('Milanesas de ricota y pollo')
+    expect(restoDelPlato(plato(comp('Tarta', true), comp('Pan'), comp('Pan'), comp('Leche', false, 'lacteo'), comp('Banana'))))
+      .toBe('con pan, leche y banana')
+  })
+
+  it('sin platoCompleto o sin nada más, no hay línea (la tarjeta muestra solo el nombre)', () => {
+    expect(restoDelPlato({})).toBeNull()
+    expect(componenteNuevo({})).toBeNull()
+    expect(restoDelPlato(plato(comp('Tarta', true)))).toBeNull()
+  })
+
+  it('mientras arma, lo dice con la comida y el nombre', () => {
+    expect(textoArmando('cena', 'Valentina')).toBe('Armando la cena de Valentina…')
+    expect(textoArmando('desayuno', null)).toBe('Armando el desayuno…')
+    expect(textoArmando('almuerzo')).toBe('Armando el almuerzo…')
+  })
+
+  it('el mensaje del servidor, en dos renglones por los dos puntos', () => {
+    expect(enDosRenglones('Todavía no sabemos qué come Rosario en el desayuno: registrá un desayuno o contanos qué come.'))
+      .toEqual(['Todavía no sabemos qué come Rosario en el desayuno:', 'registrá un desayuno o contanos qué come.'])
+    expect(enDosRenglones('Esta vez no salió una receta segura. Probá otra idea.')).toEqual(['Esta vez no salió una receta segura. Probá otra idea.', null])
   })
 })

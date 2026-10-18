@@ -246,8 +246,12 @@ describe('(v5.7) la comida completa: lo nuevo + lo que ya come, equilibrado para
     expect(problemas({})).toEqual([])
   })
 
-  it('una cena con solo lo nuevo no es una comida completa', () => {
-    expect(problemas({ acompanamientos: [] }).join(' ')).toMatch(/El plato tiene 1 cosa y una comida completa para cena lleva de 3 a 4/)
+  it('una cena con solo lo nuevo se completa sola con lo que ya come (nunca queda un plato suelto)', () => {
+    const r = armar({ acompanamientos: [] })
+    const otros = r.platoCompleto!.componentes.filter((c) => !c.nuevo)
+    expect(otros.length).toBeGreaterThanOrEqual(1)
+    for (const c of otros) expect(k().seguros.map((s) => s.id)).toContain(c.preparacionId)
+    expect(problemas({ acompanamientos: [] }).join(' ')).not.toMatch(/El plato tiene 1 cosa/)
   })
 
   it('la energía y la proteína del plato entero tienen que ser las de esa comida', () => {

@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { COCCION, COLOR, FORMA, GRUPO, PRESENTACION, ROL_PLATO, SABOR, TEMPERATURA, TEXTURA, type Nutriente } from '../../../shared/contratos.js'
 import type { Conocimiento, Modo } from '../../grafo/conocimiento.js'
 import { NOMBRE_GRUPO } from '../../aprendizaje/textos.js'
-import { textoComidaCompleta } from '../plato-completo.js'
+import { minimoComponentes, textoComidaCompleta } from '../plato-completo.js'
 import { NOMBRE_NUTRIENTE, REGLAS_COMUNES_RECETA } from './receta.js'
 
 export const SISTEMA_RECETA_CREATIVA = `Sos cocinero y especialista en food chaining para familias de chicos con autismo y selectividad alimentaria. La app te da todo lo que sabe del chico (lo que come seguro con sus atributos, lo que rechaza y por qué, lo que se le está ofreciendo, los patrones que encontró y las reglas de la familia). Con eso inventás UN plato nuevo, casero y rico, que lo acerque a un nutriente que le falta o, si no le falta ninguno, que le sume variedad. La idea es que coma mejor y más variado: nada de repetir lo que ya come ni lo que la familia ya vio.
@@ -74,6 +74,14 @@ export interface DatosPromptCreativa {
   ingredientes: { alimentoId: string; nombre: string }[] // del catálogo, sin genéricos ni alérgenos del chico
   anteriores: string[]                                   // las recetas que ya vio para esta comida
   anterior?: { salida: SalidaCreativa; problemas: string[] } // para el reintento
+  elegido?: PlatoElegido                                   // v5.9 · lo nuevo ya lo eligió el grafo (una sugerencia del catálogo)
+}
+
+/** v5.9 · La sugerencia del catálogo que tocó la familia ("Un pasito", la próxima comida): lo nuevo ya está elegido. */
+export interface PlatoElegido {
+  preparacion: { id: string; nombre: string; ingredientes: { alimentoId: string; gramos: number }[] }
+  desde: { id: string; nombre: string }
+  cambio: string
 }
 
 const MANTENE = 'mantené la forma, la textura, el sabor, la temperatura y la cocción'
@@ -106,8 +114,12 @@ function textoFoco(k: Conocimiento, desde: Conocimiento['seguros'][number] | und
 export function promptRecetaCreativa(d: DatosPromptCreativa): string {
   const { conocimiento: k } = d
   const desde = k.seguros.find((p) => p.id === k.foco.desdeId)
-  const lineas = ['Base de conocimiento del chico (lo único que sabés de él):', k.texto, '', textoFoco(k, desde), '', ...textoComidaCompleta(k)]
-  if (d.anteriores.length) {
+  const e = d.elegido
+  const foco = e
+    ? `Lo nuevo YA LO ELIGIÓ la app: «${e.preparacion.nombre}» (${e.preparacion.id}), a un solo cambio de su «${e.desde.nombre}» (cambia ${e.cambio}). No inventes otro plato: escribí la receta de ESTE (elaborada y rica, que dé ganas), con su ingrediente principal (${[...e.preparacion.ingredientes].sort((a, b) => b.gramos - a.gramos)[0]?.alimentoId ?? 'el del catálogo'}) como el de más gramos; ingredientes de referencia: ${e.preparacion.ingredientes.map((i) => `${i.alimentoId} ${i.gramos} g`).join(', ')}. desdeId es ${e.desde.id}. Si es una guarnición (un puré, unas papas, una verdura), rol guarnicion o verdura_fruta, y el principal de la comida es algo que ya come. Lo nuevo solo NO es una comida: completala con ${Math.max(1, minimoComponentes(k) - 1)} o más cosas de la lista de lo que ya come (un principal potente si lo nuevo no lo es, y una verdura o fruta si come alguna).`
+    : textoFoco(k, desde)
+  const lineas = ['Base de conocimiento del chico (lo único que sabés de él):', k.texto, '', foco, '', ...textoComidaCompleta(k)]
+  if (d.anteriores.length && !e) {
     lineas.push('', 'La familia ya vio estas recetas: proponé un plato distinto a todas (otro ingrediente principal u otra idea):', ...d.anteriores.map((n) => `- ${n}`))
   }
   lineas.push('', 'Ingredientes que podés usar (alimentoId: nombre):', ...d.ingredientes.map((i) => `- ${i.alimentoId}: ${i.nombre}`))

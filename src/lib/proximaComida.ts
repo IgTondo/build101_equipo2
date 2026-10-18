@@ -7,7 +7,7 @@
 //    media tarde) y la próxima es la principal que sigue a la más avanzada.
 // 2. La hora pone un piso: nunca se sugiere una comida que ya pasó (antes de las 10, desayuno; antes de las 15,
 //    almuerzo; antes de las 22, cena; desde las 22, el desayuno de mañana). Sin comidas hoy, manda solo la hora.
-import type { ComidaResumen, Momento, Progreso, Sugerencia } from '../../shared/contratos'
+import type { ComidaResumen, ComponentePlato, Momento, Progreso, Receta, Sugerencia } from '../../shared/contratos'
 import preparaciones from '../../data/preparaciones.json'
 import { NOMBRE_CAMBIO } from './vocabulario'
 
@@ -147,6 +147,46 @@ export function rutaRecetaComida(ninoId: string, s: Pick<Sugerencia, 'preparacio
 /** "Generar receta" (v5.4): la receta creativa para esa comida (/receta la pide sola con nueva=1). */
 export function rutaRecetaNueva(ninoId: string, momento: Momento): string {
   return `/receta?${new URLSearchParams({ nino: ninoId, momento, nueva: '1' })}`
+}
+
+// ---------- La comida completa de la tarjeta (v5.7) ----------
+// La tarjeta de la próxima comida muestra la receta creativa precargada: el plato nuevo de título y, debajo, lo que
+// ya come que completa la comida ("con puré de papa y bastones de zanahoria").
+
+/** "a" · "a y b" · "a, b y c" (la "y" pasa a "e" antes de "i"/"hi": "papa e hinojo"). */
+export function listaEnCastellano(items: readonly string[]): string {
+  if (items.length <= 1) return items[0] ?? ''
+  const ultimo = items[items.length - 1]
+  const y = /^h?i(?![aeiouáéíóú])/i.test(ultimo) ? 'e' : 'y'
+  return `${items.slice(0, -1).join(', ')} ${y} ${ultimo}`
+}
+
+const enMinuscula = (t: string) => t.charAt(0).toLocaleLowerCase('es') + t.slice(1)
+
+/** El componente nuevo del plato (el de la receta), si viene. */
+export function componenteNuevo(receta: Pick<Receta, 'platoCompleto'>): ComponentePlato | null {
+  return receta.platoCompleto?.componentes.find((c) => c.nuevo) ?? null
+}
+
+/** "con puré de papa y bastones de zanahoria": lo que completa la comida (sin el nuevo). null si no hay nada más. */
+export function restoDelPlato(receta: Pick<Receta, 'platoCompleto'>): string | null {
+  const resto = (receta.platoCompleto?.componentes ?? []).filter((c) => !c.nuevo).map((c) => enMinuscula(c.nombre.trim())).filter(Boolean)
+  const unicos = resto.filter((n, i) => resto.indexOf(n) === i)
+  return unicos.length ? `con ${listaEnCastellano(unicos)}` : null
+}
+
+const LA_COMIDA: Record<Principal, string> = { desayuno: 'el desayuno', almuerzo: 'el almuerzo', cena: 'la cena' }
+
+/** "Armando la cena de Valentina…" (o "Armando la cena…" sin nombre). */
+export function textoArmando(momento: Principal, nombre?: string | null): string {
+  return `Armando ${LA_COMIDA[momento]}${nombre ? ` de ${nombre}` : ''}…`
+}
+
+/** Un mensaje del servidor en dos renglones, como el resto de la tarjeta: "Todavía no sabemos…: registrá…". */
+export function enDosRenglones(texto: string): [string, string | null] {
+  const t = texto.trim()
+  const i = t.indexOf(': ')
+  return i > 0 ? [t.slice(0, i + 1), t.slice(i + 2)] : [t, null]
 }
 
 // ---------- La última comida registrada en este celular ----------

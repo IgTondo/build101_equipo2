@@ -1,18 +1,17 @@
 // Resultado del registro (C2, PLAN v5.1): alertas si hay (una línea), "Qué aprendí" (dos líneas cortas, el resto en
 // "Ver más"), lo que aportó la comida (plegado, con rangos) y, al final, la próxima comida calculada con la que se acaba
-// de registrar. Se vuelve a pedir el progreso después de
-// guardar, así la sugerencia y el "Hoy" del inicio ya la cuentan. La energía va como dato, sin meta (§1). Las alertas
-// derivan al profesional, sin alarmar.
+// de registrar: v5.7, la comida completa (la receta creativa de esa comida, que se empieza a armar apenas aparece este
+// resultado, si no estaba ya precargada). La energía va como dato, sin meta (§1). Las alertas derivan
+// al profesional, sin alarmar.
 // Arriba, el festejo: la foto como un plato mordido y un tilde que se dibuja.
 import { cn } from 'cn'
 import { Camera, Eraser, Footprints, Lightbulb, Repeat2, Shuffle, Sprout, type LucideIcon } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { Aprendizaje, Rango, RegistrarComidaReq, RegistrarComidaRes } from '../../../shared/contratos'
+import type { Aprendizaje, Rango, Regla, RegistrarComidaReq, RegistrarComidaRes } from '../../../shared/contratos'
 import { AvisoConsulta } from '../../componentes/AvisoConsulta'
 import { Celebracion } from '../../componentes/Celebracion'
-import { ErrorConReintento } from '../../componentes/Estados'
 import { NumeroAnimado } from '../../componentes/NumeroAnimado'
 import { TarjetaProximaComida } from '../../componentes/ProximaComida'
 import { Button } from '../../componentes/ui/button'
@@ -23,6 +22,8 @@ import { useApi } from '../../lib/useApi'
 import { NOMBRE_MOMENTO, NOMBRE_NUTRIENTE, NUTRIENTES_CON_META, textoParaPadres } from '../../lib/vocabulario'
 import { aprendiCorto, rangoLegible } from './modelo'
 import { SALIDA, SIN_ANILLO } from './Piezas'
+
+const SIN_REGLAS: Regla[] = []
 
 /** "Qué aprendí" corto: lo más nuevo primero, dos líneas a la vista. */
 const MAX_APRENDI = 2
@@ -102,10 +103,10 @@ export function Resultado({ ninoId, res, req, foto, alOtra }: Props) {
   const delDia = comidasDelDia(res.dia.dia === req.dia ? [res.dia] : [], req.dia, [registrada])
   const [hora] = useState(horaUruguay)
   const proxima = proximaComida(delDia, hora)
-  const progreso = useApi(
-    (s) => api.progreso(ninoId, { dias: 7, momento: proxima.momento }, s),
-    [ninoId, res.comidaId],
-  )
+  // El perfil, por el nombre y las reglas (la foto de la receta): con él, la tarjeta pide la comida completa.
+  const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
+  const nombre = perfil.tipo === 'ok' ? perfil.datos.datos.nombre : null
+  const reglas = perfil.tipo === 'ok' ? perfil.datos.reglas : perfil.tipo === 'error' ? SIN_REGLAS : null
 
   const conNino = new URLSearchParams({ nino: ninoId })
   const momento = VISUAL_MOMENTO[req.momento]
@@ -166,9 +167,7 @@ export function Resultado({ ninoId, res, req, foto, alOtra }: Props) {
       <LoQueAporto rango={res.nutrientesComida} />
 
       <div className="flex flex-col gap-3">
-        {progreso.tipo === 'error'
-          ? <ErrorConReintento error={progreso.error} reintentar={progreso.reintentar} />
-          : <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={progreso.tipo === 'ok' ? progreso.datos : null} />}
+        <TarjetaProximaComida ninoId={ninoId} proxima={proxima} reglas={reglas} nombre={nombre} />
         <Button asChild variant="outline" size="lg" className="w-full">
           <Link to={{ pathname: '/', search: `?${conNino}` }}>Volver al inicio</Link>
         </Button>

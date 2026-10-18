@@ -10,10 +10,10 @@
 // v5.8 · Sus otras alergias (DatosBasicos.alergiasOtras, "kiwi", "colorante rojo"): los alimentos que alcanzan
 // (server/alergias.ts) no están en la lista de ingredientes ni en el schema, el LLM las lee en la base de conocimiento y
 // la validación rechaza un ingrediente que alcancen o un texto que las nombre.
-import type { Alergeno, Evidencia, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Receta, RecetaReq } from '../../shared/contratos.js'
+import type { Alergeno, Candidato, Evidencia, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Receta, RecetaReq } from '../../shared/contratos.js'
 import { alimentosProhibidos, limpiarOtras } from '../alergias.js'
 import { DIMENSIONES, cambios, principal } from '../aprendizaje/cadena.js'
-import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, decimal, slug } from '../aprendizaje/textos.js'
+import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, TEXTO_CAMBIO, decimal, slug } from '../aprendizaje/textos.js'
 import { cargarNino } from '../datos/cargar.js'
 import { ACOMPANAMIENTOS, conocimientoDe, type Conocimiento } from '../grafo/conocimiento.js'
 import { ErrorNibble } from '../http.js'
@@ -21,7 +21,7 @@ import { CON_META } from '../nutricion/objetivos.js'
 import { calcularAporte, cambiosEntre, problemasPorTipo, aplanar, type ContextoValidacion } from '../validacion/receta.js'
 import { alimentoPorId, alimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
-import { ajustarPorciones, armarPlatoCompleto, problemasDelPlato } from './plato-completo.js'
+import { ajustarPorciones, armarPlatoCompleto, completarConLoQueCome, problemasDelPlato } from './plato-completo.js'
 import { esquemaSalidaCreativa, promptRecetaCreativa, SISTEMA_RECETA_CREATIVA, type SalidaCreativa } from './prompts/receta-creativa.js'
 import { CORTE_MS, TOPE_NUEVA_LLAMADA_MS, coberturaDeLoQueFalta, sinAlergenos, type IntentoReceta } from './receta.js'
 
@@ -39,7 +39,15 @@ export interface DepsRecetaCreativa {
   conocimiento: (ninoId: string, op: { nutriente?: Nutriente; momento?: RecetaReq['momento'] }) => Promise<ConocimientoReceta>
   ahora?: () => number
   alIntentar?: (intento: Omit<IntentoReceta, 'salida' | 'problemas'> & { salida: SalidaCreativa; problemas: string[] }) => void
+  /**
+   * v5.9 · Con RecetaReq.preparacionId (una sugerencia del catálogo: la próxima comida, "Un pasito"), lo nuevo ya está
+   * elegido: el candidato de la cadena con su preparación y su alimento de partida. Sin esto, o si no aparece, la creativa.
+   */
+  elegido?: (ninoId: string, preparacionId: string, nutriente?: Nutriente) => Promise<Elegido | undefined>
 }
+
+/** v5.9 · El plato que eligió la app: la preparación del catálogo, su candidato (cambio y lo que se mantiene) y de dónde parte. */
+export interface Elegido { preparacion: PreparacionCatalogo; candidato: Candidato; desde: PreparacionCatalogo }
 
 /** Lo que pide su dieta cuenta como alergia para validar (sin gluten ni caseína = sin gluten ni leche). */
 function alergiasDe(k: Conocimiento): Alergeno[] {
@@ -130,8 +138,11 @@ export function nutrienteQueMasAporta(aporte: Nutrientes, meta: Nutrientes): Nut
 }
 
 /** La receta completa: el cambio y lo que se mantiene los cuenta el código (cadena.ts), nunca el LLM. */
-export function completarCreativa(salida: SalidaCreativa, k: ConocimientoReceta, desde: PreparacionCatalogo): Receta {
-  const base = platoDe(salida)
+export function completarCreativa(salida: SalidaCreativa, k: ConocimientoReceta, desde: PreparacionCatalogo, elegido?: Elegido): Receta {
+  // v5.9 · Con el plato elegido, la preparación es la del catálogo (sus atributos y su id); el LLM escribe la receta
+  const base: PreparacionCatalogo = elegido
+    ? { ...elegido.preparacion, nombre: salida.nombre.trim() || elegido.preparacion.nombre, ingredientes: salida.ingredientes.map(({ alimentoId, gramos }) => ({ alimentoId, gramos })) }
+    : platoDe(salida)
   const difs = cambiosEntre(desde, base)
   const ingredientes = salida.ingredientes.map(({ alimentoId, gramos }) => ({ alimentoId, nombre: alimentoPorId(alimentoId)?.nombre ?? alimentoId, gramos }))
   const aporte = calcularAporte(ingredientes)
@@ -152,8 +163,8 @@ export function completarCreativa(salida: SalidaCreativa, k: ConocimientoReceta,
     nombre: base.nombre,
     preparacionBaseId: base.id,
     desde: { preparacionId: desde.id, nombre: desde.nombre },
-    cambio: difs[0]?.cambio ?? 'ingrediente',
-    seMantiene: DIMENSIONES.flatMap((dim) => {
+    cambio: elegido ? elegido.candidato.cambio : difs[0]?.cambio ?? 'ingrediente',
+    seMantiene: elegido ? elegido.candidato.seMantiene : DIMENSIONES.flatMap((dim) => {
       const v = desde.atributos[dim]
       return v && v === base.atributos[dim] ? [`${dim}=${v}`] : []
     }),
@@ -167,8 +178,12 @@ export function completarCreativa(salida: SalidaCreativa, k: ConocimientoReceta,
     coberturaDeLoQueFalta: coberturaDeLoQueFalta(aporte, evidencia),
     validacion: { ok: false, problemas: [], reintentos: 0 },
     evidencia,
-    plato: { atributos: salida.atributos, imagen: salida.imagen },
-    platoCompleto: armarPlatoCompleto({ preparacion: base, rol: salida.rol, aporte }, ajustarPorciones(aporte.energia_kcal, salida.acompanamientos ?? [], k), k),
+    plato: { atributos: elegido ? { ...salida.atributos, ...elegido.preparacion.atributos, coccion: elegido.preparacion.atributos.coccion ?? salida.atributos.coccion } : salida.atributos, imagen: salida.imagen },
+    platoCompleto: armarPlatoCompleto(
+      { preparacion: base, rol: salida.rol, aporte },
+      ajustarPorciones(aporte.energia_kcal, completarConLoQueCome({ rol: salida.rol, grupo: base.atributos.grupo, desdeId: desde.id }, salida.acompanamientos ?? [], k), k),
+      k,
+    ),
     objetivo: k.variedad ? { tipo: 'variedad', ...k.variedad } : { tipo: 'nutriente', nutriente: n }, // v5.5
   }
 }
@@ -177,8 +192,12 @@ export function completarCreativa(salida: SalidaCreativa, k: ConocimientoReceta,
 export function problemasCreativa(
   receta: Receta, k: ConocimientoReceta, desde: PreparacionCatalogo, anteriores: readonly string[],
   acompanamientos?: readonly { preparacionId: string; gramos: number }[],
+  elegido?: Elegido,
 ): string[] {
-  const base: PreparacionCatalogo = { id: receta.preparacionBaseId, nombre: receta.nombre, atributos: receta.plato!.atributos, ingredientes: receta.ingredientes }
+  // Con el plato elegido, la preparación del catálogo (con su fortificadaDe: "la versión fortificada" es un cambio válido)
+  const base: PreparacionCatalogo = elegido
+    ? { ...elegido.preparacion, nombre: receta.nombre, ingredientes: receta.ingredientes }
+    : { id: receta.preparacionBaseId, nombre: receta.nombre, atributos: receta.plato!.atributos, ingredientes: receta.ingredientes }
   const { otras, prohibidos } = otrasAlergiasDe(k)
   const ctx: ContextoValidacion = {
     alergias: alergiasDe(k), reglas: k.reglas, desde, base, presentacionesAceptadas: k.presentacionesAceptadas,
@@ -204,9 +223,15 @@ export function problemasCreativa(
   p.push(...problemasDeCalidad(receta, desde, minimo))
   const igual = k.aceptadas.find((s) => s.id !== desde.id && cambios(s, base).length === 0)
   if (igual) p.push(`«${receta.nombre}» es lo mismo que «${igual.nombre}», que ya come: proponé un plato nuevo.`)
-  if (anteriores.some((a) => normal(a) === normal(receta.nombre))) p.push(`«${receta.nombre}» ya lo vio la familia: proponé un plato distinto.`)
+  // v5.9 · Con el plato elegido no se pide que sea otro (repetir la exposición está bien): sí que sea ESE plato
+  if (!elegido && anteriores.some((a) => normal(a) === normal(receta.nombre))) p.push(`«${receta.nombre}» ya lo vio la familia: proponé un plato distinto.`)
+  if (elegido) {
+    const esperado = principal(elegido.preparacion.ingredientes)
+    const tiene = principal(receta.ingredientes)
+    if (esperado && tiene !== esperado) p.push(`La receta es de «${elegido.preparacion.nombre}»: su ingrediente principal (el de más gramos) tiene que ser ${alimentoPorId(esperado)?.nombre ?? esperado}, y en la tuya es ${tiene ? alimentoPorId(tiene)?.nombre ?? tiene : 'ninguno'}.`)
+  }
   // v5.7 · La comida completa: estructura, energía y proteína del plato entero
-  if (receta.platoCompleto) p.push(...problemasDelPlato(receta.platoCompleto, acompanamientos ?? receta.platoCompleto.componentes.filter((c) => !c.nuevo), k))
+  if (receta.platoCompleto) p.push(...problemasDelPlato(receta.platoCompleto, acompanamientos ?? receta.platoCompleto.componentes.filter((c) => !c.nuevo), k, { elegido: Boolean(elegido) }))
   return p
 }
 
@@ -221,7 +246,8 @@ export async function generarRecetaCreativa(req: RecetaReq, deps: DepsRecetaCrea
   const t0 = ahora()
   const k = await deps.conocimiento(req.ninoId, { ...(req.nutriente ? { nutriente: req.nutriente } : {}), ...(req.momento ? { momento: req.momento } : {}) })
   // Sin el respaldo de "todo lo que acepta" (conocimiento.ts): si nada de lo que come va en esta comida, se dice cuál falta
-  if (k.seguros.length === 0) throw new ErrorNibble('sin_candidatos', textoSinSeguros(k.nombre, k.momento ?? req.momento))
+  const elegido = req.preparacionId && deps.elegido ? await deps.elegido(req.ninoId, req.preparacionId, req.nutriente) : undefined
+  if (k.seguros.length === 0 && !elegido) throw new ErrorNibble('sin_candidatos', textoSinSeguros(k.nombre, k.momento ?? req.momento))
   const anteriores = (req.anteriores ?? []).slice(-10)
   const alergias = alergiasDe(k)
   const { otras, prohibidos } = otrasAlergiasDe(k)
@@ -229,7 +255,7 @@ export async function generarRecetaCreativa(req: RecetaReq, deps: DepsRecetaCrea
     .filter((a) => sinAlergenos(a.id, alergias) && !prohibidos.has(a.id))
     .map((a) => ({ alimentoId: a.id, nombre: a.nombre }))
   const kPrompt = otras.length ? { ...k, texto: textoConOtrasAlergias(k.texto, otras) } : k
-  const schema = esquemaSalidaCreativa(ingredientes.map((i) => i.alimentoId), k.seguros.map((s) => s.id), k.nutrientes.map((x) => x.nutriente))
+  const schema = esquemaSalidaCreativa(ingredientes.map((i) => i.alimentoId), elegido ? [elegido.desde.id] : k.seguros.map((s) => s.id), k.nutrientes.map((x) => x.nutriente))
 
   let anterior: { salida: SalidaCreativa; problemas: string[] } | undefined
   for (let intento = 0; intento < 2; intento++) {
@@ -241,13 +267,16 @@ export async function generarRecetaCreativa(req: RecetaReq, deps: DepsRecetaCrea
     const { datos } = await generarJSON({
       tarea: 'receta',
       sistema: SISTEMA_RECETA_CREATIVA,
-      partes: [{ tipo: 'texto', texto: promptRecetaCreativa({ conocimiento: kPrompt, ingredientes, anteriores, ...(anterior ? { anterior } : {}) }) }],
+      partes: [{ tipo: 'texto', texto: promptRecetaCreativa({
+        conocimiento: kPrompt, ingredientes, anteriores, ...(anterior ? { anterior } : {}),
+        ...(elegido ? { elegido: { preparacion: elegido.preparacion, desde: { id: elegido.desde.id, nombre: elegido.desde.nombre }, cambio: TEXTO_CAMBIO[elegido.candidato.cambio] } } : {}),
+      }) }],
       schema,
       limiteMs: CORTE_MS - (desdeLlamada - t0),
     })
-    const desde = k.seguros.find((s) => s.id === datos.desdeId)!
-    const receta = completarCreativa(datos, k, desde)
-    const problemas = problemasCreativa(receta, k, desde, anteriores, receta.platoCompleto?.componentes.filter((c) => !c.nuevo) ?? datos.acompanamientos)
+    const desde = elegido ? elegido.desde : k.seguros.find((s) => s.id === datos.desdeId)!
+    const receta = completarCreativa(datos, k, desde, elegido)
+    const problemas = problemasCreativa(receta, k, desde, anteriores, receta.platoCompleto?.componentes.filter((c) => !c.nuevo) ?? datos.acompanamientos, elegido)
     deps.alIntentar?.({ llamada: intento + 1, preparacionId: receta.preparacionBaseId, reintento: intento > 0, salida: datos, problemas, ms: ahora() - desdeLlamada })
     if (problemas.length === 0) {
       registrar({ ninoId: req.ninoId, nombre: receta.nombre, desde: desde.id, cambio: receta.cambio, nutriente: receta.evidencia.nutriente, objetivo: receta.objetivo, foco: k.foco, llamadas: intento + 1, ms: ahora() - t0 })

@@ -3,10 +3,13 @@
 // terminar preseleccionada), "Generar receta" (v5.3: para la comida que elija el padre), "Hoy" (nutrientes del día +
 // una línea de la semana), las alertas si hay y "Ver la semana".
 // El nombre es un botón: abre "Tus hijos" para cambiar de chico o agregar otro (SelectorHijo, src/lib/familia.ts).
-// Un solo pedido a /api/progreso (7 días, con ?momento= de la próxima comida) y el perfil en paralelo, solo por el nombre.
+// Un solo pedido a /api/progreso (7 días, con ?momento= de la próxima comida; para "Hoy", las alertas y saber cuál es la
+// próxima comida) y el perfil en paralelo (el nombre y las reglas). v5.7 · La tarjeta de la próxima comida pide sola su
+// comida completa (la receta creativa precargada) cuando la próxima comida ya es segura.
 import { CalendarDays, Camera } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import type { Regla } from '../../../shared/contratos'
 import { Link, useLocation } from 'react-router-dom'
 import { AvisoConsulta } from '../../componentes/AvisoConsulta'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
@@ -16,13 +19,13 @@ import { TarjetaProximaComida } from '../../componentes/ProximaComida'
 import { api } from '../../lib/api'
 import { diaUruguay, useNinoActivo } from '../../lib/nino'
 import { comidaRecienPorHora, comidasDelDia, horaUruguay, leerUltimaComida, proximaComida } from '../../lib/proximaComida'
-import { precargarReceta } from '../../lib/recetaPrevia'
 import { useApi } from '../../lib/useApi'
 import { hayComidas } from '../tablero/calculos'
 import { Hoy } from './Hoy'
 import { SelectorHijo } from './SelectorHijo'
 
 const RESORTE = { type: 'spring', stiffness: 420, damping: 34 } as const
+const SIN_REGLAS: Regla[] = []
 
 export function Inicio() {
   const ninoId = useNinoActivo()
@@ -33,12 +36,12 @@ export function Inicio() {
   // Antes de tener el progreso, la próxima comida sale de la última registrada en este celular (si fue hoy) y la hora.
   const ultima = leerUltimaComida(ninoId, ahora.dia)
   const estimada = proximaComida(ultima ? [ultima] : [], ahora.hora)
-  // Se pide para la comida estimada; si con las comidas de hoy la próxima resulta otra (registradas en otro celular, o
-  // un historial cargado), se vuelve a pedir una vez para esa: si no, la tarjeta no tiene sugerencias de esa comida.
-  const [momentoPedido, setMomentoPedido] = useState(estimada.momento)
+  // v5.7 · El progreso ya no da la sugerencia de la tarjeta (las de ?momento=): da "Hoy", las alertas y las comidas de
+  // hoy, que dicen cuál es la próxima comida. Se pide para la estimada (las sugerencias que trae no se usan acá).
   const progreso = useApi(
-    (s) => api.progreso(ninoId, { dias: 7, momento: momentoPedido }, s),
-    [ninoId, momentoPedido],
+    (s) => api.progreso(ninoId, { dias: 7, momento: estimada.momento }, s),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ninoId],
   )
   const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
   const nombre = perfil.tipo === 'ok' ? perfil.datos.datos.nombre : null
@@ -46,18 +49,10 @@ export function Inicio() {
   const datos = progreso.tipo === 'ok' ? progreso.datos : null
   const diaHoy = datos?.dias.find((d) => d.dia === ahora.dia) ?? null
   const proxima = datos ? proximaComida(comidasDelDia(datos.dias, ahora.dia), ahora.hora) : estimada
-  useEffect(() => {
-    if (datos?.momento && datos.momento !== proxima.momento) setMomentoPedido(proxima.momento)
-  }, [datos?.momento, proxima.momento])
-  // v5.6 · Con la próxima comida ya segura y las reglas del perfil, se precarga su receta creativa y su foto (un rato
-  // después, para no competir con lo que se está mostrando): "Generar receta" para esa comida sale al instante.
-  const reglas = perfil.tipo === 'ok' ? perfil.datos.reglas : null
-  const lista = datos?.momento === proxima.momento && reglas !== null
-  useEffect(() => {
-    if (!lista || !reglas) return
-    const t = window.setTimeout(() => precargarReceta(ninoId, proxima.momento, reglas), 1500)
-    return () => window.clearTimeout(t)
-  }, [lista, reglas, ninoId, proxima.momento])
+  // La tarjeta arma la comida completa (v5.7) cuando la próxima comida ya es segura (con las comidas de hoy del
+  // progreso, o con la hora si el progreso falló) y llegaron las reglas (sin perfil, sin reglas: la receta igual sale).
+  const reglas = perfil.tipo === 'ok' ? perfil.datos.reglas : perfil.tipo === 'error' ? SIN_REGLAS : null
+  const proximaSegura = progreso.tipo !== 'cargando'
 
   if (progreso.tipo === 'error' && progreso.error.codigo === 'no_encontrado') return <PerfilNoEncontrado />
 
@@ -71,8 +66,7 @@ export function Inicio() {
         <p className="text-sm text-musgo">{fechaLarga(ahora.dia)}</p>
       </header>
 
-      {progreso.tipo === 'error' && <ErrorConReintento error={progreso.error} reintentar={progreso.reintentar} />}
-      {progreso.tipo !== 'error' && <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={datos} />}
+      <TarjetaProximaComida ninoId={ninoId} proxima={proxima} reglas={proximaSegura ? reglas : null} nombre={nombre} />
 
       <div className="flex flex-col gap-3">
         <motion.div whileTap={{ scale: 0.97 }} transition={RESORTE} className="rounded-full">
@@ -100,6 +94,7 @@ export function Inicio() {
           <Cargando texto="Mirando cómo viene hoy…" />
         </div>
       )}
+      {progreso.tipo === 'error' && <ErrorConReintento error={progreso.error} reintentar={progreso.reintentar} />}
       {datos && <Hoy dia={diaHoy} semana={datos.semana} hayComidasSemana={hayComidas(datos.dias)} />}
 
       {datos && <AvisoConsulta alertas={datos.alertas} />}

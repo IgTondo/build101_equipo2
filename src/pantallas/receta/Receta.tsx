@@ -8,7 +8,7 @@
 // solo se manda si lo eligió el padre: si no, el servidor lo rota.
 import { ArrowLeft, CookingPot, RefreshCw } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { MOMENTO, NUTRIENTE } from '../../../shared/contratos'
 import type { Momento, Nutriente, Receta as RecetaT, Regla } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
@@ -16,7 +16,7 @@ import { Button } from '../../componentes/ui/button'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { useNinoActivo } from '../../lib/nino'
 import { anotarNombreDeReceta, anotarRecetaDeLaComida, leerNombresDeRecetas, leerRecetasDeLaComida, ultimosSinRepetir } from '../../lib/proximaComida'
-import { precargarReceta, recetaPrevia, usarRecetaPrevia } from '../../lib/recetaPrevia'
+import { precargarReceta, recetaPrevia, usarRecetaPrevia, type Ranura } from '../../lib/recetaPrevia'
 import { aErrorDeApi, useApi } from '../../lib/useApi'
 import { EsperaReceta } from './EsperaReceta'
 import { nutrienteEnFrase } from './legible'
@@ -51,6 +51,8 @@ export function Receta() {
   const para = momento ? PARA_LA_COMIDA[momento] : null
   const preparacionInicial = useRef(params.get('preparacionId') ?? undefined)
   const nuevaInicial = useRef(!preparacionInicial.current && params.get('nueva') === '1')
+  // La tarjeta de la próxima comida manda la receta que mostró (state del Link): se abre esa
+  const recetaDeLaTarjeta = (useLocation().state as { receta?: RecetaT } | null)?.receta
 
   const progreso = useApi((s) => api.progreso(ninoId, { dias: 7, momento }, s), [ninoId, momento])
   const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
@@ -74,7 +76,7 @@ export function Receta() {
   }
 
   /** Sin preparacionId, la receta creativa (v5.4). */
-  function pedir(preparacionId: string | undefined, para: Nutriente | undefined) {
+  function pedir(preparacionId: string | undefined, para: Nutriente | undefined, ranura: Ranura = '') {
     cancelar()
     const c = new AbortController()
     control.current = c
@@ -87,12 +89,12 @@ export function Receta() {
       ? leerNombresDeRecetas(ninoId, preparacionId)
       : ultimosSinRepetir([...leerRecetasDeLaComida(ninoId, momento), ...vistasEnLaSesion.current])
     // v5.6 · La creativa sin nutriente elegido puede estar precargada (el inicio, o la anterior para "Otra opción")
-    const previa = !preparacionId && !para && momento ? recetaPrevia(ninoId, momento) : null
+    const previa = !preparacionId && !para && momento ? recetaPrevia(ninoId, momento, ranura) : null
     const promesa = previa ?? api.receta({ ninoId, nutriente: para, preparacionId, ...(momento ? { momento } : {}), ...(anteriores.length ? { anteriores } : {}) }, undefined, c.signal)
     promesa
       .then((receta) => {
         if (c.signal.aborted) return
-        if (previa && momento) usarRecetaPrevia(ninoId, momento, previa)
+        if (previa && momento) usarRecetaPrevia(ninoId, momento, previa, ranura)
         vistasEnLaSesion.current = ultimosSinRepetir([...vistasEnLaSesion.current, receta.nombre])
         anotarRecetaDeLaComida(ninoId, momento, receta.nombre)
         anotarNombreDeReceta(ninoId, receta.preparacionBaseId, receta.nombre)
@@ -107,14 +109,24 @@ export function Receta() {
   // v5.6 · Mientras lee una receta creativa, se precarga la siguiente (y su foto): "Otra opción" sale al instante.
   const recetaVista = pedido.tipo === 'ok' ? pedido.receta : null
   useEffect(() => {
-    if (recetaVista?.plato && momento && reglas !== null && !elegidoPorElPadre.current) precargarReceta(ninoId, momento, reglas)
+    if (recetaVista?.plato && momento && reglas !== null && !elegidoPorElPadre.current) precargarReceta(ninoId, momento, reglas, 'otra')
   }, [recetaVista, momento, reglas, ninoId])
 
   // Si vino de una tarjeta de sugerencia, se pide sola (con el nutriente de la URL o el que elija el servidor). Con
   // nueva=1 ("Generar receta"), la creativa; nueva sale de la URL para que recargar no la vuelva a pedir.
   useEffect(() => {
     if (preparacionInicial.current) pedir(preparacionInicial.current, esNutriente(nutrienteUrl) ? nutrienteUrl : undefined)
-    else if (nuevaInicial.current) { pedir(undefined, undefined); sacarPreparacionDeLaUrl() }
+    else if (nuevaInicial.current && recetaDeLaTarjeta) {
+      // v5.9 · Viene de la tarjeta de la próxima comida: abre ESA receta (la que el padre vio), sin pedir otra
+      const previa = momento ? recetaPrevia(ninoId, momento) : null
+      if (previa && momento) usarRecetaPrevia(ninoId, momento, previa)
+      vistasEnLaSesion.current = ultimosSinRepetir([...vistasEnLaSesion.current, recetaDeLaTarjeta.nombre])
+      anotarRecetaDeLaComida(ninoId, momento, recetaDeLaTarjeta.nombre)
+      anotarNombreDeReceta(ninoId, recetaDeLaTarjeta.preparacionBaseId, recetaDeLaTarjeta.nombre)
+      setElegido(recetaDeLaTarjeta.evidencia.nutriente)
+      setPedido({ tipo: 'ok', receta: recetaDeLaTarjeta })
+      sacarPreparacionDeLaUrl()
+    } else if (nuevaInicial.current) { pedir(undefined, undefined); sacarPreparacionDeLaUrl() }
     return cancelar
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -127,7 +139,7 @@ export function Receta() {
   /** Otra opción (y "Probar otra idea"): otra receta creativa, sin repetir las que ya vio para esta comida. */
   function otraOpcion() {
     sacarPreparacionDeLaUrl()
-    pedir(undefined, elegidoPorElPadre.current)
+    pedir(undefined, elegidoPorElPadre.current, 'otra')
   }
 
   function elegirOtroNutriente() {
