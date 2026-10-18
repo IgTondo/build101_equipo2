@@ -1,15 +1,13 @@
-// Elegir para qué nutriente es la receta: primero lo que le falta esta semana (con su %), después el resto.
+// Elegir para qué nutriente es la receta: primero lo que le falta esta semana, después el resto. Sin porcentajes.
 // Son radios de verdad (flechas del teclado, lectores de pantalla) con forma de chip; la pastilla verde se desliza
-// hasta el elegido. Lo que le falta va en filas, cada una con su anillito Zapallo (cuánto cubrió de la referencia);
-// los demás, en chips.
+// hasta el elegido. Lo que le falta va en filas, cada una con su punto Zapallo; los demás, en chips.
 import { cn } from 'cn'
 import { LayoutGroup, motion } from 'motion/react'
 import type { Nutriente, Progreso } from '../../../shared/contratos'
-import { Anillo } from '../../componentes/Anillo'
-import { NOMBRE_NUTRIENTE, NUTRIENTES_CON_META, porcentaje } from '../../lib/vocabulario'
+import { NOMBRE_NUTRIENTE, NUTRIENTES_CON_META } from '../../lib/vocabulario'
 
 interface Props {
-  semana: Progreso['semana'] | null     // null = no se pudo cargar el progreso: se muestran todos, sin %
+  semana: Progreso['semana'] | null     // null = no se pudo cargar el progreso: se muestran todos juntos
   valor: Nutriente | undefined
   onCambiar: (n: Nutriente) => void
 }
@@ -24,8 +22,8 @@ export function SelectorNutriente({ semana, valor, onCambiar }: Props) {
       <label
         key={n}
         className={cn(
-          'group relative inline-flex cursor-pointer items-center gap-2.5 rounded-full border bg-background text-pino transition-colors duration-200 has-checked:border-transparent has-checked:text-primary-foreground has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-verde',
-          falta ? 'h-14 w-full pr-5 pl-3' : 'h-12 px-4',
+          'group relative inline-flex cursor-pointer items-center gap-3 rounded-full border bg-background text-pino transition-colors duration-200 has-checked:border-transparent has-checked:text-primary-foreground has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-verde',
+          falta ? 'h-14 w-full px-5' : 'h-12 px-4',
         )}
       >
         <input
@@ -39,20 +37,9 @@ export function SelectorNutriente({ semana, valor, onCambiar }: Props) {
             transition={{ type: 'spring', stiffness: 420, damping: 34 }}
           />
         )}
-        {falta && semana && (
-          <span className="pointer-events-none relative" aria-hidden="true">
-            <Anillo valor={semana.cobertura[n]} tamano={32} grosor={5} color="var(--nb-zapallo)" pista="var(--nb-zapallo-claro)" />
-          </span>
-        )}
+        {/* El punto es el color de lo que le falta; en palabras lo dice el rótulo del grupo. */}
+        {falta && <span className="pointer-events-none relative size-2.5 shrink-0 rounded-full bg-zapallo" aria-hidden="true" />}
         <span className="pointer-events-none relative font-bold">{NOMBRE_NUTRIENTE[n]}</span>
-        {semana && (
-          <span className={cn(
-            'pointer-events-none relative text-sm text-musgo tabular-nums transition-colors duration-200 group-has-checked:text-primary-foreground/85',
-            falta && 'ml-auto',
-          )}>
-            {porcentaje(semana.cobertura[n])}
-          </span>
-        )}
       </label>
     )
   }
@@ -70,7 +57,6 @@ export function SelectorNutriente({ semana, valor, onCambiar }: Props) {
         )}
         <div className="flex flex-wrap gap-2">{resto.map((n) => opcion(n, false))}</div>
       </LayoutGroup>
-      {semana && <p className="mt-5 text-xs text-musgo text-pretty">El % es cuánto cubrió esta semana de la referencia para su edad (aproximado).</p>}
     </fieldset>
   )
 }

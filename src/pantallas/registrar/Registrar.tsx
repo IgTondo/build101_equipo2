@@ -274,7 +274,7 @@ export function Registrar() {
               <span className="relative font-titulo text-xl font-extrabold text-pino">Sacar foto del plato</span>
             </MarcoCamara>
             {botonGaleria}
-            <p className="px-1 text-sm text-musgo">Mejor desde arriba, con buena luz y el plato entero a la vista.</p>
+            <p className="px-1 text-sm text-musgo">Desde arriba, con el plato entero.</p>
           </div>
         </section>
       )}
@@ -296,7 +296,7 @@ export function Registrar() {
           <TituloPaso id="rg-t-movida">La foto salió movida</TituloPaso>
           <MarcoFoto src={foto.dataUrl} alt="La foto que sacaste" chica />
           <Aviso icono={Focus} rol="status">
-            <p>Con una foto más nítida reconocemos mejor la comida. Si no se puede, seguimos con esta.</p>
+            <p>Con una más nítida la reconocemos mejor.</p>
           </Aviso>
           <div className="flex flex-col gap-3">
             {botonSacarOtra('Sacar otra')}
@@ -329,7 +329,7 @@ export function Registrar() {
           <div className="flex flex-col items-center gap-3 rounded-3xl bg-muted px-6 py-7 text-center">
             <PlatoVacio className="size-24" />
             <TituloPaso id="rg-t-sin" className="text-2xl">No encontramos comida en la foto</TituloPaso>
-            <p className="text-musgo">Puede pasar si el plato quedó cortado o con poca luz. ¿Probás con otra, desde arriba?</p>
+            <p className="text-musgo">¿Probás con otra, desde arriba y con luz?</p>
           </div>
           {foto && <MarcoFoto src={foto.dataUrl} alt="La foto que sacaste" chica />}
           <div className="flex flex-col gap-3">

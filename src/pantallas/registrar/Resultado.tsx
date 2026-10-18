@@ -1,16 +1,16 @@
-// Resultado del registro (C2, PLAN v5.1): alertas si hay, "Qué aprendí", lo que aportó la comida (con rangos) y, al
-// final, la próxima comida calculada con la que se acaba de registrar. Se vuelve a pedir el progreso después de
+// Resultado del registro (C2, PLAN v5.1): alertas si hay (una línea), "Qué aprendí" (dos líneas cortas, el resto en
+// "Ver más"), lo que aportó la comida (plegado, con rangos) y, al final, la próxima comida calculada con la que se acaba
+// de registrar. Se vuelve a pedir el progreso después de
 // guardar, así la sugerencia y el "Hoy" del inicio ya la cuentan. La energía va como dato, sin meta (§1). Las alertas
 // derivan al profesional, sin alarmar.
 // Arriba, el festejo: la foto como un plato mordido y un tilde que se dibuja.
 import { cn } from 'cn'
-import {
-  Camera, Eraser, Footprints, Lightbulb, Repeat2, Shuffle, Sprout, Stethoscope, type LucideIcon,
-} from 'lucide-react'
+import { Camera, Eraser, Footprints, Lightbulb, Repeat2, Shuffle, Sprout, type LucideIcon } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import type { Aprendizaje, Nutrientes, Rango, RegistrarComidaReq, RegistrarComidaRes } from '../../../shared/contratos'
+import { Link } from 'react-router-dom'
+import type { Aprendizaje, Rango, RegistrarComidaReq, RegistrarComidaRes } from '../../../shared/contratos'
+import { AvisoConsulta } from '../../componentes/AvisoConsulta'
 import { Celebracion } from '../../componentes/Celebracion'
 import { ErrorConReintento } from '../../componentes/Estados'
 import { NumeroAnimado } from '../../componentes/NumeroAnimado'
@@ -21,12 +21,11 @@ import { VISUAL_MOMENTO } from '../../lib/colores'
 import { comidasDelDia, horaUruguay, proximaComida } from '../../lib/proximaComida'
 import { useApi } from '../../lib/useApi'
 import { NOMBRE_MOMENTO, NOMBRE_NUTRIENTE, NUTRIENTES_CON_META, textoParaPadres } from '../../lib/vocabulario'
-import { leerMotor } from '../tablero/calculos'
-import { rangoLegible } from './modelo'
+import { aprendiCorto, rangoLegible } from './modelo'
 import { SALIDA, SIN_ANILLO } from './Piezas'
 
-/** "Qué aprendí" corto: lo más nuevo primero, como mucho tres líneas. */
-const MAX_APRENDI = 3
+/** "Qué aprendí" corto: lo más nuevo primero, dos líneas a la vista. */
+const MAX_APRENDI = 2
 
 const ICONO_APRENDI: Record<Aprendizaje['tipo'], LucideIcon> = {
   aceptacion: Sprout, exposicion: Footprints, patron_nuevo: Lightbulb,
@@ -58,52 +57,32 @@ function TildeGuardado() {
 }
 
 /**
- * Lo que aportó la comida como parte de lo que necesita en el día: lleno hasta el mínimo del rango, más suave hasta
- * el máximo (el rango es la duda de la porción). Se llena una vez al aparecer.
+ * Plegado: es un dato para quien lo quiera ver (la cobertura del día está en el inicio). Los números suben al abrirlo.
+ * Sin barras: el verde y el hoja dicen "Cubierto" y "Casi" (src/lib/cobertura.ts) y una comida sola no tiene estado.
  */
-function BarraRango({ min, max, objetivo, retraso }: { min: number; max: number; objetivo: number; retraso: number }) {
-  if (!(objetivo > 0)) return null
-  const parte = (v: number) => `${Math.min(1, Math.max(0, v / objetivo)) * 100}%`
-  const barra = (ancho: string, clase: string) => (
-    <motion.span
-      className={`absolute inset-y-0 left-0 origin-left rounded-full ${clase}`}
-      style={{ width: ancho, minWidth: max > 0 ? 4 : 0 }}
-      initial={{ scaleX: 0 }}
-      whileInView={{ scaleX: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.9, delay: retraso, ease: SALIDA }}
-    />
-  )
+function LoQueAporto({ rango }: { rango: Rango }) {
   return (
-    <span aria-hidden="true" className="relative mt-1.5 block h-2 overflow-hidden rounded-full bg-muted">
-      {barra(parte(max), 'bg-hoja')}
-      {min > 0 && barra(parte(min), 'bg-verde')}
-    </span>
-  )
-}
-
-function LoQueAporto({ rango, objetivo }: { rango: Rango; objetivo?: Nutrientes }) {
-  return (
-    <section className="flex flex-col gap-4 rounded-2xl border bg-card p-5" aria-labelledby="rg-nutrientes">
-      <h2 id="rg-nutrientes" className="text-xl">Lo que aportó esta comida</h2>
-      <dl className="grid grid-cols-2 gap-x-5 gap-y-4">
-        {NUTRIENTES_CON_META.map((n, k) => (
-          <div key={n} className="flex min-w-0 flex-col gap-0.5">
-            <dt className="text-sm text-musgo">{NOMBRE_NUTRIENTE[n]}</dt>
-            <dd className="font-bold text-pino">
-              <NumeroAnimado valor={1} formato={(t) => rangoLegible(n, rango.min[n] * t, rango.max[n] * t)} />
-              {objetivo && <BarraRango min={rango.min[n]} max={rango.max[n]} objetivo={objetivo[n]} retraso={0.1 + k * 0.05} />}
-            </dd>
-          </div>
-        ))}
-      </dl>
-      <p className="border-t pt-3 text-pino">
-        Energía: <span className="font-bold tabular-nums">{rangoLegible('energia_kcal', rango.min.energia_kcal, rango.max.energia_kcal)}</span>
-      </p>
-      <p className="-mt-2 text-sm text-musgo">
-        Valores aproximados.{objetivo && ' La barra muestra qué parte de lo del día cubrió esta comida.'}
-      </p>
-    </section>
+    <details className="nb-ver-mas rounded-2xl border bg-card px-5 open:pb-5">
+      <summary className="min-h-14 w-full justify-between rounded-xl font-titulo text-xl font-extrabold text-foreground">
+        Lo que aportó esta comida
+      </summary>
+      <div className="flex flex-col gap-4 pt-1">
+        <dl className="grid grid-cols-2 gap-x-5 gap-y-4">
+          {NUTRIENTES_CON_META.map((n) => (
+            <div key={n} className="flex min-w-0 flex-col gap-0.5">
+              <dt className="text-sm text-musgo">{NOMBRE_NUTRIENTE[n]}</dt>
+              <dd className="font-bold text-pino">
+                <NumeroAnimado valor={1} formato={(t) => rangoLegible(n, rango.min[n] * t, rango.max[n] * t)} />
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <p className="border-t pt-3 text-pino">
+          Energía: <span className="font-bold tabular-nums">{rangoLegible('energia_kcal', rango.min.energia_kcal, rango.max.energia_kcal)}</span>
+        </p>
+        <p className="-mt-2 text-sm text-musgo">Valores aproximados.</p>
+      </div>
+    </details>
   )
 }
 
@@ -118,19 +97,17 @@ interface Props {
 }
 
 export function Resultado({ ninoId, res, req, foto, alOtra }: Props) {
-  const [params] = useSearchParams()
-  const motor = leerMotor(params.get('motor'))
   const registrada = { id: res.comidaId, momento: req.momento, fechaISO: req.fechaISO }
   // Las comidas del día que devolvió el registro, más la recién guardada si no venía (B puede mandar el día sin ella).
   const delDia = comidasDelDia(res.dia.dia === req.dia ? [res.dia] : [], req.dia, [registrada])
   const [hora] = useState(horaUruguay)
   const proxima = proximaComida(delDia, hora)
   const progreso = useApi(
-    (s) => api.progreso(ninoId, { dias: 7, motor, momento: proxima.momento }, s),
-    [ninoId, motor, res.comidaId],
+    (s) => api.progreso(ninoId, { dias: 7, momento: proxima.momento }, s),
+    [ninoId, res.comidaId],
   )
 
-  const conNino = new URLSearchParams({ nino: ninoId, ...(motor !== 'grafo' ? { motor } : {}) })
+  const conNino = new URLSearchParams({ nino: ninoId })
   const momento = VISUAL_MOMENTO[req.momento]
   const IconoMomento = momento.icono
 
@@ -157,20 +134,7 @@ export function Resultado({ ninoId, res, req, foto, alOtra }: Props) {
         </span>
       </header>
 
-      {res.alertas.length > 0 && (
-        <section className="flex flex-col gap-3 rounded-2xl bg-zapallo-claro p-5" aria-labelledby="rg-alertas">
-          <div className="flex items-center gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-background text-pino">
-              <Stethoscope className="size-5" aria-hidden="true" />
-            </span>
-            <h2 id="rg-alertas" className="text-xl">Algo para comentar con su pediatra</h2>
-          </div>
-          <ul className="flex list-disc flex-col gap-1.5 pl-5 text-pino marker:text-zapallo">
-            {res.alertas.map((a, i) => <li key={`${a.tipo}-${i}`}>{a.texto}</li>)}
-          </ul>
-          <p className="text-sm text-musgo">No es un diagnóstico: conviene consultarlo con su pediatra o nutricionista.</p>
-        </section>
-      )}
+      <AvisoConsulta alertas={res.alertas} />
 
       {res.aprendi.length > 0 && (
         <section className="flex flex-col gap-3" aria-labelledby="rg-aprendi">
@@ -183,20 +147,28 @@ export function Resultado({ ninoId, res, req, foto, alOtra }: Props) {
                   <span className="grid size-10 shrink-0 place-items-center rounded-full bg-background text-verde-hondo">
                     <Icono className="size-5" aria-hidden="true" />
                   </span>
-                  <p className="pt-2 text-pino">{textoParaPadres(a.texto)}</p>
+                  <p className="pt-2 text-pino">{aprendiCorto(textoParaPadres(a.texto))}</p>
                 </li>
               )
             })}
           </ul>
+          {res.aprendi.some((a, i) => i >= MAX_APRENDI || aprendiCorto(textoParaPadres(a.texto)) !== textoParaPadres(a.texto)) && (
+            <details className="nb-ver-mas -mt-1.5">
+              <summary className="min-h-12">Ver más</summary>
+              <ul className="flex list-disc flex-col gap-1.5 pt-1 pl-6 text-sm text-musgo">
+                {res.aprendi.map((a, i) => <li key={`${a.tipo}-${i}`}>{textoParaPadres(a.texto)}</li>)}
+              </ul>
+            </details>
+          )}
         </section>
       )}
 
-      <LoQueAporto rango={res.nutrientesComida} objetivo={res.dia.objetivo} />
+      <LoQueAporto rango={res.nutrientesComida} />
 
       <div className="flex flex-col gap-3">
         {progreso.tipo === 'error'
           ? <ErrorConReintento error={progreso.error} reintentar={progreso.reintentar} />
-          : <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={progreso.tipo === 'ok' ? progreso.datos : null} motor={motor} />}
+          : <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={progreso.tipo === 'ok' ? progreso.datos : null} />}
         <Button asChild variant="outline" size="lg" className="w-full">
           <Link to={{ pathname: '/', search: `?${conNino}` }}>Volver al inicio</Link>
         </Button>

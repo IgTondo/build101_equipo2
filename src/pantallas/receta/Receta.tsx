@@ -1,12 +1,12 @@
-// C7 · Receta con food chaining (PLAN.md §9). Ruta: /receta?nino=&nutriente=&preparacionId=&motor=&momento=
+// C7 · Receta con food chaining (PLAN.md §9). Ruta: /receta?nino=&nutriente=&preparacionId=&momento=
 // v5.1: `momento` es la comida para la que es (la próxima comida del inicio): viaja en RecetaReq y titula la pantalla.
 // Sin preparacionId: el padre elige el nutriente (por defecto, el primero de semana.faltan) y pide la receta.
 // Con preparacionId (viene de una tarjeta de sugerencia del tablero): la receta se pide sola.
 import { ArrowLeft, CookingPot, RefreshCw } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { MOMENTO, MOTOR, NUTRIENTE } from '../../../shared/contratos'
-import type { Momento, Motor, Nutriente, Receta as RecetaT, Regla } from '../../../shared/contratos'
+import { MOMENTO, NUTRIENTE } from '../../../shared/contratos'
+import type { Momento, Nutriente, Receta as RecetaT, Regla } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
 import { Button } from '../../componentes/ui/button'
 import { api, type ErrorDeApi } from '../../lib/api'
@@ -29,7 +29,6 @@ const ETAPAS_MS = [2500, 6500]
 const SIN_REGLAS: Regla[] = []
 
 const esNutriente = (x: string | null): x is Nutriente => x !== null && x !== 'energia_kcal' && (NUTRIENTE as readonly string[]).includes(x)
-const esMotor = (x: string | null): x is Motor => x !== null && (MOTOR as readonly string[]).includes(x)
 const esMomento = (x: string | null): x is Momento => x !== null && (MOMENTO as readonly string[]).includes(x)
 
 /** "para el almuerzo" · "para la cena" · "para la merienda" (la comida de ?momento=). */
@@ -41,14 +40,12 @@ export function Receta() {
   const ninoId = useNinoActivo()
   const [params, setParams] = useSearchParams()
   const nutrienteUrl = params.get('nutriente')
-  const motorUrl = params.get('motor')
-  const motor = esMotor(motorUrl) ? motorUrl : undefined
   const momentoUrl = params.get('momento')
   const momento = esMomento(momentoUrl) ? momentoUrl : undefined
   const para = momento ? PARA_LA_COMIDA[momento] : null
   const preparacionInicial = useRef(params.get('preparacionId') ?? undefined)
 
-  const progreso = useApi((s) => api.progreso(ninoId, { dias: 7, motor, momento }, s), [ninoId, motor, momento])
+  const progreso = useApi((s) => api.progreso(ninoId, { dias: 7, momento }, s), [ninoId, momento])
   const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
   const nombre = perfil.tipo === 'ok' ? perfil.datos.datos.nombre : null
   const reglas = perfil.tipo === 'ok' ? perfil.datos.reglas : perfil.tipo === 'error' ? SIN_REGLAS : null
@@ -76,7 +73,7 @@ export function Receta() {
       setPedido((p) => (p.tipo === 'pidiendo' ? { tipo: 'pidiendo', etapa: i + 1 } : p))
     }, ms))
     relojes.current = mios
-    api.receta({ ninoId, nutriente: para, preparacionId, ...(momento ? { momento } : {}) }, motor, c.signal)
+    api.receta({ ninoId, nutriente: para, preparacionId, ...(momento ? { momento } : {}) }, undefined, c.signal)
       .then((receta) => {
         if (c.signal.aborted) return
         mostradas.current.add(receta.preparacionBaseId)
@@ -115,7 +112,7 @@ export function Receta() {
   }
 
   // Desde el inicio (con ?momento=) se vuelve al inicio; desde el tablero, a la semana.
-  const volverA = { pathname: momento ? '/' : '/tablero', search: `?${new URLSearchParams({ nino: ninoId, ...(motor ? { motor } : {}) })}` }
+  const volverA = { pathname: momento ? '/' : '/tablero', search: `?${new URLSearchParams({ nino: ninoId })}` }
   const alTablero = (
     <Button asChild variant="ghost" className="self-center text-musgo">
       <Link to={volverA}><ArrowLeft aria-hidden="true" />{momento ? 'Volver al inicio' : 'Volver a la semana'}</Link>
@@ -123,7 +120,7 @@ export function Receta() {
   )
 
   if (pedido.tipo === 'pidiendo') {
-    const etapas = [nombre ? `Buscando en el grafo de ${nombre}…` : 'Buscando en su grafo…', 'Escribiendo la receta…', 'Validando alergias…']
+    const etapas = [nombre ? `Mirando lo que ya come ${nombre}…` : 'Mirando lo que ya come…', 'Escribiendo la receta…', 'Revisando alergias…']
     return <EsperaReceta titulo={`Preparando una receta${para ? ` ${para}` : ''}`} etapas={etapas} etapa={pedido.etapa} />
   }
 
@@ -144,7 +141,7 @@ export function Receta() {
     return (
       <>
         <Vacio titulo={`Todavía no encontramos un paso chico para ${nutriente ? nutrienteEnFrase(nutriente) : 'lo que le falta'}`}>
-          <p className="text-musgo">Registrá algunas comidas más: con cada una aprendemos qué le gusta y aparecen nuevas ideas.</p>
+          <p className="text-musgo">Registrá algunas comidas más y aparecen nuevas ideas.</p>
           <Button asChild className="mt-1">
             <Link to={{ pathname: '/registrar', search: volverA.search }}>Registrar una comida</Link>
           </Button>

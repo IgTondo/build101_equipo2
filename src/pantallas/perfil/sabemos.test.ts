@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { PatronVista, Perfil } from '../../../shared/contratos'
 import perfilFixture from '../../../fixtures/perfil.json'
-import { fraseParaPadres, loQueNotamos, loQueSabemos } from './sabemos'
+import { fraseParaPadres, loQueNotamos, loQueSabemos, sinAclaracion } from './sabemos'
 
 const perfil = perfilFixture as Perfil
 const patron = (texto: string, resultado: PatronVista['resultado'], apoyo = 3, confianza = 0.5, fuente: PatronVista['fuente'] = 'aprendido'): PatronVista =>
@@ -18,8 +18,23 @@ describe('fraseParaPadres', () => {
     expect(fraseParaPadres('Lo mezclado lo rechaza (según la investigación)')).toBe('Todavía no le gusta lo mezclado')
   })
 
+  it('entiende cómo lo dice B ahora: "todavía no lo acepta", con plurales que concuerdan', () => {
+    expect(fraseParaPadres('Lo hervido todavía no lo acepta (8 de 8)')).toBe('Todavía no le gusta lo hervido')
+    expect(fraseParaPadres('Las verduras hervidas todavía no las acepta (4 de 4)')).toBe('Todavía no le gustan las verduras hervidas')
+    expect(fraseParaPadres('Los cereales, panes y papas servidos separados los acepta (17 de 20)')).toBe('Le gustan los cereales, panes y papas servidos separados')
+    expect(fraseParaPadres('Lo que se sirve cuando los alimentos se tocan todavía no lo acepta (según la investigación)'))
+      .toBe('Todavía no le gusta lo que se sirve cuando los alimentos se tocan')
+  })
+
   it('si no reconoce la frase, igual saca "rechaza"', () => {
     expect(fraseParaPadres('Las texturas mixtas suelen rechazarse')).toBe('Las texturas mixtas suelen costar')
+  })
+})
+
+describe('sinAclaracion', () => {
+  it('deja lo principal en una línea', () => {
+    expect(sinAclaracion('Todavía no le gusta lo blando, aunque sea un alimento que acepta en otra textura')).toBe('Todavía no le gusta lo blando')
+    expect(sinAclaracion('Le gusta lo crocante servido separado')).toBe('Le gusta lo crocante servido separado')
   })
 })
 
@@ -35,6 +50,15 @@ describe('loQueNotamos', () => {
     ])
     expect(r).toEqual(['Le gusta lo crocante', 'Le gusta lo amarillo', 'Todavía no le gusta lo hervido'])
     expect(r.join(' ')).not.toMatch(/rechaza|\d|investigaci/i)
+  })
+
+  it('no repite el sujeto con el texto nuevo ("todavía no lo acepta")', () => {
+    const r = loQueNotamos([
+      patron('Lo hervido todavía no lo acepta (8 de 8)', 'rechaza', 8, 0.69),
+      patron('Lo hervido en trozos todavía no lo acepta (5 de 5)', 'rechaza', 5, 0.6),
+      patron('Lo blando todavía no lo acepta (6 de 6)', 'rechaza', 6, 0.5),
+    ])
+    expect(r).toEqual(['Todavía no le gusta lo hervido', 'Todavía no le gusta lo blando'])
   })
 
   it('si no hay nada que le guste, completa con lo que todavía no', () => {

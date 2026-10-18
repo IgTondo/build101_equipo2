@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import type { CoberturaDia, Nutrientes } from '../../../shared/contratos'
 import progreso from '../../../fixtures/progreso.json'
 import {
-  coberturaPromedio, escalaBarra, etiquetaDia, fechaCorta, fraseGrupoAusente, hayComidas, leerMotor, MARCA_100,
+  coberturaPromedio, etiquetaDia, fechaCorta, hayComidas,
   ordenarNutrientes, rutaReceta, srcMiniatura, textoDiasSinComer, textoEnergia,
-  diasEntre, gruposDesdeHoy, sumarDias, textoEvolucion, textoTendencia, textoVeces, ultimasComidas, ultimoDia, ultimoDiaConComidas, valorAtributo,
+  diasEntre, gruposDesdeHoy, respuestaSemana, sumarDias, textoEvolucion, textoTendencia, ultimasComidas, ultimoDia, ultimoDiaConComidas, valorAtributo,
 } from './calculos'
 
 const dias = progreso.dias as CoberturaDia[]
@@ -23,16 +23,6 @@ describe('ordenarNutrientes', () => {
   })
 })
 
-describe('escalaBarra', () => {
-  it('el 100% cae en la marca y lo que pasa del 120% se recorta', () => {
-    expect(escalaBarra(1).fraccion).toBeCloseTo(MARCA_100)
-    expect(escalaBarra(0.4)).toEqual({ fraccion: 0.4 / 1.2, recortada: false })
-    expect(escalaBarra(2.01)).toEqual({ fraccion: 1, recortada: true })
-    expect(escalaBarra(-1).fraccion).toBe(0)
-    expect(escalaBarra(Number.NaN).fraccion).toBe(0)
-  })
-})
-
 describe('coberturaPromedio', () => {
   it('promedia los 8 con meta topeando cada uno en 100%', () => {
     const c = { energia_kcal: 0, proteina_g: 2, calcio_mg: 0.5, vitamina_d_ug: 0, hierro_mg: 1, fibra_g: 0.5, omega3_g: 0, b12_ug: 3, vitamina_c_mg: 1 } satisfies Nutrientes
@@ -44,6 +34,11 @@ describe('textos', () => {
   it('energía redondeada a la decena, sin meta', () => {
     expect(textoEnergia(762)).toBe('≈ 760 kcal por día')
     expect(textoEnergia(1004)).toMatch(/^≈ 1.000 kcal por día$/)
+  })
+  it('la respuesta corta de la semana, sin porcentajes', () => {
+    expect(respuestaSemana(['calcio_mg', 'vitamina_d_ug', 'fibra_g'])).toBe('Le falta más calcio y vitamina D.')
+    expect(respuestaSemana(['energia_kcal', 'omega3_g'])).toBe('Le falta más omega-3.')
+    expect(respuestaSemana([])).toBe('Esta semana no le falta ninguno.')
   })
   it('tendencia del repertorio', () => {
     expect(textoTendencia(1)).toBe('1 más que la semana pasada')
@@ -57,19 +52,11 @@ describe('textos', () => {
     expect(textoDiasSinComer(1)).toBe('Ayer')
     expect(textoDiasSinComer(5)).toBe('Hace 5 días')
   })
-  it('la frase del grupo que hace más que no come', () => {
-    expect(fraseGrupoAusente(progreso.grupos as Parameters<typeof fraseGrupoAusente>[0])).toBe('Hace 10 días que no come verdura')
-    expect(fraseGrupoAusente([{ grupo: 'fruta', diasSinComer: 1 }, { grupo: 'otro', diasSinComer: 40 }])).toBeNull()
-    expect(fraseGrupoAusente([{ grupo: 'lacteo', diasSinComer: null }])).toBeNull()
-  })
-  it('exposiciones', () => {
-    expect(textoVeces(1)).toBe('Ofrecido 1 vez de 8 a 15')
-    expect(textoVeces(5)).toBe('Ofrecido 5 veces de 8 a 15')
-  })
   it('evolución en texto', () => {
     expect(textoEvolucion(0.32, 0.4)).toBe('Subió de 32% a 40%')
     expect(textoEvolucion(0.4, 0.35)).toBe('Bajó de 40% a 35%')
     expect(textoEvolucion(0.091, 0.089)).toBe('Se mantuvo en 9%')
+    expect(textoEvolucion(0.8, 1.74)).toBe('Subió de 80% a 100%')
   })
   it('atributos que se mantienen, legibles', () => {
     expect(['forma=baston', 'textura=crocante', 'coccion=horno', 'presentacion=con_salsa'].map(valorAtributo))
@@ -106,16 +93,11 @@ describe('comidas', () => {
   })
 })
 
-describe('motor y receta', () => {
-  it('lee el motor de la URL con grafo por defecto', () => {
-    expect(leerMotor(null)).toBe('grafo')
-    expect(leerMotor('base')).toBe('base')
-    expect(leerMotor('otro')).toBe('grafo')
-  })
+describe('receta', () => {
   it('arma la ruta de la receta', () => {
     expect(rutaReceta('tomas', 'bastones_queso_horno', 'calcio_mg'))
       .toBe('/receta?nino=tomas&preparacionId=bastones_queso_horno&nutriente=calcio_mg')
-    expect(rutaReceta('tomas', 'yogur', undefined, 'base')).toBe('/receta?nino=tomas&preparacionId=yogur&motor=base')
+    expect(rutaReceta('tomas', 'yogur')).toBe('/receta?nino=tomas&preparacionId=yogur')
   })
 })
 

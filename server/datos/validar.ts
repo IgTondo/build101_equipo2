@@ -77,6 +77,8 @@ function item(x: unknown, i: number): ItemDetectado {
   const conteo = opcional(x.conteo, (c) =>
     esObjeto(c) ? { cantidad: numero(c.cantidad, `${donde}.conteo.cantidad`, 0, 500), unidad: texto(c.unidad, `${donde}.conteo.unidad`, 60) } : mal(`${donde}.conteo no es válido`),
   )
+  // Lo manda A cuando un ingrediente cayó en otro_<grupo>: hace falta para buscarlo en alimentos_fdc (§7)
+  const nombreIngles = typeof x.nombreIngles === 'string' && x.nombreIngles.trim() ? x.nombreIngles.trim().slice(0, 200) : undefined
   return {
     idTmp: texto(x.idTmp, `${donde}.idTmp`, 60),
     preparacion: texto(x.preparacion, `${donde}.preparacion`, 200),
@@ -86,6 +88,7 @@ function item(x: unknown, i: number): ItemDetectado {
       return { alimentoId: texto(g.alimentoId, `${donde}.ingredientes[${j}].alimentoId`, 120), gramosEst: numero(g.gramosEst, `${donde}.ingredientes[${j}].gramosEst`, 0, 2000) }
     }),
     ...(conteo ? { conteo } : {}),
+    ...(nombreIngles ? { nombreIngles } : {}),
     porcion: de(PORCION, x.porcion, `${donde}.porcion`),
     atributos: atributos(x.atributos, donde),
     caja: Array.isArray(x.caja) && x.caja.length === 4 ? (x.caja as ItemDetectado['caja']) : null,

@@ -15,6 +15,8 @@ const sinSeñales: EntradaAlertas = {
     { grupo: 'proteina', diasSinComer: 0 },
   ],
   diasDeHistorial: 20,
+  diasRegistrados: 12,
+  comidasRecientes: 9,
   coberturaSemana: { ...cero(), vitamina_c_mg: 0.8 } as Nutrientes,
   diasRegistradosSemana: 7,
   conductasSemana: [['tranquilo'], ['se_levanto']],
@@ -53,8 +55,34 @@ describe('señales de alerta (§10.4)', () => {
       { grupo: 'lacteo', diasSinComer: 0 },
       { grupo: 'proteina', diasSinComer: 8 },
     ]
-    expect(tipos({ grupos })).toEqual(['grupo_ausente', 'grupo_ausente'])
+    expect(tipos({ grupos })).toEqual(['grupo_ausente'])
     expect(tipos({ grupos, diasDeHistorial: 5 })).toEqual([])
+  })
+
+  it('grupo ausente: una sola alerta, la recomendación una vez y los días que tienen registro', () => {
+    const grupos: EntradaAlertas['grupos'] = [
+      { grupo: 'fruta', diasSinComer: 9 },
+      { grupo: 'verdura', diasSinComer: null },
+      { grupo: 'lacteo', diasSinComer: null },
+      { grupo: 'proteina', diasSinComer: 8 },
+    ]
+    // 19 días desde el alta, pero solo 4 con comidas registradas
+    const [a, ...otras] = alertas({ ...sinSeñales, grupos, diasDeHistorial: 19, diasRegistrados: 4 })
+    expect(otras).toEqual([])
+    expect(a?.texto).toBe(
+      'Hace 9 días que no come frutas ni verduras. En los 4 días registrados no comió lácteos. Hace 8 días que no come carnes, huevo, ' +
+        'legumbres ni otras proteínas. Dejar grupos enteros es una señal para consultar con su pediatra o nutricionista.',
+    )
+    expect(a?.texto.match(/Dejar grupos enteros/g)).toHaveLength(1)
+    expect(alertas({ ...sinSeñales, grupos, diasRegistrados: 1 })[0]?.texto).toContain('En el día registrado no comió lácteos.')
+  })
+
+  it('grupo ausente: sin comidas registradas en la semana no dice nada (no se sabe si los dejó)', () => {
+    const nunca: EntradaAlertas['grupos'] = sinSeñales.grupos.map((g) => ({ ...g, diasSinComer: null }))
+    expect(tipos({ grupos: nunca, diasRegistrados: 0, conductasSemana: [] })).toEqual([])
+    const hace27: EntradaAlertas['grupos'] = sinSeñales.grupos.map((g) => ({ ...g, diasSinComer: 27 }))
+    expect(tipos({ grupos: hace27, conductasSemana: [] })).toEqual([])
+    expect(tipos({ grupos: hace27 })).toEqual(['grupo_ausente'])
   })
 
   it('sin vitamina C: cobertura semanal < 30%, con al menos 3 días registrados', () => {
@@ -65,6 +93,8 @@ describe('señales de alerta (§10.4)', () => {
 
   it('repertorio que baja, dieta de eliminación y señales declaradas', () => {
     expect(alertas({ ...sinSeñales, segurasPerdidas: ['Papas fritas'] })[0]?.texto).toContain('Dejó de comer papas fritas')
+    // Sin comidas en la ventana no hay cómo saberlo: puede que no se haya registrado nada
+    expect(tipos({ segurasPerdidas: ['Papas fritas'], comidasRecientes: 0 })).toEqual([])
     expect(tipos({ datos: { alertas: [], dieta: 'sin_gluten_caseina' } })).toEqual(['dieta_eliminacion'])
     expect(alertas({ ...sinSeñales, datos: { alertas: ['bajo_peso', 'arcadas_vomitos'], dieta: 'ninguna' } })[0]?.texto).toBe(
       'En el perfil marcaste bajo peso y arcadas o vómitos frecuentes. Recomendamos consultar a un profesional.',

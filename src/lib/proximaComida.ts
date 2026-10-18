@@ -95,7 +95,7 @@ const MOMENTOS = new Map<string, readonly string[]>(
 const PREFERENCIA: Record<Sugerencia['tipo'], number> = { un_paso: 0, mas_nutritiva: 1, segura: 2 }
 
 /** ¿La preparación va en esa comida, según el catálogo? */
-export function encaja(momento: Principal, s: Pick<Sugerencia, 'preparacionId'>): boolean {
+export function encaja(momento: Momento, s: Pick<Sugerencia, 'preparacionId'>): boolean {
   return MOMENTOS.get(s.preparacionId)?.includes(momento) ?? false
 }
 
@@ -111,10 +111,18 @@ export function sugerenciasDe(p: Pick<Progreso, 'sugerencias' | 'proximoPaso'>):
 }
 
 /** La sugerencia para la próxima comida, o null si ninguna encaja con esa comida. */
-export function elegirSugerencia(p: Pick<Progreso, 'sugerencias' | 'proximoPaso' | 'momento'>, momento: Principal): Sugerencia | null {
+export function elegirSugerencia(p: Pick<Progreso, 'sugerencias' | 'proximoPaso' | 'momento'>, momento: Momento): Sugerencia | null {
   const filtradas = p.momento === momento
   const lista = sugerenciasDe(p).filter((s) => filtradas || encaja(momento, s))
   return lista.sort((a, b) => PREFERENCIA[a.tipo] - PREFERENCIA[b.tipo])[0] ?? null
+}
+
+/**
+ * "Generar receta" (PLAN v5.3): la sugerencia con receta para la comida que eligió el padre. Como elegirSugerencia,
+ * pero sin las "seguras": son algo que ya come y /api/receta solo arma recetas de candidatos (un_paso, mas_nutritiva).
+ */
+export function elegirParaReceta(p: Pick<Progreso, 'sugerencias' | 'proximoPaso' | 'momento'>, momento: Momento): Sugerencia | null {
+  return elegirSugerencia({ ...p, sugerencias: sugerenciasDe(p).filter((s) => s.tipo !== 'segura') }, momento)
 }
 
 /** "Se parece a sus papas: cambia solo el ingrediente. Ya los vio 5 veces…" → la primera oración, para una línea. */
@@ -125,12 +133,22 @@ export function primeraFrase(texto: string): string {
   return `${frase}.`
 }
 
+/**
+ * Una línea para la tarjeta de la próxima comida: la primera oración y, si tiene "dos puntos", lo de antes
+ * ("Se parece a sus papas al horno en bastones: cambia solo el ingrediente. Ya los vio…" → "Se parece a sus papas
+ * al horno en bastones."). El porqué completo está en la receta.
+ */
+export function lineaPorQue(texto: string): string {
+  const frase = primeraFrase(texto).replace(/\.$/, '')
+  const i = frase.indexOf(': ')
+  return `${i > 0 ? frase.slice(0, i) : frase}.`
+}
+
 /** La receta de la próxima comida: el candidato elegido, el nutriente que más falta y la comida. */
-export function rutaRecetaComida(ninoId: string, s: Sugerencia, momento: Principal, nutriente?: string, motor?: string): string {
+export function rutaRecetaComida(ninoId: string, s: Sugerencia, momento: Momento, nutriente?: string): string {
   const p = new URLSearchParams({ nino: ninoId, preparacionId: s.candidato?.preparacionId ?? s.preparacionId })
   if (nutriente) p.set('nutriente', nutriente)
   p.set('momento', momento)
-  if (motor && motor !== 'grafo') p.set('motor', motor)
   return `/receta?${p.toString()}`
 }
 

@@ -13,7 +13,8 @@ import { cerrarNeo4j, consultar } from './cliente.js'
 const habilitado = process.env.NEO4J_PRUEBA === '1' && Boolean(process.env.NEO4J_URI)
 const ninoId = 'prueba-tomas'
 
-describe.skipIf(!habilitado)('motor Neo4j (servidor real)', () => {
+// Contra Aura cada consulta tarda: 60 s por test (estas suites corren solo si se piden)
+describe.skipIf(!habilitado)('motor Neo4j (servidor real)', { timeout: 60_000 }, () => {
   const catalogo = catalogoPrueba()
   const alimentos = alimentosPrueba()
   const s = sintetico('tomas')
@@ -33,7 +34,7 @@ describe.skipIf(!habilitado)('motor Neo4j (servidor real)', () => {
     await almacenNeo4j.borrarNino(ninoId)
     usarCatalogos({ alimentos: null })
     await cerrarNeo4j()
-  })
+  }, 60_000)
 
   it('constraints de unicidad (B3)', async () => {
     const nombres = (await consultar<{ name: string }>('SHOW CONSTRAINTS YIELD name RETURN name')).map((r) => r.name)

@@ -1,20 +1,22 @@
 // La pantalla principal (PLAN v5.1, §9): el día se organiza en comidas. De arriba hacia abajo: el nombre del chico, la
 // próxima comida (la protagonista: abre la receta para esa comida), "Registrar comida" (con la comida que acaba de
-// terminar preseleccionada), "Hoy" (nutrientes del día + una línea de la semana), las alertas si hay y "Ver la semana".
+// terminar preseleccionada), "Generar receta" (v5.3: para la comida que elija el padre), "Hoy" (nutrientes del día +
+// una línea de la semana), las alertas si hay y "Ver la semana".
 // Un solo pedido a /api/progreso (7 días, con ?momento= de la próxima comida) y el perfil en paralelo, solo por el nombre.
-import { CalendarDays, Camera, Stethoscope } from 'lucide-react'
+import { CalendarDays, Camera } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useId, useState } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
-import type { Alerta } from '../../../shared/contratos'
+import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { AvisoConsulta } from '../../componentes/AvisoConsulta'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
+import { GenerarReceta } from '../../componentes/GenerarReceta'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { TarjetaProximaComida } from '../../componentes/ProximaComida'
 import { api } from '../../lib/api'
 import { diaUruguay, useNinoActivo } from '../../lib/nino'
 import { comidaRecienPorHora, comidasDelDia, horaUruguay, leerUltimaComida, proximaComida } from '../../lib/proximaComida'
 import { useApi } from '../../lib/useApi'
-import { hayComidas, leerMotor } from '../tablero/calculos'
+import { hayComidas } from '../tablero/calculos'
 import { Hoy } from './Hoy'
 
 const RESORTE = { type: 'spring', stiffness: 420, damping: 34 } as const
@@ -22,8 +24,6 @@ const RESORTE = { type: 'spring', stiffness: 420, damping: 34 } as const
 export function Inicio() {
   const ninoId = useNinoActivo()
   const { search } = useLocation()
-  const [params] = useSearchParams()
-  const motor = leerMotor(params.get('motor'))
   // El reloj se lee una vez al entrar: la pantalla no cambia de comida mientras el padre la mira.
   const [ahora] = useState(() => ({ dia: diaUruguay(), hora: horaUruguay() }))
 
@@ -31,8 +31,8 @@ export function Inicio() {
   const ultima = leerUltimaComida(ninoId, ahora.dia)
   const estimada = proximaComida(ultima ? [ultima] : [], ahora.hora)
   const progreso = useApi(
-    (s) => api.progreso(ninoId, { dias: 7, motor, momento: estimada.momento }, s),
-    [ninoId, motor],
+    (s) => api.progreso(ninoId, { dias: 7, momento: estimada.momento }, s),
+    [ninoId],
   )
   const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
   const nombre = perfil.tipo === 'ok' ? perfil.datos.datos.nombre : null
@@ -54,22 +54,27 @@ export function Inicio() {
       </header>
 
       {progreso.tipo === 'error' && <ErrorConReintento error={progreso.error} reintentar={progreso.reintentar} />}
-      {progreso.tipo !== 'error' && <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={datos} motor={motor} />}
+      {progreso.tipo !== 'error' && <TarjetaProximaComida ninoId={ninoId} proxima={proxima} progreso={datos} />}
 
-      <motion.div whileTap={{ scale: 0.97 }} transition={RESORTE} className="rounded-full">
-        <Link
-          to={{ pathname: '/registrar', search: `?${registrar}` }}
-          className="flex min-h-[76px] items-center gap-4 rounded-full bg-brote py-2.5 pr-6 pl-2.5 transition-colors duration-150 hover:bg-[color-mix(in_oklch,var(--nb-brote),var(--nb-verde)_12%)]"
-        >
-          <span className="grid size-14 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
-            <Camera className="size-6" strokeWidth={2.25} aria-hidden="true" />
-          </span>
-          <span className="flex flex-col">
-            <span className="font-titulo text-xl font-extrabold">Registrar comida</span>
-            <span className="text-sm text-musgo">Una foto y contás cómo le fue</span>
-          </span>
-        </Link>
-      </motion.div>
+      <div className="flex flex-col gap-3">
+        <motion.div whileTap={{ scale: 0.97 }} transition={RESORTE} className="rounded-full">
+          <Link
+            to={{ pathname: '/registrar', search: `?${registrar}` }}
+            className="flex min-h-[76px] items-center gap-4 rounded-full bg-brote py-2.5 pr-6 pl-2.5 transition-colors duration-150 hover:bg-[color-mix(in_oklch,var(--nb-brote),var(--nb-verde)_12%)]"
+          >
+            <span className="grid size-14 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+              <Camera className="size-6" strokeWidth={2.25} aria-hidden="true" />
+            </span>
+            <span className="flex flex-col">
+              <span className="font-titulo text-xl font-extrabold">Registrar comida</span>
+              <span className="text-sm text-musgo">Una foto y contás cómo le fue</span>
+            </span>
+          </Link>
+        </motion.div>
+
+        {/* Debajo de registrar, que es lo que alimenta todo: la receta para otra comida que elige el padre (v5.3). */}
+        <GenerarReceta ninoId={ninoId} />
+      </div>
 
       {progreso.tipo === 'cargando' && (
         <div className="flex items-center gap-4 rounded-2xl border bg-card p-4 pr-5">
@@ -79,7 +84,7 @@ export function Inicio() {
       )}
       {datos && <Hoy dia={diaHoy} semana={datos.semana} hayComidasSemana={hayComidas(datos.dias)} />}
 
-      {datos && datos.alertas.length > 0 && <Alertas alertas={datos.alertas} />}
+      {datos && <AvisoConsulta alertas={datos.alertas} />}
 
       <Link
         to={{ pathname: '/tablero', search }}
@@ -89,24 +94,6 @@ export function Inicio() {
         Ver la semana
       </Link>
     </div>
-  )
-}
-
-/** Un aviso tibio y calmo: derivar al profesional, sin alarmar (§10.4). */
-function Alertas({ alertas }: { alertas: Alerta[] }) {
-  const id = useId()
-  return (
-    <section className="flex items-start gap-3 rounded-2xl bg-zapallo-claro p-4 pr-5" aria-labelledby={`${id}-t`}>
-      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-background">
-        <Stethoscope className="size-5" strokeWidth={2.25} aria-hidden="true" />
-      </span>
-      <div className="flex flex-col gap-1 pt-0.5">
-        <h2 id={`${id}-t`} className="text-base">Para comentar con su pediatra</h2>
-        <ul className="flex flex-col gap-1 text-sm">
-          {alertas.map((a, i) => <li key={`${a.tipo}-${i}`} className="text-pretty">{a.texto}</li>)}
-        </ul>
-      </div>
-    </section>
   )
 }
 

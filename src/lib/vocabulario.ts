@@ -73,7 +73,8 @@ export function atributoLegible(par: string): string {
 export function formatoNutriente(n: Nutriente, valor: number): string {
   return `${valor.toLocaleString('es-UY', { maximumFractionDigits: DECIMALES[n] })} ${UNIDAD[n]}`
 }
-export const porcentaje = (x: number) => `${Math.round(x * 100)}%`
+/** "40%". Con tope en 100%: hacia el padre ningún porcentaje de cobertura pasa de 100 (src/lib/cobertura.ts). */
+export const porcentaje = (x: number) => `${Math.min(Math.round((Number.isFinite(x) ? Math.max(x, 0) : 0) * 100), 100)}%`
 
 /**
  * Hacia el padre nunca se dice "rechaza" (§9): los textos de patrones y de "qué aprendí" que arma B

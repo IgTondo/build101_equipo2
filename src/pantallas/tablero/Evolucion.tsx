@@ -1,5 +1,6 @@
 // Evolución de las últimas 4 semanas (§1): un gráfico con la misma escala (0 a lo recomendado) para el promedio de los
 // 8 nutrientes (área verde) y el que más falta (línea Zapallo). Cada serie con su resumen en texto, y una tabla.
+// Con tope en 100%, como en toda la app (src/lib/cobertura.ts): lo que pasa de lo recomendado no se dibuja.
 // El gráfico se dibuja una vez, cuando se ve; con movimiento reducido aparece quieto.
 import { ChevronDown } from 'lucide-react'
 import { useInView, useReducedMotion } from 'motion/react'
@@ -8,6 +9,7 @@ import { Area, CartesianGrid, ComposedChart, LabelList, Line, ReferenceLine, XAx
 import type { Nutriente, Progreso } from '../../../shared/contratos'
 import { ChartContainer, ChartTooltip, type ChartConfig } from '../../componentes/ui/chart'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../componentes/ui/collapsible'
+import { fraccionBarra } from '../../lib/cobertura'
 import { NOMBRE_NUTRIENTE, porcentaje } from '../../lib/vocabulario'
 import { coberturaPromedio, fechaCorta, textoEvolucion } from './calculos'
 
@@ -35,10 +37,10 @@ export function Evolucion({ semanas, nutriente }: { semanas: Progreso['semanas']
     { clave: 'promedio', titulo: 'Promedio de los 8 nutrientes', valores: orden.map((s) => coberturaPromedio(s.cobertura)) },
   ]
   if (nutriente) {
-    series.push({ clave: 'falta', titulo: `${NOMBRE_NUTRIENTE[nutriente]}, lo que más le falta`, valores: orden.map((s) => s.cobertura[nutriente] ?? 0) })
+    // El promedio ya viene topeado (cada nutriente en 100%); el que más falta se topea acá.
+    series.push({ clave: 'falta', titulo: `${NOMBRE_NUTRIENTE[nutriente]}, lo que más le falta`, valores: orden.map((s) => fraccionBarra(s.cobertura[nutriente] ?? 0)) })
   }
   const datos: Punto[] = etiquetas.map((semana, i) => Object.assign({ semana }, ...series.map((s) => ({ [s.clave]: s.valores[i] }))))
-  const tope = Math.max(1, ...series.flatMap((s) => s.valores))
   const config = {
     promedio: { label: 'Promedio de los 8 nutrientes', color: 'var(--nb-verde)' },
     falta: { label: nutriente ? NOMBRE_NUTRIENTE[nutriente] : '', color: 'var(--nb-zapallo)' },
@@ -98,7 +100,7 @@ export function Evolucion({ semanas, nutriente }: { semanas: Progreso['semanas']
               />
               <XAxis dataKey="semana" tickLine={false} axisLine={false} tickMargin={10} padding={{ left: 14, right: 22 }} />
               <YAxis
-                domain={[0, tope]}
+                domain={[0, 1]}
                 ticks={[0, 0.5, 1]}
                 tickFormatter={(v: number) => porcentaje(v)}
                 tickLine={false}

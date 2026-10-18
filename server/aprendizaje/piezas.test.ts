@@ -5,6 +5,7 @@ import { resolverComida } from '../datos/resolver.js'
 import { estadoDe, procesarHistorial } from './aceptacion.js'
 import { type PrepConocida, cambios, esSegura, reglaQueViola } from './cadena.js'
 import { propagar } from './propagacion.js'
+import { textoBorrado } from './aprendi.js'
 import { textoPatron } from './textos.js'
 
 const catalogo = catalogoPrueba()
@@ -63,8 +64,36 @@ describe('textos de los patrones (sin LLM)', () => {
       'Lo crocante servido separado lo acepta (5 de 5)',
     )
     expect(textoPatron([{ tipo: 'forma', valor: 'pure' }, { tipo: 'color', valor: 'verde' }], 'acepta', 3, 3)).toBe('Lo verde en puré lo acepta (3 de 3)')
-    expect(textoPatron([{ tipo: 'presentacion', valor: 'mezclado' }], 'rechaza', 3, 3)).toBe('Lo mezclado lo rechaza (3 de 3)')
-    expect(textoPatron([{ tipo: 'grupo', valor: 'verdura' }], 'rechaza')).toBe('Las verduras las rechaza')
+    expect(textoPatron([{ tipo: 'presentacion', valor: 'mezclado' }], 'rechaza', 3, 3)).toBe('Lo mezclado todavía no lo acepta (3 de 3)')
+    expect(textoPatron([{ tipo: 'grupo', valor: 'verdura' }], 'rechaza')).toBe('Las verduras todavía no las acepta')
+  })
+
+  it('nunca dice "rechaza" (§9) y concuerda con los sujetos en plural', () => {
+    expect(textoPatron([{ tipo: 'grupo', valor: 'cereal_almidon' }, { tipo: 'presentacion', valor: 'separado' }], 'acepta', 17, 20)).toBe(
+      'Los cereales, panes y papas servidos separados los acepta (17 de 20)',
+    )
+    expect(textoPatron([{ tipo: 'grupo', valor: 'verdura' }, { tipo: 'coccion', valor: 'hervido' }], 'rechaza', 4, 4)).toBe(
+      'Las verduras hervidas todavía no las acepta (4 de 4)',
+    )
+    expect(textoPatron([{ tipo: 'grupo', valor: 'fruta' }, { tipo: 'forma', valor: 'entero' }], 'rechaza')).toBe('Las frutas enteras todavía no las acepta')
+    expect(textoPatron([{ tipo: 'grupo', valor: 'lacteo' }, { tipo: 'coccion', valor: 'listo' }], 'acepta')).toBe('Los lácteos como vienen los acepta')
+    // Con un adjetivo el sujeto es "lo …": singular, aunque el grupo vaya después
+    expect(textoPatron([{ tipo: 'textura', valor: 'crocante' }, { tipo: 'grupo', valor: 'cereal_almidon' }, { tipo: 'presentacion', valor: 'separado' }], 'acepta'))
+      .toBe('Lo crocante servido separado entre los cereales, panes y papas lo acepta')
+    expect(textoPatron([{ tipo: 'distribucion', valor: 'tocandose' }], 'rechaza')).toBe('Lo que se sirve cuando los alimentos se tocan todavía no lo acepta')
+    expect(textoPatron([{ tipo: 'textura', valor: 'blando' }], 'rechaza', 6, 6)).not.toMatch(/rechaz/)
+  })
+
+  it('un "todavía no lo acepta" que se borra se cuenta en positivo y sin ambigüedad', () => {
+    expect(textoBorrado([{ tipo: 'presentacion', valor: 'mezclado' }], 'Arroz con pollo', false)).toBe(
+      'Lo mezclado ya no parece costarle tanto (esta vez comió arroz con pollo).',
+    )
+    expect(textoBorrado([{ tipo: 'grupo', valor: 'verdura' }], 'Brócoli hervido', false)).toBe(
+      'Las verduras ya no parecen costarle tanto (esta vez comió brócoli hervido).',
+    )
+    expect(textoBorrado([{ tipo: 'distribucion', valor: 'tocandose' }], 'Milanesa de carne al horno (rebozada sin huevo)', true)).toBe(
+      'Lo que se sirve cuando los alimentos se tocan no parece costarle, aunque a muchos chicos les cuesta (esta vez comió milanesa de carne al horno).',
+    )
   })
 })
 

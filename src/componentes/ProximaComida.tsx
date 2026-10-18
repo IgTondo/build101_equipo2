@@ -1,15 +1,16 @@
 // La tarjeta "Próxima comida" (PLAN v5.1, §9): la protagonista del inicio y el cierre del registro. "Para el almuerzo"
-// + la sugerencia con su porqué, sin LLM, sobre el cielo de esa comida (VISUAL_MOMENTO: el tinte y un disco, el sol o la
-// luna, con el alimento encima). Al tocarla se abre la receta para esa comida. Es una sugerencia: el padre puede servir
-// otra cosa. Una sugerencia "segura" (algo que ya come) no abre receta: se muestra sin enlace.
+// + la sugerencia con su porqué en una línea (el completo está en la receta), sin LLM, sobre el cielo de esa comida
+// (VISUAL_MOMENTO: el tinte y un disco, el sol o la luna, con el alimento encima). Al tocarla se abre la receta para esa
+// comida. Es una sugerencia: el padre puede servir otra cosa. Una sugerencia "segura" (algo que ya come) no abre
+// receta: se muestra sin enlace.
 import { cn } from 'cn'
 import { ChefHat } from 'lucide-react'
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import type { Motor, Nutriente, Progreso } from '../../shared/contratos'
+import type { Nutriente, Progreso } from '../../shared/contratos'
 import { VISUAL_MOMENTO } from '../lib/colores'
-import { elegirSugerencia, primeraFrase, rutaRecetaComida, type Principal, type ProximaComida } from '../lib/proximaComida'
+import { elegirSugerencia, lineaPorQue, rutaRecetaComida, type Principal, type ProximaComida } from '../lib/proximaComida'
 import { Bocaditos } from './Estados'
 import { IconoAlimento } from './IconoAlimento'
 
@@ -18,7 +19,6 @@ interface Props {
   proxima: ProximaComida
   /** null mientras carga. */
   progreso: Pick<Progreso, 'sugerencias' | 'proximoPaso' | 'semana' | 'momento'> | null
-  motor?: Motor
 }
 
 const RESORTE = { type: 'spring', stiffness: 420, damping: 34 } as const
@@ -30,7 +30,7 @@ const CIELO: Record<Principal, { fondo: string; disco: string; suave: string; ac
   cena: { fondo: 'bg-momento-cena text-white', disco: 'bg-momento-cena-claro', suave: 'text-white/85', accion: 'bg-hoja text-pino' },
 }
 
-export function TarjetaProximaComida({ ninoId, proxima, progreso, motor }: Props) {
+export function TarjetaProximaComida({ ninoId, proxima, progreso }: Props) {
   const titulo = <h2 className="sr-only">Próxima comida</h2>
   const cielo = CIELO[proxima.momento]
 
@@ -66,8 +66,11 @@ export function TarjetaProximaComida({ ninoId, proxima, progreso, motor }: Props
               </span>
             }
           >
-            <p className="mt-3 font-titulo text-2xl font-extrabold text-pretty">Todavía no tenemos una sugerencia.</p>
-            <p className={cn('mt-2 text-pretty', cielo.suave)}>Con algunas comidas más registradas vamos a poder proponerte una.</p>
+            {/* Una sola frase (C9), en dos renglones: lo que pasa y qué hacer. */}
+            <p className="mt-3 text-pretty">
+              <span className="block font-titulo text-2xl font-extrabold">Todavía sin idea:</span>{' '}
+              <span className={cn('mt-1 block', cielo.suave)}>registrá algunas comidas más.</span>
+            </p>
           </Cielo>
         </Flota>
       </section>
@@ -80,7 +83,8 @@ export function TarjetaProximaComida({ ninoId, proxima, progreso, motor }: Props
     </motion.span>
   )
   const nombre = <span className="mt-3 block font-titulo text-[2rem] leading-[1.06] font-black">{s.nombre}</span>
-  const porQue = s.porQue ? <span className="mt-3 block text-pretty">{primeraFrase(s.porQue)}</span> : null
+  // El porqué en una sola línea (C9): la primera oración hasta los dos puntos y, si igual no entra, con "…".
+  const porQue = s.porQue ? <span className="mt-3 block truncate">{lineaPorQue(s.porQue)}</span> : null
 
   if (s.tipo === 'segura') {
     return (
@@ -98,7 +102,7 @@ export function TarjetaProximaComida({ ninoId, proxima, progreso, motor }: Props
     <section>
       {titulo}
       <Flota tocable>
-        <Link to={rutaRecetaComida(ninoId, s, proxima.momento, nutriente, motor)} className="block rounded-3xl focus-visible:outline-none">
+        <Link to={rutaRecetaComida(ninoId, s, proxima.momento, nutriente)} className="block rounded-3xl focus-visible:outline-none">
           <Cielo proxima={proxima} disco={icono}>
             {nombre}
             {porQue}

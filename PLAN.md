@@ -1,6 +1,6 @@
 # Plan de implementación · build 101 · Nibble
 
-> v4 · sábado 17/10 · v2 (15:05): reenfocada en el objetivo (mejorar la alimentación del chico) e integrando el research `Selectividad alimentaria en niños autistas… .md`. Reemplaza la v1 de las 14:45. **v3: stack de costo casi cero (§4.1).** **v4 (después de la charla con el mentor): cocción como atributo, cita textual en cada respuesta, capas de datos y motores enchufables (§4.3), tres sugerencias en el tablero y dataset sintético de 2 chicos (§10.5).** **v5 (17/10, noche): alta desde cero por voz (§5.2) y se descarta el modo jurado. v5.1: el día se organiza en comidas (§9, "La pantalla principal"): cada registro sugiere la próxima comida.** Lo nuevo o cambiado en los contratos lleva `// v2`, `// v3`, `// v4` o `// v5`.
+> v4 · sábado 17/10 · v2 (15:05): reenfocada en el objetivo (mejorar la alimentación del chico) e integrando el research `Selectividad alimentaria en niños autistas… .md`. Reemplaza la v1 de las 14:45. **v3: stack de costo casi cero (§4.1).** **v4 (después de la charla con el mentor): cocción como atributo, cita textual en cada respuesta, capas de datos y motores enchufables (§4.3), tres sugerencias en el tablero y dataset sintético de 2 chicos (§10.5).** **v5.3 (18/10): "Generar receta" para la comida que elija el padre (§9).** **v5 (17/10, noche): alta desde cero por voz (§5.2) y se descarta el modo jurado. v5.1: el día se organiza en comidas (§9, "La pantalla principal"): cada registro sugiere la próxima comida.** Lo nuevo o cambiado en los contratos lleva `// v2`, `// v3`, `// v4` o `// v5`.
 > **Regla de oro:** antes de las 18:15 tiene que andar en el deploy, desde un celular, el ciclo **después de comer: foto + cómo le fue → análisis → grafo → tablero**. Todo lo demás viene después y, si no llega, se declara como pendiente.
 
 ---
@@ -42,6 +42,7 @@
 | Indicador | Cómo se calcula | Por qué |
 |---|---|---|
 | **Cobertura semanal de nutrientes** (principal) | Promedio diario de los últimos 7 días ÷ objetivo por edad y sexo, para 8 nutrientes (la energía va aparte) | Una comida tiene ±35% de error en gramos; la semana compensa. El research pide promediar por semana, no por día |
+| *Cómo se muestra (v5.2)* | Al padre, nunca un porcentaje mayor a 100: tres estados, **Cubierto ✓** (≥ 100%), **Casi** (70–99%) y **Le falta** (< 70%), con la barra hasta 100%. Pasar el objetivo no es "más es mejor": las cifras de referencia son mínimos | Un 158% de proteína es correcto (una milanesa supera los 19 g de un chico de 6 años), pero confunde |
 | **Qué le falta, en orden** | Entre los que están por debajo del 70% de cobertura semanal: vitamina C si casi no hay ninguna fuente (riesgo de escorbuto) → calcio y vitamina D → hierro → fibra → omega-3 → B12 y proteína | Prioridad por gravedad del research. Se ataca uno o dos por vez |
 | **Energía aproximada** | kcal por día, como dato | **Sin meta de calorías**: no se le cuentan calorías al chico |
 | **Repertorio** | Preparaciones en estado `acepta`, con la tendencia contra la semana anterior | Menos de 10–20 alimentos, o un repertorio que se achica, es señal de alerta |
@@ -76,7 +77,7 @@ Arriba de todo, una frase armada con una plantilla, sin LLM: *"Esta semana Tomá
 | **P2** | Curva del chico simulado (grafo contra base α/β) | B | Gráfica para la diapositiva |
 | **P2** | Evaluación de recetas (alergias, un solo cambio y lenguaje, sin y con validación) | A | % antes y después |
 | **P2** | Visualización del grafo del chico | C + B | Pantalla, o captura de Neo4j para el pitch |
-| **P2** | (v4) Switch `base` / `grafo` en el tablero (§4.3) | C + B | En vivo se ve que las sugerencias cambian |
+| ~~P2~~ | ~~(v4) Switch `base` / `grafo` en el tablero (§4.3)~~ **Fuera de la interfaz (v5.2):** al padre no le dice nada; la comparación se muestra en el pitch con la curva (§11.4). `?motor=` sigue en la API | — | — |
 | **P2** | Contradicciones entre la regla del padre y lo aprendido ("¿actualizo la regla?") | B | Aparece en "qué aprendí" |
 | **P2** | Patrones de conducta (mismo algoritmo con la conducta como resultado: "se angustia si hay más de 3 alimentos") | B | Aparece en "qué aprendí" |
 | **P2** | Aviso de agotamiento: un alimento seguro servido igual casi todos los días → sugerir rotar la presentación | B | Aparece en el tablero |
@@ -724,15 +725,16 @@ Observación = un ítem de una comida: `{ prepId, atributos (8, con la cocción)
 | C11 | README: qué es, cómo correrlo, arquitectura, componentes de IA, **tabla real / simulado / pendiente**, alcance declarado, resultados de calidad | — | P1 |
 | C12 | Pitch: guion, 5–6 diapositivas, video de respaldo | — | P1 |
 | C13 | Visualización del grafo (`react-force-graph` con `/api/grafo`) o captura de Neo4j Explore para la diapositiva | — | P2 |
-| C14 | (v4) Switch "recomendador: base / grafo" en el tablero (`?motor=`, §4.3), para mostrar en vivo que el grafo sugiere mejor | — | P2 |
+| C14 | ~~Switch "recomendador: base / grafo" en el tablero~~ **Descartado (v5.2):** no se muestra al padre; la comparación grafo/base va en la diapositiva de calidad (curva de §11.4) | — | — |
 
 **"¿Cómo le fue?" en la pantalla Registrar:** arriba, un botón grande "Contame cómo le fue" (voz). Abajo, por cada ítem, los 7 botones de la escalera (§5.1) y, por comida, los chips de conducta. Con voz, la IA los marca y el padre solo corrige. Sin voz, se tocan los botones. Nunca se guarda sin que el padre confirme.
 
 **La pantalla principal (v5.1).** El día se organiza en comidas: el padre registra cada comida al terminarla y la app le sugiere la siguiente.
 1. **Hoy:** cómo viene en nutrientes en el día (se actualiza con cada comida registrada) y una línea de la semana.
 2. **Próxima comida** (botón grande): "Para el almuerzo" + la sugerencia con su porqué (sin LLM). Al tocarla se genera la receta (§7) para esa comida. Es una sugerencia: el padre puede servir otra cosa.
-3. **Registrar comida**.
-4. Abajo, el acceso al detalle de la semana (el tablero completo).
+3. **Registrar comida**: la acción central; lo que alimenta todo lo demás.
+4. **Generar receta** (v5.3): para cuando el padre quiere una receta para otra comida. Abre una ventana con **Desayuno · Almuerzo · Merienda · Cena** y sigue el flujo de siempre: la sugerencia del grafo para esa comida (`/api/progreso?momento=`, solo un `un_paso` o `mas_nutritiva`, que son las que tienen receta) → la receta de food chaining con su imagen (§7). No es un generador de menús: es el mismo paso chico desde algo que ya come, para la comida elegida. Si no hay nada para esa comida, lo dice con calma.
+5. Abajo, el acceso al detalle de la semana (el tablero completo).
 
 La próxima comida es la principal que sigue a la última registrada hoy: desayuno → almuerzo → cena → desayuno del día siguiente (merienda y colación llevan a la principal que sigue). Sin comidas hoy, la que corresponde por la hora. Al guardar una comida, la pantalla de resultado termina con la tarjeta de la próxima comida.
 

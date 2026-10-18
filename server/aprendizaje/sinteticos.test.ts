@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import type { Momento, Motor, Nutriente } from '../../shared/contratos.js'
 import { alimentosPrueba, catalogoPrueba, comidasSinteticas, ninoDoc, sintetico } from '../datos/prueba/catalogos.js'
 import { sumarDias } from '../datos/fechas.js'
+import { resolverComida } from '../datos/resolver.js'
 import { faltanSemana } from '../nutricion/calcular.js'
 import { objetivosPara } from '../nutricion/objetivos.js'
 import { armarProgreso, semana } from '../nutricion/progreso.js'
@@ -120,7 +121,9 @@ describe('Lucía (10 años)', () => {
       const despues = calcularEstado(nino, comidas.slice(0, i + 1), catalogo)
       return queAprendi(antes, despues, c, nino.reglas).filter((a) => a.tipo === 'contradiccion').map((a) => `${c.dia} ${a.texto}`)
     })
-    expect(textos[0]).toBe('2026-10-15 Contaste: "No come nada verde". Pero aceptó 3 veces arvejas en puré. ¿Actualizo la regla?')
+    expect(textos[0]).toBe(
+      '2026-10-15 Contaste: "No come nada verde". Pero esta vez comió arvejas en puré, y ya van 3 veces que come algo así. ¿Actualizo la regla?',
+    )
   })
 })
 
@@ -145,6 +148,50 @@ describe('qué aprendí, comida por comida (Tomás)', () => {
   it('nunca usa lenguaje de presión', () => {
     const prohibidas = ['que termine', 'una probadita más', 'premio', 'si come', 'escondé', 'disimulá', 'suplemento']
     for (const a of aprendizajes.flat()) for (const p of prohibidas) expect(a.texto.toLowerCase()).not.toContain(p)
+  })
+
+  it('sin números de aceptación ni "rechaza": "le está gustando más (comió todo)"', () => {
+    const textos = aprendizajes.flat().map((a) => a.texto)
+    for (const t of textos) expect(t).not.toMatch(/aceptación|\d,\d|→|rechaz/i)
+    expect(textos).toContain('Tostadas de pan blanco: le está gustando más (comió todo).')
+  })
+})
+
+describe('qué aprendí cuando se borra un patrón (lo que ve el padre, 000)', () => {
+  const { s, nino, comidas } = preparar('tomas')
+  // Tomás come todo el arroz con pollo (mezclado), con los alimentos tocándose: contradice "lo mezclado" y la investigación
+  const base = s.comidas.find((c) => c.analisis.items.some((it) => it.preparacionId === 'arroz_con_pollo'))
+  if (!base) throw new Error('Falta el arroz con pollo de Tomás')
+  const extra = (dia: string, i: number) =>
+    resolverComida(
+      {
+        ...base, dia, fechaISO: `${dia}T12:30:00-03:00`,
+        analisis: { ...base.analisis, analisisId: `extra-${i}`, distribucion: { ...base.analisis.distribucion, estado: 'tocandose' } },
+        respuestas: base.respuestas.map((r) => ({ ...r, cuanto: 'todo' })),
+      },
+      { id: `extra-${i}`, creadoISO: `${dia}T12:30:00-03:00`, alimentos, catalogo },
+    )
+  const historial = [...comidas]
+  const aprendizajes = ['2026-10-17', '2026-10-18', '2026-10-19'].map((dia, i) => {
+    const c = extra(dia, i)
+    const antes = calcularEstado(nino, historial, catalogo)
+    historial.push(c)
+    return queAprendi(antes, calcularEstado(nino, historial, catalogo), c, nino.reglas)
+  })
+  const textos = aprendizajes.flat().map((a) => a.texto)
+
+  it('no dice "Ya no se cumple" ni "no se cumple lo que dice la investigación"', () => {
+    for (const t of textos) expect(t).not.toMatch(/no se cumple|investigación|rechaz/i)
+  })
+
+  it('lo dice en positivo, uno por comida y nombrando lo que comió', () => {
+    const borrados = aprendizajes.map((as) => as.filter((a) => a.tipo === 'patron_borrado'))
+    expect(borrados.every((b) => b.length <= 1)).toBe(true)
+    expect(borrados[0]?.[0]?.texto).toMatch(/^Lo .+ ya no parece costarle tanto \(esta vez comió arroz con pollo\)\.$/)
+  })
+
+  it('la contradicción con lo que contó el padre se mantiene, clara', () => {
+    expect(textos).toContain('Contaste: "No come nada mezclado". Pero esta vez comió arroz con pollo, y ya van 3 veces que come algo así. ¿Actualizo la regla?')
   })
 })
 

@@ -1,9 +1,11 @@
 // Los números de la semana en tablas, para el nutricionista: los mismos que cuenta el texto, tomados del progreso que
-// vino con el resumen (acá no se calcula nada nuevo). La cobertura va en barras finas; lo que le falta, en Zapallo.
+// vino con el resumen (acá no se calcula nada nuevo). La cobertura va en barras finas que no pasan de lo recomendado
+// (como los porcentajes, con tope en 100%); lo que le falta, en Zapallo.
 import { cn } from 'cn'
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import type { Progreso } from '../../../shared/contratos'
+import { fraccionBarra } from '../../lib/cobertura'
 import { COLOR_GRUPO } from '../../lib/colores'
 import { ESCALON, NOMBRE_GRUPO, NOMBRE_NUTRIENTE, NUTRIENTES_CON_META, porcentaje } from '../../lib/vocabulario'
 
@@ -32,7 +34,7 @@ export function NumerosDeLaSemana({ progreso }: { progreso: Progreso }) {
 
   return (
     <section aria-labelledby="rs-numeros" className="flex flex-col gap-7">
-      <h3 id="rs-numeros" className="sr-only">Los números de la semana</h3>
+      <h2 id="rs-numeros" className="sr-only">Los números de la semana</h2>
 
       <div className="flex flex-col gap-2">
         <Tabla titulo="Cobertura semanal de nutrientes" columnas={[{ texto: 'Nutriente' }, { texto: 'De la referencia', derecha: true }]}>
@@ -50,7 +52,7 @@ export function NumerosDeLaSemana({ progreso }: { progreso: Progreso }) {
                     <span aria-hidden="true" className="rs-imprimir-color h-1.5 w-20 overflow-hidden rounded-full bg-muted">
                       <motion.span
                         className={cn('block h-full origin-left rounded-full', falta ? 'bg-zapallo' : 'bg-hoja')}
-                        style={{ width: `${Math.min(c, 1) * 100}%` }}
+                        style={{ width: `${fraccionBarra(c) * 100}%` }}
                         initial={{ scaleX: 0 }}
                         animate={{ scaleX: 1 }}
                         transition={{ duration: 0.7, delay: 0.1 + i * 0.03, ease: [0.22, 1, 0.36, 1] }}

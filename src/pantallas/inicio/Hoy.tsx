@@ -1,16 +1,20 @@
 // "Hoy" (PLAN v5.1, §9 "La pantalla principal"): cómo viene en nutrientes en el día, con cada comida registrada, y una
-// línea de la semana. El día es un plato visto desde arriba: los 8 nutrientes son anillos alrededor del borde (lleno =
-// lo recomendado por día; no se tocan, el detalle está en la semana) y la energía va en el centro, como dato, sin meta.
-// Lo que más le falta en la semana (`semana.faltan`, §1) va en Zapallo. Sin comidas hoy, el plato vacío.
+// línea de la semana. Sin porcentajes: cada nutriente tiene un estado (Cubierto / Casi / Le falta, src/lib/cobertura.ts).
+// El día es un plato visto desde arriba: los 8 nutrientes son anillos alrededor del borde, con el ícono y el color de su
+// estado, que se llenan hasta lo recomendado por día y no pasan. Abajo, los mismos agrupados por estado en tres líneas
+// que se leen de un vistazo (el detalle, barras y cantidades, está en la semana). La energía va en el centro, como dato,
+// sin meta. Sin comidas hoy, el plato vacío.
 import { cn } from 'cn'
 import { useInView } from 'motion/react'
 import { useId, useRef } from 'react'
 import type { CoberturaDia, Momento, Nutriente, Progreso } from '../../../shared/contratos'
 import { Anillo } from '../../componentes/Anillo'
+import { EtiquetaEstado } from '../../componentes/EstadoNutriente'
 import { PlatoVacio } from '../../componentes/Ilustraciones'
 import { NumeroAnimado } from '../../componentes/NumeroAnimado'
+import { contarEstados, ESTADOS, estadoCobertura, fraccionBarra, type EstadoCobertura } from '../../lib/cobertura'
 import { VISUAL_MOMENTO } from '../../lib/colores'
-import { NOMBRE_MOMENTO, NOMBRE_NUTRIENTE, NUTRIENTES_CON_META, porcentaje } from '../../lib/vocabulario'
+import { NOMBRE_MOMENTO, NOMBRE_NUTRIENTE, NUTRIENTES_CON_META } from '../../lib/vocabulario'
 import { nutrienteEnFrase } from '../receta/legible'
 import { ordenarNutrientes } from '../tablero/calculos'
 
@@ -22,14 +26,24 @@ interface Props {
   hayComidasSemana: boolean
 }
 
-/** "Semana: 4 de 8 nutrientes cubiertos. Le falta más: calcio y vitamina D." */
+/** "Semana: le falta más calcio y vitamina D." (los dos primeros de `semana.faltan`, por debajo del 70%, §1). */
 export function lineaSemana(semana: Progreso['semana']): string {
   const faltan = semana.faltan.filter((n) => NUTRIENTES_CON_META.includes(n))
-  const cubiertos = NUTRIENTES_CON_META.length - faltan.length
-  const base = `Semana: ${cubiertos} de ${NUTRIENTES_CON_META.length} nutrientes cubiertos.`
-  if (!faltan.length) return base
-  const dos = faltan.slice(0, 2).map(nutrienteEnFrase)
-  return `${base} Le falta más: ${dos.join(' y ')}.`
+  if (!faltan.length) return 'Semana: no le falta ninguno.'
+  return `Semana: le falta más ${faltan.slice(0, 2).map(nutrienteEnFrase).join(' y ')}.`
+}
+
+/** Los nutrientes con meta agrupados por estado, en el orden de prioridad de la semana. Sin grupos vacíos. */
+export function porEstado(cobertura: CoberturaDia['cobertura'], orden: readonly Nutriente[]): { estado: EstadoCobertura; nutrientes: Nutriente[] }[] {
+  return ESTADOS
+    .map((estado) => ({ estado, nutrientes: orden.filter((n) => estadoCobertura(cobertura[n] ?? 0) === estado) }))
+    .filter((g) => g.nutrientes.length > 0)
+}
+
+/** "Calcio, vitamina D y fibra". */
+function listaNutrientes(ns: readonly Nutriente[]): string {
+  const xs = ns.map((n, i) => (i === 0 ? NOMBRE_NUTRIENTE[n] : nutrienteEnFrase(n)))
+  return xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} y ${xs.at(-1)}`
 }
 
 const PLURAL_MOMENTO: Record<string, string> = {
@@ -106,17 +120,24 @@ function ComidasDeHoy({ dia }: { dia: CoberturaDia }) {
 // Los anillos van sobre el ala del plato, a esta distancia del centro (en % del lado), desde las 12 y en sentido horario.
 const RADIO = 35.5
 
+/** El color de cada anillo según su estado, como las barras de la semana: verde, Hoja y Zapallo (con su pista teñida). */
+const ANILLO: Record<EstadoCobertura, { color: string; pista: string }> = {
+  cubierto: { color: 'var(--nb-verde)', pista: 'var(--nb-blanco)' },
+  casi: { color: 'var(--nb-hoja)', pista: 'var(--nb-blanco)' },
+  falta: { color: 'var(--nb-zapallo)', pista: 'var(--nb-zapallo-claro)' },
+}
+
 function PlatoDelDia({ dia, faltan }: { dia: CoberturaDia; faltan: readonly Nutriente[] }) {
-  const orden = ordenarNutrientes(faltan)
-  const prioridad = (n: Nutriente) => faltan.includes(n)
-  const hayPrioridad = orden.some(prioridad)
+  const grupos = porEstado(dia.cobertura, ordenarNutrientes(faltan))
+  // En el plato, en el mismo orden que las líneas de abajo: lo cubierto, lo que casi y lo que le falta, juntos.
+  const anillos = grupos.flatMap((g) => g.nutrientes.map((n) => ({ n, estado: g.estado })))
   const kcal = dia.consumido.valor.energia_kcal ?? 0
   // El plato se llena una sola vez, cuando aparece (queda abajo de la primera pantalla), igual que sus números.
   const ref = useRef<HTMLDivElement>(null)
   const visto = useInView(ref, { once: true, amount: 0.3 })
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-4">
       <div ref={ref} className="relative aspect-square w-full max-w-[332px]">
         <svg viewBox="0 0 100 100" className="absolute inset-0 size-full" aria-hidden="true" focusable="false">
           <circle cx="50" cy="50" r="49.4" fill="var(--nb-brote)" stroke="var(--nb-hoja)" strokeWidth="0.7" />
@@ -133,11 +154,10 @@ function PlatoDelDia({ dia, faltan }: { dia: CoberturaDia; faltan: readonly Nutr
           <span className="text-xs text-musgo">kcal</span>
         </p>
 
-        <ul aria-label="Nutrientes de hoy, de lo recomendado por día">
-          {orden.map((n, i) => {
-            const cobertura = Math.max(0, dia.cobertura[n] ?? 0)
-            const destacado = prioridad(n)
-            const angulo = (i / orden.length) * 2 * Math.PI
+        {/* Lo mismo que dicen las líneas de abajo, dibujado: para los lectores de pantalla quedan las líneas. */}
+        <ul aria-hidden="true">
+          {anillos.map(({ n, estado }, i) => {
+            const angulo = (i / anillos.length) * 2 * Math.PI
             return (
               <li
                 key={n}
@@ -145,50 +165,76 @@ function PlatoDelDia({ dia, faltan }: { dia: CoberturaDia; faltan: readonly Nutr
                 style={{ left: `${50 + RADIO * Math.sin(angulo)}%`, top: `${50 - RADIO * Math.cos(angulo)}%` }}
               >
                 <Anillo
-                  valor={visto ? cobertura : 0}
+                  valor={visto ? fraccionBarra(dia.cobertura[n] ?? 0) : 0}
                   tamano={54}
                   grosor={6}
-                  color={destacado ? 'var(--nb-zapallo)' : 'var(--nb-verde)'}
-                  pista={destacado ? 'var(--nb-zapallo-claro)' : 'var(--nb-blanco)'}
+                  color={ANILLO[estado].color}
+                  pista={ANILLO[estado].pista}
                   retraso={0.15 + i * 0.07}
                   className="rounded-full bg-white"
                 >
-                  <NumeroAnimado valor={cobertura} formato={porcentaje} className="text-[0.75rem] font-bold tracking-tight" />
+                  <IconoEstado estado={estado} />
                 </Anillo>
-                <span className={cn('text-xs leading-tight', destacado && 'font-bold')}>
-                  {NOMBRE_NUTRIENTE[n]}
-                  {destacado && <span className="sr-only"> (le falta en la semana)</span>}
-                </span>
+                <span className="text-xs leading-tight">{NOMBRE_NUTRIENTE[n]}</span>
               </li>
             )
           })}
         </ul>
       </div>
 
-      <p className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-musgo" aria-hidden="true">
-        {hayPrioridad && (
-          <span className="inline-flex items-center gap-1.5">
-            <span className="size-2.5 rounded-full bg-zapallo" />
-            Le falta en la semana
-          </span>
-        )}
-        <span className="inline-flex items-center gap-1.5">
-          <span className="size-3 rounded-full border-[2.5px] border-verde" />
-          Anillo lleno: lo recomendado del día
-        </span>
+      <p className="flex items-center gap-1.5 text-xs text-musgo" aria-hidden="true">
+        <span className="size-3 rounded-full border-[2.5px] border-verde" />
+        Anillo lleno: lo recomendado del día
       </p>
+
+      <p className="sr-only">Nutrientes de hoy, contra lo recomendado por día:</p>
+      <dl className="grid w-full grid-cols-[max-content_minmax(0,1fr)] items-baseline gap-x-3 gap-y-2.5 px-1">
+        {grupos.map((g) => (
+          <div key={g.estado} className="contents">
+            <dt><EtiquetaEstado estado={g.estado} /></dt>
+            <dd className="leading-snug text-pretty">{listaNutrientes(g.nutrientes)}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   )
 }
 
-/** La semana en 8 tramos (cubiertos en verde, lo que falta en Zapallo) y su línea. */
+/**
+ * El ícono del estado en el centro del anillo, el mismo de EtiquetaEstado para que las líneas de abajo sirvan de
+ * leyenda: lleno con un check (Cubierto), por la mitad (Casi) o un aro vacío (Le falta).
+ */
+function IconoEstado({ estado }: { estado: EstadoCobertura }) {
+  return (
+    <svg className="size-5" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      {estado === 'cubierto' && (
+        <>
+          <circle cx="8" cy="8" r="8" className="fill-verde" />
+          <path d="M4.75 8.25 7 10.5l4.25-4.5" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      )}
+      {estado === 'casi' && (
+        <>
+          <circle cx="8" cy="8" r="6.75" fill="none" strokeWidth="2.5" className="stroke-verde" />
+          <path d="M8 1.25a6.75 6.75 0 0 1 0 13.5z" className="fill-verde" />
+        </>
+      )}
+      {estado === 'falta' && <circle cx="8" cy="8" r="6.75" fill="none" strokeWidth="2.5" className="stroke-zapallo" />}
+    </svg>
+  )
+}
+
+const TRAMO: Record<EstadoCobertura, string> = { cubierto: 'bg-verde', casi: 'bg-hoja', falta: 'bg-zapallo' }
+
+/** La semana en 8 tramos, uno por nutriente con el color de su estado (la misma cuenta que la semana), y su línea. */
 function LineaSemana({ semana }: { semana: Progreso['semana'] }) {
-  const faltan = semana.faltan.filter((n) => NUTRIENTES_CON_META.includes(n)).length
+  const cuenta = contarEstados(semana.cobertura)
+  const tramos = ESTADOS.flatMap((estado) => Array.from({ length: cuenta[estado] }, () => estado))
   return (
     <div className="flex flex-col gap-2.5 px-1">
       <span className="flex gap-1" aria-hidden="true">
-        {NUTRIENTES_CON_META.map((n, i) => (
-          <span key={n} className={cn('h-2 flex-1 rounded-full', i < NUTRIENTES_CON_META.length - faltan ? 'bg-verde' : 'bg-zapallo')} />
+        {tramos.map((estado, i) => (
+          <span key={i} className={cn('h-2 flex-1 rounded-full', TRAMO[estado])} />
         ))}
       </span>
       <p className="text-sm text-pretty">{lineaSemana(semana)}</p>

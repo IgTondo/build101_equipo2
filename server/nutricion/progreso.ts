@@ -8,7 +8,7 @@ import type { Recomendacion } from '../aprendizaje/recomendador.js'
 import { NOMBRE_NUTRIENTE, lista, porciento } from '../aprendizaje/textos.js'
 import { diaDe, diasEntre, sumarDias } from '../datos/fechas.js'
 import type { ComidaDoc, NinoDoc } from '../datos/tipos.js'
-import { alertas } from './alertas.js'
+import { CONFIG_ALERTAS, alertas } from './alertas.js'
 import {
   cero, cobertura, escalar, faltanDia, faltanSemana, redondearCobertura, redondearRango, sumar, sumarRangos,
 } from './calcular.js'
@@ -89,8 +89,11 @@ export function patronesVista(patrones: readonly Patron[]): Progreso['patrones']
   }))
 }
 
-/** "Esta semana Tomás cubrió 5 de 8 nutrientes. Lo que más le falta: calcio (48%) y vitamina D (20%). Come 14 preparaciones (1 más que la semana pasada)." */
-export function frase(nombre: string, sem: Semana, faltan: readonly Nutriente[], aceptadas: number, tendencia: number): string {
+/**
+ * "Esta semana Tomás cubrió 5 de 8 nutrientes. Lo que más le falta: calcio (48%) y vitamina D (20%). Come 14 preparaciones (1 más que la semana pasada)."
+ * `tendencia` null = no hay semana pasada (el chico es nuevo): no se compara.
+ */
+export function frase(nombre: string, sem: Semana, faltan: readonly Nutriente[], aceptadas: number, tendencia: number | null): string {
   if (sem.diasRegistrados === 0) {
     return `Todavía no hay comidas registradas esta semana. Cuando registres la próxima, vas a ver cómo viene ${nombre}.`
   }
@@ -101,10 +104,15 @@ export function frase(nombre: string, sem: Semana, faltan: readonly Nutriente[],
       ? `Lo que más le falta: ${lista(faltan.slice(0, 2).map((n) => `${NOMBRE_NUTRIENTE[n]} (${porciento(sem.cobertura[n])})`))}.`
       : 'Ningún nutriente clave está por debajo del 70%.',
   )
-  const t = tendencia > 0 ? `${tendencia} más que la semana pasada` : tendencia < 0 ? `${-tendencia} menos que la semana pasada` : 'igual que la semana pasada'
-  partes.push(`Come ${aceptadas} ${aceptadas === 1 ? 'preparación' : 'preparaciones'} (${t}).`)
+  const t =
+    tendencia === null ? '' : tendencia > 0 ? `${tendencia} más que la semana pasada` : tendencia < 0 ? `${-tendencia} menos que la semana pasada` : 'igual que la semana pasada'
+  partes.push(`Come ${aceptadas} ${aceptadas === 1 ? 'preparación' : 'preparaciones'}${t ? ` (${t})` : ''}.`)
   return partes.join(' ')
 }
+
+/** El primer día que se conoce del chico: el alta o la primera comida registrada, lo que sea antes. */
+const inicioDe = (nino: NinoDoc, comidas: readonly ComidaDoc[], hoy: string): string =>
+  [diaDe(nino.creadoISO), ...comidas.map((c) => c.dia)].sort()[0] ?? hoy
 
 /** Las alertas de §10.4 con el estado del chico al día `hoy`. */
 export function evaluarAlertas(
@@ -116,7 +124,7 @@ export function evaluarAlertas(
   sem: Semana,
 ): Alerta[] {
   const hasta = comidasEntre(comidas, '0000-00-00', hoy)
-  const inicio = [diaDe(nino.creadoISO), ...hasta.map((c) => c.dia)].sort()[0] ?? hoy
+  const inicio = inicioDe(nino, hasta, hoy)
   const diasDeHistorial = Math.max(0, diasEntre(inicio, hoy))
   const aceptadas = [...estado.estados.values()].filter((s) => s.estado === 'acepta')
   const nuevas = aceptadas.filter((s) => estadoHace14.estados.get(s.prepId)?.estado !== 'acepta')
@@ -131,6 +139,8 @@ export function evaluarAlertas(
     segurasPerdidas: perdidas,
     grupos: gruposDesde(hasta, hoy),
     diasDeHistorial,
+    diasRegistrados: new Set(hasta.map((c) => c.dia)).size,
+    comidasRecientes: comidasEntre(hasta, sumarDias(hoy, -(CONFIG_ALERTAS.diasRepertorioBaja - 1)), hoy).length,
     coberturaSemana: sem.cobertura,
     diasRegistradosSemana: sem.diasRegistrados,
     conductasSemana: comidasEntre(hasta, sumarDias(hoy, -6), hoy).map((c) => c.conducta),
@@ -172,7 +182,8 @@ export function armarProgreso(e: EntradaProgreso): Progreso {
     aceptadas,
     enProceso: contar(e.estado, 'en_proceso'),
     patrones: patronesVista(e.estado.patrones),
-    frase: frase(e.nino.datos.nombre, sem, faltan, aceptadas, tendencia),
+    // Si el chico es de esta semana no hay "semana pasada" con qué comparar
+    frase: frase(e.nino.datos.nombre, sem, faltan, aceptadas, diasEntre(inicioDe(e.nino, hasta, e.hoy), e.hoy) >= 7 ? tendencia : null),
     semanas,
     repertorioTendencia: tendencia,
     grupos: gruposDesde(hasta, e.hoy),

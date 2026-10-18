@@ -176,7 +176,7 @@ export function NotaDeVoz({ ninoId, analisis, alRelato, transcripcion }: Props) 
           {listo && (
             <p className="flex items-start gap-2.5 font-bold text-pino" role="status">
               <CircleCheck className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
-              Listo: marcamos lo que contaste. Revisalo abajo y corregí lo que haga falta.
+              Listo: marcamos lo que contaste. Revisalo abajo.
             </p>
           )}
           {transcripcion && listo && (
@@ -218,7 +218,7 @@ export function NotaDeVoz({ ninoId, analisis, alRelato, transcripcion }: Props) 
             <p id={`${id}-ayuda`} className={cn('text-sm text-musgo', centrado && 'max-w-72')}>
               {grabador.estado === 'pidiendo'
                 ? 'Pidiendo permiso para usar el micrófono…'
-                : `Hasta ${MAX_SEGUNDOS} segundos. Por ejemplo: "el puré lo dejó en el plato, la milanesa la probó".`}
+                : `Hasta ${MAX_SEGUNDOS} segundos. Ej.: «el puré lo dejó, la milanesa la probó».`}
             </p>
           )}
 

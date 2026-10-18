@@ -14,7 +14,7 @@ export function NavInferior({ search }: { search: string }) {
   return (
     <nav
       aria-label="Principal"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(14px,env(safe-area-inset-bottom))]"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(14px,env(safe-area-inset-bottom))] print:hidden"
     >
       <ul className="pointer-events-auto mx-auto flex max-w-sm items-center gap-1 rounded-full border bg-background p-1.5 shadow-flotante">
         {NAV.map(({ a, texto, Icono }) => (

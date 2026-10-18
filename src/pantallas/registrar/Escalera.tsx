@@ -24,7 +24,7 @@ const ALTO_ESCALON = (nivel: number) => 14 + nivel * 11
 function aliento(c: Cuanto): string | null {
   if (c === 'nada') return 'Que esté en el plato ya es un avance.'
   if (c === 'toco' || c === 'probo') return `${mayuscula(ESCALON[c])}: cada paso cuenta.`
-  if (c === 'aparto') return 'Está bien, queda anotado. Se puede volver a ofrecer otro día, sin presión.'
+  if (c === 'aparto') return 'Queda anotado. Otro día se vuelve a ofrecer, sin presión.'
   return null
 }
 
@@ -162,8 +162,9 @@ export function ChipsConducta({ marcadas, deIA, alCambiar }: {
   return (
     <div className="rounded-2xl border bg-card p-4">
       <fieldset className="flex min-w-0 flex-col gap-3">
-        <legend className="mb-1 font-titulo text-xl font-extrabold">¿Cómo estuvo en la mesa?</legend>
-        <p className="-mt-1 text-sm text-musgo">Podés marcar varias, o ninguna.</p>
+        <legend className="mb-3 font-titulo text-xl font-extrabold">
+          ¿Cómo estuvo en la mesa? <span className="font-sans text-sm font-normal text-musgo">(opcional)</span>
+        </legend>
         <div className="flex flex-wrap gap-2">
           {CONDUCTA.map((c) => {
             const on = marcadas.includes(c)
@@ -184,7 +185,7 @@ export function ChipsConducta({ marcadas, deIA, alCambiar }: {
         </div>
         {deIA.length > 0 && (
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-musgo">
-            <MarcaNota className="bg-brote" /> lo que tiene el micrófono salió de lo que contaste.
+            <MarcaNota className="bg-brote" /> lo que tiene el micrófono.
           </p>
         )}
       </fieldset>

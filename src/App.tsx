@@ -38,7 +38,7 @@ function AvisoDatosDeEjemplo() {
   if (!lista.length) return null
   const partes = lista.map((e) => QUE_ES[e] ?? e)
   return (
-    <p className="flex items-start gap-2.5 rounded-2xl border border-dashed border-input bg-muted px-3.5 py-2.5 text-sm text-musgo" role="note">
+    <p className="flex items-start gap-2.5 rounded-2xl border border-dashed border-input bg-muted px-3.5 py-2.5 text-sm text-musgo print:hidden" role="note">
       <FlaskConical className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
       <span><strong className="text-pino">Datos de ejemplo.</strong> Todavía no está conectado: {partes.join(', ')}.</span>
     </p>
@@ -46,16 +46,16 @@ function AvisoDatosDeEjemplo() {
 }
 
 export function App() {
-  const { search, pathname } = useLocation()
+  const { pathname } = useLocation()
   const nino = useNino()
   const hayNino = nino !== null
-  // La navegación lleva solo el chico (y el motor de la demo): no arrastra ?momento= ni ?preparacionId= de otra pantalla.
-  const motor = new URLSearchParams(search).get('motor')
-  const navSearch = nino ? `?${new URLSearchParams({ nino, ...(motor ? { motor } : {}) })}` : ''
+  // La navegación lleva solo el chico: no arrastra ?momento= ni ?preparacionId= de otra pantalla.
+  const navSearch = nino ? `?${new URLSearchParams({ nino })}` : ''
   useEffect(() => avisoStubs.limpiar(), [pathname])
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[560px] flex-col">
-      <header className="flex items-center px-5 pt-[max(14px,env(safe-area-inset-top))] pb-1">
+      {/* Al imprimir (el resumen para el nutricionista) queda solo el contenido: sin cabecera, avisos ni navegación. */}
+      <header className="flex items-center px-5 pt-[max(14px,env(safe-area-inset-top))] pb-1 print:hidden">
         <Link to={{ pathname: '/', search: navSearch }} aria-label="Nibble, inicio" className="-mx-1.5 rounded-xl px-1.5 py-1">
           <img src="/nibble-logo.svg" alt="Nibble" className="h-8 w-auto" />
         </Link>

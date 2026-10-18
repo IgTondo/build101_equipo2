@@ -1,5 +1,5 @@
 // La imagen de cómo servirlo: se pide aparte, después de la receta. Mientras llega (unos 3 s), un plato que respira;
-// cuando carga, aparece con un fundido suave. Va a sangre arriba de la tarjeta protagonista.
+// cuando carga, aparece con un fundido suave. Es la protagonista de la receta: llena la tarjeta mordida, debajo del nombre.
 import { cn } from 'cn'
 import { RotateCw } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
@@ -49,7 +49,7 @@ export function ImagenPlato({ receta, reglas, className }: { receta: Receta; reg
 
   if (estado.tipo === 'error') {
     return (
-      <div className={cn('flex items-center gap-4 pt-6 pr-12 pl-5', className)}>
+      <div className={cn('flex items-center gap-4 py-6 pr-12 pl-5', className)}>
         <PlatoVacio className="size-16 shrink-0" />
         <div className="flex flex-col items-start gap-2.5">
           <p className="text-sm text-pino text-pretty">No pudimos preparar la imagen. La receta sirve igual.</p>

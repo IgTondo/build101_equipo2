@@ -176,3 +176,17 @@ export function rangoLegible(n: Nutriente, min: number, max: number): string {
   const num = (v: number) => v.toLocaleString('es-UY', { maximumFractionDigits: DECIMALES[n] })
   return num(min) === num(max) ? formatoNutriente(n, max) : `${num(min)}–${formatoNutriente(n, max)}`
 }
+
+/**
+ * "Qué aprendí" en una línea corta: sin paréntesis ("(antes, como mucho un poco)", "(lo comió 36 de 41 veces)") y sin
+ * el "Cada paso cuenta." del final. El texto completo queda en "Ver más".
+ * "Bastones de queso: 5.ª exposición. Esta vez comió la mitad (antes, un poco). Cada paso cuenta."
+ *   → "Bastones de queso: 5.ª exposición. Esta vez comió la mitad."
+ */
+export function aprendiCorto(texto: string): string {
+  return texto
+    .replace(/\s*\([^)]*\)/g, '')
+    .replace(/\s*Cada paso cuenta\.?\s*$/i, '')
+    .replace(/\s+([.,:;])/g, '$1')
+    .trim()
+}

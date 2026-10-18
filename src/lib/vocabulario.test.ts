@@ -10,7 +10,9 @@ describe('textoParaPadres', () => {
       .toBe('Lo que se sirve cuando los alimentos se tocan todavía no lo acepta (según la investigación)')
   })
 
-  it('no toca lo que acepta', () => {
+  it('no toca lo que acepta ni lo que ya viene como "todavía no lo acepta"', () => {
     expect(textoParaPadres('Lo crocante lo acepta (26 de 31)')).toBe('Lo crocante lo acepta (26 de 31)')
+    expect(textoParaPadres('Nuevo patrón: las verduras hervidas todavía no las acepta (4 de 4).'))
+      .toBe('Nuevo patrón: las verduras hervidas todavía no las acepta (4 de 4).')
   })
 })

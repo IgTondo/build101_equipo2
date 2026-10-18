@@ -190,3 +190,21 @@
   /* Números de nutrientes: cifras de igual ancho para que las columnas no bailen */
   .nb-numero { font-variant-numeric: tabular-nums; }
 }
+
+@layer components {
+  /* "Ver más" (pista C, 5bf10f9): el detalle detrás de un <details>, para que cada bloque muestre solo lo principal.
+     Va en una capa para que las utilidades de Tailwind le ganen. */
+  .nb-ver-mas > summary {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+    color: var(--nb-verde-hondo); font-weight: 700; cursor: pointer; list-style: none; border-radius: 999px;
+  }
+  .nb-ver-mas > summary::-webkit-details-marker { display: none; }
+  .nb-ver-mas > summary::after {
+    content: ''; width: 7px; height: 7px; margin-top: -4px;
+    border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+    transform: rotate(45deg); transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), margin-top 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .nb-ver-mas[open] > summary::after { transform: rotate(-135deg); margin-top: 4px; }
+  .nb-ver-mas > :not(summary) { text-wrap: pretty; }
+  @media (prefers-reduced-motion: reduce) { .nb-ver-mas > summary::after { transition: none; } }
+}

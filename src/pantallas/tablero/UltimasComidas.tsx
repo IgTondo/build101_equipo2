@@ -11,7 +11,7 @@ import { grupoDe } from './visual'
 
 export function UltimasComidas({ dias }: { dias: CoberturaDia[] }) {
   const id = useId()
-  const comidas = ultimasComidas(dias, 5)
+  const comidas = ultimasComidas(dias, 3)
   const hoy = diaUruguay()
   if (!comidas.length) return null
   // Las comidas ya vienen de la más nueva a la más vieja: se juntan por día sin reordenar.

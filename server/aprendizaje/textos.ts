@@ -73,7 +73,18 @@ const SUJETO: Readonly<Record<string, string>> = {
   'coccion=crudo': 'lo crudo', 'coccion=listo': 'lo que se come como viene',
 }
 
-const GRUPO: Readonly<Record<Grupo, { sujeto: string; pronombre: string; en: string }>> = {
+/** Las condiciones que concuerdan con un sujeto plural: "los cereales, panes y papas servidos separados". */
+const PLURAL: Readonly<Record<string, { m: string; f: string }>> = {
+  'presentacion=separado': { m: 'servidos separados', f: 'servidas separadas' },
+  'presentacion=mezclado': { m: 'mezclados', f: 'mezcladas' },
+  'coccion=frito': { m: 'fritos', f: 'fritas' },
+  'coccion=hervido': { m: 'hervidos', f: 'hervidas' },
+  'coccion=crudo': { m: 'crudos', f: 'crudas' },
+  'coccion=listo': { m: 'como vienen', f: 'como vienen' },
+  'forma=entero': { m: 'enteros', f: 'enteras' },
+}
+
+const GRUPO: Readonly<Record<Grupo, { sujeto: string; pronombre: 'los' | 'las'; en: string }>> = {
   cereal_almidon: { sujeto: 'los cereales, panes y papas', pronombre: 'los', en: 'entre los cereales, panes y papas' },
   proteina: { sujeto: 'las carnes y otras proteínas', pronombre: 'las', en: 'entre las carnes y otras proteínas' },
   verdura: { sujeto: 'las verduras', pronombre: 'las', en: 'entre las verduras' },
@@ -82,14 +93,20 @@ const GRUPO: Readonly<Record<Grupo, { sujeto: string; pronombre: string; en: str
   otro: { sujeto: 'los otros alimentos', pronombre: 'los', en: 'entre los otros alimentos' },
 }
 
-/** "Lo crocante servido separado lo acepta (5 de 5)" · "Las verduras las rechaza (3 de 3)". */
-export function textoPatron(condiciones: readonly Condicion[], resultado: 'acepta' | 'rechaza', aFavor?: number, n?: number): string {
+export interface SujetoPatron {
+  frase: string // "lo crocante servido separado", "los cereales, panes y papas servidos separados"
+  pronombre: 'lo' | 'los' | 'las'
+  plural: boolean
+}
+
+/** De qué habla un patrón, sin el verbo: sirve para "lo acepta" y para "ya no parece costarle". */
+export function sujetoPatron(condiciones: readonly Condicion[]): SujetoPatron {
   const claves = condiciones.map(claveCondicion)
   const adjetivos = claves.flatMap((k) => (ADJETIVO[k] ? [ADJETIVO[k]] : []))
   const grupo = condiciones.find((c) => c.tipo === 'grupo')?.valor as Grupo | undefined
   let resto = claves.filter((k) => !ADJETIVO[k] && !k.startsWith('grupo='))
   let sujeto: string
-  let pronombre = 'lo'
+  let pronombre: SujetoPatron['pronombre'] = 'lo'
   const modificadores: string[] = []
   if (adjetivos.length) {
     sujeto = `lo ${lista(adjetivos)}`
@@ -102,7 +119,19 @@ export function textoPatron(condiciones: readonly Condicion[], resultado: 'acept
     sujeto = k ? (SUJETO[k] ?? '') : 'lo que se sirve'
     resto = resto.filter((x) => x !== k)
   }
-  modificadores.unshift(...resto.map((k) => MODIFICADOR[k] ?? k))
+  const plural = pronombre !== 'lo'
+  const genero = pronombre === 'las' ? 'f' : 'm'
+  modificadores.unshift(...resto.map((k) => (plural && PLURAL[k] ? PLURAL[k][genero] : (MODIFICADOR[k] ?? k))))
+  return { frase: [sujeto, ...modificadores].join(' '), pronombre, plural }
+}
+
+/**
+ * "Lo crocante servido separado lo acepta (5 de 5)" · "Las verduras todavía no las acepta (3 de 3)".
+ * Hacia el padre nunca se dice "rechaza" (§9): lo que todavía no come es "todavía no lo acepta".
+ */
+export function textoPatron(condiciones: readonly Condicion[], resultado: 'acepta' | 'rechaza', aFavor?: number, n?: number): string {
+  const { frase, pronombre } = sujetoPatron(condiciones)
+  const verbo = resultado === 'acepta' ? `${pronombre} acepta` : `todavía no ${pronombre} acepta`
   const cuenta = n ? ` (${aFavor ?? 0} de ${n})` : ''
-  return mayuscula(`${[sujeto, ...modificadores].join(' ')} ${pronombre} ${resultado}${cuenta}`)
+  return mayuscula(`${frase} ${verbo}${cuenta}`)
 }

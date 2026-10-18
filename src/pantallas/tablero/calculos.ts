@@ -1,7 +1,7 @@
 // Funciones puras del tablero (C3): orden, escalas y textos. Sin React, para poder testearlas.
-import { MOTOR, type CoberturaDia, type ComidaResumen, type Grupo, type Motor, type Nutriente, type Nutrientes, type Progreso } from '../../../shared/contratos'
+import type { CoberturaDia, ComidaResumen, Grupo, Nutriente, Nutrientes, Progreso } from '../../../shared/contratos'
 import { diaUruguay } from '../../lib/nino'
-import { NUTRIENTES_CON_META } from '../../lib/vocabulario'
+import { NOMBRE_NUTRIENTE, NUTRIENTES_CON_META } from '../../lib/vocabulario'
 
 /**
  * Orden de las barras: primero los que faltan, en el orden de prioridad de §1 (el mismo de `semana.faltan`,
@@ -13,20 +13,21 @@ export function ordenarNutrientes(faltan: readonly Nutriente[]): Nutriente[] {
   return [...primero, ...NUTRIENTES_CON_META.filter((n) => !primero.includes(n))]
 }
 
-/** La pista de la barra va de 0 a TOPE_ESCALA (120%): el 100% queda visible y lo que pasa del 120% se corta. */
-export const TOPE_ESCALA = 1.2
-export const MARCA_100 = 1 / TOPE_ESCALA
-
-/** Fracción de la pista (0 a 1) que ocupa una cobertura, y si se recortó por pasar del tope. */
-export function escalaBarra(cobertura: number): { fraccion: number; recortada: boolean } {
-  const v = Number.isFinite(cobertura) ? Math.max(0, cobertura) : 0
-  return { fraccion: Math.min(v, TOPE_ESCALA) / TOPE_ESCALA, recortada: v > TOPE_ESCALA }
-}
-
 /** Promedio de cobertura de los 8 con meta, con cada uno topeado en 100% (que sobre B12 no tape lo que falta). */
 export function coberturaPromedio(cobertura: Partial<Nutrientes>): number {
   const valores = NUTRIENTES_CON_META.map((n) => Math.min(Math.max(cobertura[n] ?? 0, 0), 1))
   return valores.reduce((s, v) => s + v, 0) / valores.length
+}
+
+/**
+ * La respuesta corta a "¿está comiendo bien?": los dos que más le faltan (§1, por debajo del 70%), sin porcentajes.
+ * "Le falta más calcio y vitamina D." · "Esta semana no le falta ninguno."
+ */
+export function respuestaSemana(faltan: readonly Nutriente[]): string {
+  const dos = faltan.filter((n) => NUTRIENTES_CON_META.includes(n)).slice(0, 2)
+  if (!dos.length) return 'Esta semana no le falta ninguno.'
+  const nombre = (n: Nutriente) => (NOMBRE_NUTRIENTE[n].startsWith('Vitamina') ? `v${NOMBRE_NUTRIENTE[n].slice(1)}` : NOMBRE_NUTRIENTE[n].toLowerCase())
+  return `Le falta más ${dos.map(nombre).join(' y ')}.`
 }
 
 /** 762 → "≈ 760 kcal por día": la energía es un dato aproximado, se redondea a la decena. */
@@ -49,23 +50,8 @@ export function textoDiasSinComer(dias: number | null): string {
   return `Hace ${dias} días`
 }
 
-const GRUPO_EN_FRASE: Record<Grupo, string> = {
-  cereal_almidon: 'cereales ni almidones', proteina: 'proteínas', verdura: 'verdura', fruta: 'fruta', lacteo: 'lácteos', otro: 'otros alimentos',
-}
 /** Los grupos que se muestran (§1: días desde la última fruta, verdura, lácteo y proteína; más los cereales). */
 export const GRUPOS_VISIBLES: Grupo[] = ['verdura', 'fruta', 'lacteo', 'proteina', 'cereal_almidon']
-
-/** "Hace 10 días que no come verdura" para el grupo que hace más que no aparece (desde 3 días), o null. */
-export function fraseGrupoAusente(grupos: readonly { grupo: Grupo; diasSinComer: number | null }[], desde = 3): string | null {
-  const conDato = grupos.filter((g) => GRUPOS_VISIBLES.includes(g.grupo) && g.diasSinComer !== null && g.diasSinComer >= desde)
-  if (!conDato.length) return null
-  const peor = conDato.reduce((a, b) => ((b.diasSinComer ?? 0) > (a.diasSinComer ?? 0) ? b : a))
-  return `Hace ${peor.diasSinComer} días que no come ${GRUPO_EN_FRASE[peor.grupo]}`
-}
-
-export function textoVeces(veces: number): string {
-  return `Ofrecido ${veces} ${veces === 1 ? 'vez' : 'veces'} de 8 a 15`
-}
 
 export interface ComidaConDia extends ComidaResumen { dia: string }
 
@@ -154,15 +140,10 @@ export function valorAtributo(par: string): string {
   return VALOR_LEGIBLE[v] ?? v.replace(/_/g, ' ')
 }
 
-export function leerMotor(valor: string | null): Motor {
-  return (MOTOR as readonly string[]).includes(valor ?? '') ? (valor as Motor) : 'grafo'
-}
-
-/** La receta de una sugerencia: el candidato elegido y el nutriente que más falta. El motor viaja si no es el de siempre. */
-export function rutaReceta(ninoId: string, preparacionId: string, nutriente?: Nutriente, motor: Motor = 'grafo'): string {
+/** La receta de una sugerencia: el candidato elegido y el nutriente que más falta. */
+export function rutaReceta(ninoId: string, preparacionId: string, nutriente?: Nutriente): string {
   const p = new URLSearchParams({ nino: ninoId, preparacionId })
   if (nutriente) p.set('nutriente', nutriente)
-  if (motor !== 'grafo') p.set('motor', motor)
   return `/receta?${p.toString()}`
 }
 
@@ -171,10 +152,13 @@ export function srcMiniatura(thumbBase64: string): string {
   return thumbBase64.startsWith('data:') ? thumbBase64 : `data:image/jpeg;base64,${thumbBase64}`
 }
 
-/** "Subió de 32% a 40%" · "Se mantuvo en 9%" · "Bajó de 40% a 35%": el resumen en texto de una serie de la evolución. */
+/**
+ * "Subió de 32% a 40%" · "Se mantuvo en 9%" · "Bajó de 40% a 35%": el resumen en texto de una serie de la evolución.
+ * Con tope en 100%: hacia el padre ningún porcentaje pasa de 100 (src/lib/cobertura.ts).
+ */
 export function textoEvolucion(primero: number, ultimo: number): string {
-  const a = Math.round(primero * 100)
-  const b = Math.round(ultimo * 100)
+  const a = Math.min(Math.round(primero * 100), 100)
+  const b = Math.min(Math.round(ultimo * 100), 100)
   if (a === b) return `Se mantuvo en ${b}%`
   return `${b > a ? 'Subió' : 'Bajó'} de ${a}% a ${b}%`
 }

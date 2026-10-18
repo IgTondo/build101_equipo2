@@ -1,6 +1,7 @@
 // C8 · Resumen para el nutricionista (PLAN.md §9). Ruta: /resumen?nino=
 // Los números los calcula el servidor; el texto se redacta solo con esos números. Acá se lee, se copia y se imprime.
-// Es para otro profesional: una hoja sobria, el texto con sus rótulos y debajo los mismos números en tablas.
+// Es para otro profesional: "Copiar" primero y una hoja sobria, el texto con sus rótulos y debajo los mismos números
+// en tablas.
 import { Check, Copy } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState, type RefObject } from 'react'
@@ -9,7 +10,6 @@ import { toast } from 'sonner'
 import type { ResumenRes } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
-import { Badge } from '../../componentes/ui/badge'
 import { Button } from '../../componentes/ui/button'
 import { Skeleton } from '../../componentes/ui/skeleton'
 import { pedirConMeta } from '../../lib/api'
@@ -37,10 +37,10 @@ function BotonCopiar({ texto, destino }: { texto: string; destino: RefObject<HTM
     setEstado(e)
     window.clearTimeout(reloj.current)
     if (e === 'copiado') {
-      toast.success('Copiado', { description: 'Ya lo podés pegar en un mensaje o un correo.' })
+      toast.success('Listo para pegar.')
       reloj.current = window.setTimeout(() => setEstado('nada'), 2500)
     } else if (e === 'seleccionado') {
-      toast('Seleccionamos el texto', { description: 'Copialo desde el menú del celular.' })
+      toast('Texto seleccionado: copialo desde el menú.')
     }
   }
 
@@ -64,11 +64,11 @@ function BotonCopiar({ texto, destino }: { texto: string; destino: RefObject<HTM
 
   const copiado = estado === 'copiado'
   return (
-    <Button onClick={copiar} className="w-32 print:hidden">
+    <Button size="lg" onClick={copiar} className="w-full print:hidden">
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.span
           key={copiado ? 'si' : 'no'}
-          className="inline-flex items-center gap-2"
+          className="inline-flex items-center gap-2.5"
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.6, opacity: 0 }}
@@ -145,14 +145,9 @@ export function Resumen() {
         : <ErrorConReintento error={estado.error} reintentar={estado.reintentar} />)}
       {estado.tipo === 'ok' && (
         <>
-          <article className="rs-hoja flex flex-col rounded-2xl border bg-card print:rounded-none print:border-0" aria-labelledby="rs-titulo">
-            <header className="flex items-center justify-between gap-3 border-b py-3 pr-3 pl-5 print:px-0">
-              <div className="flex flex-col items-start gap-1">
-                <h2 id="rs-titulo" className="text-lg">Semana de alimentación</h2>
-                {estado.datos.stub && <Badge variant="outline" className="print:hidden">Datos de ejemplo</Badge>}
-              </div>
-              <BotonCopiar texto={estado.datos.datos.texto} destino={textoRef} />
-            </header>
+          {/* Copiar primero: es para lo que se abre la pantalla. El aviso global ya dice si son datos de ejemplo. */}
+          <BotonCopiar texto={estado.datos.datos.texto} destino={textoRef} />
+          <article className="rs-hoja flex flex-col rounded-2xl border bg-card print:rounded-none print:border-0" aria-label="Resumen de la semana">
             <div ref={textoRef} className="px-5 py-5 select-text print:px-0">
               <TextoResumen texto={estado.datos.datos.texto} />
             </div>
@@ -160,10 +155,9 @@ export function Resumen() {
               <NumerosDeLaSemana progreso={estado.datos.datos.progreso} />
             </div>
             <p className="border-t px-5 py-3 text-xs text-musgo print:px-0">
-              Generado el <time dateTime={estado.datos.datos.generadoISO}>{fechaLegible(estado.datos.datos.generadoISO)}</time>
+              <time dateTime={estado.datos.datos.generadoISO}>{fechaLegible(estado.datos.datos.generadoISO)}</time>
             </p>
           </article>
-          <p className="text-xs text-musgo print:hidden">El texto se redacta solo con los números de la app.</p>
         </>
       )}
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Progreso, Sugerencia } from '../../shared/contratos'
 import progresoFixture from '../../fixtures/progreso.json'
 import {
-  comidaRecienPorHora, comidasDelDia, elegirSugerencia, encaja, primeraFrase, proximaComida, rutaRecetaComida, sugerenciasDe,
+  comidaRecienPorHora, comidasDelDia, elegirParaReceta, elegirSugerencia, encaja, lineaPorQue, primeraFrase, proximaComida, rutaRecetaComida, sugerenciasDe,
   type ComidaDelDia,
 } from './proximaComida'
 
@@ -114,9 +114,31 @@ describe('textos y rutas', () => {
     expect(primeraFrase('La come 14 de cada 14 veces')).toBe('La come 14 de cada 14 veces.')
   })
 
+  it('lineaPorQue deja lo principal en una línea', () => {
+    expect(lineaPorQue('Se parece a sus papas: cambia solo el ingrediente. Ya los vio 5 veces')).toBe('Se parece a sus papas.')
+    expect(lineaPorQue('La come 14 de cada 14 veces y aporta 232 mg de calcio por porción')).toBe('La come 14 de cada 14 veces y aporta 232 mg de calcio por porción.')
+  })
+
   it('la receta lleva el candidato, el nutriente y la comida', () => {
     const r = rutaRecetaComida('tomas', s('un_paso', 'bastones_queso_horno'), 'almuerzo', 'calcio_mg')
     expect(r).toBe('/receta?nino=tomas&preparacionId=bastones_queso_horno&nutriente=calcio_mg&momento=almuerzo')
-    expect(rutaRecetaComida('tomas', s('un_paso', 'x'), 'cena', undefined, 'base')).toContain('&motor=base')
+    expect(rutaRecetaComida('tomas', s('un_paso', 'x'), 'cena')).not.toContain('motor')
   })
 })
+
+describe('elegirParaReceta (Generar receta, v5.3)', () => {
+  const sug = (tipo: Sugerencia['tipo'], preparacionId: string): Sugerencia =>
+    ({ tipo, preparacionId, nombre: preparacionId, probAcepta: 0.5, aporte: {}, porQue: '' })
+
+  it('nunca elige una segura: no tiene receta', () => {
+    const p = { momento: 'desayuno' as const, sugerencias: [sug('segura', 'leche_chocolatada'), sug('mas_nutritiva', 'yogur_bebible')] }
+    expect(elegirParaReceta(p, 'desayuno')?.preparacionId).toBe('yogur_bebible')
+    expect(elegirParaReceta({ momento: 'desayuno', sugerencias: [sug('segura', 'leche_chocolatada')] }, 'desayuno')).toBeNull()
+  })
+
+  it('acepta la merienda y respeta el catálogo de comidas', () => {
+    expect(elegirParaReceta({ sugerencias: [sug('un_paso', 'yogur_bebible')] }, 'merienda')?.preparacionId).toBe('yogur_bebible')
+    expect(elegirParaReceta({ sugerencias: [sug('un_paso', 'milanesa_carne_horno')] }, 'merienda')).toBeNull()
+  })
+})
+

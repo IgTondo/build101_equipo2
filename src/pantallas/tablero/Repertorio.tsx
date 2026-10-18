@@ -11,7 +11,7 @@ import { NumeroAnimado } from '../../componentes/NumeroAnimado'
 import { Button } from '../../componentes/ui/button'
 import { Skeleton } from '../../componentes/ui/skeleton'
 import { ESCALON, NIVEL_CUANTO, NOMBRE_GRUPO } from '../../lib/vocabulario'
-import { fraseGrupoAusente, GRUPOS_VISIBLES, textoDiasSinComer, textoTendencia, textoVeces } from './calculos'
+import { GRUPOS_VISIBLES, mayuscula, textoDiasSinComer, textoTendencia } from './calculos'
 import { grupoDe, type Comestible } from './visual'
 
 type Props = Pick<Progreso, 'aceptadas' | 'enProceso' | 'repertorioTendencia' | 'grupos' | 'exposiciones'> & {
@@ -19,7 +19,7 @@ type Props = Pick<Progreso, 'aceptadas' | 'enProceso' | 'repertorioTendencia' | 
   loQueCome?: Comestible[] | null
 }
 
-const EXPOSICIONES_A_LA_VISTA = 4
+const EXPOSICIONES_A_LA_VISTA = 3
 /** La escalera de §5.1, de abajo (lo apartó) hacia arriba. */
 const ESCALERA: Cuanto[] = [...CUANTO].sort((a, b) => NIVEL_CUANTO[a] - NIVEL_CUANTO[b])
 /** Desde cuántos días sin comer un grupo se marca en Zapallo (lo mismo que ya marcaba el tablero). */
@@ -31,7 +31,6 @@ export function Repertorio({ aceptadas, enProceso, repertorioTendencia, grupos, 
   // Solo los grupos que manda B (§1: fruta, verdura, lácteo y proteína), en un orden fijo: un grupo que no viene
   // no es "nunca lo registramos", es un dato que no se calcula.
   const visibles = GRUPOS_VISIBLES.flatMap((g) => grupos.filter((x) => x.grupo === g))
-  const frase = fraseGrupoAusente(grupos)
   const listaExp = todas ? exposiciones : exposiciones.slice(0, EXPOSICIONES_A_LA_VISTA)
   const Tendencia = repertorioTendencia > 0 ? TrendingUp : repertorioTendencia < 0 ? TrendingDown : Minus
 
@@ -77,8 +76,7 @@ export function Repertorio({ aceptadas, enProceso, repertorioTendencia, grupos, 
 
         {visibles.length > 0 && (
           <div className="mt-2 flex flex-col gap-2">
-            <h3 className="text-lg">Última vez que comió de cada grupo</h3>
-            {frase && <p className="font-bold text-pretty">{frase}.</p>}
+            <h3 className="text-lg">Última vez por grupo</h3>
             <ul className="flex flex-col">
               {visibles.map((g) => {
                 const lejos = g.diasSinComer !== null && g.diasSinComer >= DIAS_LEJOS
@@ -101,9 +99,12 @@ export function Repertorio({ aceptadas, enProceso, repertorioTendencia, grupos, 
       </section>
 
       <section className="flex flex-col gap-3 rounded-2xl border bg-card p-4" aria-labelledby={`${id}-e`}>
-        <h2 id={`${id}-e`} className="text-xl">Alimentos nuevos en camino</h2>
+        <div className="flex flex-col gap-0.5">
+          <h2 id={`${id}-e`} className="text-xl">Alimentos nuevos en camino</h2>
+          {exposiciones.length > 0 && <p className="text-sm text-musgo text-pretty">Suelen hacer falta de 8 a 15 veces.</p>}
+        </div>
         {exposiciones.length === 0 ? (
-          <p className="text-musgo text-pretty">Todavía no hay alimentos nuevos en camino. Cuando le ofrezcas uno, acá vas a ver cómo avanza.</p>
+          <p className="text-musgo text-pretty">Cuando le ofrezcas algo nuevo, acá vas a ver cómo avanza.</p>
         ) : (
           <>
             <ul className="flex flex-col divide-y">
@@ -120,8 +121,11 @@ export function Repertorio({ aceptadas, enProceso, repertorioTendencia, grupos, 
                     <IconoAlimento nombre={e.nombre} grupo={grupoDe(e.preparacionId, e.nombre)} tamano="md" />
                     <div className="flex min-w-0 flex-col leading-snug">
                       <p className="font-bold text-pretty">{e.nombre}</p>
-                      <p className="text-sm">Hasta ahora: {ESCALON[e.mejorPaso]}</p>
-                      <p className="text-sm text-musgo tabular-nums">{textoVeces(e.veces)}</p>
+                      <p className="text-sm text-pretty">
+                        {mayuscula(ESCALON[e.mejorPaso])}{' '}
+                        <span className="text-musgo" aria-hidden="true">·</span>{' '}
+                        <span className="text-musgo tabular-nums">{e.veces} {e.veces === 1 ? 'vez' : 'veces'}</span>
+                      </p>
                     </div>
                     <Escalera paso={e.mejorPaso} />
                   </motion.li>
