@@ -11,7 +11,7 @@ interface Props {
   ninoId: string
   proxima: ProximaComida
   /** null mientras carga. */
-  progreso: Pick<Progreso, 'sugerencias' | 'proximoPaso' | 'semana'> | null
+  progreso: Pick<Progreso, 'sugerencias' | 'proximoPaso' | 'semana' | 'momento'> | null
   motor?: Motor
 }
 

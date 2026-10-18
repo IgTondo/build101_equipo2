@@ -59,15 +59,15 @@ const s = (tipo: Sugerencia['tipo'], preparacionId: string, grupo?: Sugerencia['
   ({ tipo, preparacionId, nombre: preparacionId, probAcepta: 0.5, aporte: {}, porQue: '', ...(grupo ? { grupo } : {}) })
 
 describe('elegirSugerencia', () => {
-  it('encaja por grupo: el del catálogo, o Sugerencia.grupo si viene', () => {
-    expect(encaja('desayuno', s('segura', 'leche_chocolatada'))).toBe(2)
-    expect(encaja('almuerzo', s('segura', 'leche_chocolatada'))).toBe(0)          // lácteo dulce y bebible
-    expect(encaja('almuerzo', s('un_paso', 'bastones_queso_horno'))).toBe(2)      // lácteo salado
-    expect(encaja('cena', s('un_paso', 'yogur_vainilla'))).toBe(0)
-    expect(encaja('desayuno', s('un_paso', 'nuggets_pollo_horno'))).toBe(0)
-    expect(encaja('cena', s('un_paso', 'algo_nuevo'))).toBe(1)                    // grupo desconocido
-    expect(encaja('cena', s('un_paso', 'algo_nuevo', 'verdura'))).toBe(2)
-    expect(encaja('desayuno', s('un_paso', 'nuggets_pollo_horno', 'fruta'))).toBe(2) // manda el grupo de B
+  it('encaja según los momentos del catálogo (v5.2); lo que no está en el catálogo no encaja', () => {
+    expect(encaja('desayuno', s('segura', 'leche_chocolatada'))).toBe(true)
+    expect(encaja('almuerzo', s('segura', 'leche_chocolatada'))).toBe(false)
+    expect(encaja('cena', s('un_paso', 'yogur_vainilla'))).toBe(false)
+    expect(encaja('almuerzo', s('un_paso', 'bastones_queso_horno'))).toBe(true)
+    for (const id of ['milanesa_carne_horno', 'papas_fritas_baston', 'bastones_queso_horno', 'nuggets_pollo_horno']) {
+      expect(encaja('desayuno', s('un_paso', id)), id).toBe(false)
+    }
+    expect(encaja('cena', s('un_paso', 'algo_nuevo', 'verdura'))).toBe(false)
   })
 
   it('prefiere un_paso, después mas_nutritiva, después segura, entre las que encajan', () => {
@@ -78,25 +78,33 @@ describe('elegirSugerencia', () => {
     expect(elegirSugerencia({ sugerencias: soloSegura }, 'desayuno')?.tipo).toBe('segura')
   })
 
-  it('si ninguna encaja, igual devuelve la mejor; sin sugerencias, null', () => {
-    expect(elegirSugerencia({ sugerencias: [s('segura', 'leche_chocolatada'), s('mas_nutritiva', 'yogur_vainilla')] }, 'cena')?.tipo).toBe('mas_nutritiva')
+  it('nunca muestra una que no encaja: si ninguna encaja, null (la tarjeta calma); sin sugerencias, null', () => {
+    expect(elegirSugerencia({ sugerencias: [s('segura', 'leche_chocolatada'), s('mas_nutritiva', 'yogur_vainilla')] }, 'cena')).toBeNull()
+    expect(elegirSugerencia({ sugerencias: [s('un_paso', 'milanesa_carne_horno'), s('segura', 'papas_fritas_baston')] }, 'desayuno')).toBeNull()
     expect(elegirSugerencia({ sugerencias: [] }, 'cena')).toBeNull()
     expect(elegirSugerencia({}, 'cena')).toBeNull()
+  })
+
+  it('si B filtró para esta comida (Progreso.momento), confía en B; si filtró para otra, vuelve a mirar el catálogo', () => {
+    const lista = [s('segura', 'algo_de_su_casa'), s('mas_nutritiva', 'tostadas_queso')]
+    expect(elegirSugerencia({ sugerencias: lista, momento: 'desayuno' }, 'desayuno')?.preparacionId).toBe('tostadas_queso')
+    expect(elegirSugerencia({ sugerencias: [s('segura', 'algo_de_su_casa')], momento: 'desayuno' }, 'desayuno')?.preparacionId).toBe('algo_de_su_casa')
+    expect(elegirSugerencia({ sugerencias: lista, momento: 'desayuno' }, 'cena')).toBeNull()
   })
 
   it('con el fixture: bastones de queso para el almuerzo y la cena, el yogur para el desayuno', () => {
     const p = progresoFixture as unknown as Progreso
     expect(elegirSugerencia(p, 'almuerzo')?.preparacionId).toBe('bastones_queso_horno')
     expect(elegirSugerencia(p, 'cena')?.preparacionId).toBe('bastones_queso_horno')
-    expect(elegirSugerencia(p, 'desayuno')?.tipo).toBe('mas_nutritiva') // los bastones de queso son salados y calientes: el yogur
-    expect(encaja('desayuno', s('un_paso', 'bastones_queso_horno'))).toBe(0)
+    expect(elegirSugerencia(p, 'desayuno')?.preparacionId).toBe('yogur_vainilla')
   })
 
-  it('sin sugerencias usa el proximoPaso', () => {
+  it('sin sugerencias usa el proximoPaso, si encaja', () => {
     const p = progresoFixture as unknown as Progreso
     const una = sugerenciasDe({ proximoPaso: p.proximoPaso })
     expect(una).toHaveLength(1)
     expect(una[0].tipo).toBe('un_paso')
+    expect(elegirSugerencia({ proximoPaso: p.proximoPaso }, 'desayuno')).toBeNull()
   })
 })
 

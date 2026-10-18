@@ -81,34 +81,22 @@ export function comidasDelDia(
 }
 
 // ---------- La sugerencia para esa comida ----------
-// Hasta que B ordene las sugerencias por ?momento=, la pantalla elige entre las que llegan (§5, Sugerencia.grupo):
-// - Encaja con la comida según el grupo (Sugerencia.grupo o, si no viene, el de data/preparaciones.json):
-//   desayuno → lácteo, cereal o almidón, fruta, salvo lo salado y caliente; almuerzo y cena → proteína, verdura, cereal o almidón, y lácteo solo
-//   si es salado (bastones de queso): lo dulce o bebible (chocolatada, licuado, yogur) es de desayuno o merienda.
-// - Primero las que encajan, después las de grupo desconocido, al final las que no encajan.
-// - Dentro de cada nivel: un_paso (el corazón del producto), después mas_nutritiva, después segura.
+// v5.2 · Cada preparación del catálogo dice para qué comidas va (`momentos` en data/preparaciones.json, curado a mano).
+// - Con ?momento=, B ya filtra y lo dice en Progreso.momento: si es esta comida, todas encajan.
+// - Si el progreso no vino filtrado para esta comida (el fixture, o el inicio pidió por la hora y la próxima comida
+//   resultó otra), la pantalla filtra igual con el catálogo. Lo que no está en el catálogo no encaja.
+// - Nunca se muestra una que no encaja: si no queda ninguna, null (la tarjeta muestra el mensaje calmo).
+// - Entre las que encajan: un_paso (el corazón del producto), después mas_nutritiva, después segura.
 
-interface InfoPreparacion { grupo: string; sabor: string; temperatura: string }
-const CATALOGO = new Map<string, InfoPreparacion>(
-  (preparaciones as { id: string; atributos: InfoPreparacion }[]).map((p) => [p.id, { grupo: p.atributos.grupo, sabor: p.atributos.sabor, temperatura: p.atributos.temperatura }]),
+const MOMENTOS = new Map<string, readonly string[]>(
+  (preparaciones as { id: string; momentos?: string[] }[]).map((p) => [p.id, p.momentos ?? []]),
 )
 
 const PREFERENCIA: Record<Sugerencia['tipo'], number> = { un_paso: 0, mas_nutritiva: 1, segura: 2 }
 
-/** 2 = encaja, 1 = no sabemos el grupo, 0 = no encaja. */
-export function encaja(momento: Principal, s: Pick<Sugerencia, 'preparacionId' | 'grupo'>): 0 | 1 | 2 {
-  const info = CATALOGO.get(s.preparacionId)
-  const grupo = s.grupo ?? info?.grupo
-  if (!grupo) return 1
-  if (momento === 'desayuno') {
-    if (grupo !== 'lacteo' && grupo !== 'cereal_almidon' && grupo !== 'fruta') return 0
-    // Lo salado y caliente (bastones de queso, papas fritas) es de almuerzo o cena aunque sea lácteo o almidón.
-    // Si el grupo lo manda B (Sugerencia.grupo), manda B.
-    return !s.grupo && info?.sabor === 'salado' && info.temperatura === 'caliente' ? 0 : 2
-  }
-  if (grupo === 'proteina' || grupo === 'verdura' || grupo === 'cereal_almidon') return 2
-  if (grupo === 'lacteo') return info ? (info.sabor === 'salado' ? 2 : 0) : 1
-  return 0
+/** ¿La preparación va en esa comida, según el catálogo? */
+export function encaja(momento: Principal, s: Pick<Sugerencia, 'preparacionId'>): boolean {
+  return MOMENTOS.get(s.preparacionId)?.includes(momento) ?? false
 }
 
 /** Las sugerencias del progreso; si no vinieron, el proximoPaso como una de un_paso (como en el tablero). */
@@ -122,11 +110,11 @@ export function sugerenciasDe(p: Pick<Progreso, 'sugerencias' | 'proximoPaso'>):
   }]
 }
 
-/** La sugerencia para la próxima comida, o null si no hay ninguna. */
-export function elegirSugerencia(p: Pick<Progreso, 'sugerencias' | 'proximoPaso'>, momento: Principal): Sugerencia | null {
-  const lista = sugerenciasDe(p)
-  if (!lista.length) return null
-  return [...lista].sort((a, b) => encaja(momento, b) - encaja(momento, a) || PREFERENCIA[a.tipo] - PREFERENCIA[b.tipo])[0]
+/** La sugerencia para la próxima comida, o null si ninguna encaja con esa comida. */
+export function elegirSugerencia(p: Pick<Progreso, 'sugerencias' | 'proximoPaso' | 'momento'>, momento: Principal): Sugerencia | null {
+  const filtradas = p.momento === momento
+  const lista = sugerenciasDe(p).filter((s) => filtradas || encaja(momento, s))
+  return lista.sort((a, b) => PREFERENCIA[a.tipo] - PREFERENCIA[b.tipo])[0] ?? null
 }
 
 /** "Se parece a sus papas: cambia solo el ingrediente. Ya los vio 5 veces…" → la primera oración, para una línea. */
