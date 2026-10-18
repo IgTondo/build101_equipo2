@@ -36,7 +36,8 @@ export interface OpcionNutriente {
   coberturaSemana: number
   faltaHoy: number
   minimo: number // por porción: el APORTE_MINIMO (15%) de su objetivo diario, como los candidatos de cadena.ts
-  ricos: { alimentoId: string; nombre: string; por100g: number }[] // los del catálogo sin sus alérgenos, de más a menos
+  // los del catálogo sin sus alérgenos, de más a menos · v5.10: por porción (porPorcion, en porcionG gramos)
+  ricos: { alimentoId: string; nombre: string; por100g: number; porPorcion: number; porcionG: number }[]
 }
 
 export interface Conocimiento {
@@ -111,6 +112,7 @@ const MODOS_FOCO: Modo[] = ['cambiar_principal', 'cambiar_principal', 'cambiar_p
 const MAX_NUTRIENTES = 3
 const MAX_RICOS = 8
 const MIN_RICOS = 3 // v5.10 · si sacar los recientes deja menos, vuelven los que más aportan
+const MAX_RICOS_POR_GRUPO = 2 // v5.10 · que no sean todos lácteos: entran leches y yogures, y no solo quesos
 const MIN_LETRAS_ALIAS = 4 // v5.10 · "pan" o "res" aparecen en todo: los alias más cortos no cuentan para los recientes
 const MIN_AFINES = 2 // v5.10 · con menos candidatos que combinen con su plato, el sorteo no mira la afinidad
 const MAX_COMBINACIONES = 6 // v5.10 · las "combinaciones probadas" del principal que ve el LLM
@@ -209,20 +211,31 @@ export function conocimientoDe(
     faltaHoy: Math.round(Math.max(0, c.objetivo[n] - delDia[n]) * 10) / 10,
   }])) as Conocimiento['coberturas']
   const aElegir = variedad ? [] : elegibles.length ? elegibles : [faltan[0] ?? menorCobertura(sem.cobertura)]
-  // v5.10 · Los ricos: de más a menos aporte, el que más aporta de cada familia y sin los recientes (si quedan menos de
-  // MIN_RICOS, vuelven los recientes que más aportan)
+  // v5.10 · Los ricos: de más a menos aporte POR PORCIÓN (el queso rallado tiene mucho calcio cada 100 g, pero la porción
+  // es de 10 g), el que más aporta de cada familia, como máximo MAX_RICOS_POR_GRUPO de cada grupo y sin los recientes (si
+  // quedan menos de MIN_RICOS, vuelven los recientes que más aportan)
   const ricosEn = (n: Nutriente): OpcionNutriente['ricos'] => {
+    const porPorcion = (a: Alimento) => (a.por100g[n] * a.porcionMedianaG) / 100
     const porFamilia = new Map<string, Alimento>()
-    for (const a of [...c.alimentos.values()].filter((a) => paraLoNuevo(a) && a.por100g[n] > 0).sort((a, b) => b.por100g[n] - a.por100g[n])) {
+    for (const a of [...c.alimentos.values()].filter((a) => paraLoNuevo(a) && a.por100g[n] > 0).sort((a, b) => porPorcion(b) - porPorcion(a))) {
       if (!porFamilia.has(familia(a.id))) porFamilia.set(familia(a.id), a)
     }
     const todos = [...porFamilia.values()]
-    const aSumar = MIN_RICOS - todos.filter((a) => !esReciente.has(a.id)).length
-    const vuelven = new Set(todos.filter((a) => esReciente.has(a.id)).slice(0, Math.max(0, aSumar)))
-    return todos
-      .filter((a) => !esReciente.has(a.id) || vuelven.has(a))
+    // De más a menos, con el tope por grupo y hasta `recientes` de los recientes
+    const conTope = (recientes: number) => {
+      const porGrupo = new Map<Grupo, number>()
+      return todos.filter((a) => {
+        const reciente = esReciente.has(a.id)
+        if ((reciente && recientes === 0) || (porGrupo.get(a.grupo) ?? 0) >= MAX_RICOS_POR_GRUPO) return false
+        porGrupo.set(a.grupo, (porGrupo.get(a.grupo) ?? 0) + 1)
+        if (reciente) recientes--
+        return true
+      })
+    }
+    const sinRecientes = conTope(0)
+    return (sinRecientes.length >= MIN_RICOS ? sinRecientes : conTope(MIN_RICOS - sinRecientes.length))
       .slice(0, MAX_RICOS)
-      .map((a) => ({ alimentoId: a.id, nombre: a.nombre, por100g: a.por100g[n] }))
+      .map((a) => ({ alimentoId: a.id, nombre: a.nombre, por100g: a.por100g[n], porPorcion: Math.round(porPorcion(a) * 100) / 100, porcionG: a.porcionMedianaG }))
   }
   const nutrientes: OpcionNutriente[] = aElegir.map((n) => ({
     nutriente: n,
@@ -306,7 +319,7 @@ export function conocimientoDe(
       ? lineasVariedad(variedad, delGrupo)
       : [
           'Le falta (elegí uno):',
-          ...nutrientes.map((x) => `- ${x.nutriente} (${NOMBRE_NUTRIENTE[x.nutriente]}): esta semana cubre ${porciento(x.coberturaSemana)}; hoy le faltan ${decimal(x.faltaHoy, 0)} ${UNIDAD[x.nutriente]}. La porción tiene que aportar al menos ${decimal(x.minimo, 1)} ${UNIDAD[x.nutriente]}. Ricos en ${NOMBRE_NUTRIENTE[x.nutriente]}: ${x.ricos.map((r) => `${r.alimentoId} (${decimal(r.por100g, 1)} ${UNIDAD[x.nutriente]}/100 g)`).join(', ')}.`),
+          ...nutrientes.map((x) => `- ${x.nutriente} (${NOMBRE_NUTRIENTE[x.nutriente]}): esta semana cubre ${porciento(x.coberturaSemana)}; hoy le faltan ${decimal(x.faltaHoy, 0)} ${UNIDAD[x.nutriente]}. La porción tiene que aportar al menos ${decimal(x.minimo, 1)} ${UNIDAD[x.nutriente]}. Ricos en ${NOMBRE_NUTRIENTE[x.nutriente]}, por porción: ${x.ricos.map((r) => `${r.alimentoId} (${decimal(r.porPorcion, 1)} ${UNIDAD[x.nutriente]} en ${r.porcionG} g; ${decimal(r.por100g, 1)}/100 g)`).join(', ')}.`),
         ]),
     ...(recientes.length ? [`Ya usó hace poco (no los repitas como ingrediente principal): ${recientes.join(', ')}.`] : []), // v5.10
     ...(combinaciones.length ? [`Combinaciones probadas en recetas reales: ${minuscula(c.alimentos.get(suPrincipal!)?.nombre ?? suPrincipal!)} va bien con ${combinaciones.join(', ')}.`] : []), // v5.10

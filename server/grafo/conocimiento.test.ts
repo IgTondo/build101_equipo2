@@ -51,13 +51,41 @@ const calcio = porNutriente.get('calcio_mg')!
 const calcioPorAzar = AZARES.map((a) => conocimiento({ nutriente: 'calcio_mg', azar: () => a }))
 
 describe('conocimientoDe: los ricos en cada nutriente', () => {
-  it('en "ricos en calcio" hay como máximo un queso, el que más aporta, y siguen de más a menos', () => {
+  it('"ricos en calcio" van por porción: entran un yogur y una leche, como máximo un queso, de más a menos', () => {
     const ricos = calcio.nutrientes[0]!.ricos
-    expect(ricos.filter((r) => familia(r.alimentoId) === 'queso').map((r) => r.alimentoId)).toEqual(['queso_rallado'])
-    expect(ricos.map((r) => r.alimentoId)).toEqual(expect.arrayContaining(['ricota']))
     expect(ricos.some((r) => familia(r.alimentoId) === 'yogur') && ricos.some((r) => familia(r.alimentoId) === 'leche')).toBe(true)
+    expect(ricos.filter((r) => familia(r.alimentoId) === 'queso').length).toBeLessThanOrEqual(1)
     expect(ricos.length).toBeLessThanOrEqual(8)
-    for (const [i, r] of ricos.entries()) if (i > 0) expect(r.por100g).toBeLessThanOrEqual(ricos[i - 1]!.por100g)
+    for (const [i, r] of ricos.entries()) {
+      expect(r.porcionG).toBe(alimentos.get(r.alimentoId)!.porcionMedianaG)
+      expect(r.porPorcion).toBeCloseTo((r.por100g * r.porcionG) / 100, 1)
+      if (i > 0) expect(r.porPorcion).toBeLessThanOrEqual(ricos[i - 1]!.porPorcion)
+    }
+    // El queso rallado tiene más calcio cada 100 g que el yogur, pero su porción es de 10 g
+    const rallado = alimentos.get('queso_rallado')!
+    expect(rallado.por100g.calcio_mg).toBeGreaterThan(alimentos.get('yogur')!.por100g.calcio_mg)
+    expect(ricos.map((r) => r.alimentoId)).not.toContain('queso_rallado')
+    expect(calcio.texto).toMatch(/Ricos en calcio, por porción: \w+ \([\d,]+ mg en \d+ g; [\d,]+\/100 g\)/)
+  })
+
+  it('como máximo 2 por grupo en cada lista, y de cada familia el que más aporta por porción', () => {
+    for (const n of NUTRIENTE) {
+      const ricos = porNutriente.get(n)!.nutrientes[0]!.ricos
+      const porGrupo = new Map<string, number>()
+      for (const r of ricos) porGrupo.set(alimentos.get(r.alimentoId)!.grupo, (porGrupo.get(alimentos.get(r.alimentoId)!.grupo) ?? 0) + 1)
+      for (const [g, cuantos] of porGrupo) expect(cuantos, `${n}: ${g}`).toBeLessThanOrEqual(2)
+    }
+    // Los yogures: el que entra es el de más calcio por porción (sin alérgenos de Valentina, ninguno es golosina)
+    const yogures = [...alimentos.values()].filter((a) => familia(a.id) === 'yogur' && !GOLOSINAS_Y_ULTRAPROCESADOS.has(a.id))
+    const mejor = yogures.sort((a, b) => b.por100g.calcio_mg * b.porcionMedianaG - a.por100g.calcio_mg * a.porcionMedianaG)[0]!
+    expect(ricosDe(calcio, 'calcio_mg')).toContain(mejor.id)
+  })
+
+  it('en omega-3 entran pescados, lino y nueces (Tomás, que no es alérgico al pescado), no solo quesos', () => {
+    const omega3 = ricosDe(conocimiento({ nutriente: 'omega3_g', momento: 'cena' }, cargado('tomas')), 'omega3_g')
+    expect(omega3.some((id) => alimentos.get(id)?.alergenos.includes('pescado'))).toBe(true)
+    expect(omega3).toEqual(expect.arrayContaining(['semillas_lino', 'nueces']))
+    expect(omega3.filter((id) => familia(id) === 'queso').length).toBeLessThanOrEqual(1)
   })
 
   it('la crema y el dulce de batata acompañan; el refresco, el jugo envasado y la barra de cereal son golosinas', () => {
@@ -140,13 +168,19 @@ describe('conocimientoDe: el ingrediente del foco', () => {
 describe('conocimientoDe: lo que ya usó (recientes)', () => {
   const MEDALLONES = 'Medallones de ricota crocantes, como sus nuggets'
 
-  it('una receta que ya vio saca la ricota de los ricos y del sorteo, y la pone en recientes', { timeout: 20_000 }, () => {
-    expect(ricosDe(calcio, 'calcio_mg')).toContain('ricota')
+  it('una receta que ya vio pone lo que lleva en recientes, y lo saca de los ricos y del sorteo', { timeout: 30_000 }, () => {
     const k = conocimiento({ nutriente: 'calcio_mg', anteriores: [MEDALLONES] })
     expect(k.recientes).toEqual(['ricota'])
     expect(ricosDe(k, 'calcio_mg')).not.toContain('ricota')
     expect(k.texto).toContain('Ya usó hace poco (no los repitas como ingrediente principal): ricota.')
-    for (const a of AZARES) expect(conocimiento({ nutriente: 'calcio_mg', anteriores: [MEDALLONES], azar: () => a }).foco.ingrediente).not.toBe('ricota')
+    // Con el que más calcio aporta: sale de la lista y del sorteo, y entra otro de su grupo si hay
+    const primero = calcio.nutrientes[0]!.ricos[0]!
+    const anteriores = [`Licuado de ${primero.nombre.toLowerCase()} y banana`]
+    const sin = conocimiento({ nutriente: 'calcio_mg', anteriores })
+    expect(sin.recientes).toContain(primero.alimentoId)
+    expect(ricosDe(sin, 'calcio_mg')).not.toContain(primero.alimentoId)
+    expect(ricosDe(sin, 'calcio_mg').length).toBe(ricosDe(calcio, 'calcio_mg').length)
+    for (const a of AZARES) expect(conocimiento({ nutriente: 'calcio_mg', anteriores, azar: () => a }).foco.ingrediente).not.toBe(primero.alimentoId)
   })
 
   it('sin anteriores no hay recientes ni la línea en el texto', () => {
@@ -313,15 +347,16 @@ describe('conocimientoDe: el ingrediente del foco combina con lo que queda de su
     expect(info).not.toHaveBeenCalled() // combinan al menos 2: no cae al sorteo de antes
   })
 
-  it('desde su milanesa de carne al horno nunca sale yogur', { timeout: 60_000 }, () => {
-    const rico = conRico('cena', (id) => id === 'yogur')
+  it('desde su milanesa de carne al horno nunca sale un yogur (el que esté entre los ricos)', { timeout: 60_000 }, () => {
+    const rico = conRico('cena', (id) => familia(id) === 'yogur')
     expect(rico).toBeDefined()
-    fijarAfinidades(todoMenos('yogur', 'carne_vacuna', 'pan_rallado'))
+    const yogur = rico!.id
+    fijarAfinidades(todoMenos(yogur, 'carne_vacuna', 'pan_rallado'))
     info.mockClear()
     for (const [modo, nombre] of [[CAMBIAR, 'cambiar_principal'], [SUMAR, 'sumar_ingrediente']] as const) {
       const focos = sorteados('cena', MILANESA, modo, rico!.n)
       for (const f of focos) expect(f).toMatchObject({ desdeId: 'milanesa_carne_horno', modo: nombre })
-      expect(focos.map((f) => f.ingrediente), nombre).not.toContain('yogur')
+      expect(focos.map((f) => f.ingrediente), nombre).not.toContain(yogur)
       expect(new Set(focos.map((f) => f.ingrediente)).size, nombre).toBeGreaterThanOrEqual(2)
     }
     expect(info).not.toHaveBeenCalled()
