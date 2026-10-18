@@ -1,7 +1,7 @@
 // La receta de food chaining, para leer con una mano en la cocina: arriba el nombre, "Parte de / Cambia" y la imagen;
 // después una línea de cómo ofrecerlo (sin presión, siempre a la vista), qué aporta, ingredientes y pasos. Lo largo
 // (por qué esta, el camino en su historial, cómo servirlo, lo que va adentro) queda detrás de "Ver más".
-import type { Receta, Regla } from '../../../shared/contratos'
+import type { PlatoComida, Receta, Regla } from '../../../shared/contratos'
 import { fraccionBarra, porcentajeTope } from '../../lib/cobertura'
 import { NOMBRE_CAMBIO, formatoNutriente, textoParaPadres } from '../../lib/vocabulario'
 import { ImagenPlato } from './ImagenPlato'
@@ -10,8 +10,13 @@ import { aceptacionLegible, alergenoEnFrase, listaLegible, nutrienteEnFrase } fr
 /** La línea que siempre se ve (§9, tono): ofrecer sin presión. El texto completo de la receta va en "Ver más". */
 export const OFRECER_SIN_PRESION = 'Ofrecelo sin pedirle que lo coma.'
 
-/** `para`: "para el almuerzo" cuando la receta es para la próxima comida (v5.1). */
-export function TarjetaReceta({ receta, reglas, para = null }: { receta: Receta; reglas: Regla[] | null; para?: string | null }) {
+/**
+ * `para`: "para el almuerzo" cuando la receta es para la próxima comida (v5.1).
+ * `plato` (v5.3): el plato de esa comida, si esta receta es su pasito; la imagen dibuja el plato completo.
+ */
+export function TarjetaReceta({ receta, reglas, para = null, plato }: {
+  receta: Receta; reglas: Regla[] | null; para?: string | null; plato?: PlatoComida
+}) {
   const { evidencia } = receta
   const n = evidencia.nutriente
   const candidato = evidencia.candidatos.find((c) => c.preparacionId === receta.preparacionBaseId)
@@ -28,8 +33,8 @@ export function TarjetaReceta({ receta, reglas, para = null }: { receta: Receta;
         </dl>
       </header>
 
-      <div className="rc-servir">
-        <ImagenPlato receta={receta} reglas={reglas} />
+      <div id="rc-servir" className="rc-servir" tabIndex={-1}>
+        <ImagenPlato receta={receta} reglas={reglas} plato={plato} />
         <details className="nb-ver-mas rc-mas">
           <summary>Cómo servirlo</summary>
           <p>{receta.presentacion}</p>
