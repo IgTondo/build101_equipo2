@@ -2,21 +2,26 @@
 // la cobertura semanal, el próximo paso (con el switch de recomendador de C14), la evolución,
 // repertorio + grupos + exposiciones y las últimas comidas (lo que aprendimos va, simple, en el Perfil). C9: cargando, error y vacío.
 // Si los últimos 7 días no tienen comidas pero hay historial, se muestra la última semana con registros (`hasta`).
+// Arriba va la respuesta (la frase como titular y el plato de nutrientes); la protagonista es el próximo paso.
+// La grilla de "Lo que come" lee además el perfil (solo para mostrar; si falla, queda el número de aceptadas).
+import { CalendarClock, Camera, FileText, Stethoscope } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import type { Alerta, Motor, Progreso } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
+import { Button } from '../../componentes/ui/button'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { diaUruguay, useNinoActivo } from '../../lib/nino'
-import { aErrorDeApi } from '../../lib/useApi'
+import { aErrorDeApi, useApi } from '../../lib/useApi'
 import { UltimasComidas } from './UltimasComidas'
 import { Cobertura } from './Cobertura'
 import { Evolucion } from './Evolucion'
 import { ProximoPaso } from './ProximoPaso'
 import { Repertorio } from './Repertorio'
+import { Respuesta } from './Respuesta'
 import { fechaCorta, gruposDesdeHoy, hayComidas, leerMotor, ultimoDia, ultimoDiaConComidas } from './calculos'
-import './tablero.css'
+import { loQueCome } from './visual'
 
 const DIAS = 7 // la cobertura es semanal; las 4 semanas de la evolución vienen aparte en `semanas`
 
@@ -61,51 +66,70 @@ export function Tablero() {
   const [params, setParams] = useSearchParams()
   const motor = leerMotor(params.get('motor'))
   const { datos, hasta, error, cargando, reintentar } = useProgreso(ninoId, motor)
+  const perfil = useApi((s) => api.perfil(ninoId, s), [ninoId])
   const conNino = `?nino=${encodeURIComponent(ninoId)}`
 
   const cambiarMotor = (m: Motor) => {
     setParams((p) => { const n = new URLSearchParams(p); n.set('motor', m); return n }, { replace: true })
   }
 
+  const titulo = <h1 className="text-lg font-extrabold text-musgo">¿Está comiendo bien?</h1>
+
   if (!datos) {
     if (error?.codigo === 'no_encontrado') return <PerfilNoEncontrado />
     return (
-      <>
-        <h1 className="tb-titulo">¿Está comiendo bien?</h1>
-        {error ? <ErrorConReintento error={error} reintentar={reintentar} /> : <Cargando texto="Juntando lo que comió esta semana…" />}
-      </>
+      <div className="flex flex-col gap-4">
+        {titulo}
+        {error ? <ErrorConReintento error={error} reintentar={reintentar} /> : <Cargando texto="Juntando lo que comió esta semana…" className="py-2" />}
+      </div>
     )
   }
 
   if (!hayComidas(datos.dias)) {
     return (
-      <>
-        <h1 className="tb-titulo">¿Está comiendo bien?</h1>
+      <div className="flex flex-col gap-4">
+        {titulo}
         <Vacio titulo="Todavía no hay comidas registradas">
-          <Link className="nb-boton" to={`/registrar${conNino}`}>Registrar la primera comida</Link>
+          <Button asChild size="lg" className="mt-1">
+            <Link to={`/registrar${conNino}`}>
+              <Camera aria-hidden="true" />
+              Registrar la primera comida
+            </Link>
+          </Button>
         </Vacio>
-      </>
+      </div>
     )
   }
 
   const p = datos
   const nutrienteQueFalta = p.semana.faltan[0]
+  const lista = perfil.tipo === 'ok' ? loQueCome(perfil.datos.preparaciones) : perfil.tipo === 'error' ? null : undefined
 
   return (
-    <div className="tb-tablero">
-      <header className="tb-hero">
-        <h1 className="tb-titulo">¿Está comiendo bien?</h1>
-        <p className="tb-frase">{p.frase}</p>
+    <div className="flex flex-col gap-10">
+      <header className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          {titulo}
+          <p className="font-titulo text-xl leading-[1.3] font-bold text-pino text-pretty">{p.frase}</p>
+        </div>
         {hasta && (
-          <p className="tb-aviso-semana" role="status">
-            No hay comidas registradas en los últimos 7 días. Te mostramos la última semana con registros,
-            hasta el <span className="nb-numero">{fechaCorta(hasta)}</span>.
+          <p className="flex items-start gap-2.5 rounded-xl bg-muted px-3.5 py-3 text-sm text-musgo text-pretty" role="status">
+            <CalendarClock className="mt-0.5 size-4 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+            <span>
+              No hay comidas registradas en los últimos 7 días. Te mostramos la última semana con registros,
+              hasta el <span className="tabular-nums">{fechaCorta(hasta)}</span>.
+            </span>
           </p>
         )}
+        <Respuesta semana={p.semana} />
       </header>
 
-      {error && <ErrorConReintento error={error} reintentar={reintentar} />}
-      {p.alertas.length > 0 && <Alertas alertas={p.alertas} />}
+      {(error || p.alertas.length > 0) && (
+        <div className="-mt-4 flex flex-col gap-3">
+          {error && <ErrorConReintento error={error} reintentar={reintentar} />}
+          {p.alertas.length > 0 && <Alertas alertas={p.alertas} />}
+        </div>
+      )}
 
       <Cobertura semana={p.semana} dia={ultimoDia(p.dias)} />
 
@@ -127,29 +151,40 @@ export function Tablero() {
         repertorioTendencia={p.repertorioTendencia}
         grupos={p.grupos}
         exposiciones={p.exposiciones}
+        loQueCome={lista}
       />
 
       <UltimasComidas dias={p.dias} />
 
-      <nav className="tb-acciones" aria-label="Seguir">
-        <Link className="nb-boton" to={`/registrar${conNino}`}>Registrar una comida</Link>
-        <Link className="nb-boton nb-boton-secundario" to={`/resumen${conNino}`}>Resumen para el nutricionista</Link>
+      <nav className="flex flex-col gap-3" aria-label="Seguir">
+        <Button asChild size="lg">
+          <Link to={`/registrar${conNino}`}>
+            <Camera aria-hidden="true" />
+            Registrar una comida
+          </Link>
+        </Button>
+        <Button asChild size="lg" variant="secondary">
+          <Link to={`/resumen${conNino}`}>
+            <FileText aria-hidden="true" />
+            Resumen para el nutricionista
+          </Link>
+        </Button>
       </nav>
     </div>
   )
 }
 
+/** Tibias y calmas: un consejo para el padre, nunca una alarma (nada de rojo). */
 function Alertas({ alertas }: { alertas: Alerta[] }) {
   return (
-    <section className="tb-alertas" aria-labelledby="tb-alertas-t">
-      <svg className="tb-alertas-icono" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-        <path d="M12 7v6M12 16.5v.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-      </svg>
-      <div>
-        <h2 id="tb-alertas-t">Conviene consultar a su pediatra o nutricionista</h2>
-        <ul>
-          {alertas.map((a, i) => <li key={`${a.tipo}-${i}`}>{a.texto}</li>)}
+    <section className="flex items-start gap-3.5 rounded-2xl border bg-card p-4" aria-labelledby="tb-alertas-t">
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-zapallo-claro text-pino" aria-hidden="true">
+        <Stethoscope className="size-5" strokeWidth={2.25} />
+      </span>
+      <div className="flex min-w-0 flex-col gap-1 pt-0.5">
+        <h2 id="tb-alertas-t" className="text-lg leading-snug">Conviene consultar a su pediatra o nutricionista</h2>
+        <ul className="flex flex-col gap-1 text-pino">
+          {alertas.map((a, i) => <li key={`${a.tipo}-${i}`} className="text-pretty">{a.texto}</li>)}
         </ul>
       </div>
     </section>
