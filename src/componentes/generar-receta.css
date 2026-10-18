@@ -1,0 +1,49 @@
+/* "Generar receta" (PLAN v5.3): el botón del inicio y la ventana para elegir la comida. Tokens de brand/tokens/nibble.css. */
+.gr-abrir { gap: 10px; min-height: 60px; font-size: 1.05rem; }
+.gr-abrir { transition-property: background-color, transform; transition-duration: 150ms; transition-timing-function: ease-out; }
+.gr-abrir:active { transform: scale(0.98); }
+
+.gr-dialogo {
+  width: min(100% - 32px, 420px);
+  margin: auto auto max(16px, env(safe-area-inset-bottom));
+  padding: 20px 16px 12px;
+  border: 1px solid var(--nb-borde);
+  border-radius: var(--nb-radio);
+  background: var(--nb-superficie);
+  color: var(--nb-texto);
+  box-shadow: var(--nb-sombra);
+}
+.gr-dialogo::backdrop { background: rgba(22, 53, 42, 0.45); }
+.gr-dialogo[open] { animation: gr-entrar 180ms ease-out; }
+@keyframes gr-entrar { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.gr-dialogo h2 { margin: 0 0 14px; font-size: 1.25rem; text-align: center; }
+
+.gr-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gr-opcion {
+  min-height: 64px; padding: 0 12px;
+  border: 1px solid var(--nb-borde); border-radius: var(--nb-radio-chico);
+  background: var(--nb-superficie-suave); color: var(--nb-primario);
+  font: 700 1.05rem var(--nb-font-texto); cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition-property: background-color, border-color, transform; transition-duration: 150ms; transition-timing-function: ease-out;
+}
+.gr-opcion:hover { border-color: var(--nb-marca); }
+.gr-opcion:active { transform: scale(0.97); }
+.gr-opcion[aria-pressed='true'] { background: var(--nb-primario); border-color: var(--nb-primario); color: var(--nb-sobre-primario); }
+.gr-opcion:disabled:not([aria-pressed='true']) { opacity: 0.55; cursor: default; }
+
+.gr-estado { min-height: 8px; margin-top: 12px; }
+.gr-estado:empty { margin-top: 0; }
+.gr-estado p { margin: 0; color: var(--nb-texto-suave); text-align: center; }
+
+.gr-cancelar {
+  display: block; width: 100%; min-height: 48px; margin-top: 8px;
+  border: 0; background: none; color: var(--nb-texto-suave);
+  font: 700 1rem var(--nb-font-texto); cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gr-abrir, .gr-opcion { transition: none; }
+  .gr-abrir:active, .gr-opcion:active { transform: none; }
+  .gr-dialogo[open] { animation: none; }
+}

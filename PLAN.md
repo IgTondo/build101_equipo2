@@ -1,6 +1,6 @@
 # Plan de implementación · build 101 · Nibble
 
-> v4 · sábado 17/10 · v2 (15:05): reenfocada en el objetivo (mejorar la alimentación del chico) e integrando el research `Selectividad alimentaria en niños autistas… .md`. Reemplaza la v1 de las 14:45. **v3: stack de costo casi cero (§4.1).** **v4 (después de la charla con el mentor): cocción como atributo, cita textual en cada respuesta, capas de datos y motores enchufables (§4.3), tres sugerencias en el tablero y dataset sintético de 2 chicos (§10.5).** **v5 (17/10, noche): alta desde cero por voz (§5.2) y se descarta el modo jurado. v5.1: el día se organiza en comidas (§9, "La pantalla principal"): cada registro sugiere la próxima comida.** Lo nuevo o cambiado en los contratos lleva `// v2`, `// v3`, `// v4` o `// v5`.
+> v4 · sábado 17/10 · v2 (15:05): reenfocada en el objetivo (mejorar la alimentación del chico) e integrando el research `Selectividad alimentaria en niños autistas… .md`. Reemplaza la v1 de las 14:45. **v3: stack de costo casi cero (§4.1).** **v4 (después de la charla con el mentor): cocción como atributo, cita textual en cada respuesta, capas de datos y motores enchufables (§4.3), tres sugerencias en el tablero y dataset sintético de 2 chicos (§10.5).** **v5.3 (18/10): "Generar receta" para la comida que elija el padre (§9).** **v5 (17/10, noche): alta desde cero por voz (§5.2) y se descarta el modo jurado. v5.1: el día se organiza en comidas (§9, "La pantalla principal"): cada registro sugiere la próxima comida.** Lo nuevo o cambiado en los contratos lleva `// v2`, `// v3`, `// v4` o `// v5`.
 > **Regla de oro:** antes de las 18:15 tiene que andar en el deploy, desde un celular, el ciclo **después de comer: foto + cómo le fue → análisis → grafo → tablero**. Todo lo demás viene después y, si no llega, se declara como pendiente.
 
 ---
@@ -732,8 +732,9 @@ Observación = un ítem de una comida: `{ prepId, atributos (8, con la cocción)
 **La pantalla principal (v5.1).** El día se organiza en comidas: el padre registra cada comida al terminarla y la app le sugiere la siguiente.
 1. **Hoy:** cómo viene en nutrientes en el día (se actualiza con cada comida registrada) y una línea de la semana.
 2. **Próxima comida** (botón grande): "Para el almuerzo" + la sugerencia con su porqué (sin LLM). Al tocarla se genera la receta (§7) para esa comida. Es una sugerencia: el padre puede servir otra cosa.
-3. **Registrar comida**.
-4. Abajo, el acceso al detalle de la semana (el tablero completo).
+3. **Registrar comida**: la acción central; lo que alimenta todo lo demás.
+4. **Generar receta** (v5.3): para cuando el padre quiere una receta para otra comida. Abre una ventana con **Desayuno · Almuerzo · Merienda · Cena** y sigue el flujo de siempre: la sugerencia del grafo para esa comida (`/api/progreso?momento=`, solo un `un_paso` o `mas_nutritiva`, que son las que tienen receta) → la receta de food chaining con su imagen (§7). No es un generador de menús: es el mismo paso chico desde algo que ya come, para la comida elegida. Si no hay nada para esa comida, lo dice con calma.
+5. Abajo, el acceso al detalle de la semana (el tablero completo).
 
 La próxima comida es la principal que sigue a la última registrada hoy: desayuno → almuerzo → cena → desayuno del día siguiente (merienda y colación llevan a la principal que sigue). Sin comidas hoy, la que corresponde por la hora. Al guardar una comida, la pantalla de resultado termina con la tarjeta de la próxima comida.
 

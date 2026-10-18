@@ -1,11 +1,13 @@
 // La pantalla principal (PLAN v5.1, §9): el día se organiza en comidas. De arriba hacia abajo: el nombre del chico,
 // "Hoy" (nutrientes del día + una línea de la semana), la próxima comida (el botón grande, abre la receta para esa
-// comida), "Registrar comida" (con la comida que acaba de terminar preseleccionada), las alertas si hay y "Ver la semana".
+// comida), "Registrar comida" (con la comida que acaba de terminar preseleccionada), "Generar receta" (v5.3: para la
+// comida que elija el padre), las alertas si hay y "Ver la semana".
 // Un solo pedido a /api/progreso (7 días, con ?momento= de la próxima comida) y el perfil en paralelo, solo por el nombre.
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AvisoConsulta } from '../../componentes/AvisoConsulta'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
+import { GenerarReceta } from '../../componentes/GenerarReceta'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { TarjetaProximaComida } from '../../componentes/ProximaComida'
 import { api } from '../../lib/api'
@@ -56,6 +58,9 @@ export function Inicio() {
       <Link className="nb-boton nb-boton-secundario in-registrar" to={{ pathname: '/registrar', search: `?${registrar}` }}>
         <IconoCamara /> Registrar comida
       </Link>
+
+      {/* Debajo de registrar, que es lo que alimenta todo: la receta para otra comida que elige el padre (v5.3). */}
+      <GenerarReceta ninoId={ninoId} />
 
       {datos && <AvisoConsulta alertas={datos.alertas} />}
 
