@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ErrorApi, ImagenPlatoReq, PlatoNuevo, Receta, Regla } from '../../shared/contratos.js'
+import type { ComponentePlato, ErrorApi, ImagenPlatoReq, PlatoCompleto, PlatoNuevo, Receta, Regla } from '../../shared/contratos.js'
 import handler from '../../api/imagen-plato.js'
 import { HEADER_STUB } from '../http.js'
 import { preparacion } from '../validacion/ejemplos.js'
@@ -182,6 +182,108 @@ describe('promptImagenPlato con un plato inventado (receta creativa)', () => {
     expect(esquemaImagenPlatoReq.safeParse(pedido([], creativa(malo))).success).toBe(false)
     const vacio = { ...POLENTA, imagen: { ...POLENTA.imagen, varios: ' \n ' } }
     expect(esquemaImagenPlatoReq.safeParse(pedido([], creativa(vacio))).success).toBe(false)
+  })
+})
+
+// v5.7 · La receta creativa trae la comida entera (receta.platoCompleto): se dibujan todos los componentes.
+describe('promptImagenPlato con la comida entera (platoCompleto)', () => {
+  const comp = (rol: ComponentePlato['rol'], preparacionId: string, nombre: string, grupo: ComponentePlato['grupo'], nuevo = false): ComponentePlato =>
+    ({ rol, preparacionId, nombre, nuevo, gramos: 100, grupo })
+  const completo = (componentes: ComponentePlato[]): PlatoCompleto => ({ componentes, aporte: RECETA.aporte, cubreDelDia: {} })
+  const GARBANZOS: PlatoNuevo = {
+    atributos: { textura: 'crocante', forma: 'plano', color: 'beige', sabor: 'salado', temperatura: 'caliente', presentacion: 'separado', grupo: 'proteina', coccion: 'horno' },
+    imagen: { uno: 'breaded chickpea cutlet', varios: 'breaded chickpea cutlets', aspecto: 'a thin flat oval cutlet of mashed chickpeas coated in golden breadcrumbs, oven-baked' },
+  }
+  const cena = (extra: Partial<Receta> = {}): Receta => otra('nuevo_milanesa_garbanzos', ['milanesa_carne_horno', 'Milanesa de carne'],
+    'Su milanesa de garbanzos con sus papas y 2 cucharadas de pure de zapallo.', {
+      nombre: 'Milanesa de garbanzos', plato: GARBANZOS,
+      platoCompleto: completo([
+        comp('principal', 'nuevo_milanesa_garbanzos', 'Milanesa de garbanzos', 'proteina', true),
+        comp('guarnicion', 'papas_horno_baston', 'Papas al horno', 'cereal_almidon'),
+        comp('verdura_fruta', 'pure_zapallo', 'Pure de zapallo', 'verdura'),
+      ]),
+      ...extra,
+    })
+
+  it('cena de 3: plato con divisiones, lo nuevo (porción normal) en la sección grande y los otros dos arriba, con su visual', () => {
+    const r = promptImagenPlato(pedido([], cena()), preparacion)
+    expect(r).toMatch(/^Realistic overhead food photograph taken from directly above/)
+    expect(r).toContain('one plain white divided plate with three separate sections: a large section across the bottom half and two smaller sections across the top')
+    expect(r).toContain('In the large bottom section: one whole breaded chickpea cutlet: a thin flat oval cutlet of mashed chickpeas coated in golden breadcrumbs, oven-baked.')
+    expect(r).toContain('In the top-left section: a normal portion of about 12 oven-baked potato fries: potato cut into long thin sticks shaped exactly like French fries')
+    expect(r).toContain('In the top-right section: a generous scoop of pumpkin puree: smooth bright orange pumpkin puree.')
+    expect(r).toContain('in its own section: no food touches another')
+    expect(r).toContain('Only these three foods, plain, with no sauce or garnish on top')
+    expect(r).not.toMatch(/very small|spoonful|half of one/)   // lo nuevo ya no es un bocado de exposición
+    expect(r).not.toMatch(/[^\x20-\x7e"]/)
+    expect(r.length).toBeLessThan(1200)
+  })
+
+  it('una regla manda sobre el plato con divisiones: hondo, o rechaza las divisiones → zonas de un plato', () => {
+    const hondo = promptImagenPlato(pedido([regla('requiere', 'plato', 'hondo')], cena()), preparacion)
+    expect(hondo).toContain('served on one plain round white deep plate')
+    expect(hondo).toContain('On the bottom half of the plate: one whole breaded chickpea cutlet')
+    expect(hondo).toContain('On the top-left part of the plate: a normal portion of about 12 oven-baked potato fries')
+    expect(hondo).toContain('with a wide strip of empty white plate between them')
+    const sinDivisiones = promptImagenPlato(pedido([regla('rechaza', 'plato', 'con_divisiones'), regla('rechaza', 'distribucion', 'tocandose')], cena()), preparacion)
+    expect(sinDivisiones).toContain('one plain round white flat plate')
+    expect(sinDivisiones).toContain('with plenty of space')
+  })
+
+  it('desayuno con bebida: el vaso al lado del plato, lo nuevo en bol adelante, foto a 45 grados', () => {
+    const RICOTA: PlatoNuevo = {
+      atributos: { textura: 'cremoso', forma: 'pure', color: 'blanco', sabor: 'dulce', temperatura: 'frio', presentacion: 'separado', grupo: 'lacteo', coccion: 'listo' },
+      imagen: { uno: 'sweet ricotta cream', varios: 'sweet ricotta cream', aspecto: 'smooth thick white sweet ricotta cream' },
+    }
+    const desayuno = otra('nuevo_crema_ricota', ['yogur_vainilla', 'Yogur de vainilla'], '', {
+      nombre: 'Crema de ricota', plato: RICOTA,
+      platoCompleto: completo([
+        comp('lacteo', 'nuevo_crema_ricota', 'Crema de ricota', 'lacteo', true),
+        comp('cereal_pan', 'tostadas', 'Tostadas', 'cereal_almidon'),
+        comp('verdura_fruta', 'banana_pisada', 'Banana pisada', 'fruta'),
+        comp('bebida', 'leche_chocolatada', 'Leche chocolatada', 'lacteo'),
+      ]),
+    })
+    const r = promptImagenPlato(pedido([], desayuno), preparacion)
+    expect(r).toMatch(/^Realistic food photograph taken from a high angle, about 45 degrees, of a complete home-cooked meal served on one plain round white flat plate/)
+    expect(r).toContain('In front of the plate, closest to the camera: a small plain white bowl filled with sweet ricotta cream')
+    expect(r).toContain('On the left half of the plate: a normal portion of 2 slices of white bread toast')
+    expect(r).toContain('On the right half of the plate: a generous scoop of mashed banana')
+    expect(r).toContain('On the table to the right of the plate: a tall clear drinking glass filled with chocolate milk')
+    expect(r).toContain('The glass and the bowl stand on the table, next to the plate, not on it.')
+    expect(r).toContain('Only these four foods')
+  })
+
+  it('un componente que no está en el catálogo sale con su nombre y su grupo; una bebida desconocida va en vaso', () => {
+    const r = promptImagenPlato(pedido([], cena({ platoCompleto: completo([
+      comp('principal', 'nuevo_milanesa_garbanzos', 'Milanesa de garbanzos', 'proteina', true),
+      comp('guarnicion', 'arroz_blanco_casa', 'Arroz blanco', 'cereal_almidon'),
+      comp('bebida', 'jugo_casero', 'Jugo de manzana', 'fruta'),
+    ]) })), () => undefined)
+    expect(r).toContain('On the right half of the plate: a normal portion of Arroz blanco (a simple starchy side).')
+    expect(r).toContain('On the table to the right of the plate: a tall clear drinking glass filled with Jugo de manzana')
+    expect(r).toContain('On the left half of the plate: one whole breaded chickpea cutlet')
+  })
+
+  it('con un solo componente, o sin platoCompleto, el prompt de siempre', () => {
+    const solo = cena({ platoCompleto: completo([comp('principal', 'nuevo_milanesa_garbanzos', 'Milanesa de garbanzos', 'proteina', true)]) })
+    const { platoCompleto: _, ...sin } = solo
+    expect(promptImagenPlato(pedido([], solo), preparacion)).toBe(promptImagenPlato(pedido([], sin as Receta), preparacion))
+    // El camino viejo lee la cantidad de la presentación ("2 cucharadas" → 2 milanesas): por eso la comida entera no la usa.
+    expect(promptImagenPlato(pedido([], solo), preparacion)).toContain('On the right half of the plate: exactly 2 breaded chickpea cutlets, a very small portion')
+  })
+
+  it('el esquema acepta platoCompleto (limpia los nombres, ignora lo demás) y rechaza un rol inválido o más de 5 componentes', () => {
+    const ok = esquemaImagenPlatoReq.safeParse(pedido([], cena()))
+    expect(ok.success && ok.data.receta.platoCompleto?.componentes.map((c) => c.rol)).toEqual(['principal', 'guarnicion', 'verdura_fruta'])
+    expect(ok.success && 'aporte' in (ok.data.receta.platoCompleto ?? {})).toBe(false)
+    const tilde = esquemaImagenPlatoReq.safeParse(pedido([], cena({ platoCompleto: completo([
+      comp('principal', 'nuevo_milanesa_garbanzos', 'Milanesa de garbanzos', 'proteina', true), comp('verdura_fruta', ' x ', ' Puré "de" zapallo ', 'verdura')]) })))
+    expect(tilde.success && tilde.data.receta.platoCompleto?.componentes[1]).toMatchObject({ nombre: 'Pure de zapallo', preparacionId: 'x' })
+    const malRol = cena({ platoCompleto: completo([comp('postre' as ComponentePlato['rol'], 'a', 'A', 'fruta')]) })
+    expect(esquemaImagenPlatoReq.safeParse(pedido([], malRol)).success).toBe(false)
+    const seis = cena({ platoCompleto: completo(Array.from({ length: 6 }, () => comp('guarnicion', 'papa_hervida', 'Papa', 'cereal_almidon'))) })
+    expect(esquemaImagenPlatoReq.safeParse(pedido([], seis)).success).toBe(false)
   })
 })
 

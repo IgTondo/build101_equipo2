@@ -16,6 +16,7 @@ import { CON_META } from '../nutricion/objetivos.js'
 import { calcularAporte, cambiosEntre, problemasPorTipo, aplanar, type ContextoValidacion } from '../validacion/receta.js'
 import { alimentoPorId, alimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
+import { ajustarPorciones, armarPlatoCompleto, problemasDelPlato } from './plato-completo.js'
 import { esquemaSalidaCreativa, promptRecetaCreativa, SISTEMA_RECETA_CREATIVA, type SalidaCreativa } from './prompts/receta-creativa.js'
 import { CORTE_MS, TOPE_NUEVA_LLAMADA_MS, coberturaDeLoQueFalta, sinAlergenos, type IntentoReceta } from './receta.js'
 
@@ -123,12 +124,16 @@ export function completarCreativa(salida: SalidaCreativa, k: Conocimiento, desde
     validacion: { ok: false, problemas: [], reintentos: 0 },
     evidencia,
     plato: { atributos: salida.atributos, imagen: salida.imagen },
+    platoCompleto: armarPlatoCompleto({ preparacion: base, rol: salida.rol, aporte }, ajustarPorciones(aporte.energia_kcal, salida.acompanamientos ?? [], k), k),
     objetivo: k.variedad ? { tipo: 'variedad', ...k.variedad } : { tipo: 'nutriente', nutriente: n }, // v5.5
   }
 }
 
 /** Lo que valida la receta del catálogo, más lo propio de un plato inventado. */
-export function problemasCreativa(receta: Receta, k: Conocimiento, desde: PreparacionCatalogo, anteriores: readonly string[]): string[] {
+export function problemasCreativa(
+  receta: Receta, k: Conocimiento, desde: PreparacionCatalogo, anteriores: readonly string[],
+  acompanamientos?: readonly { preparacionId: string; gramos: number }[],
+): string[] {
   const base: PreparacionCatalogo = { id: receta.preparacionBaseId, nombre: receta.nombre, atributos: receta.plato!.atributos, ingredientes: receta.ingredientes }
   const ctx: ContextoValidacion = { alergias: alergiasDe(k), reglas: k.reglas, desde, base, presentacionesAceptadas: k.presentacionesAceptadas }
   const p = aplanar(problemasPorTipo(receta, ctx))
@@ -152,6 +157,8 @@ export function problemasCreativa(receta: Receta, k: Conocimiento, desde: Prepar
   const igual = k.aceptadas.find((s) => s.id !== desde.id && cambios(s, base).length === 0)
   if (igual) p.push(`«${receta.nombre}» es lo mismo que «${igual.nombre}», que ya come: proponé un plato nuevo.`)
   if (anteriores.some((a) => normal(a) === normal(receta.nombre))) p.push(`«${receta.nombre}» ya lo vio la familia: proponé un plato distinto.`)
+  // v5.7 · La comida completa: estructura, energía y proteína del plato entero
+  if (receta.platoCompleto) p.push(...problemasDelPlato(receta.platoCompleto, acompanamientos ?? receta.platoCompleto.componentes.filter((c) => !c.nuevo), k))
   return p
 }
 
@@ -189,7 +196,7 @@ export async function generarRecetaCreativa(req: RecetaReq, deps: DepsRecetaCrea
     })
     const desde = k.seguros.find((s) => s.id === datos.desdeId)!
     const receta = completarCreativa(datos, k, desde)
-    const problemas = problemasCreativa(receta, k, desde, anteriores)
+    const problemas = problemasCreativa(receta, k, desde, anteriores, receta.platoCompleto?.componentes.filter((c) => !c.nuevo) ?? datos.acompanamientos)
     deps.alIntentar?.({ llamada: intento + 1, preparacionId: receta.preparacionBaseId, reintento: intento > 0, salida: datos, problemas, ms: ahora() - desdeLlamada })
     if (problemas.length === 0) {
       registrar({ ninoId: req.ninoId, nombre: receta.nombre, desde: desde.id, cambio: receta.cambio, nutriente: receta.evidencia.nutriente, objetivo: receta.objetivo, foco: k.foco, llamadas: intento + 1, ms: ahora() - t0 })

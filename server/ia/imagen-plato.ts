@@ -10,11 +10,18 @@
 //    que dice la presentación de la receta ("2 bastones", "media tostada") o una por defecto;
 //  - las bebidas van en vaso y el yogur en un bol, nunca "en el plato";
 //  - plato playo blanco (hondo o con divisiones si una regla del chico lo pide), cenital, separados, nada más.
+// v5.7 · Si la receta trae la comida entera (receta.platoCompleto, 2 o más componentes) se dibuja LA COMIDA: cada
+// componente con su visual (catálogo visual → el plato inventado → sus atributos → su nombre y grupo), todos en porción
+// normal (lo nuevo ya es un plato de verdad, no un bocado de exposición: cantidadEnPresentacion no se usa, porque la
+// presentación habla de toda la comida y sus números pueden ser de otro componente). Lo nuevo va en el lugar principal
+// (la sección grande de abajo o la mitad izquierda); con 3 o más en el plato, plato con divisiones (salvo que una regla
+// pida hondo o rechace las divisiones); las bebidas en vaso a la derecha del plato y los boles a la izquierda.
+// Sin platoCompleto (recetas del catálogo, pedidos viejos), exactamente lo de antes.
 // Siempre es ilustrativa.
 import { z } from 'zod'
 import {
-  CAMBIO, COCCION, COLOR, FORMA, GRUPO, PRESENTACION, SABOR, TEMPERATURA, TEXTURA,
-  type Atributos, type Coccion, type Color, type Forma, type ImagenPlatoRes, type PlatoNuevo, type PreparacionCatalogo, type Regla, type Textura,
+  CAMBIO, COCCION, COLOR, FORMA, GRUPO, PRESENTACION, ROL_PLATO, SABOR, TEMPERATURA, TEXTURA,
+  type Atributos, type Coccion, type Color, type Forma, type Grupo, type ImagenPlatoRes, type PlatoNuevo, type PreparacionCatalogo, type Regla, type Textura,
 } from '../../shared/contratos.js'
 import { ingredientePrincipal } from '../validacion/receta.js'
 import { generarImagen } from './imagen.js'
@@ -53,6 +60,17 @@ const esquemaPlatoNuevo = z.object({
   imagen: z.object({ uno: textoImagen(MAX_IMAGEN.uno), varios: textoImagen(MAX_IMAGEN.varios), aspecto: textoImagen(MAX_IMAGEN.aspecto) }),
 })
 
+// v5.7 · La comida entera: de cada componente, lo que usa la imagen (aporte y cubreDelDia se ignoran).
+const esquemaComponente = z.object({
+  rol: z.enum(ROL_PLATO),
+  preparacionId: z.string().trim().min(1).max(80),
+  nombre: textoImagen(60),   // va al prompt si no está en el catálogo: sin tildes ni comillas
+  nuevo: z.boolean(),
+  gramos: z.number(),
+  grupo: z.enum(GRUPO),
+})
+const esquemaPlatoCompleto = z.object({ componentes: z.array(esquemaComponente).max(5) })
+
 export const esquemaImagenPlatoReq = z.object({
   receta: z.object({
     nombre: z.string().min(1),
@@ -65,6 +83,7 @@ export const esquemaImagenPlatoReq = z.object({
     seMantiene: z.array(z.string()).optional(),
     cambio: z.enum(CAMBIO).optional(),
     plato: esquemaPlatoNuevo.optional(),   // v5.4 · solo en la receta creativa
+    platoCompleto: esquemaPlatoCompleto.optional(),   // v5.7 · solo en la receta creativa
   }),
   reglas: z.array(esquemaRegla).default([]),
 })
@@ -220,8 +239,114 @@ export function visuales(req: PedidoImagenPlato, preparacion: BuscarPreparacion 
   return { seguro, nuevo }
 }
 
+// ---------- v5.7 · La comida entera ----------
+// Un componente que no está en el catálogo (ni es lo nuevo): su nombre (sin tildes) y su grupo.
+const GRUPO_EN: Record<Grupo, string> = {
+  cereal_almidon: 'a simple starchy side', proteina: 'a simple home-cooked protein', verdura: 'simple cooked vegetables',
+  fruta: 'simple fresh fruit', lacteo: 'a simple dairy food', otro: 'a simple homemade food',
+}
+const NUMERO_EN = ['no', 'one', 'two', 'three', 'four', 'five']
+
+interface EnLaComida { id: string; visual: Visual; frase: string; nuevo: boolean }
+
+/** Cada componente con su visual y su frase, lo nuevo primero. */
+function componentesDeLaComida(req: PedidoImagenPlato, preparacion: BuscarPreparacion): EnLaComida[] {
+  const { receta } = req
+  const lista = receta.platoCompleto?.componentes ?? []
+  const iNuevo = Math.max(0, lista.findIndex((c) => c.nuevo || c.preparacionId === receta.preparacionBaseId))
+  const comida = lista.map((c, i): EnLaComida => {
+    const prep = preparacion(c.preparacionId)
+    const v = i === iNuevo ? visuales(req, preparacion).nuevo
+      : VISUAL[c.preparacionId] ?? (prep ? visualPorAtributos({ nombre: prep.nombre, atributos: prep.atributos, ingredientes: prep.ingredientes }) : undefined)
+    // Una bebida va siempre en vaso, aunque no se sepa cómo es.
+    const visual = v ? (c.rol === 'bebida' ? { ...v, recipiente: 'vaso' as const } : v)
+      : { uno: c.nombre, varios: c.nombre, aspecto: GRUPO_EN[c.grupo], normal: 0, recipiente: c.rol === 'bebida' ? 'vaso' as const : 'plato' as const }
+    const frase = v || visual.recipiente !== 'plato' ? porcionNormal(visual) : `a normal portion of ${c.nombre} (${GRUPO_EN[c.grupo]})`
+    return { id: c.preparacionId, visual, frase, nuevo: i === iNuevo }
+  })
+  return [...comida.filter((c) => c.nuevo), ...comida.filter((c) => !c.nuevo)]
+}
+
+// Dónde va cada cosa en el plato: lo nuevo, el primero, en el lugar principal.
+const ARRIBA: Record<number, string[]> = {
+  1: ['top'], 2: ['top-left', 'top-right'], 3: ['top-left', 'top-center', 'top-right'], 4: ['top-left', 'top-center-left', 'top-center-right', 'top-right'],
+}
+function lugaresEnElPlato(n: number, dividido: boolean): { plato: string; lugares: string[] } {
+  if (n <= 1) return { plato: '', lugares: [dividido ? 'In the main section of the plate' : 'In the center of the plate'] }
+  if (n === 2) return dividido
+    ? { plato: PLATO_EN.con_divisiones, lugares: ['In the left section of the plate', 'In the right section of the plate'] }
+    : { plato: '', lugares: ['On the left half of the plate', 'On the right half of the plate'] }
+  const arriba = ARRIBA[n - 1] ?? ARRIBA[4]
+  return dividido
+    ? { plato: `one plain white divided plate with ${NUMERO_EN[n]} separate sections: a large section across the bottom half and ${NUMERO_EN[n - 1]} smaller sections across the top`,
+        lugares: ['In the large bottom section', ...arriba.map((l) => `In the ${l} section`)] }
+    : { plato: '', lugares: ['On the bottom half of the plate', ...arriba.map((l) => `On the ${l} part of the plate`)] }
+}
+
+// Sin plato (todo en vasos y boles): de izquierda a derecha.
+const EN_FILA: Record<number, string[]> = {
+  1: ['In the center'], 2: ['On the left', 'On the right'], 3: ['On the left', 'In the center', 'On the right'],
+  4: ['On the far left', 'In the center-left', 'In the center-right', 'On the far right'],
+  5: ['On the far left', 'On the left', 'In the center', 'On the right', 'On the far right'],
+}
+
+const lista = (frases: string[]) => frases.length <= 1 ? frases.join('') : `${frases.slice(0, -1).join('; ')}; and ${frases[frases.length - 1]}`
+
+function promptComidaCompleta(req: PedidoImagenPlato, preparacion: BuscarPreparacion): string {
+  const { receta, reglas } = req
+  const comida = componentesDeLaComida(req, preparacion)
+  const enPlato = comida.filter((c) => c.visual.recipiente === 'plato')
+  const fuera = comida.filter((c) => c.visual.recipiente !== 'plato')
+  // La regla del chico manda; si no dice nada, con 3 o más en el plato, uno con divisiones (se lee mejor).
+  const porRegla = platoPara(reglas)
+  const plato: PlatoImagen = porRegla !== 'playo' ? porRegla
+    : enPlato.length >= 3 && !pide(reglas, 'rechaza', 'plato', 'con_divisiones') ? 'con_divisiones' : 'playo'
+  const dividido = plato === 'con_divisiones'
+  const { plato: platoDividido, lugares } = lugaresEnElPlato(enPlato.length, dividido)
+  const platoEn = platoDividido || PLATO_EN[plato]
+  const queNoSeToquen = pide(reglas, 'rechaza', 'distribucion', 'tocandose') || pide(reglas, 'requiere', 'distribucion', 'separados')
+  const conSalsa = [atributosDelNuevo(req, preparacion), ...comida.filter((c) => !c.nuevo).map((c) => preparacion(c.id)?.atributos)]
+    .some((a) => a?.presentacion === 'con_salsa')
+  // Solo si su alimento seguro es parte de la comida y los dos son piezas enteras (bastones, nuggets).
+  const nuevo = comida[0]
+  const seguro = comida.find((c) => !c.nuevo && c.id === receta.desde.preparacionId)
+  const mismaForma = Boolean(seguro && receta.seMantiene?.some((s) => s.startsWith('forma=')))
+    && [nuevo, seguro].every((c) => c && c.visual.normal >= 4 && c.visual.recipiente === 'plato')
+
+  const hayVaso = fuera.some((c) => c.visual.recipiente === 'vaso')
+  const donde = enPlato.length ? `served on ${platoEn}, on a light wooden table` : 'on a light wooden table'
+  const escena: string[] = [hayVaso
+    ? `Realistic food photograph taken from a high angle, about 45 degrees, of a complete home-cooked meal ${donde}.`
+    : `Realistic overhead food photograph taken from directly above, a 90-degree top-down view of a complete home-cooked meal ${donde}.`]
+  if (enPlato.length) {
+    // Lo nuevo fuera del plato (un bol, un vaso) va adelante, en el centro; los boles a la izquierda y los vasos a la derecha.
+    if (nuevo.visual.recipiente !== 'plato') escena.push(`In front of the plate, closest to the camera: ${nuevo.frase}.`)
+    enPlato.forEach((c, i) => escena.push(`${lugares[i]}: ${c.frase}.`))
+    const boles = fuera.filter((c) => c !== nuevo && c.visual.recipiente === 'bol')
+    const vasos = fuera.filter((c) => c !== nuevo && c.visual.recipiente === 'vaso')
+    if (boles.length) escena.push(`On the table to the left of the plate: ${lista(boles.map((c) => c.frase))}.`)
+    if (vasos.length) escena.push(`On the table to the right of the plate: ${lista(vasos.map((c) => c.frase))}.`)
+    if (enPlato.length >= 2) escena.push(`Each food sits apart ${dividido ? 'in its own section' : 'with a wide strip of empty white plate between them'}`
+      + `${queNoSeToquen ? ', with plenty of space' : ''}: no food touches another.`)
+    const nVasos = fuera.filter((c) => c.visual.recipiente === 'vaso').length
+    const recipientes = [nVasos && (nVasos > 1 ? 'glasses' : 'glass'), fuera.length - nVasos && (fuera.length - nVasos > 1 ? 'bowls' : 'bowl')].filter(Boolean)
+    if (fuera.length) escena.push(`The ${recipientes.join(' and the ')} ${fuera.length === 1 ? 'stands' : 'stand'} on the table, next to the plate, not on it.`)
+  } else {
+    const fila = EN_FILA[comida.length] ?? EN_FILA[5]
+    comida.forEach((c, i) => escena.push(`${fila[i]}: ${c.frase}.`))
+    escena.push('They are clearly separate and do not touch.')
+  }
+  return [
+    ...escena,
+    mismaForma && seguro ? `The ${nuevo.visual.varios} have the same shape and size as the ${seguro.visual.varios}.` : '',
+    `Only these ${NUMERO_EN[comida.length] ?? comida.length} foods${conSalsa ? '' : ', plain, with no sauce or garnish on top'}; nothing else in the picture: no cutlery, no napkin, no text, no people, no hands.`,
+    'Soft natural daylight, sharp focus, true-to-life colors and textures.',
+  ].filter(Boolean).join(' ')
+}
+
 export function promptImagenPlato(req: PedidoImagenPlato, preparacion: BuscarPreparacion = preparacionCatalogo): string {
   const { receta, reglas } = req
+  if ((receta.platoCompleto?.componentes.length ?? 0) >= 2) return promptComidaCompleta(req, preparacion)   // v5.7
   const { seguro, nuevo } = visuales(req, preparacion)
   const izquierda = porcionNormal(seguro)
   const derecha = porcionChica(nuevo, cantidadEnPresentacion(receta.presentacion))

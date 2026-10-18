@@ -9,7 +9,7 @@ import { fijarAlimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
 import type { SalidaCreativa } from './prompts/receta-creativa.js'
 import { calcularAporte } from '../validacion/receta.js'
-import { completarCreativa, generarRecetaCreativa, problemasDeCalidad } from './receta-creativa.js'
+import { completarCreativa, generarRecetaCreativa, problemasCreativa, problemasDeCalidad } from './receta-creativa.js'
 
 vi.mock('./modelo.js', () => ({ generarJSON: vi.fn() }))
 const llm = vi.mocked(generarJSON)
@@ -29,6 +29,8 @@ const PAPAS_CON_QUESO: SalidaCreativa = {
   nombre: 'Papas al horno con queso gratinado',
   atributos: { ...papasHorno.atributos, coccion: 'horno' },
   imagen: { uno: 'cheesy oven fry', varios: 'cheesy oven fries', aspecto: 'oven-baked potato sticks with golden melted mozzarella on top' },
+  rol: 'principal',
+  acompanamientos: [{ preparacionId: 'milanesa_carne_horno', rol: 'guarnicion', gramos: 130 }, { preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 60 }],
   ingredientes: [{ alimentoId: 'papa', gramos: 120 }, { alimentoId: 'queso_muzzarella', gramos: 35 }, { alimentoId: 'aceite_girasol', gramos: 5 }],
   pasos: ['Cortá las papas en bastones.', 'Pincelalas con aceite.', 'Horneá 25 minutos hasta que estén crocantes.', 'Poné una feta de muzzarella arriba y gratiná 3 minutos.'],
   porQue: 'Parte de sus papas al horno en bastones, que come siempre; cambia solo el ingrediente: se suma muzzarella, que aporta calcio.',
@@ -184,5 +186,56 @@ describe('(v5.6) calidad: el corazón de la app no puede ser una receta pobre', 
 
   it('una receta elaborada de verdad pasa', () => {
     expect(problemasDeCalidad(receta({}), desdePapas, 0)).toEqual([])
+  })
+})
+
+describe('(v5.7) la comida completa: lo nuevo + lo que ya come, equilibrado para esa comida', () => {
+  const k = () => conocimiento()
+  const armar = (s: Partial<SalidaCreativa>) => completarCreativa({ ...PAPAS_CON_QUESO, ...s }, k(), papasHorno)
+  const problemas = (s: Partial<SalidaCreativa>) => problemasCreativa(armar(s), k(), papasHorno, [], { ...PAPAS_CON_QUESO, ...s }.acompanamientos)
+
+  it('arma el plato con lo nuevo primero, lo que ya come después y el aporte del plato entero', () => {
+    const r = armar({})
+    expect(r.platoCompleto?.componentes.map((c) => [c.preparacionId, c.nuevo, c.rol])).toEqual([
+      ['nuevo_papas_al_horno_con_queso_gratinado', true, 'principal'],
+      ['milanesa_carne_horno', false, 'guarnicion'],
+      ['papas_fritas_baston', false, 'guarnicion'],
+    ])
+    expect(r.platoCompleto!.aporte.energia_kcal).toBeGreaterThan(r.aporte.energia_kcal)
+    expect(r.platoCompleto!.aporte.proteina_g).toBeGreaterThan(r.aporte.proteina_g)
+    expect(r.platoCompleto!.cubreDelDia.energia_kcal).toBeGreaterThan(0.25)
+    expect(problemas({})).toEqual([])
+  })
+
+  it('una cena con solo lo nuevo no es una comida completa', () => {
+    expect(problemas({ acompanamientos: [] }).join(' ')).toMatch(/El plato tiene 1 cosa y una comida completa para cena lleva de 3 a 4/)
+  })
+
+  it('la energía y la proteína del plato entero tienen que ser las de esa comida', () => {
+    // Lo que ya come se ajusta solo a las calorías de la comida (sin gastar un reintento)
+    const chico = [{ preparacionId: 'milanesa_carne_horno', rol: 'guarnicion' as const, gramos: 15 }, { preparacionId: 'papas_fritas_baston', rol: 'guarnicion' as const, gramos: 15 }]
+    const r = armar({ acompanamientos: chico })
+    expect(r.platoCompleto!.componentes.filter((c) => !c.nuevo).every((c) => c.gramos > 15)).toBe(true)
+    expect(problemasCreativa(r, k(), papasHorno, []).join(' ')).not.toMatch(/kcal/)
+    // Si ni así entra (lo nuevo solo ya se pasa), lo dice
+    const enorme = armar({ ingredientes: [{ alimentoId: 'papa', gramos: 300 }, { alimentoId: 'queso_muzzarella', gramos: 200 }, { alimentoId: 'aceite_girasol', gramos: 30 }] })
+    expect(problemasCreativa(enorme, k(), papasHorno, []).join(' ')).toMatch(/kcal y una comida completa para cena va de \d+ a \d+ kcal/)
+  })
+
+  it('un solo principal y solo cosas que ya come', () => {
+    const dos = [{ preparacionId: 'milanesa_carne_horno', rol: 'principal' as const, gramos: 120 }, { preparacionId: 'papas_fritas_baston', rol: 'guarnicion' as const, gramos: 60 }]
+    expect(problemas({ rol: 'principal', acompanamientos: dos }).join(' ')).toMatch(/Hay dos principales/)
+    // En la cena lo nuevo es el principal (pedido de la familia: platos potentes), no una guarnición
+    expect(problemas({ rol: 'guarnicion', acompanamientos: dos }).join(' ')).toMatch(/En cena lo nuevo tiene que ser el principal/)
+    const ajeno = [{ preparacionId: 'brocoli_hervido', rol: 'verdura_fruta' as const, gramos: 60 }, { preparacionId: 'milanesa_carne_horno', rol: 'principal' as const, gramos: 120 }]
+    expect(problemas({ acompanamientos: ajeno }).join(' ')).toMatch(/brocoli_hervido no está entre lo que ya come/)
+  })
+
+  it('el prompt le pide la comida completa con lo que ya come y el rango de calorías', async () => {
+    responde(PAPAS_CON_QUESO)
+    await pedir()
+    expect(promptDe(0)).toMatch(/La receta es una COMIDA COMPLETA para cena: un principal potente/)
+    expect(promptDe(0)).toMatch(/- milanesa_carne_horno: Milanesa de carne al horno .* · proteina · ~\d+ g/)
+    expect(promptDe(0)).toMatch(/El plato entero tiene que tener entre \d+ y \d+ kcal y al menos \d+ g de proteína/)
   })
 })

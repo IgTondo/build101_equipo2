@@ -5,9 +5,10 @@
 // v5.5 · Modo variedad (no le falta ningún nutriente): sin nutriente (`nutriente: null` en el schema) ni mínimo; si la
 // base nombra un grupo, el plato tiene que ser de ese grupo.
 import { z } from 'zod'
-import { COCCION, COLOR, FORMA, GRUPO, PRESENTACION, SABOR, TEMPERATURA, TEXTURA, type Nutriente } from '../../../shared/contratos.js'
+import { COCCION, COLOR, FORMA, GRUPO, PRESENTACION, ROL_PLATO, SABOR, TEMPERATURA, TEXTURA, type Nutriente } from '../../../shared/contratos.js'
 import type { Conocimiento, Modo } from '../../grafo/conocimiento.js'
 import { NOMBRE_GRUPO } from '../../aprendizaje/textos.js'
+import { textoComidaCompleta } from '../plato-completo.js'
 import { NOMBRE_NUTRIENTE, REGLAS_COMUNES_RECETA } from './receta.js'
 
 export const SISTEMA_RECETA_CREATIVA = `Sos cocinero y especialista en food chaining para familias de chicos con autismo y selectividad alimentaria. La app te da todo lo que sabe del chico (lo que come seguro con sus atributos, lo que rechaza y por qué, lo que se le está ofreciendo, los patrones que encontró y las reglas de la familia). Con eso inventás UN plato nuevo, casero y rico, que lo acerque a un nutriente que le falta o, si no le falta ninguno, que le sume variedad. La idea es que coma mejor y más variado: nada de repetir lo que ya come ni lo que la familia ya vio.
@@ -23,6 +24,13 @@ La calidad es lo más importante (es el corazón de la app):
 - El nutriente sale de los alimentos, nunca del aceite, la manteca o un dulce. Si para un nutriente solo se llega con aceite, elegí otro nutriente de la lista.
 - Así NO: "puré con aceite de canola", "milanesa con aceite de canola", "pizza con queso extra", "papas un poco más crocantes" (cambios que no son un plato nuevo). Así SÍ: "nuggets caseros de pollo y zanahoria, rebozados y crocantes como sus milanesas", "bastones de polenta con queso, gratinados al horno", "medallones de lentejas y arroz, dorados como su milanesa", "tostadas con ricota, tomate y orégano gratinadas", "chips de boniato al horno con un toque de pimentón".
 - El nombre da ganas y dice qué es el plato, no con qué se cocina.
+
+La comida completa (v5.7): no es un plato suelto, es la comida entera para esa comida del día.
+- Lo nuevo (la receta) es UNA parte de la comida: en almuerzo y cena, de preferencia el principal, un plato potente y que llene. rol dice qué lugar ocupa (principal, guarnicion, verdura_fruta, lacteo, cereal_pan, bebida).
+- El resto del plato (acompanamientos) es lo que YA COME, de la lista que te da la app, con su rol y los gramos de la porción: la familia ya sabe hacerlo. Nunca otro alimento nuevo: un solo alimento nuevo por comida.
+- Que el plato entero sea nutritivo y equilibrado para esa comida (la app te da el rango de calorías y la proteína mínima, y los calcula con la tabla).
+- pasos: los de lo nuevo; el último paso arma el plato con lo que ya come (qué va dónde, separado).
+- presentacion: el plato entero, cada cosa en su lugar y sin tocarse (o en su plato con divisiones si sus reglas lo piden). La primera vez, de lo nuevo alcanza con una porción chica: lo que ya come sostiene la comida.
 - Que sea distinto: no propongas nada que ya come, nada que se le está ofreciendo ahora (exposición) y nada parecido a las recetas que la familia ya vio. Usá ingredientes comunes en Uruguay y técnicas simples de casa.
 - Respetá todo lo que dice la base de conocimiento: lo que rechaza (y por qué), los patrones y las reglas de la familia. Si rechaza algo por la textura, no uses esa textura.
 - Elegí el nutriente de la lista "Le falta" y asegurate con los gramos de que la porción llegue al mínimo que dice ahí (la lista de "Ricos en…" te ayuda). La app calcula el aporte con la tabla: si no llega, no pasa.
@@ -49,6 +57,8 @@ export function esquemaSalidaCreativa(alimentoIds: string[], seguroIds: string[]
       temperatura: z.enum(TEMPERATURA), presentacion: z.enum(PRESENTACION), grupo: z.enum(GRUPO), coccion: z.enum(COCCION),
     }),
     imagen: z.object({ uno: z.string(), varios: z.string(), aspecto: z.string() }),
+    rol: z.enum(ROL_PLATO), // v5.7 · qué lugar ocupa lo nuevo en la comida
+    acompanamientos: z.array(z.object({ preparacionId: z.enum(seguroIds as [string, ...string[]]), rol: z.enum(ROL_PLATO), gramos: z.number() })),
     ingredientes: z.array(z.object({ alimentoId, gramos: z.number() })),
     pasos: z.array(z.string()),
     porQue: z.string(),
@@ -96,7 +106,7 @@ function textoFoco(k: Conocimiento, desde: Conocimiento['seguros'][number] | und
 export function promptRecetaCreativa(d: DatosPromptCreativa): string {
   const { conocimiento: k } = d
   const desde = k.seguros.find((p) => p.id === k.foco.desdeId)
-  const lineas = ['Base de conocimiento del chico (lo único que sabés de él):', k.texto, '', textoFoco(k, desde)]
+  const lineas = ['Base de conocimiento del chico (lo único que sabés de él):', k.texto, '', textoFoco(k, desde), '', ...textoComidaCompleta(k)]
   if (d.anteriores.length) {
     lineas.push('', 'La familia ya vio estas recetas: proponé un plato distinto a todas (otro ingrediente principal u otra idea):', ...d.anteriores.map((n) => `- ${n}`))
   }

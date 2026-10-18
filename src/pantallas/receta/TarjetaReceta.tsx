@@ -13,6 +13,7 @@ import { fraccionBarra, porcentajeTope } from '../../lib/cobertura'
 import { COLOR_GRUPO, VISUAL_MOMENTO } from '../../lib/colores'
 import { NOMBRE_CAMBIO, NOMBRE_GRUPO, formatoNutriente, textoParaPadres } from '../../lib/vocabulario'
 import { Cadena } from './Cadena'
+import { AportaElPlato, ElPlato } from './ElPlato'
 import { grupoDePreparacion } from './catalogo'
 import { ImagenPlato } from './ImagenPlato'
 import { alergenoEnFrase, nutrienteEnFrase, su } from './legible'
@@ -56,6 +57,8 @@ export function TarjetaReceta({ receta, reglas, para = null, momento }: {
   // v5.4 · El plato inventado por la receta creativa no está en el catálogo: su grupo viene en receta.plato
   const grupoNuevo = grupoDePreparacion(receta.preparacionBaseId) ?? receta.plato?.atributos.grupo ?? null
   const grupoDesde = grupoDePreparacion(receta.desde.preparacionId)
+  // v5.7 · La receta creativa trae la comida completa: lo nuevo + lo que ya come (las del catálogo no)
+  const plato = receta.platoCompleto ?? null
   const visualMomento = momento ? VISUAL_MOMENTO[momento] : null
   const IconoMomento = visualMomento?.icono
   // La cadena se arma la primera vez que se abre "Por qué esta": es cuando se ve.
@@ -95,8 +98,11 @@ export function TarjetaReceta({ receta, reglas, para = null, momento }: {
               <ImagenPlato receta={receta} reglas={reglas} />
             </div>
           </div>
-          {/* La imagen muestra el plato nuevo al lado de lo que ya come: se dice siempre, no solo en "Cómo servirlo". */}
-          <p className="mt-2 font-bold text-pino text-pretty">Servilo al lado de {su(receta.desde.nombre)}, que ya come.</p>
+          {/* La imagen muestra el plato nuevo al lado de lo que ya come: se dice siempre, no solo en "Cómo servirlo".
+              Con la comida completa, en su lugar van las partes del plato. */}
+          {plato
+            ? <ElPlato plato={plato} />
+            : <p className="mt-2 font-bold text-pino text-pretty">Servilo al lado de {su(receta.desde.nombre)}, que ya come.</p>}
           <details className="nb-ver-mas">
             <summary className="min-h-12">Cómo servirlo</summary>
             <p className="pb-2 text-pretty">{receta.presentacion}</p>
@@ -114,7 +120,7 @@ export function TarjetaReceta({ receta, reglas, para = null, momento }: {
       </section>
 
       {/* v5.5 · Si no le falta ningún nutriente, la receta apunta a sumar variedad: se dice eso, sin anillo de nutriente. */}
-      {receta.objetivo?.tipo === 'variedad' ? (
+      {receta.objetivo?.tipo === 'variedad' && (
         <section aria-labelledby="rc-aporta" className="flex items-center gap-5 rounded-2xl border bg-card p-5">
           <h2 id="rc-aporta" className="sr-only">Qué suma</h2>
           <span aria-hidden="true" className="grid size-[88px] shrink-0 place-items-center rounded-full bg-brote">
@@ -126,7 +132,11 @@ export function TarjetaReceta({ receta, reglas, para = null, momento }: {
             <p className="text-sm text-musgo text-pretty">Esta semana no le falta ningún nutriente clave.</p>
           </div>
         </section>
-      ) : (
+      )}
+      {/* v5.7 · Con la comida completa, lo que aporta el plato entero al día; si no, cuánto de lo que le falta hoy cubre lo nuevo. */}
+      {plato ? (
+        <AportaElPlato plato={plato} nutriente={n} falta={receta.objetivo?.tipo !== 'variedad'} />
+      ) : receta.objetivo?.tipo !== 'variedad' && (
         <section aria-labelledby="rc-aporta" className="flex items-center gap-5 rounded-2xl border bg-card p-5">
           <h2 id="rc-aporta" className="sr-only">Qué aporta</h2>
           {/* El verde llena lo que le falta hoy (la pista Zapallo) y no pasa del 100%. El número se lee en el texto. */}
@@ -155,7 +165,7 @@ export function TarjetaReceta({ receta, reglas, para = null, momento }: {
         </section>
       )}
 
-      <Seccion id="rc-ingredientes" titulo={<>Ingredientes <span className="font-sans text-sm font-normal text-musgo">(una porción)</span></>}>
+      <Seccion id="rc-ingredientes" titulo={<>Ingredientes <span className="font-sans text-sm font-normal text-musgo">({plato ? 'una porción de lo nuevo' : 'una porción'})</span></>}>
         <ul role="list" className="flex flex-col divide-y">
           {receta.ingredientes.map((i) => (
             <li key={i.alimentoId} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">

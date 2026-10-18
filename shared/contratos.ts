@@ -292,7 +292,26 @@ export interface Receta {
   validacion: { ok: boolean; problemas: string[]; reintentos: number }
   evidencia: Evidencia
   plato?: PlatoNuevo                     // v5.4 · solo en la receta creativa: el plato inventado (preparacionBaseId empieza con "nuevo_")
+  platoCompleto?: PlatoCompleto          // v5.7 · solo en la receta creativa: la comida entera (lo nuevo + lo que ya come que la completa)
   objetivo?: ObjetivoReceta              // v5.5 · la receta creativa lo trae siempre: el nutriente que falta, o variedad (sin mínimo de nutriente; evidencia.nutriente es solo para mostrar: al que más aporta respecto de su meta)
+}
+// v5.7 · La receta creativa es una COMIDA COMPLETA, no un plato suelto: lo nuevo (el paso de food chaining, en almuerzo y
+// cena de preferencia el principal) + lo que ya come que la completa (guarnición, verdura o fruta, lácteo, pan…),
+// según la comida. Un solo alimento nuevo: los demás componentes son cosas que acepta. El aporte es el del plato entero.
+export const ROL_PLATO = ['principal', 'guarnicion', 'verdura_fruta', 'lacteo', 'cereal_pan', 'bebida'] as const // v5.7
+export type RolPlato = De<typeof ROL_PLATO>
+export interface ComponentePlato {       // v5.7
+  rol: RolPlato
+  preparacionId: string                  // el nuevo: Receta.preparacionBaseId ("nuevo_…"); los demás, algo que acepta
+  nombre: string
+  nuevo: boolean                         // true solo en el de la receta
+  gramos: number                         // la porción servida
+  grupo: Grupo
+}
+export interface PlatoCompleto {         // v5.7
+  componentes: ComponentePlato[]         // el nuevo primero
+  aporte: Nutrientes                     // del plato entero, con la tabla (el nuevo con su receta, los demás con su porción)
+  cubreDelDia: Partial<Nutrientes>       // aporte / objetivo diario (0,35 = el 35% de lo que necesita en el día)
 }
 export interface PlatoNuevo {            // v5.4
   atributos: Atributos & { coccion: Coccion }

@@ -19,6 +19,7 @@ import { type Cargado, cargarNino } from '../datos/cargar.js'
 import { hoyUruguay } from '../datos/fechas.js'
 import { recomendacionDe } from '../datos/tablero.js'
 import { completa } from '../ia/candidato.js'
+import { energiaDeReferencia } from '../ia/plato-completo.js'
 import { faltanSemana } from '../nutricion/calcular.js'
 import { coberturaDia, gruposDesde, semana, variedadDe } from '../nutricion/progreso.js'
 
@@ -35,6 +36,7 @@ export interface Conocimiento {
   alergias: Alergeno[]
   dieta: Dieta
   momento?: Momento
+  energiaReferencia: number // v5.7 · kcal por día para dimensionar el plato completo (no es una meta: ver plato-completo.ts)
   seguros: PreparacionCatalogo[] // los puntos de partida: lo que acepta y va en esta comida (si nada va, todo lo que acepta)
   aceptadas: PreparacionCatalogo[] // todo lo que acepta, con todos sus atributos: para "eso ya lo come"
   reglas: Regla[]
@@ -173,6 +175,7 @@ export function conocimientoDe(
     alergias: d.alergias,
     dieta: d.dieta,
     ...(op.momento ? { momento: op.momento } : {}),
+    energiaReferencia: energiaDeReferencia(d.edad, d.sexo),
     seguros: seguros.map((x) => x.p),
     aceptadas: aceptadas.map((x) => x.p),
     reglas: c.nino.reglas,

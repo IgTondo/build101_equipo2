@@ -37,6 +37,8 @@ const ZANAHORIA_FRITA: SalidaCreativa = {
   nombre: 'Bastones de zanahoria fritos',
   atributos: { ...papasFritas.atributos, color: 'naranja', grupo: 'verdura', coccion: 'frito' },
   imagen: { uno: 'carrot fry', varios: 'carrot fries', aspecto: 'carrot cut into long thin sticks shaped exactly like French fries, fried until crispy' },
+  rol: 'verdura_fruta',
+  acompanamientos: [{ preparacionId: 'milanesa_carne_horno', rol: 'principal', gramos: 130 }, { preparacionId: 'papas_horno_baston', rol: 'guarnicion', gramos: 100 }],
   ingredientes: [{ alimentoId: 'zanahoria', gramos: 100 }, { alimentoId: 'pan_rallado', gramos: 15 }, { alimentoId: 'aceite_girasol', gramos: 8 }],
   pasos: ['Pelá la zanahoria y cortala en bastones finos como sus papas.', 'Hervilos 3 minutos y secalos bien.', 'Pasalos por pan rallado.', 'Freílos hasta que estén crocantes.', 'Escurrilos en papel y salalos apenas.'],
   porQue: 'Parte de sus papas fritas en bastones, que come siempre; cambia solo el ingrediente: zanahoria, para sumar verdura, que todavía no come.',
@@ -171,7 +173,7 @@ describe('generarRecetaCreativa en modo variedad', () => {
 
   it('en modo nutriente el objetivo es el nutriente', async () => {
     const k = conocimiento({}, cargadoDe('tomas', 1))
-    responde({ ...PAPAS_CON_QUESO, nutriente: 'calcio_mg' })
+    responde({ ...PAPAS_CON_QUESO, nutriente: 'calcio_mg', rol: 'principal', acompanamientos: [{ preparacionId: 'milanesa_carne_horno', rol: 'guarnicion', gramos: 110 }, { preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 50 }] })
     const r = await pedir(k)
     expect(r.objetivo).toEqual({ tipo: 'nutriente', nutriente: 'calcio_mg' })
     expect(r.evidencia.nutriente).toBe('calcio_mg')
