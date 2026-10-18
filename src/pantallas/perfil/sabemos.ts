@@ -9,25 +9,33 @@ export const MAX_LE_GUSTA = 6
 export const MAX_PROBANDO = 4
 export const MAX_NOTAMOS = 3
 
-/** "Lo crocante lo acepta (28 de 35)" → "Le gusta lo crocante"; "Las verduras las rechaza" → "Todavía no le gustan las verduras". */
+/**
+ * "Lo crocante lo acepta (28 de 35)" → "Le gusta lo crocante"; "Las verduras todavía no las acepta" (o el viejo
+ * "Las verduras las rechaza") → "Todavía no le gustan las verduras".
+ */
 export function fraseParaPadres(texto: string): string {
   const limpio = texto.replace(/\s*\([^)]*\)\s*$/, '').trim()
-  const m = /^(.+?)\s+(lo|la|los|las)\s+(acepta|rechaza)\b(.*)$/i.exec(limpio)
+  const m = /^(.+?)\s+(todavía no\s+)?(lo|la|los|las)\s+(acepta|rechaza)\b(.*)$/i.exec(limpio)
   if (!m) {
     return limpio
       .replace(/\bsuelen rechazarse\b/gi, 'suelen costar')
       .replace(/\b(lo|la|los|las) rechaza\b/gi, 'todavía no le gusta')
   }
-  const [, sujeto, pronombre, verbo, resto] = m
+  const [, sujeto, todaviaNo, pronombre, verbo, resto] = m
   const gusta = /^l[ao]s$/i.test(pronombre) ? 'gustan' : 'gusta'
   const objeto = sujeto.charAt(0).toLowerCase() + sujeto.slice(1)
-  const frase = verbo.toLowerCase() === 'acepta' ? `Le ${gusta} ${objeto}` : `Todavía no le ${gusta} ${objeto}`
+  const leGusta = verbo.toLowerCase() === 'acepta' && !todaviaNo
+  const frase = leGusta ? `Le ${gusta} ${objeto}` : `Todavía no le ${gusta} ${objeto}`
   return `${frase}${resto.replace(/\s+$/, '')}`
 }
 
 /** El sujeto del patrón, para no repetir: "lo crocante entre los cereales…" ya lo dice "lo crocante". */
 const sujetoDe = (texto: string) =>
-  texto.replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+(lo|la|los|las)\s+(acepta|rechaza)\b.*$/i, '').trim().toLowerCase()
+  texto
+    .replace(/\s*\([^)]*\)\s*$/, '')
+    .replace(/\s+(todavía no\s+)?(lo|la|los|las)\s+(acepta|rechaza)\b.*$/i, '')
+    .trim()
+    .toLowerCase()
 
 /**
  * Hasta 3 cosas que notamos en sus comidas (no las de la investigación, que no son de él): primero lo que le gusta

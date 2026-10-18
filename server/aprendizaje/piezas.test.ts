@@ -63,9 +63,26 @@ describe('textos de los patrones (sin LLM)', () => {
       'Lo crocante servido separado lo acepta (5 de 5)',
     )
     expect(textoPatron([{ tipo: 'forma', valor: 'pure' }, { tipo: 'color', valor: 'verde' }], 'acepta', 3, 3)).toBe('Lo verde en puré lo acepta (3 de 3)')
-    expect(textoPatron([{ tipo: 'presentacion', valor: 'mezclado' }], 'rechaza', 3, 3)).toBe('Lo mezclado lo rechaza (3 de 3)')
-    expect(textoPatron([{ tipo: 'grupo', valor: 'verdura' }], 'rechaza')).toBe('Las verduras las rechaza')
+    expect(textoPatron([{ tipo: 'presentacion', valor: 'mezclado' }], 'rechaza', 3, 3)).toBe('Lo mezclado todavía no lo acepta (3 de 3)')
+    expect(textoPatron([{ tipo: 'grupo', valor: 'verdura' }], 'rechaza')).toBe('Las verduras todavía no las acepta')
   })
+
+  it('nunca dice "rechaza" (§9) y concuerda con los sujetos en plural', () => {
+    expect(textoPatron([{ tipo: 'grupo', valor: 'cereal_almidon' }, { tipo: 'presentacion', valor: 'separado' }], 'acepta', 17, 20)).toBe(
+      'Los cereales, panes y papas servidos separados los acepta (17 de 20)',
+    )
+    expect(textoPatron([{ tipo: 'grupo', valor: 'verdura' }, { tipo: 'coccion', valor: 'hervido' }], 'rechaza', 4, 4)).toBe(
+      'Las verduras hervidas todavía no las acepta (4 de 4)',
+    )
+    expect(textoPatron([{ tipo: 'grupo', valor: 'fruta' }, { tipo: 'forma', valor: 'entero' }], 'rechaza')).toBe('Las frutas enteras todavía no las acepta')
+    expect(textoPatron([{ tipo: 'grupo', valor: 'lacteo' }, { tipo: 'coccion', valor: 'listo' }], 'acepta')).toBe('Los lácteos como vienen los acepta')
+    // Con un adjetivo el sujeto es "lo …": singular, aunque el grupo vaya después
+    expect(textoPatron([{ tipo: 'textura', valor: 'crocante' }, { tipo: 'grupo', valor: 'cereal_almidon' }, { tipo: 'presentacion', valor: 'separado' }], 'acepta'))
+      .toBe('Lo crocante servido separado entre los cereales, panes y papas lo acepta')
+    expect(textoPatron([{ tipo: 'distribucion', valor: 'tocandose' }], 'rechaza')).toBe('Lo que se sirve cuando los alimentos se tocan todavía no lo acepta')
+    expect(textoPatron([{ tipo: 'textura', valor: 'blando' }], 'rechaza', 6, 6)).not.toMatch(/rechaz/)
+  })
+
 })
 
 describe('food chaining: un solo cambio (§8, cadena.ts)', () => {
