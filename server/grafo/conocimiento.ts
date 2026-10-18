@@ -117,8 +117,17 @@ const MODOS_FOCO: Modo[] = ['cambiar_principal', 'cambiar_principal', 'cambiar_p
 const MAX_NUTRIENTES = 3
 const MAX_RICOS = 8
 const MIN_RICOS = 3 // v5.10 · si sacar los recientes deja menos, vuelven los que más aportan
-const MAX_RICOS_POR_GRUPO = 2 // v5.10 · que no sean todos lácteos: entran leches y yogures, y no solo quesos
+// v5.10 · Que no sean todos lácteos. Con uno por familia, en calcio entran un yogur, una leche y un queso: con 2, el queso
+// quedaba afuera y no salía casi nunca, ni pidiendo calcio
+const MAX_RICOS_POR_GRUPO = 3
 const MIN_PORCION_PRINCIPAL_G = 40 // v5.10 · "un plato cuyo principal es lino" no sirve: 10 g no son un plato
+/**
+ * v5.10 · El queso y la ricota sí pueden ser el plato (bastones de muzzarella, queso fresco a la plancha, medallones de
+ * ricota): reemplazan a una proteína, además de a un lácteo, y su porción de ingrediente no es la del plato. Desde
+ * MIN_PORCION_QUESO_G entran la muzzarella, el fresco, la ricota y el cottage; el rallado, el crema y los de fetas (dambo, colonia, cheddar), no.
+ */
+const QUESOS_DE_PLATO = new Set(['queso', 'ricota'])
+const MIN_PORCION_QUESO_G = 25
 /**
  * v5.10 · Cambiando el principal, de qué grupos puede ser el nuevo según el grupo del principal de su plato: un lácteo
  * por otro, una fruta por otra, una proteína por otra (las legumbres son proteína); papas por boniato o por bastones de
@@ -249,11 +258,11 @@ export function conocimientoDe(
   // es de 10 g), el que más aporta de cada familia, como máximo MAX_RICOS_POR_GRUPO de cada grupo y sin los recientes (si
   // quedan menos de MIN_RICOS, vuelven los recientes que más aportan)
   const porPorcionEn = (n: Nutriente) => (a: Alimento) => (a.por100g[n] * a.porcionMedianaG) / 100
-  /** Todos los que aportan `n`, de más a menos por porción, el mejor de cada familia (sin topes). */
-  const unoPorFamilia = (n: Nutriente): Alimento[] => {
+  /** Todos los que aportan `n` (y pasan `ok`), de más a menos por porción, el mejor de cada familia (sin topes). */
+  const unoPorFamilia = (n: Nutriente, ok: (id: string) => boolean = () => true): Alimento[] => {
     const porPorcion = porPorcionEn(n)
     const porFamilia = new Map<string, Alimento>()
-    for (const a of [...c.alimentos.values()].filter((a) => paraLoNuevo(a) && a.por100g[n] > 0).sort((a, b) => porPorcion(b) - porPorcion(a))) {
+    for (const a of [...c.alimentos.values()].filter((a) => paraLoNuevo(a) && a.por100g[n] > 0 && ok(a.id)).sort((a, b) => porPorcion(b) - porPorcion(a))) {
       if (!porFamilia.has(familia(a.id))) porFamilia.set(familia(a.id), a)
     }
     return [...porFamilia.values()]
@@ -327,12 +336,15 @@ export function conocimientoDe(
     c.nino.reglas.some((r) => r.efecto === 'rechaza' && r.condiciones.length > 0 && r.condiciones.every((x) => x.tipo === 'grupo' && x.valor === g))
   // v5.10 · Cambiando el principal, el ingrediente tiene que poder ser el plato: ni frutos secos ni semillas (grupo otro)
   // ni lo que se come de a poco (porción de menos de 40 g), y de un grupo que pueda reemplazar a su principal
-  // (GRUPOS_PARA_CAMBIAR; en modo variedad, el grupo es el que pide la variedad). Sumados, sí van.
+  // (GRUPOS_PARA_CAMBIAR; en modo variedad, el grupo es el que pide la variedad). Sumados, sí van. Los quesos de plato
+  // (QUESOS_DE_PLATO), desde su porción mínima y también en lugar de una proteína.
   const grupoDelPrincipal = suPrincipal ? c.alimentos.get(suPrincipal)?.grupo : undefined
   const puedeSerPrincipal = (id: string) => {
     const a = c.alimentos.get(id)
-    if (!a || a.grupo === 'otro' || a.porcionMedianaG < MIN_PORCION_PRINCIPAL_G) return false
-    return Boolean(variedad?.grupo) || !grupoDelPrincipal || GRUPOS_PARA_CAMBIAR[grupoDelPrincipal].includes(a.grupo)
+    const queso = QUESOS_DE_PLATO.has(familia(id))
+    if (!a || a.grupo === 'otro' || a.porcionMedianaG < (queso ? MIN_PORCION_QUESO_G : MIN_PORCION_PRINCIPAL_G)) return false
+    if (variedad?.grupo || !grupoDelPrincipal) return true
+    return GRUPOS_PARA_CAMBIAR[grupoDelPrincipal].includes(a.grupo) || (queso && grupoDelPrincipal === 'proteina')
   }
   const cambia = modo === 'cambiar_principal'
   // v5.10 · Y que vaya en esta comida: cambiando el principal, como lo principal de un plato (tostadas → ravioles pasa el
@@ -341,13 +353,14 @@ export function conocimientoDe(
   const posible = (id: string) =>
     !esReciente.has(id) && !deSuPlato.has(id) && !rechazaGrupo(c.alimentos.get(id)?.grupo) && (!cambia || puedeSerPrincipal(id)) && enLaComida(id)
   // Cambiando el principal, los que más aportan entre los que pueden reemplazarlo (no solo los 8 ricos de la lista, que
-  // tienen como mucho 2 por grupo: desde sus papas fritas quedaban 2 cereales y 2 verduras)
+  // tienen como mucho 3 por grupo: desde sus papas fritas quedaban pocos cereales y verduras). De cada familia, el mejor
+  // de los que pueden: en el desayuno la muzzarella no va de principal, pero el queso fresco sí
   const candidatosSi = (ok: (id: string) => boolean) => variedad
     ? delGrupo.filter(ok)
     : !foco.nutriente
       ? []
       : cambia
-        ? unoPorFamilia(foco.nutriente).map((a) => a.id).filter(ok).slice(0, MAX_RICOS)
+        ? unoPorFamilia(foco.nutriente, posible).map((a) => a.id).filter(ok).slice(0, MAX_RICOS)
         : (nutrientes.find((x) => x.nutriente === foco.nutriente)?.ricos ?? []).map((r) => r.alimentoId).filter(ok)
   // v5.10 · Sin los que pide evitar el reintento; si eran los únicos, se ignora (y queda en el log)
   const sinEvitarIngrediente = candidatosSi((id) => posible(id) && !evitarIngrediente.has(id))

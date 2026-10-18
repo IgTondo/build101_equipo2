@@ -35,8 +35,10 @@ const ricosDe = (k: Conocimiento, n: Nutriente) => k.nutrientes.find((x) => x.nu
 const deSuPlato = (k: Conocimiento) => k.seguros.find((p) => p.id === k.foco.desdeId)?.ingredientes.map((i) => i.alimentoId) ?? []
 const principalDe = (k: Conocimiento, id = k.foco.desdeId) => principal(k.seguros.find((p) => p.id === id)?.ingredientes ?? [])
 const noIdentifican = (id: string) => ACOMPANAMIENTOS.has(id) || GOLOSINAS_Y_ULTRAPROCESADOS.has(id)
-/** Lo que puede ser el principal de un plato nuevo: ni frutos secos ni semillas (grupo otro), y una porción de 40 g o más. */
-const puedeSerPrincipal = (id: string) => alimentos.get(id)!.grupo !== 'otro' && alimentos.get(id)!.porcionMedianaG >= 40
+/** El queso y la ricota pueden ser el plato (bastones de muzzarella, medallones de ricota), con una porción más chica. */
+const esQuesoDePlato = (id: string) => ['queso', 'ricota'].includes(familia(id))
+/** Lo que puede ser el principal de un plato nuevo: ni frutos secos ni semillas (grupo otro), y una porción de 40 g o más (los quesos de plato, de 25 g). */
+const puedeSerPrincipal = (id: string) => alimentos.get(id)!.grupo !== 'otro' && alimentos.get(id)!.porcionMedianaG >= (esQuesoDePlato(id) ? 25 : 40)
 const AZARES = [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 0.99]
 /** Un azar con semilla (congruencial lineal): cada llamada da otro número, y la misma semilla, la misma secuencia. */
 /** Un azar que da estos números en orden (y después repite el último): el sorteo es desde, modo, nutriente e ingrediente. */
@@ -55,10 +57,11 @@ const calcio = porNutriente.get('calcio_mg')!
 const calcioPorAzar = AZARES.map((a) => conocimiento({ nutriente: 'calcio_mg', azar: () => a }))
 
 describe('conocimientoDe: los ricos en cada nutriente', () => {
-  it('"ricos en calcio" van por porción: entran un yogur y una leche, como máximo un queso, de más a menos', () => {
+  it('"ricos en calcio" van por porción: entran un yogur, una leche y un queso (uno solo), de más a menos', () => {
     const ricos = calcio.nutrientes[0]!.ricos
     expect(ricos.some((r) => familia(r.alimentoId) === 'yogur') && ricos.some((r) => familia(r.alimentoId) === 'leche')).toBe(true)
-    expect(ricos.filter((r) => familia(r.alimentoId) === 'queso').length).toBeLessThanOrEqual(1)
+    // Con 2 lácteos como mucho, el queso quedaba afuera (detrás del yogur y la leche) y no salía casi nunca
+    expect(ricos.filter((r) => familia(r.alimentoId) === 'queso').length).toBe(1)
     expect(ricos.length).toBeLessThanOrEqual(8)
     for (const [i, r] of ricos.entries()) {
       expect(r.porcionG).toBe(alimentos.get(r.alimentoId)!.porcionMedianaG)
@@ -72,12 +75,12 @@ describe('conocimientoDe: los ricos en cada nutriente', () => {
     expect(calcio.texto).toMatch(/Ricos en calcio, por porción: \w+ \([\d,]+ mg en \d+ g; [\d,]+\/100 g\)/)
   })
 
-  it('como máximo 2 por grupo en cada lista, y de cada familia el que más aporta por porción', () => {
+  it('como máximo 3 por grupo en cada lista, y de cada familia el que más aporta por porción', () => {
     for (const n of NUTRIENTE) {
       const ricos = porNutriente.get(n)!.nutrientes[0]!.ricos
       const porGrupo = new Map<string, number>()
       for (const r of ricos) porGrupo.set(alimentos.get(r.alimentoId)!.grupo, (porGrupo.get(alimentos.get(r.alimentoId)!.grupo) ?? 0) + 1)
-      for (const [g, cuantos] of porGrupo) expect(cuantos, `${n}: ${g}`).toBeLessThanOrEqual(2)
+      for (const [g, cuantos] of porGrupo) expect(cuantos, `${n}: ${g}`).toBeLessThanOrEqual(3)
     }
     // Los yogures: el que entra es el de más calcio por porción (sin alérgenos de Valentina, ninguno es golosina)
     const yogures = [...alimentos.values()].filter((a) => familia(a.id) === 'yogur' && !GOLOSINAS_Y_ULTRAPROCESADOS.has(a.id))
@@ -133,7 +136,8 @@ describe('conocimientoDe: el ingrediente del foco', () => {
         if (!ingrediente) continue
         con++
         if (modo === 'sumar_ingrediente') expect(ricosDe(k, nutriente!), `${momento} ${a}`).toContain(ingrediente)
-        else expect(GRUPOS_PARA_CAMBIAR[alimentos.get(principalDe(k)!)!.grupo], `${momento} ${a}`).toContain(alimentos.get(ingrediente)!.grupo)
+        else if (!esQuesoDePlato(ingrediente)) expect(GRUPOS_PARA_CAMBIAR[alimentos.get(principalDe(k)!)!.grupo], `${momento} ${a}`).toContain(alimentos.get(ingrediente)!.grupo)
+        else expect(['lacteo', 'proteina'], `${momento} ${a}`).toContain(alimentos.get(principalDe(k)!)!.grupo) // el queso de plato, también por una proteína
         expect(deSuPlato(k), `${momento} ${a}`).not.toContain(ingrediente)
       }
     }
@@ -520,7 +524,18 @@ describe('conocimientoDe: cambiando el principal, del mismo grupo o de uno que p
     const focos = cambiando('cena', 0.95)
     for (const f of focos) expect(f).toMatchObject({ desdeId: 'milanesa_carne_horno', modo: 'cambiar_principal' })
     expect(focos.filter((f) => f.ingrediente).length).toBeGreaterThan(0)
-    expect([...grupos(focos)]).toEqual(['proteina'])
+    expect(grupos(focos)).toContain('proteina')
+    // Además de una proteína, un queso de plato (bastones de muzzarella, medallones de ricota); un yogur o una leche, no
+    for (const f of focos) if (f.ingrediente && alimentos.get(f.ingrediente)!.grupo !== 'proteina') expect(esQuesoDePlato(f.ingrediente), f.ingrediente).toBe(true)
+  })
+
+  it('pidiendo calcio, el queso sale: de principal en la cena y sumado en el desayuno, nunca el rallado de principal', { timeout: 60_000 }, () => {
+    const focos = (momento: Momento) => Array.from({ length: 40 }, (_, i) => conocimiento({ momento, nutriente: 'calcio_mg', azar: conSemilla(i + 1) }).foco)
+    for (const momento of ['cena', 'desayuno'] as Momento[]) {
+      const conQueso = focos(momento).filter((f) => f.ingrediente && esQuesoDePlato(f.ingrediente))
+      expect(conQueso.length, momento).toBeGreaterThan(0)
+      for (const f of conQueso) if (f.modo === 'cambiar_principal') expect(f.ingrediente, momento).not.toBe('queso_rallado')
+    }
   })
 })
 
