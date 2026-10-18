@@ -8,7 +8,7 @@ import type { Receta, Regla } from '../../../shared/contratos'
 import { Bocaditos } from '../../componentes/Estados'
 import { PlatoVacio } from '../../componentes/Ilustraciones'
 import { Button } from '../../componentes/ui/button'
-import { api } from '../../lib/api'
+import { imagenDe } from '../../lib/recetaPrevia'
 
 type Estado = { tipo: 'cargando' } | { tipo: 'ok'; src: string } | { tipo: 'error' }
 
@@ -41,7 +41,8 @@ export function ImagenPlato({ receta, reglas, className }: { receta: Receta; reg
     const control = new AbortController()
     setEstado({ tipo: 'cargando' })
     setCargada(false)
-    api.imagenPlato({ receta, reglas }, control.signal)
+    // Por recetaPrevia: si se precargó (o se pidió recién), es la misma promesa y no se vuelve a pedir
+    imagenDe(receta, reglas)
       .then((r) => { if (!control.signal.aborted) setEstado({ tipo: 'ok', src: `data:${r.mime};base64,${r.imagenBase64}` }) })
       .catch(() => { if (!control.signal.aborted) setEstado({ tipo: 'error' }) })
     return () => control.abort()

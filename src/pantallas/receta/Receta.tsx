@@ -16,6 +16,7 @@ import { Button } from '../../componentes/ui/button'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { useNinoActivo } from '../../lib/nino'
 import { anotarNombreDeReceta, anotarRecetaDeLaComida, leerNombresDeRecetas, leerRecetasDeLaComida, ultimosSinRepetir } from '../../lib/proximaComida'
+import { precargarReceta, recetaPrevia, usarRecetaPrevia } from '../../lib/recetaPrevia'
 import { aErrorDeApi, useApi } from '../../lib/useApi'
 import { EsperaReceta } from './EsperaReceta'
 import { nutrienteEnFrase } from './legible'
@@ -85,9 +86,13 @@ export function Receta() {
     const anteriores = preparacionId
       ? leerNombresDeRecetas(ninoId, preparacionId)
       : ultimosSinRepetir([...leerRecetasDeLaComida(ninoId, momento), ...vistasEnLaSesion.current])
-    api.receta({ ninoId, nutriente: para, preparacionId, ...(momento ? { momento } : {}), ...(anteriores.length ? { anteriores } : {}) }, undefined, c.signal)
+    // v5.6 · La creativa sin nutriente elegido puede estar precargada (el inicio, o la anterior para "Otra opción")
+    const previa = !preparacionId && !para && momento ? recetaPrevia(ninoId, momento) : null
+    const promesa = previa ?? api.receta({ ninoId, nutriente: para, preparacionId, ...(momento ? { momento } : {}), ...(anteriores.length ? { anteriores } : {}) }, undefined, c.signal)
+    promesa
       .then((receta) => {
         if (c.signal.aborted) return
+        if (previa && momento) usarRecetaPrevia(ninoId, momento, previa)
         vistasEnLaSesion.current = ultimosSinRepetir([...vistasEnLaSesion.current, receta.nombre])
         anotarRecetaDeLaComida(ninoId, momento, receta.nombre)
         anotarNombreDeReceta(ninoId, receta.preparacionBaseId, receta.nombre)
@@ -98,6 +103,12 @@ export function Receta() {
       .catch((e: unknown) => { if (!c.signal.aborted) setPedido({ tipo: 'error', error: aErrorDeApi(e), preparacionId, para }) })
       .finally(() => mios.forEach((r) => window.clearTimeout(r)))
   }
+
+  // v5.6 · Mientras lee una receta creativa, se precarga la siguiente (y su foto): "Otra opción" sale al instante.
+  const recetaVista = pedido.tipo === 'ok' ? pedido.receta : null
+  useEffect(() => {
+    if (recetaVista?.plato && momento && reglas !== null && !elegidoPorElPadre.current) precargarReceta(ninoId, momento, reglas)
+  }, [recetaVista, momento, reglas, ninoId])
 
   // Si vino de una tarjeta de sugerencia, se pide sola (con el nutriente de la URL o el que elija el servidor). Con
   // nueva=1 ("Generar receta"), la creativa; nueva sale de la URL para que recargar no la vuelva a pedir.

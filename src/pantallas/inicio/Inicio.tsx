@@ -16,6 +16,7 @@ import { TarjetaProximaComida } from '../../componentes/ProximaComida'
 import { api } from '../../lib/api'
 import { diaUruguay, useNinoActivo } from '../../lib/nino'
 import { comidaRecienPorHora, comidasDelDia, horaUruguay, leerUltimaComida, proximaComida } from '../../lib/proximaComida'
+import { precargarReceta } from '../../lib/recetaPrevia'
 import { useApi } from '../../lib/useApi'
 import { hayComidas } from '../tablero/calculos'
 import { Hoy } from './Hoy'
@@ -48,6 +49,15 @@ export function Inicio() {
   useEffect(() => {
     if (datos?.momento && datos.momento !== proxima.momento) setMomentoPedido(proxima.momento)
   }, [datos?.momento, proxima.momento])
+  // v5.6 · Con la próxima comida ya segura y las reglas del perfil, se precarga su receta creativa y su foto (un rato
+  // después, para no competir con lo que se está mostrando): "Generar receta" para esa comida sale al instante.
+  const reglas = perfil.tipo === 'ok' ? perfil.datos.reglas : null
+  const lista = datos?.momento === proxima.momento && reglas !== null
+  useEffect(() => {
+    if (!lista || !reglas) return
+    const t = window.setTimeout(() => precargarReceta(ninoId, proxima.momento, reglas), 1500)
+    return () => window.clearTimeout(t)
+  }, [lista, reglas, ninoId, proxima.momento])
 
   if (progreso.tipo === 'error' && progreso.error.codigo === 'no_encontrado') return <PerfilNoEncontrado />
 
