@@ -10,6 +10,7 @@ import { alimentosCatalogo, preparacionesCatalogo } from '../datos/catalogos.js'
 import { type Cargado, objetivoDe } from '../datos/cargar.js'
 import { comidasSinteticas, ninoDoc, sintetico, type SinteticoId } from '../datos/prueba/catalogos.js'
 import { fijarAfinidades, type ParAfinidad } from '../ia/afinidades.js'
+import { vaEnLaComida } from '../ia/momentos.js'
 import { escalar } from '../nutricion/calcular.js'
 import {
   ACOMPANAMIENTOS, GOLOSINAS_Y_ULTRAPROCESADOS, GRUPOS_PARA_CAMBIAR, afinidadConPlato, conDatos, conocimientoDe, contextoAfinidad, familia, recientesDe,
@@ -307,10 +308,13 @@ describe('conocimientoDe: el ingrediente del foco combina con lo que queda de su
     return undefined
   }
   const esQueso = (id: string) => familia(id) === 'queso'
-  /** El sorteo de antes de las afinidades: por lugar entre los ricos posibles (de n, el primero pesa n … el último 1). */
+  /**
+   * El sorteo de antes de las afinidades: por lugar entre los ricos posibles (de n, el primero pesa n … el último 1).
+   * v5.10 · Posibles: que vayan sumados en esa comida (server/ia/momentos.ts: en el desayuno, ni carnes ni legumbres).
+   */
   const porLugar = (k: Conocimiento, a: number) => {
     const plato = deSuPlato(k)
-    const xs = ricosDe(k, k.foco.nutriente!).filter((id) => !plato.includes(id) && alimentos.get(id)?.grupo !== 'verdura') // "No come verduras"
+    const xs = ricosDe(k, k.foco.nutriente!).filter((id) => !plato.includes(id) && alimentos.get(id)?.grupo !== 'verdura' && vaEnLaComida(id, k.momento, 'sumado')) // "No come verduras"
     let r = (a * xs.length * (xs.length + 1)) / 2
     for (const [i, x] of xs.entries()) {
       r -= xs.length - i
@@ -484,6 +488,23 @@ describe('conocimientoDe: cambiando el principal, del mismo grupo o de uno que p
       expect([...grupos(focos)]).toEqual(['lacteo'])
       for (const id of ['ravioles', 'tofu']) expect(focos.map((f) => f.ingrediente)).not.toContain(id)
     }
+  })
+
+  it('(v5.10) en el desayuno, desde sus tostadas, nunca ravioles ni otra pasta: solo lo que va en el desayuno (server/ia/momentos.ts)', { timeout: 60_000 }, () => {
+    const tomas = cargado('tomas')
+    for (const momento of ['desayuno', 'merienda'] as Momento[]) {
+      const focos = cambiando(momento, 0.05, tomas)
+      for (const f of focos) expect(f).toMatchObject({ desdeId: 'tostadas', modo: 'cambiar_principal' })
+      const salen = focos.flatMap((f) => (f.ingrediente ? [f.ingrediente] : []))
+      expect(salen.length).toBeGreaterThan(0)
+      for (const id of salen) {
+        expect(['fideos', 'ravioles', 'noquis'], `${momento}: ${id}`).not.toContain(familia(id))
+        expect(vaEnLaComida(id, momento), `${momento}: ${id}`).toBe(true)
+      }
+    }
+    // Sumado a su plato, también: en el desayuno ni carnes ni legumbres
+    const sumando = N.flatMap((n) => [0, 0.3, 0.6, 0.9].map((r) => conocimiento({ momento: 'desayuno', nutriente: n, azar: enOrden(0.05, 0.9, 0, r) }, tomas).foco))
+    for (const f of sumando.filter((x) => x.modo === 'sumar_ingrediente' && x.ingrediente)) expect(vaEnLaComida(f.ingrediente!, 'desayuno', 'sumado'), f.ingrediente).toBe(true)
   })
 
   it('desde sus papas fritas pueden salir boniato o zanahoria (cereal o verdura), nunca lino', { timeout: 60_000 }, () => {

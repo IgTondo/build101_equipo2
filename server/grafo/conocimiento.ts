@@ -16,6 +16,7 @@
 // 2011, server/ia/afinidades.ts): sin eso salían "licuado de queso dambo y banana" y "milanesa de yogur".
 // v5.10 · El alimento de partida no repite el tipo de plato de lo reciente (cuatro milanesas seguidas) y `evitar` deja
 // sortear OTRO foco en el reintento de la receta.
+// v5.10 · Y va en esta comida (server/ia/momentos.ts): de sus tostadas salían ravioles para el desayuno.
 import type { Alergeno, Alimento, Dieta, Grupo, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Presentacion, Regla, Variedad } from '../../shared/contratos.js'
 import { NUTRIENTE } from '../../shared/contratos.js'
 import { alimentosProhibidos, limpiarOtras, normalizar } from '../alergias.js'
@@ -29,6 +30,7 @@ import { recomendacionDe } from '../datos/tablero.js'
 import { afinidadCon, afines } from '../ia/afinidades.js'
 import { completa } from '../ia/candidato.js'
 import { esCondimento } from '../ia/condimentos.js'
+import { vaEnLaComida } from '../ia/momentos.js'
 import { energiaDeReferencia } from '../ia/plato-completo.js'
 import { faltanSemana } from '../nutricion/calcular.js'
 import { coberturaDia, gruposDesde, semana, variedadDe } from '../nutricion/progreso.js'
@@ -333,8 +335,11 @@ export function conocimientoDe(
     return Boolean(variedad?.grupo) || !grupoDelPrincipal || GRUPOS_PARA_CAMBIAR[grupoDelPrincipal].includes(a.grupo)
   }
   const cambia = modo === 'cambiar_principal'
+  // v5.10 · Y que vaya en esta comida: cambiando el principal, como lo principal de un plato (tostadas → ravioles pasa el
+  // chequeo de grupo, pero los ravioles no van en el desayuno); sumado, también donde va su grupo (queso en sus tostadas)
+  const enLaComida = (id: string) => vaEnLaComida(id, op.momento, cambia ? 'principal' : 'sumado', c.alimentos.get(id)?.grupo)
   const posible = (id: string) =>
-    !esReciente.has(id) && !deSuPlato.has(id) && !rechazaGrupo(c.alimentos.get(id)?.grupo) && (!cambia || puedeSerPrincipal(id))
+    !esReciente.has(id) && !deSuPlato.has(id) && !rechazaGrupo(c.alimentos.get(id)?.grupo) && (!cambia || puedeSerPrincipal(id)) && enLaComida(id)
   // Cambiando el principal, los que más aportan entre los que pueden reemplazarlo (no solo los 8 ricos de la lista, que
   // tienen como mucho 2 por grupo: desde sus papas fritas quedaban 2 cereales y 2 verduras)
   const candidatosSi = (ok: (id: string) => boolean) => variedad
