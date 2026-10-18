@@ -31,7 +31,7 @@ const POR_PALABRA: [RegExp, IconoAlimentoId][] = [
   // "milanesa de pollo" es una milanesa.
   [/arroz con pollo/, 'arroz'],
   [/empanada/, 'empanada'],
-  [/pizza|fugazza/, 'pizza'],
+  [/pizz|fugazza/, 'pizza'],
   [/tarta|pastel/, 'tarta'],
   [/sandwich|sanguche|chivito/, 'sandwich'],
   [/hamburguesa/, 'hamburguesa'],
@@ -57,7 +57,7 @@ const POR_PALABRA: [RegExp, IconoAlimentoId][] = [
   [/torta|budin|muffin|magdalena|alfajor/, 'torta'],
   [/tostada|\bpan\b|\bpanes\b|pancito/, 'pan'],
   [/cereal|copos|avena|granola/, 'cereal'],
-  [/dulce de leche|mermelada|\bmiel\b/, 'frasco'],
+  [/dulce de leche|mermelada|\bmiel\b|aceite/, 'frasco'],
   [/licuado|batido/, 'licuado'],
   [/bebible|chocolatada|\bleche\b/, 'leche'],
   [/yogur/, 'yogur'],
@@ -108,7 +108,8 @@ export function normalizar(texto: string): string {
 
 /** Lo que va después de la primera coma es descripción: "Bastones de queso, crocantes como sus papas" es queso. */
 export function iconoAlimento(nombre: string, grupo?: Grupo | null): IconoAlimentoId {
-  const n = normalizar(nombre).split(',')[0]
+  // Lo que no lleva ("(sin huevo)", "sin TACC") no es lo que es: se saca antes de buscar
+  const n = normalizar(nombre).split(',')[0].replace(/\([^)]*\)/g, ' ').replace(/\bsin \w+/g, ' ')
   for (const [patron, icono] of POR_PALABRA) if (patron.test(n)) return icono
   return grupo ? POR_GRUPO[grupo] : 'plato'
 }

@@ -1,13 +1,16 @@
 // Los números de la semana en tablas, para el nutricionista: los mismos que cuenta el texto, tomados del progreso que
 // vino con el resumen (acá no se calcula nada nuevo). La cobertura va en barras finas que no pasan de lo recomendado
-// (como los porcentajes, con tope en 100%); lo que le falta, en Zapallo.
+// (con tope en 100%); el porcentaje es el real, como en el texto ("proteína 310%"): es para el nutricionista. Lo que le falta,
+// en Zapallo.
 import { cn } from 'cn'
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import type { Progreso } from '../../../shared/contratos'
 import { fraccionBarra } from '../../lib/cobertura'
 import { COLOR_GRUPO } from '../../lib/colores'
-import { ESCALON, NOMBRE_GRUPO, NOMBRE_NUTRIENTE, NUTRIENTES_CON_META, porcentaje } from '../../lib/vocabulario'
+import { ESCALON, NOMBRE_GRUPO, NOMBRE_NUTRIENTE, NUTRIENTES_CON_META } from '../../lib/vocabulario'
+
+const porcentajeReal = (x: number) => `${Math.round((Number.isFinite(x) ? Math.max(x, 0) : 0) * 100)}%`
 
 const mayuscula = (s: string) => s[0].toLocaleUpperCase('es') + s.slice(1)
 const ultimaVez = (d: number | null) => (d === null ? 'Sin registros' : d === 0 ? 'Hoy' : d === 1 ? 'Ayer' : `Hace ${d} días`)
@@ -58,7 +61,7 @@ export function NumerosDeLaSemana({ progreso }: { progreso: Progreso }) {
                         transition={{ duration: 0.7, delay: 0.1 + i * 0.03, ease: [0.22, 1, 0.36, 1] }}
                       />
                     </span>
-                    <span className="w-12 text-right font-bold tabular-nums">{porcentaje(c)}</span>
+                    <span className="w-12 text-right font-bold tabular-nums">{porcentajeReal(c)}</span>
                   </span>
                 </td>
               </tr>

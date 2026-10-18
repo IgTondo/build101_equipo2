@@ -112,7 +112,7 @@ export function problemasCreativa(receta: Receta, k: Conocimiento, desde: Prepar
     const ricos = k.nutrientes.find((x) => x.nutriente === n)?.ricos.slice(0, 4).map((r) => r.alimentoId) ?? []
     p.push(`La porción aporta ${decimal(receta.aporte[n], 1)} de ${NOMBRE_NUTRIENTE[n]} y el mínimo es ${decimal(minimo, 1)}: subí los gramos de un ingrediente rico en ${NOMBRE_NUTRIENTE[n]} (${ricos.join(', ')}) o elegí otro plato.`)
   }
-  const igual = k.seguros.find((s) => s.id !== desde.id && cambios(s, base).length === 0)
+  const igual = k.aceptadas.find((s) => s.id !== desde.id && cambios(s, base).length === 0)
   if (igual) p.push(`«${receta.nombre}» es lo mismo que «${igual.nombre}», que ya come: proponé un plato nuevo.`)
   if (anteriores.some((a) => normal(a) === normal(receta.nombre))) p.push(`«${receta.nombre}» ya lo vio la familia: proponé un plato distinto.`)
   return p

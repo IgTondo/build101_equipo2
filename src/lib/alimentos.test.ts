@@ -58,3 +58,12 @@ describe('iconoAlimento', () => {
     expect(new Set(ICONOS_ALIMENTO).size).toBe(ICONOS_ALIMENTO.length)
   })
 })
+
+describe('lo que no lleva no cuenta (QA 18/10)', () => {
+  it('"(sin huevo)" no es huevo, el aceite es un frasco y las pizzetas son pizza', () => {
+    expect(iconoAlimento('Bastones de queso rebozados y fritos (sin huevo)')).toBe('queso')
+    expect(iconoAlimento('Milanesa de carne al horno (rebozada sin huevo)')).toBe('milanesa')
+    expect(iconoAlimento('Aceite de girasol')).toBe('frasco')
+    expect(iconoAlimento('Pizzetas finitas de garbanzos con muzzarella')).toBe('pizza')
+  })
+})

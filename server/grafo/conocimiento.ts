@@ -35,7 +35,8 @@ export interface Conocimiento {
   alergias: Alergeno[]
   dieta: Dieta
   momento?: Momento
-  seguros: PreparacionCatalogo[] // lo que acepta, con todos sus atributos: los puntos de partida posibles
+  seguros: PreparacionCatalogo[] // los puntos de partida: lo que acepta y va en esta comida (si nada va, todo lo que acepta)
+  aceptadas: PreparacionCatalogo[] // todo lo que acepta, con todos sus atributos: para "eso ya lo come"
   reglas: Regla[]
   presentacionesAceptadas: Presentacion[]
   nutrientes: OpcionNutriente[] // el pedido, o hasta 3 de los que faltan (en el orden de §1) · v5.5: vacío en modo variedad
@@ -84,13 +85,16 @@ export function conocimientoDe(
 
   // Lo que come seguro: el punto de partida de la cadena. Primero lo que va en esta comida.
   const estados = [...estado.estados.values()]
-  const seguros = estados
+  const aceptadas = estados
     .filter((s) => s.estado === 'acepta')
     .flatMap((s) => {
       const p = preparacion(s.prepId)
       return p ? [{ p, s, vaEnLaComida: !op.momento || (p.momentos?.includes(op.momento) ?? false) }] : []
     })
     .sort((a, b) => Number(b.vaEnLaComida) - Number(a.vaEnLaComida) || b.s.p - a.s.p)
+  // Se parte solo de lo que va en esta comida: la imagen lo sirve al lado ("Servilo al lado de su pizza" en el desayuno no)
+  const seguros = aceptadas.some((x) => x.vaEnLaComida) ? aceptadas.filter((x) => x.vaEnLaComida) : aceptadas
+  const otras = aceptadas.filter((x) => !seguros.includes(x))
 
   // Los nutrientes que puede elegir: el pedido o los que faltan. La vitamina D casi no está en los alimentos: solo si se pide.
   const faltan = sem.diasRegistrados ? faltanSemana(sem.cobertura) : []
@@ -115,7 +119,7 @@ export function conocimientoDe(
 
   // El foco, al azar: el alimento seguro entre los que van en esta comida, el modo y el nutriente (el primero pesa doble).
   // v5.5 · En modo variedad, sin nutriente; con un grupo, siempre cambiar el principal por uno de ese grupo.
-  const paraFoco = seguros.filter((x) => x.vaEnLaComida).length ? seguros.filter((x) => x.vaEnLaComida) : seguros
+  const paraFoco = seguros
   const elegir = <T>(xs: readonly T[]): T | undefined => xs[Math.min(xs.length - 1, Math.floor(azar() * xs.length))]
   const porNutriente = nutrientes.map((x) => x.nutriente)
   const desdeId = elegir(paraFoco)?.p.id ?? ''
@@ -126,7 +130,7 @@ export function conocimientoDe(
 
   const rechaza = estados.filter((s) => s.estado === 'rechaza' || (s.declarada === 'rechaza' && s.estado !== 'acepta'))
   const enExposicion = estados.filter((s) => s.estado === 'en_proceso' && s.veces >= 1 && s.declarada !== 'rechaza')
-  const presentacionesAceptadas = [...new Set(seguros.map((x) => x.p.atributos.presentacion).filter((pr) => pr !== 'separado'))]
+  const presentacionesAceptadas = [...new Set(aceptadas.map((x) => x.p.atributos.presentacion).filter((pr) => pr !== 'separado'))]
   const ideas = (recomendacionDe(c, estado, hoy, op.motor ?? 'grafo', nutrientes[0]?.nutriente, op.ahora, op.momento).ideas ?? []).slice(0, 6)
 
   const lineas = [
@@ -136,8 +140,9 @@ export function conocimientoDe(
     ...seguros.map(({ p, s }) => {
       const principal = [...p.ingredientes].sort((a, b) => b.gramos - a.gramos)[0]?.alimentoId ?? 'sin dato'
       const cuanto = s.veces > 0 ? `comió ${s.comio} de ${s.veces}` : 'según contó la familia'
-      return `- ${p.id}: ${p.nombre} · ${atributosEnTexto(p)} · ${principal} · ${cuanto}${op.momento && !p.momentos?.includes(op.momento) ? ' · (no suele ir en esta comida)' : ''}`
+      return `- ${p.id}: ${p.nombre} · ${atributosEnTexto(p)} · ${principal} · ${cuanto}`
     }),
+    ...(otras.length ? [`También come, en otras comidas (no sirven de punto de partida para esta): ${otras.map((x) => x.p.nombre).join(' · ')}.`] : []),
     `Lo que rechaza o todavía le cuesta: ${rechaza.map((s) => {
       const p = preparacion(s.prepId)
       return `${s.nombre}${s.motivoDeclarado ? ` (${s.motivoDeclarado})` : ''}${p ? ` [${atributosEnTexto(p)}]` : ''}`
@@ -160,6 +165,7 @@ export function conocimientoDe(
     dieta: d.dieta,
     ...(op.momento ? { momento: op.momento } : {}),
     seguros: seguros.map((x) => x.p),
+    aceptadas: aceptadas.map((x) => x.p),
     reglas: c.nino.reglas,
     presentacionesAceptadas,
     nutrientes,

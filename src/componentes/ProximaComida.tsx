@@ -84,7 +84,7 @@ export function TarjetaProximaComida({ ninoId, proxima, progreso }: Props) {
   )
   const nombre = <span className="mt-3 block font-titulo text-[2rem] leading-[1.06] font-black">{s.nombre}</span>
   // El porqué en una sola línea (C9): la primera oración hasta los dos puntos y, si igual no entra, con "…".
-  const porQue = s.porQue ? <span className="mt-3 block truncate">{lineaPorQue(s.porQue)}</span> : null
+  const porQue = s.porQue ? <span className="mt-3 line-clamp-2 block text-pretty">{lineaPorQue(s.porQue)}</span> : null
 
   if (s.tipo === 'segura') {
     return (
