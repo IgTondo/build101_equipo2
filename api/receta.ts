@@ -17,7 +17,9 @@ export default manejar(async (req, res) => {
   // Sin base no hay evidencia ni perfil: como los endpoints de B, responde el fixture con x-nibble-stub: 1 (C, integración)
   if (!hayMongo()) return responderStub(res, 'receta')
   const receta: Receta = await generarReceta(pedido, {
-    armarEvidencia: (ninoId, nutriente) => armarEvidencia(ninoId, nutriente, motor as Motor),
+    // v5.2 · con momento, los candidatos de la evidencia son de esa comida (B, esParaMomento); el preparacionId que
+    // eligió la familia se respeta igual, porque `candidato` lo busca entre todos
+    armarEvidencia: (ninoId, nutriente) => armarEvidencia(ninoId, nutriente, motor as Motor, pedido.momento),
     perfil: obtenerPerfil,
     // "Más nutritiva" puede pedir un candidato que no está entre los 3 de la evidencia: se busca en la lista completa
     candidato: (ninoId, preparacionId, nutriente) => buscarCandidato(ninoId, preparacionId, nutriente, motor as Motor),

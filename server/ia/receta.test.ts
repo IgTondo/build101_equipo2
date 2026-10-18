@@ -327,6 +327,11 @@ describe('esquemaRecetaReq (el body de /api/receta)', () => {
       .toEqual({ ninoId: 'tomas', nutriente: 'calcio_mg', preparacionId: 'bastones_queso_horno' })
   })
 
+  it('(v5.2) conserva el momento y rechaza uno que no existe', () => {
+    expect(esquemaRecetaReq.parse({ ninoId: 'tomas', momento: 'desayuno' })).toEqual({ ninoId: 'tomas', momento: 'desayuno' })
+    expect(esquemaRecetaReq.safeParse({ ninoId: 'tomas', momento: 'once' }).success).toBe(false)
+  })
+
   it('no hay receta para la energía: sin meta de calorías', () => {
     expect(esquemaRecetaReq.safeParse({ ninoId: 'tomas', nutriente: 'energia_kcal' }).success).toBe(false)
   })

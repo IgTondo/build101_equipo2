@@ -10,7 +10,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { z } from 'zod'
 import {
-  NUTRIENTE,
+  MOMENTO, NUTRIENTE,
   type Alergeno, type Candidato, type Evidencia, type Nutriente, type Nutrientes, type Perfil,
   type PreparacionCatalogo, type Presentacion, type Receta, type RecetaReq,
 } from '../../shared/contratos.js'
@@ -30,6 +30,7 @@ export const esquemaRecetaReq = z.object({
   ninoId: z.string().trim().min(1),
   nutriente: z.enum(NUTRIENTE).exclude(['energia_kcal']).optional(), // sin meta de calorías: no hay receta "para la energía"
   preparacionId: z.string().trim().min(1).optional(),
+  momento: z.enum(MOMENTO).optional(), // v5.2 · la comida para la que es: api/receta.ts se lo pasa a armarEvidencia()
 })
 
 export interface DepsReceta {
