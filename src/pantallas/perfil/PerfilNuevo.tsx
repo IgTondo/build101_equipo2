@@ -1,40 +1,45 @@
-// Crear perfil (C6) y modo jurado (C10). Pasos: datos básicos a mano → relato (voz o texto) → "Esto entendí" →
-// POST /api/perfil → el chico nuevo pasa a ser el activo y se va a registrar su primera comida.
-// Con ?demo=1 (RUTA_DEMO_JURADO, el QR del pitch) arranca con datos y relato de ejemplo editables.
+// Alta desde cero por voz (C6, PLAN §5.2). La primera vez que se abre la app (no hay chico activo) y con "Agregar otro
+// chico". Una pantalla con una máquina de pasos:
+//   bienvenida → relato (audio de hasta 3 min con la guía → /api/transcribir → texto editable)
+//   → entendiendo (/api/perfil-inicial solo con el texto) → "Esto entendí" (datos con citas, alergias a confirmar,
+//   lo que falta) → POST /api/perfil → el chico nuevo pasa a ser el activo → registrar su primera comida.
+// TRANSICIÓN hasta A8b: si /api/perfil-inicial todavía exige `datos` (400 entrada_invalida), se piden a mano (PasoDatos)
+// y se reenvía con ellos. Borrar el paso 'datos' cuando A8b esté en main.
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import type { DatosBasicos, PerfilBorrador } from '../../../shared/contratos'
+import { useNavigate } from 'react-router-dom'
+import type { CampoVital, DatosBasicos, DatosExtraidos, PerfilBorrador } from '../../../shared/contratos'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { guardarNino } from '../../lib/nino'
 import { aErrorDeApi } from '../../lib/useApi'
-import { armarCrearPerfilReq, formDesde, formVacio, type FormDatos } from './borrador'
-import { DATOS_DEMO, RELATO_DEMO } from './demo'
+import { altaInicial, faltanDe, sanearExtraidos, type Alta } from './alta'
+import { armarCrearPerfilReq, formVacio, type FormDatos } from './borrador'
 import { PasoDatos } from './PasoDatos'
 import { PasoEntendi, PasoEntendiendo } from './PasoEntendi'
 import { PasoRelato } from './PasoRelato'
 import './perfil.css'
 
-type Paso = 'datos' | 'relato' | 'entendiendo' | 'entendi'
+type Paso = 'bienvenida' | 'relato' | 'entendiendo' | 'datos' | 'entendi'
 
-const TITULO: Record<Paso, (nombre: string) => string> = {
-  datos: () => 'Sus datos básicos',
-  relato: (n) => `Contanos cómo come ${n}`,
-  entendiendo: (n) => `Contanos cómo come ${n}`,
-  entendi: () => 'Esto entendimos',
+const TITULO: Record<Paso, string> = {
+  bienvenida: 'Contanos de tu hijo',
+  relato: 'Contanos de tu hijo',
+  entendiendo: 'Entendiendo lo que contaste',
+  datos: 'Antes, sus datos básicos',
+  entendi: 'Esto entendimos',
 }
-const NUMERO: Record<Paso, number> = { datos: 1, relato: 2, entendiendo: 3, entendi: 3 }
-const TOTAL = 3
+const NUMERO: Record<Paso, number> = { bienvenida: 0, relato: 1, entendiendo: 2, datos: 2, entendi: 2 }
+const TOTAL = 2
+
+/** Lo que se arma al recibir el borrador: el estado de "Esto entendí". */
+interface Entendido { borrador: PerfilBorrador; extraidos: DatosExtraidos | undefined; faltan: CampoVital[]; alta: Alta }
 
 export function PerfilNuevo() {
-  const [params] = useSearchParams()
-  const demo = params.get('demo') === '1'
   const navegar = useNavigate()
-
-  const [paso, setPaso] = useState<Paso>('datos')
-  const [form, setForm] = useState<FormDatos>(() => (demo ? formDesde(DATOS_DEMO) : formVacio()))
-  const [datos, setDatos] = useState<DatosBasicos | null>(null)
-  const [texto, setTexto] = useState(() => (demo ? RELATO_DEMO : ''))
-  const [borrador, setBorrador] = useState<PerfilBorrador | null>(null)
+  const [paso, setPaso] = useState<Paso>('bienvenida')
+  const [texto, setTexto] = useState('')
+  const [formManual, setFormManual] = useState<FormDatos>(formVacio)
+  const [datosManuales, setDatosManuales] = useState<DatosBasicos | undefined>(undefined)
+  const [entendido, setEntendido] = useState<Entendido | null>(null)
   const [creando, setCreando] = useState(false)
   const [errorCrear, setErrorCrear] = useState<ErrorDeApi | null>(null)
   const control = useRef<AbortController | null>(null)
@@ -51,17 +56,24 @@ export function PerfilNuevo() {
     refTitulo.current?.focus({ preventScroll: true })
   }, [paso])
 
-  const nombre = datos?.nombre ?? (form.nombre.trim() || 'tu hijo o hija')
+  function alEntender(b: PerfilBorrador) {
+    // Si la respuesta no trae `datos` (A antes de A8b), no hay nada extraído: faltanDe() pide nombre, edad, sexo y alergias.
+    const extraidos = datosManuales ? undefined : sanearExtraidos(b.datos)
+    setEntendido({ borrador: b, extraidos, faltan: faltanDe(b, extraidos, datosManuales), alta: altaInicial(extraidos, datosManuales) })
+    setErrorCrear(null)
+    setPaso('entendi')
+  }
 
-  async function crear() {
-    if (!datos || !borrador || creando) return
+  async function crear(datos: DatosBasicos) {
+    if (!entendido || creando) return
     control.current?.abort()
     const c = new AbortController()
     control.current = c
     setCreando(true)
     setErrorCrear(null)
     try {
-      const { ninoId } = await api.crearPerfil(armarCrearPerfilReq(datos, borrador), c.signal)
+      // armarCrearPerfilReq copia solo acepta, rechaza, reglas y objetivos: `datos` y `faltan` del borrador no viajan.
+      const { ninoId } = await api.crearPerfil(armarCrearPerfilReq(datos, entendido.borrador), c.signal)
       guardarNino(ninoId)
       navegar(`/registrar?nino=${encodeURIComponent(ninoId)}`)
     } catch (e) {
@@ -72,41 +84,52 @@ export function PerfilNuevo() {
   return (
     <div className="pf">
       <header className="pf-encabezado">
-        <p className="pf-paso nb-suave">
-          Crear perfil · Paso <span className="nb-numero">{NUMERO[paso]}</span> de {TOTAL}
-        </p>
-        <div className="pf-barra" aria-hidden="true">
-          {Array.from({ length: TOTAL }, (_, i) => <span key={i} data-hecho={i < NUMERO[paso] || undefined} />)}
-        </div>
-        <h1 ref={refTitulo} tabIndex={-1}>{TITULO[paso](nombre)}</h1>
+        {NUMERO[paso] > 0 && (
+          <>
+            <p className="pf-paso nb-suave">
+              Paso <span className="nb-numero">{NUMERO[paso]}</span> de {TOTAL}
+            </p>
+            <div className="pf-barra" style={{ gridTemplateColumns: `repeat(${TOTAL}, 1fr)` }} aria-hidden="true">
+              {Array.from({ length: TOTAL }, (_, i) => <span key={i} data-hecho={i < NUMERO[paso] || undefined} />)}
+            </div>
+          </>
+        )}
+        <h1 ref={refTitulo} tabIndex={-1}>{TITULO[paso]}</h1>
       </header>
 
-      {demo && (paso === 'datos' || paso === 'relato') && (
-        <p className="pf-banner-demo">
-          <strong>Es un ejemplo: cambialo como quieras.</strong> Se crea un perfil nuevo; el de Tomás no se toca.
-        </p>
-      )}
-
-      {paso === 'datos' && (
-        <PasoDatos form={form} setForm={setForm} alSeguir={(d) => { setDatos(d); setPaso('relato') }} />
+      {paso === 'bienvenida' && (
+        <div className="pf-form pf-bienvenida">
+          <p className="pf-bajada">Con lo que nos cuentes, Nibble arma su perfil. Después lo corregís.</p>
+          <p className="nb-suave">
+            Contalo con tus palabras, como se lo contarías a su pediatra: en un audio de hasta 3 minutos o por escrito.
+          </p>
+          <button type="button" className="nb-boton" onClick={() => setPaso('relato')}>Empezar</button>
+        </div>
       )}
       {paso === 'relato' && (
-        <PasoRelato
-          nombre={nombre} texto={texto} setTexto={setTexto} textoEjemplo={demo ? RELATO_DEMO : undefined}
-          alSeguir={() => setPaso('entendiendo')} alVolver={() => setPaso('datos')}
-        />
+        <PasoRelato texto={texto} setTexto={setTexto} alSeguir={() => setPaso('entendiendo')} alVolver={() => setPaso('bienvenida')} />
       )}
-      {paso === 'entendiendo' && datos && (
+      {paso === 'entendiendo' && (
         <PasoEntendiendo
-          datos={datos} texto={texto.trim()}
-          alListo={(b) => { setBorrador(b); setErrorCrear(null); setPaso('entendi') }}
-          alVolver={() => setPaso('relato')}
+          texto={texto.trim()} datos={datosManuales} alListo={alEntender}
+          alPedirDatos={() => setPaso('datos')} alVolver={() => setPaso('relato')}
         />
       )}
-      {paso === 'entendi' && datos && borrador && (
+      {paso === 'datos' && (
+        <>
+          <p>Para entender lo que contaste necesitamos primero sus datos básicos. Es un minuto.</p>
+          <PasoDatos
+            form={formManual} setForm={setFormManual} textoSeguir="Seguir" compacto
+            alSeguir={(d) => { setDatosManuales(d); setPaso('entendiendo') }}
+          />
+        </>
+      )}
+      {paso === 'entendi' && entendido && (
         <PasoEntendi
-          datos={datos} borrador={borrador} setBorrador={setBorrador}
-          creando={creando} errorCrear={errorCrear} alConfirmar={() => void crear()} alVolver={() => setPaso('relato')}
+          borrador={entendido.borrador} setBorrador={(borrador) => setEntendido((e) => e && { ...e, borrador })}
+          alta={entendido.alta} setAlta={(alta) => setEntendido((e) => e && { ...e, alta })}
+          extraidos={entendido.extraidos} faltan={entendido.faltan}
+          creando={creando} errorCrear={errorCrear} alConfirmar={(d) => void crear(d)} alVolver={() => setPaso('relato')}
         />
       )}
     </div>

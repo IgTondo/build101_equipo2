@@ -7,7 +7,7 @@ import { MOTOR, NUTRIENTE } from '../../../shared/contratos'
 import type { Motor, Nutriente, Receta as RecetaT, Regla } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
 import { api, type ErrorDeApi } from '../../lib/api'
-import { useNino } from '../../lib/nino'
+import { useNinoActivo } from '../../lib/nino'
 import { aErrorDeApi, useApi } from '../../lib/useApi'
 import { nutrienteEnFrase } from './legible'
 import { SelectorNutriente } from './SelectorNutriente'
@@ -28,7 +28,7 @@ const esNutriente = (x: string | null): x is Nutriente => x !== null && x !== 'e
 const esMotor = (x: string | null): x is Motor => x !== null && (MOTOR as readonly string[]).includes(x)
 
 export function Receta() {
-  const ninoId = useNino()
+  const ninoId = useNinoActivo()
   const { search } = useLocation()
   const [params, setParams] = useSearchParams()
   const nutrienteUrl = params.get('nutriente')

@@ -2,11 +2,10 @@
 // "¿cómo le fue?" (voz o botones) → guardar → resultado. Una sola pantalla con una máquina de pasos.
 // Nada se guarda sin que el padre confirme (§9).
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { MOMENTO, type Momento, type RegistrarComidaRes } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
 import { api, type ErrorDeApi } from '../../lib/api'
-import { diaUruguay, NINO_DEMO, useNino } from '../../lib/nino'
+import { diaUruguay, useNinoActivo } from '../../lib/nino'
 import { aErrorDeApi } from '../../lib/useApi'
 import { NOMBRE_MOMENTO } from '../../lib/vocabulario'
 import { ChipsConducta, EscaleraItem, PreguntaIA } from './Escalera'
@@ -40,16 +39,8 @@ function IconoCamara() {
   )
 }
 
-function AvisoDemo() {
-  return (
-    <p className="rg-demo">
-      Estás registrando en Tomás, el perfil de ejemplo. <Link to="/perfil/nuevo">Crear el perfil de tu hijo</Link>
-    </p>
-  )
-}
-
 export function Registrar() {
-  const ninoId = useNino()
+  const ninoId = useNinoActivo()
   const [paso, setPaso] = useState<Paso>({ tipo: 'foto' })
   const [momento, setMomento] = useState<Momento>(() => momentoPorHora(horaUruguay()))
   const [foto, setFoto] = useState<FotoLista | null>(null)
@@ -146,8 +137,6 @@ export function Registrar() {
     setPaso({ tipo: 'foto' })
   }
 
-  const esDemo = ninoId === NINO_DEMO
-
   return (
     <div className="rg" ref={raiz}>
       {/* Siempre montados, para que "Sacar otra" abra la cámara desde cualquier paso. */}
@@ -159,8 +148,6 @@ export function Registrar() {
         ref={galeria} type="file" accept="image/*" className="rg-oculto"
         tabIndex={-1} aria-hidden="true" onChange={(e) => void alElegirArchivo(e.currentTarget)}
       />
-
-      {esDemo && paso.tipo !== 'resultado' && <AvisoDemo />}
 
       {paso.tipo === 'foto' && (
         <section className="rg-paso" aria-labelledby="rg-t-foto">

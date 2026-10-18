@@ -1,4 +1,5 @@
-// Paso 1 · Datos básicos. Todo a mano, nunca por IA (§5: las alergias las marca el padre).
+// Datos básicos a mano (las alergias las marca el padre, §5). TRANSICIÓN hasta A8b: en el alta por voz solo aparece si
+// /api/perfil-inicial todavía exige `datos` (ver pideDatosManuales en alta.ts). Borrar cuando A8b esté en main.
 import { useRef, useState, type FormEvent } from 'react'
 import { ALERGENO, DIETA, type DatosBasicos } from '../../../shared/contratos'
 import { NOMBRE_ALERGENO } from '../../lib/vocabulario'
@@ -15,9 +16,12 @@ interface Props {
   form: FormDatos
   setForm: (f: FormDatos) => void
   alSeguir: (datos: DatosBasicos) => void
+  textoSeguir?: string
+  /** Solo nombre, edad, sexo, peso y talla: alergias, dieta y señales se confirman después en "Esto entendí". */
+  compacto?: boolean
 }
 
-export function PasoDatos({ form, setForm, alSeguir }: Props) {
+export function PasoDatos({ form, setForm, alSeguir, textoSeguir = 'Seguir', compacto = false }: Props) {
   const [errores, setErrores] = useState<ErroresDatos>({})
   const refs = {
     nombre: useRef<HTMLInputElement>(null), edad: useRef<HTMLInputElement>(null), sexo: useRef<HTMLInputElement>(null),
@@ -66,6 +70,7 @@ export function PasoDatos({ form, setForm, alSeguir }: Props) {
         />
       </div>
 
+      {!compacto && <>
       <fieldset className="pf-grupo" aria-describedby="pf-nota-alergias">
         <legend>Alergias</legend>
         <p id="pf-nota-alergias" className="pf-nota">Las alergias las marcás vos; la app nunca las adivina.</p>
@@ -106,8 +111,9 @@ export function PasoDatos({ form, setForm, alSeguir }: Props) {
         valor={form.suplementos} alCambiar={(v) => cambiar('suplementos', v)} autoComplete="off"
         placeholder="Por ejemplo, vitamina D en gotas"
       />
+      </>}
 
-      <button type="submit" className="nb-boton">Seguir: contanos cómo come</button>
+      <button type="submit" className="nb-boton">{textoSeguir}</button>
     </form>
   )
 }

@@ -3,10 +3,10 @@ import { Link, useLocation } from 'react-router-dom'
 import type { Progreso } from '../../shared/contratos'
 import { PerfilNoEncontrado } from '../componentes/PerfilNoEncontrado'
 import { ErrorDeApi, pedirConMeta } from '../lib/api'
-import { useNino } from '../lib/nino'
+import { useNinoActivo } from '../lib/nino'
 
 export function Inicio() {
-  const ninoId = useNino()
+  const ninoId = useNinoActivo()
   const { search } = useLocation()
   const [progreso, setProgreso] = useState<{ datos: Progreso; stub: boolean } | null>(null)
   const [error, setError] = useState<ErrorDeApi | string | null>(null)
@@ -21,7 +21,7 @@ export function Inicio() {
     return () => control.abort()
   }, [ninoId])
 
-  if (error instanceof ErrorDeApi && error.codigo === 'no_encontrado') return <PerfilNoEncontrado ninoId={ninoId} pantalla="/" />
+  if (error instanceof ErrorDeApi && error.codigo === 'no_encontrado') return <PerfilNoEncontrado />
 
   return (
     <>

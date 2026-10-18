@@ -8,7 +8,7 @@ import type { Alerta, Motor, Progreso } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { api, type ErrorDeApi } from '../../lib/api'
-import { diaUruguay, useNino } from '../../lib/nino'
+import { diaUruguay, useNinoActivo } from '../../lib/nino'
 import { aErrorDeApi } from '../../lib/useApi'
 import { Aprendimos, UltimasComidas } from './Aprendimos'
 import { Cobertura } from './Cobertura'
@@ -57,7 +57,7 @@ function useProgreso(ninoId: string, motor: Motor) {
 }
 
 export function Tablero() {
-  const ninoId = useNino()
+  const ninoId = useNinoActivo()
   const [params, setParams] = useSearchParams()
   const motor = leerMotor(params.get('motor'))
   const { datos, hasta, error, cargando, reintentar } = useProgreso(ninoId, motor)
@@ -68,7 +68,7 @@ export function Tablero() {
   }
 
   if (!datos) {
-    if (error?.codigo === 'no_encontrado') return <PerfilNoEncontrado ninoId={ninoId} />
+    if (error?.codigo === 'no_encontrado') return <PerfilNoEncontrado />
     return (
       <>
         <h1 className="tb-titulo">¿Está comiendo bien?</h1>

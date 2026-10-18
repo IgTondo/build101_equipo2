@@ -6,7 +6,7 @@ import type { ResumenRes } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { pedirConMeta } from '../../lib/api'
-import { useNino } from '../../lib/nino'
+import { useNinoActivo } from '../../lib/nino'
 import { useApi } from '../../lib/useApi'
 import './resumen.css'
 
@@ -63,7 +63,7 @@ function BotonCopiar({ texto, destino }: { texto: string; destino: RefObject<HTM
 }
 
 export function Resumen() {
-  const ninoId = useNino()
+  const ninoId = useNinoActivo()
   const { search } = useLocation()
   const estado = useApi(
     (senal) => pedirConMeta<ResumenRes>(`/api/resumen?${new URLSearchParams({ ninoId })}`, { timeoutMs: 40_000, senal }),
@@ -80,7 +80,7 @@ export function Resumen() {
 
       {estado.tipo === 'cargando' && <Cargando texto="Armando el resumen de la semana…" />}
       {estado.tipo === 'error' && (estado.error.codigo === 'no_encontrado'
-        ? <PerfilNoEncontrado ninoId={ninoId} pantalla="/resumen" />
+        ? <PerfilNoEncontrado />
         : <ErrorConReintento error={estado.error} reintentar={estado.reintentar} />)}
       {estado.tipo === 'ok' && (
         <>

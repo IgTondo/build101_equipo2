@@ -1,4 +1,4 @@
-/* Perfil (C6) y modo jurado (C10). Mobile first a 360 px; todo lo tocable mide 48 px o más. */
+/* Perfil y alta por voz (C6). Mobile first a 360 px; todo lo tocable mide 48 px o más. */
 .pf { display: flex; flex-direction: column; gap: 16px; }
 .pf h1, .pf h2, .pf h3 { text-wrap: balance; }
 .pf h1:focus, .pf h2:focus { outline: none; }
@@ -18,14 +18,6 @@
 .pf-barra span { height: 6px; border-radius: var(--nb-radio-pastilla); background: var(--nb-borde); transition: background-color 200ms ease-out; }
 .pf-barra span[data-hecho] { background: var(--nb-marca); }
 .pf-encabezado h1 { margin: 6px 0 0; }
-
-.pf-banner-demo {
-  margin: 0; padding: 14px 16px; border-radius: var(--nb-radio);
-  background: var(--nb-superficie-suave); border: 1px dashed var(--nb-marca);
-  display: flex; flex-direction: column; gap: 8px;
-}
-.pf-banner-demo h2 { font-size: 1.1rem; margin: 0; }
-.pf-banner-demo p { margin: 0; }
 
 /* Formulario */
 .pf-form { display: flex; flex-direction: column; gap: 20px; }
@@ -108,6 +100,54 @@
 @keyframes pf-latido { 50% { opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { .pf-punto-rojo { animation: none; } }
 .pf-progreso { display: flex; flex-direction: column; gap: 6px; padding: 24px 16px; }
+
+/* Alta por voz (§5.2): bienvenida, guía y tiempo del audio */
+.pf-bienvenida { gap: 12px; }
+.pf-bienvenida p { margin: 0; }
+.pf-bajada { font-size: 1.1rem; }
+.pf-bienvenida .nb-boton { margin-top: 8px; }
+.pf-guia {
+  padding: 14px 16px; border-radius: var(--nb-radio); background: var(--nb-superficie); border: 1px solid var(--nb-borde);
+  display: flex; flex-direction: column; gap: 6px;
+  transition-property: border-color, box-shadow; transition-duration: 200ms; transition-timing-function: ease-out;
+}
+.pf-guia[data-grabando] { border-color: var(--nb-primario); box-shadow: 0 0 0 3px rgba(62, 154, 104, 0.18); }
+.pf .pf-guia-titulo { font-size: 1.05rem; margin: 0; }
+.pf-guia-lista { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pf-guia-lista li { position: relative; padding-left: 28px; line-height: 1.4; }
+.pf-guia-lista li::before {
+  content: ''; position: absolute; left: 2px; top: 0.2em; width: 16px; height: 16px;
+  border: 1.5px solid var(--nb-primario); border-radius: 50%; background: var(--nb-superficie-suave);
+}
+.pf-tiempo { height: 6px; border-radius: var(--nb-radio-pastilla); background: var(--nb-borde); overflow: hidden; }
+.pf-tiempo span {
+  display: block; height: 100%; background: var(--nb-primario); transform-origin: left;
+  transition: transform 250ms linear;
+}
+@media (prefers-reduced-motion: reduce) { .pf-tiempo span { transition: none; } }
+
+/* "Esto entendí": citas y alergias sugeridas */
+.pf-cita { font-size: 0.92rem; color: var(--nb-texto-suave); }
+.pf-cita summary {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 48px; cursor: pointer;
+  color: var(--nb-primario); font-weight: 700; list-style-position: inside;
+}
+.pf-cita p { margin: 0; padding: 8px 12px; border-left: 3px solid var(--nb-acento); background: var(--nb-superficie-suave); border-radius: 0 var(--nb-radio-chico) var(--nb-radio-chico) 0; }
+.pf-citas {
+  margin: 0; padding: 8px 12px; display: flex; flex-direction: column; gap: 6px;
+  border-left: 3px solid var(--nb-acento); background: var(--nb-superficie-suave); border-radius: 0 var(--nb-radio-chico) var(--nb-radio-chico) 0;
+}
+.pf-citas div { display: flex; gap: 8px; flex-wrap: wrap; }
+.pf-citas dt { font-weight: 700; color: var(--nb-texto); }
+.pf-citas dd { margin: 0; overflow-wrap: anywhere; }
+.pf-cita-linea { margin: 0; font-size: 0.9rem; color: var(--nb-texto-suave); overflow-wrap: anywhere; }
+.pf-sugeridas { display: flex; flex-direction: column; gap: 10px; padding-bottom: 4px; }
+.pf-pregunta { margin: 0; font-weight: 700; }
+.pf-sugerida { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.pf-chip-sugerida { border-style: dashed; border-color: var(--nb-acento); background: var(--nb-superficie-suave); }
+.pf-chip-sugerida[aria-pressed='true'] { border-style: solid; }
+.pf-chip-estado { font-weight: 400; font-size: 0.85rem; color: var(--nb-texto-suave); margin-left: 4px; }
+.pf-chip[aria-pressed='true'] .pf-chip-estado { color: var(--nb-primario); }
 
 /* "Esto entendí" */
 .pf-seccion { display: flex; flex-direction: column; gap: 10px; }

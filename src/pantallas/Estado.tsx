@@ -8,7 +8,8 @@ import { diaUruguay, useNino } from '../lib/nino'
 type Resultado = { estado: 'stub' | 'real' | 'error'; status: number; ms: number; detalle?: string }
 
 export function Estado() {
-  const ninoId = useNino()
+  // Sin chico activo se pingea con un id que no existe: el 404 no_encontrado también cuenta como handler real.
+  const ninoId = useNino() ?? 'sin-nino'
   const [res, setRes] = useState<Record<string, Resultado>>({})
 
   useEffect(() => {

@@ -7,8 +7,6 @@ import {
   agregarAcepta, agregarRechaza, agregarRegla, agruparPreparaciones, alternarAlergia, armarCrearPerfilReq, cambiarMotivo,
   formDesde, formVacio, leerNumero, quitarAcepta, quitarRegla, renombrarAcepta, separarPatrones, sumarNota, textoEnElPlato, textoVeces, validarDatos,
 } from './borrador'
-import { DATOS_DEMO, RELATO_DEMO } from './demo'
-import { RUTA_DEMO_JURADO } from './rutas'
 
 const borradorTomas = tomas.borrador as PerfilBorrador
 
@@ -36,7 +34,7 @@ describe('datos básicos', () => {
 
   it('ida y vuelta: los datos de Tomás pasan por el formulario sin cambios', () => {
     expect(validarDatos(formDesde(tomas.datos as never))).toEqual({ ok: true, datos: tomas.datos })
-    expect(validarDatos(formDesde(DATOS_DEMO))).toEqual({ ok: true, datos: DATOS_DEMO })
+    expect(validarDatos(formDesde(lucia.datos as never))).toEqual({ ok: true, datos: lucia.datos })
   })
 
   it('las alergias se alternan en el orden del vocabulario', () => {
@@ -94,7 +92,7 @@ describe('armarCrearPerfilReq', () => {
       rechaza: [], reglas: [{ texto: 'Nada verde', condiciones: [], efecto: 'rechaza' }, { texto: 'nada verde ', condiciones: [], efecto: 'rechaza' }],
       objetivosNutricionista: { calcio_mg: 1000 },
     }
-    const { borrador } = armarCrearPerfilReq(DATOS_DEMO, b)
+    const { borrador } = armarCrearPerfilReq(lucia.datos as never, b)
     expect(borrador.acepta).toEqual([{ nombre: 'Yogur', preparacionId: null, atributos: {} }])
     expect(borrador.reglas).toHaveLength(1)
     expect(borrador.objetivosNutricionista).toEqual({ calcio_mg: 1000 })
@@ -127,19 +125,8 @@ describe('vista del perfil', () => {
 })
 
 describe('relato', () => {
-  it('la nota de voz se suma al texto, salvo que sea el ejemplo sin tocar', () => {
+  it('el audio nuevo se suma al texto', () => {
     expect(sumarNota('', 'Come fideos.')).toBe('Come fideos.')
     expect(sumarNota('Come arroz. ', 'Y fideos.')).toBe('Come arroz. Y fideos.')
-    expect(sumarNota(RELATO_DEMO, 'Come arroz.', RELATO_DEMO)).toBe('Come arroz.')
-    expect(sumarNota(`${RELATO_DEMO} Algo más.`, 'Y fideos.', RELATO_DEMO)).toBe(`${RELATO_DEMO} Algo más. Y fideos.`)
-  })
-})
-
-describe('modo jurado', () => {
-  it('abre /perfil/nuevo con demo=1 y un ejemplo que no es Tomás', () => {
-    expect(RUTA_DEMO_JURADO).toBe('/perfil/nuevo?demo=1')
-    expect(DATOS_DEMO.nombre).not.toMatch(/tom[aá]s/i)
-    expect(RELATO_DEMO).toContain(DATOS_DEMO.nombre)
-    expect(validarDatos(formDesde(DATOS_DEMO)).ok).toBe(true)
   })
 })

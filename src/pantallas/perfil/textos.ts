@@ -1,5 +1,5 @@
 // Etiquetas propias del perfil (las del vocabulario compartido están en src/lib/vocabulario.ts).
-import type { DatosBasicos, Dieta } from '../../../shared/contratos'
+import type { Alergeno, DatosBasicos, Dieta } from '../../../shared/contratos'
 import type { Senal } from './borrador'
 
 export const NOMBRE_DIETA: Record<Dieta, string> = {
@@ -19,3 +19,26 @@ export const AVISO_DECLARADA = 'Gracias por contarlo. Recomendamos consultar a u
 export const AVISO_DIETA = 'En esta dieta, el calcio y la vitamina D se vuelven prioridad. Conviene que la supervise un profesional.'
 
 export const anios = (edad: number) => (edad === 1 ? '1 año' : `${edad} años`)
+
+/** "¿Es alérgico al huevo?" · "¿Es alérgica a los frutos secos?" */
+export const ALERGENO_CON_ARTICULO: Record<Alergeno, string> = {
+  leche: 'a la leche', huevo: 'al huevo', gluten: 'al gluten', mani: 'al maní', frutos_secos: 'a los frutos secos',
+  soja: 'a la soja', pescado: 'al pescado', mariscos: 'a los mariscos', sesamo: 'al sésamo',
+}
+export const alergico = (sexo: DatosBasicos['sexo'] | '') => (sexo === 'femenino' ? 'alérgica' : 'alérgico')
+
+/** La guía del alta por voz (§5.2): lo vital, en cualquier orden. */
+export const GUIA_ALTA = [
+  'Nombre, edad y sexo',
+  'Peso y talla, si los sabés',
+  'Alergias',
+  'Dieta especial y suplementos',
+  'Si tiene arcadas, vómitos o se atraganta',
+  'Lo que come seguro: la marca y cómo se lo servís (crocante o blando, frito o al horno, en bastones, frío…)',
+  'Lo que no come y por qué: la textura, el olor, que esté mezclado…',
+  'Sus reglas: “que no se toquen”, “nada verde”, “en su plato de siempre”',
+  'Lo que indicó su nutricionista (opcional)',
+]
+
+/** §10.4 · `atragantamiento`: alerta desde la primera vez. */
+export const AVISO_ATRAGANTAMIENTO = 'Si tose o se atraganta al comer, conviene consultar con su pediatra o con fonoaudiología.'

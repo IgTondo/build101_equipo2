@@ -1,25 +1,42 @@
-// Paso 3 · /api/perfil-inicial con progreso → "Esto entendí": chips editables del borrador → confirmar.
+// Alta por voz (§5.2) · /api/perfil-inicial con progreso → "Esto entendí": una sola pantalla para confirmar y corregir
+// los datos básicos (con la cita de lo que dijo), las alergias a confirmar tocándolas, lo vital que falta (`faltan`),
+// lo que come, lo que no y sus reglas.
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
-import { MOTIVO, type DatosBasicos, type Motivo, type PerfilBorrador } from '../../../shared/contratos'
+import {
+  DIETA, MOTIVO, type CampoVital, type DatosBasicos, type DatosExtraidos, type Motivo, type PerfilBorrador,
+} from '../../../shared/contratos'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
 import { api, type ErrorDeApi } from '../../lib/api'
 import { useApi } from '../../lib/useApi'
-import { NOMBRE_ALERGENO, NOMBRE_MOTIVO } from '../../lib/vocabulario'
+import { NOMBRE_MOTIVO } from '../../lib/vocabulario'
+import { Alergias } from './Alergias'
 import {
-  agregarAcepta, agregarRechaza, agregarRegla, cambiarMotivo, clave, quitarAcepta, quitarRechaza, quitarRegla, renombrarAcepta,
+  citaVigente, ORDEN_ALTA, pedidoPerfilInicial, pideDatosManuales, revisarAlta, textoFaltan, type Alta, type CampoAlta,
+} from './alta'
+import {
+  agregarAcepta, agregarRechaza, agregarRegla, alternarSenal, cambiarMotivo, clave, quitarAcepta, quitarRechaza, quitarRegla,
+  renombrarAcepta, SENALES, type FormDatos,
 } from './borrador'
+import { Campo, ChipAlternar, OpcionUnica } from './Controles'
 import { IconoEditar, IconoMas, IconoQuitar } from './Iconos'
+import { AVISO_ATRAGANTAMIENTO, AVISO_DECLARADA, AVISO_DIETA, NOMBRE_DIETA, NOMBRE_SENAL, NOMBRE_SEXO } from './textos'
 
-const ETAPAS = ['Leyendo lo que contaste…', 'Buscando lo que come seguro…', 'Anotando lo que por ahora no come…', 'Juntando sus reglas…', 'Ya casi…']
+const ETAPAS = ['Leyendo lo que contaste…', 'Anotando sus datos…', 'Buscando lo que come seguro…', 'Anotando lo que por ahora no come…', 'Juntando sus reglas…', 'Ya casi…']
+const SEXOS = ['femenino', 'masculino'] as const
 
-/** Llama a /api/perfil-inicial al montarse; muestra el progreso por etapas en una región viva. */
-export function PasoEntendiendo({ datos, texto, alListo, alVolver }: {
-  datos: DatosBasicos; texto: string; alListo: (b: PerfilBorrador) => void; alVolver: () => void
+/**
+ * Llama a /api/perfil-inicial al montarse, solo con el texto (§5.2), y muestra el progreso en una región viva.
+ * `datos` solo viene en la transición hasta A8b (el back pidió los datos básicos a mano): ver pideDatosManuales().
+ */
+export function PasoEntendiendo({ texto, datos, alListo, alPedirDatos, alVolver }: {
+  texto: string; datos?: DatosBasicos; alListo: (b: PerfilBorrador) => void; alPedirDatos: () => void; alVolver: () => void
 }) {
-  const estado = useApi((s) => api.perfilInicial({ datos, texto }, s), [])
+  const estado = useApi((s) => api.perfilInicial(pedidoPerfilInicial(texto, datos), s), [])
   const [etapa, setEtapa] = useState(0)
-  const listo = useRef(alListo)
-  listo.current = alListo
+  const avisos = useRef({ alListo, alPedirDatos })
+  avisos.current = { alListo, alPedirDatos }
+  // TRANSICIÓN hasta A8b: si el back todavía exige `datos`, se piden a mano en lugar de mostrar el error.
+  const pedirDatos = estado.tipo === 'error' && !datos && pideDatosManuales(estado.error)
 
   useEffect(() => {
     if (estado.tipo !== 'cargando') return
@@ -29,14 +46,15 @@ export function PasoEntendiendo({ datos, texto, alListo, alVolver }: {
   }, [estado.tipo])
 
   useEffect(() => {
-    if (estado.tipo === 'ok') listo.current(estado.datos)
-  }, [estado])
+    if (estado.tipo === 'ok') avisos.current.alListo(estado.datos)
+    else if (pedirDatos) avisos.current.alPedirDatos()
+  }, [estado, pedirDatos])
 
-  if (estado.tipo === 'error') {
+  if (estado.tipo === 'error' && !pedirDatos) {
     return (
       <div className="pf-form">
         <ErrorConReintento error={estado.error} reintentar={estado.reintentar} />
-        <button type="button" className="nb-boton nb-boton-secundario" onClick={alVolver}>Volver al relato</button>
+        <button type="button" className="nb-boton nb-boton-secundario" onClick={alVolver}>Volver a lo que contaste</button>
       </div>
     )
   }
@@ -48,20 +66,63 @@ export function PasoEntendiendo({ datos, texto, alListo, alVolver }: {
   )
 }
 
+/** "Dijiste: «…»", a pedido: de dónde sacamos el dato. Si el padre corrige el valor, la cita deja de mostrarse. */
+function Cita({ cita }: { cita?: string }) {
+  if (!cita) return null
+  return (
+    <details className="pf-cita">
+      <summary>De dónde lo sacamos</summary>
+      <p>Dijiste: «{cita}»</p>
+    </details>
+  )
+}
+
+/** Las citas de los datos básicos, juntas en un solo "de dónde lo sacamos" (uno por campo recarga la tarjeta). */
+function Citas({ lista }: { lista: [string, string | undefined][] }) {
+  const con = lista.filter((x): x is [string, string] => !!x[1])
+  if (!con.length) return null
+  return (
+    <details className="pf-cita">
+      <summary>De dónde lo sacamos</summary>
+      <dl className="pf-citas">
+        {con.map(([que, cita]) => <div key={que}><dt>{que}</dt><dd>«{cita}»</dd></div>)}
+      </dl>
+    </details>
+  )
+}
+
 interface Props {
-  datos: DatosBasicos
   borrador: PerfilBorrador
   setBorrador: (b: PerfilBorrador) => void
+  alta: Alta
+  setAlta: (a: Alta) => void
+  /** Lo que dijo del chico, con citas (ya saneado). undefined en la transición o si A no lo mandó. */
+  extraidos: DatosExtraidos | undefined
+  faltan: CampoVital[]
   creando: boolean
   errorCrear: ErrorDeApi | null
-  alConfirmar: () => void
+  alConfirmar: (datos: DatosBasicos) => void
   alVolver: () => void
 }
 
-export function PasoEntendi({ datos, borrador: b, setBorrador, creando, errorCrear, alConfirmar, alVolver }: Props) {
-  const [faltaSeguro, setFaltaSeguro] = useState(false)
-  const refAgregarSeguro = useRef<HTMLInputElement>(null)
+export function PasoEntendi({ borrador: b, setBorrador, alta, setAlta, extraidos: ex, faltan, creando, errorCrear, alConfirmar, alVolver }: Props) {
+  const [intentado, setIntentado] = useState(false)
+  const f = alta.form
+  const nombre = f.nombre.trim() || 'tu hijo'
+  const revision = revisarAlta(alta, b, nombre)
+  // Los errores se muestran recién después de tocar "crear", y se recalculan en vivo mientras corrige.
+  const errores = intentado && !revision.ok ? revision.errores : {}
+  const falta = (c: CampoVital) => faltan.includes(c)
+  const pendiente = textoFaltan(faltan)
+
+  const refs = {
+    nombre: useRef<HTMLInputElement>(null), edad: useRef<HTMLInputElement>(null), sexo: useRef<HTMLInputElement>(null),
+    pesoKg: useRef<HTMLInputElement>(null), tallaCm: useRef<HTMLInputElement>(null),
+    alergias: useRef<HTMLButtonElement>(null), acepta: useRef<HTMLInputElement>(null),
+  } satisfies Record<CampoAlta, unknown>
   const refTitulos = { acepta: useRef<HTMLHeadingElement>(null), rechaza: useRef<HTMLHeadingElement>(null), reglas: useRef<HTMLHeadingElement>(null) }
+
+  const cambiar = <K extends keyof FormDatos>(k: K, v: FormDatos[K]) => setAlta({ ...alta, form: { ...f, [k]: v } })
 
   // Al quitar un ítem, el foco vuelve al título de su lista (el botón que lo tenía desaparece).
   const quitando = (lista: keyof typeof refTitulos, nuevo: PerfilBorrador) => {
@@ -70,22 +131,99 @@ export function PasoEntendi({ datos, borrador: b, setBorrador, creando, errorCre
   }
 
   const confirmar = () => {
-    if (!b.acepta.length) {
-      setFaltaSeguro(true)
-      refAgregarSeguro.current?.focus()
-      return
-    }
-    alConfirmar()
+    if (revision.ok) return alConfirmar(revision.datos)
+    setIntentado(true)
+    const primero = ORDEN_ALTA.find((c) => revision.errores[c])
+    if (primero) refs[primero].current?.focus()
   }
+
+  const ayudaFalta = (c: CampoVital) => (falta(c) ? 'No lo mencionaste: completalo acá.' : undefined)
+  const alertasCitadas = (ex?.alertas ?? []).filter((a) => f.alertas.includes(a.valor))
 
   return (
     <div className="pf-form">
-      <p>Esto es lo que entendimos de tu relato. Si algo no está bien, cambialo o sacalo: vos conocés a {datos.nombre}.</p>
+      <p>Esto es lo que entendimos. Revisalo y cambiá lo que no esté bien: vos lo conocés mejor que nadie.</p>
+      {pendiente && <p className="pf-aviso-suave">No nos contaste {pendiente}. Completalo acá abajo.</p>}
+
+      <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-datos">
+        <h2 id="pf-t-datos">Sus datos</h2>
+        <Campo
+          ref={refs.nombre} etiqueta="Nombre" valor={f.nombre} alCambiar={(v) => cambiar('nombre', v)} ayuda={ayudaFalta('nombre')}
+          error={errores.nombre} autoComplete="off" autoCapitalize="words" enterKeyHint="next" required
+        />
+        <Campo
+          ref={refs.edad} etiqueta="Edad (años)" valor={f.edad} alCambiar={(v) => cambiar('edad', v)} ayuda={ayudaFalta('edad')}
+          error={errores.edad} inputMode="numeric" pattern="[0-9]*" maxLength={2} className="pf-input pf-input-corto" required
+        />
+        <OpcionUnica
+          leyenda="Sexo" nombre="sexo" opciones={SEXOS} etiquetas={NOMBRE_SEXO} valor={f.sexo}
+          alCambiar={(v) => cambiar('sexo', v)} error={errores.sexo} refPrimera={refs.sexo}
+          ayuda={falta('sexo') ? 'No lo mencionaste. Lo usamos solo para las referencias de nutrientes de su edad.' : 'Solo para usar las referencias de nutrientes de su edad.'}
+        />
+        <div className="pf-dos-columnas">
+          <Campo
+            ref={refs.pesoKg} etiqueta={<>Peso (kg) <span className="pf-opcional">opcional</span></>}
+            valor={f.pesoKg} alCambiar={(v) => cambiar('pesoKg', v)} error={errores.pesoKg} inputMode="decimal"
+          />
+          <Campo
+            ref={refs.tallaCm} etiqueta={<>Talla (cm) <span className="pf-opcional">opcional</span></>}
+            valor={f.tallaCm} alCambiar={(v) => cambiar('tallaCm', v)} error={errores.tallaCm} inputMode="numeric"
+          />
+        </div>
+        <Citas lista={[
+          ['Nombre', citaVigente(ex?.nombre, f.nombre)], ['Edad', citaVigente(ex?.edad, f.edad)], ['Sexo', citaVigente(ex?.sexo, f.sexo)],
+          ['Peso', citaVigente(ex?.pesoKg, f.pesoKg)], ['Talla', citaVigente(ex?.tallaCm, f.tallaCm)],
+        ]} />
+      </section>
+
+      <section className="nb-tarjeta pf-seccion" aria-label="Alergias">
+        <Alergias
+          alta={alta} setAlta={setAlta} extraidos={ex} nombre={nombre} falta={falta('alergias')}
+          error={errores.alergias} refPrimera={refs.alergias}
+        />
+      </section>
+
+      <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-cuidados">
+        <h2 id="pf-t-cuidados">Dieta y cuidados</h2>
+        <OpcionUnica
+          leyenda="¿Sigue alguna dieta?" nombre="dieta" opciones={DIETA} etiquetas={NOMBRE_DIETA} valor={f.dieta}
+          alCambiar={(v) => cambiar('dieta', v)} pie={<Cita cita={citaVigente(ex?.dieta, f.dieta)} />}
+        />
+        {f.dieta === 'sin_gluten_caseina' && <p className="pf-aviso-suave" role="status">{AVISO_DIETA}</p>}
+
+        <fieldset className="pf-grupo">
+          <legend>¿Algo de esto pasa con {nombre}?</legend>
+          <p className="pf-ayuda">Marcá solo lo que corresponda. Nos ayuda a avisarte cuándo conviene consultar.</p>
+          <div className="pf-chips pf-chips-columna">
+            {SENALES.map((s) => (
+              <ChipAlternar key={s} activo={f.alertas.includes(s)} alTocar={() => cambiar('alertas', alternarSenal(f.alertas, s))}>
+                {NOMBRE_SENAL[s]}
+              </ChipAlternar>
+            ))}
+          </div>
+          {alertasCitadas.map((a) => <p key={a.valor} className="pf-cita-linea">Dijiste: «{a.cita}»</p>)}
+          {f.alertas.length > 0 && <p className="pf-aviso-suave" role="status">{AVISO_DECLARADA}</p>}
+        </fieldset>
+
+        {ex?.atragantamiento && (
+          <div className="pf-aviso-suave">
+            <p>Nos contaste que tose o se atraganta al comer: «{ex.atragantamiento.cita}».</p>
+            <p>{AVISO_ATRAGANTAMIENTO}</p>
+          </div>
+        )}
+
+        <Campo
+          etiqueta={<>Suplementos <span className="pf-opcional">opcional</span></>}
+          ayuda="Solo para el registro: la app nunca sugiere suplementos."
+          valor={f.suplementos} alCambiar={(v) => cambiar('suplementos', v)} autoComplete="off"
+          placeholder="Por ejemplo, vitamina D en gotas" pie={<Cita cita={citaVigente(ex?.suplementos, f.suplementos)} />}
+        />
+      </section>
 
       <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-acepta">
         <h2 id="pf-t-acepta" ref={refTitulos.acepta} tabIndex={-1}>Lo que come seguro</h2>
         {b.acepta.length === 0 && (
-          <p className="pf-ayuda">No encontramos alimentos seguros en el relato. Sumá al menos uno: es el punto de partida de lo que te vamos a sugerir.</p>
+          <p className="pf-ayuda">No encontramos alimentos seguros en lo que contaste. Sumá al menos uno: es el punto de partida de lo que te vamos a sugerir.</p>
         )}
         <ul className="pf-lista">
           {b.acepta.map((a, i) => (
@@ -99,14 +237,13 @@ export function PasoEntendi({ datos, borrador: b, setBorrador, creando, errorCre
         </ul>
         <Agregar
           etiqueta="Sumar algo que come seguro" ejemplo="Ej.: galletitas de arroz"
-          alAgregar={(n) => { setBorrador(agregarAcepta(b, n)); setFaltaSeguro(false) }} refInput={refAgregarSeguro}
-          error={faltaSeguro ? `Sumá al menos un alimento que ${datos.nombre} coma seguro.` : undefined}
+          alAgregar={(n) => setBorrador(agregarAcepta(b, n))} refInput={refs.acepta} error={errores.acepta}
         />
       </section>
 
       <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-rechaza">
         <h2 id="pf-t-rechaza" ref={refTitulos.rechaza} tabIndex={-1}>Lo que por ahora no come</h2>
-        {b.rechaza.length === 0 && <p className="pf-ayuda">No mencionaste nada. Si hay algo, sumalo acá.</p>}
+        {b.rechaza.length === 0 && <p className="pf-ayuda">No mencionaste nada. Si hay algo, sumalo acá; si no, podés seguir.</p>}
         <ul className="pf-lista">
           {b.rechaza.map((r, i) => (
             <FilaRechaza
@@ -132,19 +269,18 @@ export function PasoEntendi({ datos, borrador: b, setBorrador, creando, errorCre
         <Agregar etiqueta="Sumar una regla" ejemplo="Ej.: que no se toquen" alAgregar={(t) => setBorrador(agregarRegla(b, t))} />
       </section>
 
-      <p className="pf-ayuda">
-        {datos.alergias.length
-          ? `Alergias, como las marcaste vos: ${datos.alergias.map((a) => NOMBRE_ALERGENO[a]).join(', ')}.`
-          : 'No marcaste alergias.'}
-      </p>
-
-      {errorCrear && <ErrorConReintento error={errorCrear} reintentar={alConfirmar} />}
+      {intentado && !revision.ok && (
+        <p className="pf-error" role="alert">Para crear el perfil falta completar lo que está marcado arriba.</p>
+      )}
+      {errorCrear && <ErrorConReintento error={errorCrear} reintentar={confirmar} />}
       {creando ? (
-        <Cargando texto={`Creando el perfil de ${datos.nombre}…`} />
+        <Cargando texto={`Creando el perfil de ${nombre}…`} />
       ) : (
         <div className="pf-botones">
-          <button type="button" className="nb-boton" onClick={confirmar}>Listo, crear el perfil de {datos.nombre}</button>
-          <button type="button" className="nb-boton nb-boton-secundario" onClick={alVolver}>Volver al relato</button>
+          <button type="button" className="nb-boton" onClick={confirmar}>
+            {f.nombre.trim() ? `Listo, crear el perfil de ${nombre}` : 'Listo, crear su perfil'}
+          </button>
+          <button type="button" className="nb-boton nb-boton-secundario" onClick={alVolver}>Volver a lo que contaste</button>
         </div>
       )}
     </div>

@@ -10,9 +10,11 @@ interface CampoProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 
   valor: string
   alCambiar: (v: string) => void
   ref?: Ref<HTMLInputElement>
+  /** Debajo del campo: en "Esto entendí", la cita de lo que dijo el padre. */
+  pie?: ReactNode
 }
 
-export function Campo({ etiqueta, ayuda, error, valor, alCambiar, ref, ...resto }: CampoProps) {
+export function Campo({ etiqueta, ayuda, error, valor, alCambiar, ref, pie, ...resto }: CampoProps) {
   const id = useId()
   const describe = [ayuda ? `${id}-ayuda` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined
   return (
@@ -24,13 +26,27 @@ export function Campo({ etiqueta, ayuda, error, valor, alCambiar, ref, ...resto 
         aria-invalid={error ? true : undefined} aria-describedby={describe} {...resto}
       />
       {error && <p id={`${id}-error`} className="pf-error">{error}</p>}
+      {pie}
     </div>
   )
 }
 
-export function ChipAlternar({ activo, alTocar, children }: { activo: boolean; alTocar: () => void; children: ReactNode }) {
+interface ChipProps {
+  activo: boolean
+  alTocar: () => void
+  children: ReactNode
+  /** 'sugerida': lo mencionó el padre y espera que lo confirme tocándolo (alergias, §5.2). */
+  variante?: 'sugerida'
+  describe?: string
+  ref?: Ref<HTMLButtonElement>
+}
+
+export function ChipAlternar({ activo, alTocar, children, variante, describe, ref }: ChipProps) {
   return (
-    <button type="button" className="pf-chip" aria-pressed={activo} onClick={alTocar}>
+    <button
+      ref={ref} type="button" className={variante ? `pf-chip pf-chip-${variante}` : 'pf-chip'}
+      aria-pressed={activo} aria-describedby={describe} onClick={alTocar}
+    >
       <span className="pf-chip-check" aria-hidden="true">{activo && <IconoCheck />}</span>
       {children}
     </button>
@@ -47,9 +63,10 @@ interface OpcionesProps<T extends string> {
   error?: string
   ayuda?: ReactNode
   refPrimera?: Ref<HTMLInputElement>
+  pie?: ReactNode
 }
 
-export function OpcionUnica<T extends string>({ leyenda, nombre, opciones, etiquetas, valor, alCambiar, error, ayuda, refPrimera }: OpcionesProps<T>) {
+export function OpcionUnica<T extends string>({ leyenda, nombre, opciones, etiquetas, valor, alCambiar, error, ayuda, refPrimera, pie }: OpcionesProps<T>) {
   const id = useId()
   const describe = [ayuda ? `${id}-ayuda` : '', error ? `${id}-error` : ''].filter(Boolean).join(' ') || undefined
   return (
@@ -69,6 +86,7 @@ export function OpcionUnica<T extends string>({ leyenda, nombre, opciones, etiqu
         ))}
       </div>
       {error && <p id={`${id}-error`} className="pf-error">{error}</p>}
+      {pie}
     </fieldset>
   )
 }

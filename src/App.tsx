@@ -1,6 +1,8 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
+import { ConNino } from './componentes/ConNino'
 import { avisoStubs } from './lib/api'
+import { useNino } from './lib/nino'
 import { Estado } from './pantallas/Estado'
 import { Grafo } from './pantallas/grafo/Grafo'
 import { Inicio } from './pantallas/Inicio'
@@ -12,7 +14,8 @@ import { Registrar } from './pantallas/registrar/Registrar'
 import { Resumen } from './pantallas/resumen/Resumen'
 import { Tablero } from './pantallas/tablero/Tablero'
 
-// Cada pantalla vive en su carpeta de src/pantallas/. La navegación conserva ?nino= (§9).
+// Cada pantalla vive en su carpeta de src/pantallas/. La navegación conserva ?nino= (§9). Las que necesitan un chico
+// activo van dentro de <ConNino>: sin chico (la primera vez, §5.2) se va al alta por voz y no se muestra la navegación.
 const NAV = [
   { a: '/registrar', texto: 'Registrar' },
   { a: '/tablero', texto: 'Tablero' },
@@ -41,6 +44,7 @@ function AvisoDatosDeEjemplo() {
 
 export function App() {
   const { search, pathname } = useLocation()
+  const hayNino = useNino() !== null
   useEffect(() => avisoStubs.limpiar(), [pathname])
   return (
     <div className="nb-app">
@@ -52,23 +56,27 @@ export function App() {
       <main className="nb-contenido">
         <AvisoDatosDeEjemplo />
         <Routes>
-          <Route path="/" element={<Inicio />} />
-          <Route path="/registrar" element={<Registrar />} />
-          <Route path="/tablero" element={<Tablero />} />
-          <Route path="/perfil" element={<Perfil />} />
+          <Route element={<ConNino />}>
+            <Route path="/" element={<Inicio />} />
+            <Route path="/registrar" element={<Registrar />} />
+            <Route path="/tablero" element={<Tablero />} />
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/grafo" element={<Grafo />} />
+            <Route path="/receta" element={<Receta />} />
+            <Route path="/resumen" element={<Resumen />} />
+          </Route>
           <Route path="/perfil/nuevo" element={<PerfilNuevo />} />
-          <Route path="/grafo" element={<Grafo />} />
-          <Route path="/receta" element={<Receta />} />
-          <Route path="/resumen" element={<Resumen />} />
           <Route path="/estado" element={<Estado />} />
           <Route path="*" element={<Pendiente titulo="No encontramos esta página" />} />
         </Routes>
       </main>
-      <nav className="nb-nav" aria-label="Principal">
-        {NAV.map((n) => (
-          <NavLink key={n.a} to={{ pathname: n.a, search }}>{n.texto}</NavLink>
-        ))}
-      </nav>
+      {hayNino && (
+        <nav className="nb-nav" aria-label="Principal">
+          {NAV.map((n) => (
+            <NavLink key={n.a} to={{ pathname: n.a, search }}>{n.texto}</NavLink>
+          ))}
+        </nav>
+      )}
     </div>
   )
 }

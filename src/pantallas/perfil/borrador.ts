@@ -1,4 +1,4 @@
-// Lógica pura del perfil (C6): el formulario de datos básicos, las ediciones de "Esto entendí" y el armado
+// Lógica pura del perfil (C6): el formulario de datos básicos (lo usa "Esto entendí" y, hasta A8b, PasoDatos), las ediciones de "Esto entendí" y el armado
 // de CrearPerfilReq. Sin React, para poder testearla (borrador.test.ts).
 import { ALERGENO, type Alergeno, type CrearPerfilReq, type DatosBasicos, type Dieta, type Motivo, type PatronVista, type Perfil, type PerfilBorrador } from '../../../shared/contratos'
 
@@ -80,10 +80,10 @@ export function validarDatos(f: FormDatos): Validacion {
 /** El orden en que se enfoca el primer campo con error. */
 export const ORDEN_CAMPOS: CampoDatos[] = ['nombre', 'edad', 'sexo', 'pesoKg', 'tallaCm']
 
-/** La nota nueva se suma a lo que ya estaba escrito, salvo que sea el relato de ejemplo sin tocar. */
-export function sumarNota(previo: string, nuevo: string, ejemplo?: string): string {
+/** El audio nuevo se suma a lo que ya estaba escrito. */
+export function sumarNota(previo: string, nuevo: string): string {
   const p = previo.trim()
-  return !p || p === ejemplo?.trim() ? nuevo : `${p} ${nuevo}`
+  return p ? `${p} ${nuevo}` : nuevo
 }
 
 // ---------- "Esto entendí": ediciones del borrador (siempre devuelven uno nuevo) ----------

@@ -5,21 +5,20 @@ import type { Perfil as PerfilT } from '../../../shared/contratos'
 import { Cargando, ErrorConReintento } from '../../componentes/Estados'
 import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { api } from '../../lib/api'
-import { NINO_DEMO, useNino } from '../../lib/nino'
+import { RUTA_ALTA, useNinoActivo } from '../../lib/nino'
 import { useApi } from '../../lib/useApi'
 import { NOMBRE_ALERGENO, textoParaPadres } from '../../lib/vocabulario'
 import { agruparPreparaciones, separarPatrones, textoConfianza, textoEnElPlato } from './borrador'
-import { RUTA_DEMO_JURADO, RUTA_PERFIL_NUEVO } from './rutas'
 import { anios, AVISO_DECLARADA, AVISO_DIETA, NOMBRE_DIETA, NOMBRE_SENAL } from './textos'
 import './perfil.css'
 
 export function Perfil() {
-  const ninoId = useNino()
+  const ninoId = useNinoActivo()
   const estado = useApi((s) => api.perfil(ninoId, s), [ninoId])
 
   if (estado.tipo === 'cargando') return <Cargando texto="Cargando el perfil…" />
   if (estado.tipo === 'error') {
-    if (estado.error.codigo === 'no_encontrado') return <PerfilNoEncontrado ninoId={ninoId} pantalla="/perfil" />
+    if (estado.error.codigo === 'no_encontrado') return <PerfilNoEncontrado />
     return <ErrorConReintento error={estado.error} reintentar={estado.reintentar} />
   }
   return <VistaPerfil perfil={estado.datos} />
@@ -27,7 +26,6 @@ export function Perfil() {
 
 function VistaPerfil({ perfil }: { perfil: PerfilT }) {
   const { ninoId, datos, reglas } = perfil
-  const esDemo = ninoId === NINO_DEMO
   const prep = agruparPreparaciones(perfil.preparaciones)
   const patrones = separarPatrones(perfil.patrones)
   const nino = `?nino=${encodeURIComponent(ninoId)}`
@@ -60,17 +58,6 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
           </div>
         )}
       </section>
-
-      {esDemo && (
-        <section className="pf-banner-demo" aria-labelledby="pf-t-demo">
-          <h2 id="pf-t-demo">{datos.nombre} es el perfil de ejemplo</h2>
-          <p>Podés mirar todo lo que la app aprendió de él. Para probar con tu hijo o hija, creá su perfil: lleva un par de minutos.</p>
-          <div className="pf-botones">
-            <Link className="nb-boton" to={RUTA_PERFIL_NUEVO}>Crear su perfil</Link>
-            <Link className="nb-boton nb-boton-secundario" to={RUTA_DEMO_JURADO}>Probar con un relato de ejemplo</Link>
-          </div>
-        </section>
-      )}
 
       <section className="nb-tarjeta pf-seccion" aria-labelledby="pf-t-reglas">
         <h2 id="pf-t-reglas">Sus reglas</h2>
@@ -120,7 +107,7 @@ function VistaPerfil({ perfil }: { perfil: PerfilT }) {
 
       <div className="pf-botones">
         <Link className="nb-boton" to={`/resumen${nino}`}>Resumen para el nutricionista</Link>
-        <Link className="nb-boton nb-boton-secundario" to={RUTA_PERFIL_NUEVO}>Crear otro perfil</Link>
+        <Link className="nb-boton nb-boton-secundario" to={RUTA_ALTA}>Agregar otro chico</Link>
       </div>
     </div>
   )

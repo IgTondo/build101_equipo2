@@ -1,6 +1,7 @@
 // Grabador de notas de voz (C5), compartido por Registrar y Perfil. MediaRecorder con el formato que el navegador
 // soporte: audio/mp4 en Safari (iPhone), audio/webm en Chrome (Android). Whisper acepta los dos.
-// Máximo 90 s (§4.2): a los 90 s se detiene solo y entrega lo grabado.
+// Máximo 90 s por defecto (§4.2, la nota de una comida); el alta por voz pide 180 (§5.2). Al llegar al máximo se
+// detiene solo y entrega lo grabado.
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 export const MAX_SEGUNDOS = 90
@@ -28,10 +29,11 @@ export async function blobABase64(blob: Blob): Promise<string> {
 }
 
 /**
- * const g = useGrabador(audio => enviar(audio))
+ * const g = useGrabador(audio => enviar(audio))            // hasta 90 s
+ * const g = useGrabador(audio => enviar(audio), { maxSegundos: 180 })
  * g.iniciar() pide el micrófono y graba; g.detener() termina y llama a alTerminar; g.cancelar() descarta.
  */
-export function useGrabador(alTerminar: (audio: Audio) => void) {
+export function useGrabador(alTerminar: (audio: Audio) => void, { maxSegundos = MAX_SEGUNDOS }: { maxSegundos?: number } = {}) {
   const [estado, setEstado] = useState<EstadoGrabador>(() => (grabadorSoportado() ? 'inactivo' : 'no_soportado'))
   const [segundos, setSegundos] = useState(0)
   const rec = useRef<MediaRecorder | null>(null)
@@ -41,6 +43,8 @@ export function useGrabador(alTerminar: (audio: Audio) => void) {
   const reloj = useRef<number | undefined>(undefined)
   const callback = useRef(alTerminar)
   callback.current = alTerminar
+  const maximo = useRef(maxSegundos)
+  maximo.current = maxSegundos
 
   const limpiar = useCallback(() => {
     window.clearInterval(reloj.current)
@@ -89,12 +93,12 @@ export function useGrabador(alTerminar: (audio: Audio) => void) {
     reloj.current = window.setInterval(() => {
       const s = Math.floor((performance.now() - inicio.current) / 1000)
       setSegundos(s)
-      if (s >= MAX_SEGUNDOS) r.state === 'recording' && r.stop()
+      if (s >= maximo.current) r.state === 'recording' && r.stop()
     }, 250)
   }, [limpiar])
 
   // Si el componente se desmonta grabando, se descarta y se libera el micrófono.
   useEffect(() => () => { descartar.current = true; if (rec.current?.state === 'recording') rec.current.stop(); limpiar() }, [limpiar])
 
-  return { estado, segundos, restantes: MAX_SEGUNDOS - segundos, iniciar, detener, cancelar }
+  return { estado, segundos, maxSegundos, restantes: maxSegundos - segundos, iniciar, detener, cancelar }
 }

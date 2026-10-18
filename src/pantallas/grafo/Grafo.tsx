@@ -3,8 +3,9 @@
 import { Component, type ReactNode, type RefObject, Suspense, lazy, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Cargando, ErrorConReintento, Vacio } from '../../componentes/Estados'
+import { PerfilNoEncontrado } from '../../componentes/PerfilNoEncontrado'
 import { ErrorDeApi, pedirConMeta } from '../../lib/api'
-import { NINO_DEMO, useNino } from '../../lib/nino'
+import { useNinoActivo } from '../../lib/nino'
 import { useApi } from '../../lib/useApi'
 import {
   type GrafoVista, type Modelo, type Nodo, NOMBRE_ESTADO, armarModelo, atributosDe, contar, esGrafoVista,
@@ -23,20 +24,13 @@ async function pedirGrafo(ninoId: string, senal: AbortSignal): Promise<GrafoVist
 }
 
 export function Grafo() {
-  const ninoId = useNino()
+  const ninoId = useNinoActivo()
   const estado = useApi((s) => pedirGrafo(ninoId, s), [ninoId])
   const conNino = `?nino=${encodeURIComponent(ninoId)}`
 
   if (estado.tipo === 'cargando') return <Cargando texto="Armando el grafo…" />
   if (estado.tipo === 'error') {
-    if (estado.error.codigo === 'no_encontrado') {
-      return (
-        <Vacio titulo="No encontramos este perfil">
-          <p className="nb-suave">Puede que se haya creado en otro celular.</p>
-          <Link className="nb-boton nb-boton-secundario" to={`/grafo?nino=${NINO_DEMO}`}>Ver el grafo de ejemplo</Link>
-        </Vacio>
-      )
-    }
+    if (estado.error.codigo === 'no_encontrado') return <PerfilNoEncontrado />
     return <ErrorConReintento error={estado.error} reintentar={estado.reintentar} />
   }
   const modelo = armarModelo(estado.datos)
