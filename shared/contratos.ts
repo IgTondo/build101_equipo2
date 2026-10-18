@@ -66,6 +66,7 @@ export interface PreparacionCatalogo {   // data/preparaciones.json · catálogo
   id: string; nombre: string; atributos: Atributos
   ingredientes: { alimentoId: string; gramos: number }[]   // por porción; el de más gramos es el ingrediente principal
   fortificadaDe?: string                 // v2 · id de la preparación de la que es versión fortificada (yogur → yogur con vitamina D)
+  momentos?: Momento[]                   // v5.2 · para qué comidas se sugiere (curado a mano): la chocolatada no va a la cena
 }
 
 // ---------- POST /api/analizar-comida (A) ----------
@@ -173,6 +174,7 @@ export interface Progreso {
   alertas: Alerta[]                                          // v2
   proximoPaso?: Candidato                                    // v2 · el mejor candidato del grafo, sin LLM, para la tarjeta del tablero
   sugerencias?: Sugerencia[]                                 // v4 · siempre en el orden segura, un_paso, mas_nutritiva (§8); proximoPaso = la de un_paso
+  momento?: Momento                                          // v5.2 · vino ?momento=: las sugerencias (y proximoPaso) son solo de esa comida; pueden ser menos de 3 o ninguna
 }
 export interface Sugerencia {            // v4 · las tres opciones del tablero: explotar, explorar de a un cambio, priorizar lo que falta
   tipo: 'segura' | 'un_paso' | 'mas_nutritiva'
@@ -185,6 +187,8 @@ export interface Sugerencia {            // v4 · las tres opciones del tablero:
 }
 // v5.1 · la próxima comida (PLAN §9, "La pantalla principal"): desayuno → almuerzo → cena → desayuno; la merienda y la
 // colación llevan a la principal que sigue. /api/progreso acepta ?momento= para que B ordene las sugerencias para esa comida.
+// v5.2 · con ?momento=, B solo sugiere preparaciones del catálogo cuyo `momentos` lo incluye (lo que no está anotado no
+// sale) y devuelve `Progreso.momento`. Si no queda ninguna, menos sugerencias: nunca una de otra comida.
 
 // ---------- Perfil ----------
 export interface DatosBasicos {
@@ -255,7 +259,7 @@ export interface RecetaReq {             // C1
   ninoId: string
   nutriente?: Nutriente                  // por defecto, el primero de semana.faltan
   preparacionId?: string                 // C1 · el candidato elegido en una tarjeta de sugerencia (Candidato.preparacionId); si no viene, el mejor de armarEvidencia()
-  momento?: Momento                      // v5.1 · la comida para la que es (la próxima comida, PLAN §9)
+  momento?: Momento                      // v5.1 · la comida para la que es (la próxima comida, PLAN §9) · v5.2: los candidatos de la evidencia son de esa comida (el preparacionId elegido se respeta igual)
 }
 export interface Receta {
   nombre: string; preparacionBaseId: string           // el candidato del catálogo sobre el que se escribe la receta

@@ -12,6 +12,10 @@
       "grupo": "lacteo",
       "coccion": "hervido"
     },
+    "momentos": [
+      "merienda",
+      "colacion"
+    ],
     "ingredientes": [
       {
         "alimentoId": "arroz",
@@ -40,6 +44,10 @@
       "grupo": "cereal_almidon",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "arroz",
@@ -64,6 +72,10 @@
       "grupo": "verdura",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "arvejas",
@@ -84,6 +96,10 @@
       "grupo": "lacteo",
       "coccion": "hervido"
     },
+    "momentos": [
+      "desayuno",
+      "merienda"
+    ],
     "ingredientes": [
       {
         "alimentoId": "leche",
@@ -112,6 +128,11 @@
       "grupo": "fruta",
       "coccion": "crudo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
+    ],
     "ingredientes": [
       {
         "alimentoId": "banana",
@@ -132,6 +153,10 @@
       "grupo": "cereal_almidon",
       "coccion": "frito"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "boniato",
@@ -156,6 +181,10 @@
       "grupo": "verdura",
       "coccion": "frito"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "morron",
@@ -184,6 +213,10 @@
       "grupo": "lacteo",
       "coccion": "frito"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "queso_muzzarella",
@@ -212,6 +245,10 @@
       "grupo": "lacteo",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "queso_muzzarella",
@@ -236,6 +273,10 @@
       "grupo": "verdura",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "zanahoria",
@@ -260,6 +301,10 @@
       "grupo": "verdura",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "brocoli",
@@ -280,6 +325,10 @@
       "grupo": "verdura",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "chauchas",
@@ -300,6 +349,10 @@
       "grupo": "cereal_almidon",
       "coccion": "listo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda"
+    ],
     "ingredientes": [
       {
         "alimentoId": "cereal_fortificado",
@@ -320,6 +373,10 @@
       "grupo": "proteina",
       "coccion": "frito"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "atun",
@@ -352,6 +409,10 @@
       "grupo": "cereal_almidon",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "fideos",
@@ -376,6 +437,10 @@
       "grupo": "cereal_almidon",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "fideos",
@@ -404,6 +469,11 @@
       "grupo": "fruta",
       "coccion": "crudo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
+    ],
     "ingredientes": [
       {
         "alimentoId": "frutilla",
@@ -424,6 +494,11 @@
       "grupo": "cereal_almidon",
       "coccion": "listo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
+    ],
     "ingredientes": [
       {
         "alimentoId": "galletitas_agua",
@@ -444,6 +519,11 @@
       "grupo": "cereal_almidon",
       "coccion": "listo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
+    ],
     "ingredientes": [
       {
         "alimentoId": "galletitas_integrales",
@@ -464,6 +544,10 @@
       "grupo": "proteina",
       "coccion": "plancha"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "carne_picada",
@@ -484,6 +568,11 @@
       "grupo": "fruta",
       "coccion": "listo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
+    ],
     "ingredientes": [
       {
         "alimentoId": "jugo_naranja",
@@ -504,6 +593,10 @@
       "grupo": "lacteo",
       "coccion": "listo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda"
+    ],
     "ingredientes": [
       {
         "alimentoId": "leche",
@@ -528,6 +621,10 @@
       "grupo": "lacteo",
       "coccion": "listo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda"
+    ],
     "ingredientes": [
       {
         "alimentoId": "leche_vitamina_d",
@@ -553,6 +650,10 @@
       "grupo": "proteina",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "lentejas",
@@ -577,6 +678,10 @@
       "grupo": "lacteo",
       "coccion": "listo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda"
+    ],
     "ingredientes": [
       {
         "alimentoId": "leche",
@@ -601,6 +706,10 @@
       "grupo": "lacteo",
       "coccion": "listo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda"
+    ],
     "ingredientes": [
       {
         "alimentoId": "leche",
@@ -625,6 +734,11 @@
       "grupo": "fruta",
       "coccion": "crudo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
+    ],
     "ingredientes": [
       {
         "alimentoId": "manzana",
@@ -645,6 +759,10 @@
       "grupo": "proteina",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "carne_vacuna",
@@ -674,6 +792,10 @@
       "grupo": "proteina",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "carne_vacuna",
@@ -706,6 +828,10 @@
       "grupo": "proteina",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "carne_vacuna",
@@ -734,6 +860,10 @@
       "grupo": "proteina",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "lentejas",
@@ -762,6 +892,10 @@
       "grupo": "proteina",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "merluza",
@@ -790,6 +924,10 @@
       "grupo": "proteina",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "carne_vacuna",
@@ -822,6 +960,10 @@
       "grupo": "proteina",
       "coccion": "frito"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "merluza",
@@ -850,6 +992,10 @@
       "grupo": "proteina",
       "coccion": "frito"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "pollo",
@@ -878,6 +1024,10 @@
       "grupo": "proteina",
       "coccion": "frito"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "nuggets_pollo",
@@ -898,6 +1048,10 @@
       "grupo": "proteina",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "nuggets_pollo",
@@ -918,6 +1072,10 @@
       "grupo": "proteina",
       "coccion": "frito"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "merluza",
@@ -946,6 +1104,10 @@
       "grupo": "cereal_almidon",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "papa",
@@ -966,6 +1128,10 @@
       "grupo": "cereal_almidon",
       "coccion": "frito"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "papa",
@@ -990,6 +1156,10 @@
       "grupo": "cereal_almidon",
       "coccion": "frito"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "papa",
@@ -1015,6 +1185,10 @@
       "grupo": "cereal_almidon",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "papa",
@@ -1039,6 +1213,10 @@
       "grupo": "cereal_almidon",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "papa",
@@ -1063,6 +1241,10 @@
       "grupo": "cereal_almidon",
       "coccion": "horno"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "prepizza",
@@ -1087,6 +1269,10 @@
       "grupo": "proteina",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "pollo",
@@ -1107,6 +1293,10 @@
       "grupo": "proteina",
       "coccion": "plancha"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "pollo",
@@ -1127,6 +1317,10 @@
       "grupo": "verdura",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "arvejas",
@@ -1151,6 +1345,10 @@
       "grupo": "proteina",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "lentejas",
@@ -1175,6 +1373,10 @@
       "grupo": "cereal_almidon",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "papa",
@@ -1203,6 +1405,10 @@
       "grupo": "cereal_almidon",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "papa",
@@ -1236,6 +1442,10 @@
       "grupo": "verdura",
       "coccion": "hervido"
     },
+    "momentos": [
+      "almuerzo",
+      "cena"
+    ],
     "ingredientes": [
       {
         "alimentoId": "zapallo",
@@ -1256,6 +1466,10 @@
       "grupo": "cereal_almidon",
       "coccion": "horno"
     },
+    "momentos": [
+      "desayuno",
+      "merienda"
+    ],
     "ingredientes": [
       {
         "alimentoId": "pan_blanco",
@@ -1276,6 +1490,10 @@
       "grupo": "cereal_almidon",
       "coccion": "horno"
     },
+    "momentos": [
+      "desayuno",
+      "merienda"
+    ],
     "ingredientes": [
       {
         "alimentoId": "pan_integral",
@@ -1296,6 +1514,10 @@
       "grupo": "cereal_almidon",
       "coccion": "horno"
     },
+    "momentos": [
+      "desayuno",
+      "merienda"
+    ],
     "ingredientes": [
       {
         "alimentoId": "pan_blanco",
@@ -1320,6 +1542,11 @@
       "grupo": "lacteo",
       "coccion": "listo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
+    ],
     "ingredientes": [
       {
         "alimentoId": "yogur",
@@ -1340,6 +1567,11 @@
       "grupo": "lacteo",
       "coccion": "listo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
+    ],
     "ingredientes": [
       {
         "alimentoId": "yogur",
@@ -1360,6 +1592,11 @@
       "grupo": "lacteo",
       "coccion": "listo"
     },
+    "momentos": [
+      "desayuno",
+      "merienda",
+      "colacion"
+    ],
     "ingredientes": [
       {
         "alimentoId": "yogur_vitamina_d",
