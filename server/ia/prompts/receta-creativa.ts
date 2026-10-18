@@ -7,6 +7,8 @@
 // v5.10 · El LLM ignoraba el foco (le pedíamos partir del pollo desmenuzado y elegía igual su milanesa): en el primer
 // intento el schema solo acepta el alimento de partida del foco y el prompt nombra el ingrediente sorteado (cuál es el
 // principal o cuál se suma); en el reintento se relaja. Y ve los ingredientes que ya usó hace poco, para no repetirlos.
+// v5.10 · El nombre dice qué es el plato y nada más: salían "Milanesa de arvejas al horno, crocante como la de lentejas"
+// (los ejemplos de acá lo enseñaban). La comparación con lo que ya come va en porQue; el código igual la saca del nombre.
 import { z } from 'zod'
 import { COCCION, COLOR, FORMA, GRUPO, PRESENTACION, ROL_PLATO, SABOR, TEMPERATURA, TEXTURA, type Nutriente } from '../../../shared/contratos.js'
 import type { Conocimiento, Modo } from '../../grafo/conocimiento.js'
@@ -19,15 +21,15 @@ export const SISTEMA_RECETA_CREATIVA = `Sos cocinero y especialista en food chai
 
 Cómo inventar el plato (food chaining):
 - Partí de UNO de sus alimentos seguros (desdeId) y cambiá UNA sola cosa. Si la app te dice de cuál partir y qué ingrediente usar ("Esta vez: …"), es lo que pide: cumplilo. Dos caminos:
-  a) cambiar el ingrediente principal y mantener todo lo demás igual que su alimento seguro: misma forma, textura, sabor, temperatura y cocción (de sus papas fritas en bastones a bastones de polenta con queso, fritos y crocantes; de su milanesa a una milanesa de lentejas, al horno como la suya);
+  a) cambiar el ingrediente principal y mantener todo lo demás igual que su alimento seguro: misma forma, textura, sabor, temperatura y cocción (de sus papas fritas en bastones a bastones de polenta con queso, fritos y crocantes; de su milanesa al horno a una milanesa de lentejas, también al horno);
   b) su mismo plato con un ALIMENTO sumado que aporta el nutriente (un lácteo, una verdura, una legumbre, una carne…), sin cambiar forma, textura, sabor, temperatura ni cocción (sus tostadas con queso fundido y un toque de orégano, sus papas al horno con costra de queso rallado y pan rallado). Una grasa, un aceite o un dulce nunca es el cambio.
 - Declarás los atributos del plato nuevo con el vocabulario de la app. Tienen que ser los reales del plato: la app los compara con los de su alimento seguro y cuenta los cambios (forma, textura, sabor, temperatura, cocción e ingrediente principal, que es el de más gramos). Más de un cambio no pasa.
 La calidad es lo más importante (es el corazón de la app):
 - Una receta elaborada y apetitosa, de las que un cocinero casero estaría orgulloso de servir: con técnica (rebozar, gratinar, armar, hornear, formar bastones, nuggets o medallones), de 3 a 6 ingredientes de verdad y de 4 a 7 pasos claros. Que un padre la lea y piense "qué buena idea, esto lo puedo hacer".
 - Comida de verdad y nutritiva: el ingrediente principal es un alimento (verdura, legumbre, lácteo, carne, pescado, papa, boniato, polenta o un cereal), nunca masa frita, harina sola ni golosinas.
 - El nutriente sale de los alimentos, nunca del aceite, la manteca o un dulce. Si para un nutriente solo se llega con aceite, elegí otro nutriente de la lista.
-- Así NO: "puré con aceite de canola", "milanesa con aceite de canola", "pizza con queso extra", "papas un poco más crocantes" (cambios que no son un plato nuevo). Así SÍ: "nuggets caseros de pollo y zanahoria, rebozados y crocantes como sus milanesas", "bastones de polenta con queso, gratinados al horno", "medallones de lentejas y arroz, dorados como su milanesa", "tostadas con ricota, tomate y orégano gratinadas", "chips de boniato al horno con un toque de pimentón".
-- El nombre da ganas y dice qué es el plato, no con qué se cocina.
+- Así NO: "puré con aceite de canola", "milanesa con aceite de canola", "pizza con queso extra", "papas un poco más crocantes" (cambios que no son un plato nuevo). Así SÍ: "nuggets caseros de pollo y zanahoria, rebozados y crocantes", "bastones de polenta con queso, gratinados al horno", "medallones de lentejas y arroz, dorados al horno", "tostadas con ricota, tomate y orégano gratinadas", "chips de boniato al horno con un toque de pimentón".
+- El nombre da ganas y dice qué es el plato, no con qué se cocina, y nada más: no nombra su alimento seguro ni lo compara ("como su milanesa", "como la de lentejas", "como las suyas", "igual que sus papas"). Así NO: "Milanesa de arvejas al horno, crocante como la de lentejas", "Nuggets de ricota dorados, como sus nuggets". Así SÍ: "Milanesa de arvejas al horno", "Nuggets de ricota dorados y crocantes". La comparación con lo que ya come va en porQue.
 
 La comida completa (v5.7): no es un plato suelto, es la comida entera para esa comida del día.
 - Lo nuevo (la receta) es UNA parte de la comida: en almuerzo y cena, de preferencia el principal, un plato potente y que llene. rol dice qué lugar ocupa (principal, guarnicion, verdura_fruta, lacteo, cereal_pan, bebida).
@@ -40,7 +42,7 @@ La comida completa (v5.7): no es un plato suelto, es la comida entera para esa c
 - Elegí el nutriente de la lista "Le falta" y asegurate con los gramos de que la porción llegue al mínimo que dice ahí (la lista de "Ricos en…" te ayuda). La app calcula el aporte con la tabla: si no llega, no pasa.
 - Si la base dice que no le falta ningún nutriente, el objetivo es sumar variedad: no hay mínimo de nutriente y devolvés nutriente: null. Si nombra un grupo, el plato tiene que ser de ese grupo: atributos.grupo y el ingrediente principal (el de más gramos), cambiando el ingrediente principal de su alimento seguro por uno de ese grupo.
 - Que vaya en la comida que dice "La receta es para" (nada de chocolatada en la cena).
-- En porQue contá de qué alimento seguro parte (y cuánto lo come), qué cambia, qué se mantiene, qué patrones aplican y a qué nutriente apunta (o qué variedad suma).
+- En porQue contá de qué alimento seguro parte (y cuánto lo come, y en qué se parece: acá sí va la comparación), qué cambia, qué se mantiene, qué patrones aplican y a qué nutriente apunta (o qué variedad suma).
 - imagen: en inglés, para dibujar el plato nuevo: uno (una unidad, ej. "polenta fry"), varios (ej. "polenta fries") y aspecto (forma exacta, corte, tamaño, color y cocción, ej. "golden polenta cut into long thin sticks shaped exactly like French fries, fried until crispy"). Solo el plato nuevo, sin su alimento seguro.
 
 Reglas:
@@ -99,6 +101,9 @@ const MODO_TEXTO: Record<Modo, string> = {
 /** v5.10 · Un alimento como lo ve el LLM: el nombre del catálogo y su id. */
 const conNombre = (id: string) => `«${alimentoPorId(id)?.nombre ?? id}» (${id})`
 
+/** v5.10 · El nombre no lo compara con su alimento seguro: eso va en porQue. */
+const sinComparar = (desde: { nombre: string }) => `El nombre dice qué es el plato nuevo, sin nombrar ni comparar con su «${desde.nombre}» (eso va en porQue).`
+
 /** v5.10 · El cambio con el ingrediente que sorteó el código, sin ambigüedad: cuál es el principal o cuál se suma. */
 function cambioCon(modo: Modo, id: string): string {
   return modo === 'cambiar_principal'
@@ -122,7 +127,7 @@ function textoFoco(k: Conocimiento, desde: Conocimiento['seguros'][number] | und
     const salida = reintento
       ? `Si así no se puede cumplir alguna regla o el mínimo del nutriente, elegí otro alimento seguro${ing ? `, otro ingrediente rico en ${n}` : ''} u otro nutriente de la lista${sinRepetir}.`
       : `${obligatorio} Si así no llega al mínimo del nutriente, ${ing ? `subí los gramos de ${conNombre(ing)} o ` : ''}elegí otro nutriente de la lista.`
-    return `Esta vez: partí de «${desde.nombre}» (${desde.id}), ${ing ? cambioCon(foco.modo, ing) : MODO_TEXTO[foco.modo]}, y apuntá a ${n}. ${salida}`
+    return `Esta vez: partí de «${desde.nombre}» (${desde.id}), ${ing ? cambioCon(foco.modo, ing) : MODO_TEXTO[foco.modo]}, y apuntá a ${n}. ${salida} ${sinComparar(desde)}`
   }
   const g = foco.grupo
   const cambio = ing
@@ -137,7 +142,7 @@ function textoFoco(k: Conocimiento, desde: Conocimiento['seguros'][number] | und
   return [
     desde ? `Esta vez: partí de «${desde.nombre}» (${desde.id}), ${cambio}, ${objetivo}.` : `Esta vez, ${objetivo}.`,
     'No le falta ningún nutriente: no hay mínimo y devolvé nutriente: null.',
-    ...(desde ? [salida] : []),
+    ...(desde ? [salida, sinComparar(desde)] : []),
   ].join(' ')
 }
 
@@ -146,7 +151,7 @@ export function promptRecetaCreativa(d: DatosPromptCreativa): string {
   const desde = k.seguros.find((p) => p.id === k.foco.desdeId)
   const e = d.elegido
   const foco = e
-    ? `Lo nuevo YA LO ELIGIÓ la app: «${e.preparacion.nombre}» (${e.preparacion.id}), a un solo cambio de su «${e.desde.nombre}» (cambia ${e.cambio}). No inventes otro plato: escribí la receta de ESTE (elaborada y rica, que dé ganas), con su ingrediente principal (${[...e.preparacion.ingredientes].sort((a, b) => b.gramos - a.gramos)[0]?.alimentoId ?? 'el del catálogo'}) como el de más gramos; ingredientes de referencia: ${e.preparacion.ingredientes.map((i) => `${i.alimentoId} ${i.gramos} g`).join(', ')}. desdeId es ${e.desde.id}. Si es una guarnición (un puré, unas papas, una verdura), rol guarnicion o verdura_fruta, y el principal de la comida es algo que ya come. Lo nuevo solo NO es una comida: completala con ${Math.max(1, minimoComponentes(k) - 1)} o más cosas de la lista de lo que ya come (un principal potente si lo nuevo no lo es, y una verdura o fruta si come alguna).`
+    ? `Lo nuevo YA LO ELIGIÓ la app: «${e.preparacion.nombre}» (${e.preparacion.id}), a un solo cambio de su «${e.desde.nombre}» (cambia ${e.cambio}). No inventes otro plato: escribí la receta de ESTE (elaborada y rica, que dé ganas), con su ingrediente principal (${[...e.preparacion.ingredientes].sort((a, b) => b.gramos - a.gramos)[0]?.alimentoId ?? 'el del catálogo'}) como el de más gramos; ingredientes de referencia: ${e.preparacion.ingredientes.map((i) => `${i.alimentoId} ${i.gramos} g`).join(', ')}. desdeId es ${e.desde.id}. Si es una guarnición (un puré, unas papas, una verdura), rol guarnicion o verdura_fruta, y el principal de la comida es algo que ya come. Lo nuevo solo NO es una comida: completala con ${Math.max(1, minimoComponentes(k) - 1)} o más cosas de la lista de lo que ya come (un principal potente si lo nuevo no lo es, y una verdura o fruta si come alguna). ${sinComparar(e.desde)}`
     : textoFoco(k, desde, Boolean(d.anterior))
   const lineas = ['Base de conocimiento del chico (lo único que sabés de él):', k.texto, '', foco, '', ...textoComidaCompleta(k)]
   if (d.anteriores.length && !e) {

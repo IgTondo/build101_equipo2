@@ -9,10 +9,10 @@ import { ErrorNibble } from '../http.js'
 import { objetivosPara } from '../nutricion/objetivos.js'
 import { fijarAlimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
-import type { SalidaCreativa } from './prompts/receta-creativa.js'
+import { SISTEMA_RECETA_CREATIVA, type SalidaCreativa } from './prompts/receta-creativa.js'
 import { calcularAporte } from '../validacion/receta.js'
 import { minimoComponentes } from './plato-completo.js'
-import { armarConocimientoReceta, completarCreativa, generarRecetaCreativa, problemasCreativa, problemasDeCalidad, problemasDelMomento, textoSinSeguros, type ConocimientoReceta, type DepsRecetaCreativa } from './receta-creativa.js'
+import { armarConocimientoReceta, completarCreativa, generarRecetaCreativa, limpiarNombre, problemasCreativa, problemasDeCalidad, problemasDelMomento, textoSinSeguros, type ConocimientoReceta, type DepsRecetaCreativa } from './receta-creativa.js'
 import { alimentosCatalogo } from '../datos/catalogos.js'
 import { esPlatoPrincipal } from './momentos.js'
 import { CORTE_MS, TOPE_NUEVA_LLAMADA_MS } from './receta.js'
@@ -587,5 +587,82 @@ describe('(v5.10) cada cosa en su comida, y un solo plato principal (server/ia/m
     expect(otrosDe(r)).not.toContain('pizza_muzzarella')
     const conPizza = completarCreativa({ ...YOGUR, acompanamientos: [{ preparacionId: 'pizza_muzzarella', rol: 'cereal_pan', gramos: 60 }] }, k, yogur)
     expect(problemasCreativa(conPizza, k, yogur, [])).toContainEqual(`«${prep('pizza_muzzarella').nombre}» no es el cereal o pan para merienda: ese lugar es para pan, tostadas, galletitas o un cereal (avena, copos), nunca pizza ni pasta.`)
+  })
+})
+
+describe('(v5.10) el nombre dice qué es el plato, sin compararlo con lo que ya come', () => {
+  // Los del pedido y los de eval/resultados/variedad-*.md
+  const CON_COMPARACION: [string, string][] = [
+    ['Milanesa de arvejas al horno, crocante como la de lentejas', 'Milanesa de arvejas al horno'],
+    ['Nuggets de ricota dorados y crocantes, como sus nuggets', 'Nuggets de ricota dorados y crocantes'],
+    ['Milanesas de arvejas secas al horno, crocantes como sus milanesas', 'Milanesas de arvejas secas al horno'],
+    ['Milanesa de pollo al horno con rebozado de lino, crocante como la suya', 'Milanesa de pollo al horno con rebozado de lino'],
+    ['Milanesas de garbanzos y dambo al horno, crocantes como las suyas', 'Milanesas de garbanzos y dambo al horno'],
+    ['Medallones de ricota dorados al horno, crocantes como su milanesa', 'Medallones de ricota dorados al horno'],
+    ['Pizzetas de porotos y muzzarella al horno, crocantes como su pizza', 'Pizzetas de porotos y muzzarella al horno'],
+    ['Crema de ricota y vainilla, bien fría como su yogur', 'Crema de ricota y vainilla'],
+    ['Crema fría de avena y manzana, suave como su banana pisada', 'Crema fría de avena y manzana'],
+    ['Cremita fría de vainilla en vasito, como su yogur', 'Cremita fría de vainilla en vasito'],
+    ['Galletas crocantes de queso al horno, finitas como sus tostadas', 'Galletas crocantes de queso al horno'],
+    ['Huevo duro desmenuzado tibio, tierno como su pollo', 'Huevo duro desmenuzado tibio'],
+    ['Postre frío de leche y vainilla, cremoso como su yogur', 'Postre frío de leche y vainilla'],
+    ['Tortilla de huevo enriquecido y papa desmenuzada, tibia y tierna como su pollo', 'Tortilla de huevo enriquecido y papa desmenuzada'],
+    // Sin coma, entre paréntesis, con raya, "igual que" y una parte que dice con qué
+    ['Bastones de zanahoria fritos como sus papas', 'Bastones de zanahoria fritos'],
+    ['Milanesa de lentejas (igual que la suya, al horno)', 'Milanesa de lentejas'],
+    ['Tostadas con palta — igual que sus tostadas de siempre', 'Tostadas con palta'],
+    ['Puré de zapallo cremoso, con queso rallado como el suyo', 'Puré de zapallo cremoso, con queso rallado'],
+  ]
+  const SIN_COMPARACION = [
+    'Licuado cremoso de naranja y leche, bien frío', 'Crema fría de ravioles de ricota y cacao, para tomar en vaso', 'Hojuelas crocantes de papa y lino, para el desayuno',
+    'Milanesa de avena y queso al horno, dorada y crocante', 'Nuggets de pollo y queso, fritos y crocantes', 'Bastones de polenta con queso, gratinados al horno', 'Crema de pera y avena, como postre',
+  ]
+
+  it('limpiarNombre saca la comparación (los casos reales) y deja igual lo demás', () => {
+    for (const [con, sin] of CON_COMPARACION) expect(limpiarNombre(con), con).toBe(sin)
+    for (const n of SIN_COMPARACION) expect(limpiarNombre(n), n).toBe(n)
+  })
+
+  it('se limpia sin gastar un reintento; si no queda un nombre, es un problema para el reintento', async () => {
+    responde({ ...PAPAS_CON_QUESO, nombre: 'Papas al horno con queso gratinado, crocantes como las suyas' })
+    const r = await pedir()
+    expect(r.nombre).toBe('Papas al horno con queso gratinado')
+    expect(r.preparacionBaseId).toBe('nuevo_papas_al_horno_con_queso_gratinado')
+    expect(r.validacion.reintentos).toBe(0)
+
+    responde({ ...PAPAS_CON_QUESO, nombre: 'Crocantes como las suyas' }, PAPAS_CON_QUESO)
+    const otra = await pedir()
+    expect(problemasDe(1)).toContain('El nombre tiene que decir qué es el plato (por ejemplo «Milanesa de arvejas al horno» o «Bastones de boniato fritos»), sin nombrar ni comparar con lo que ya come: sin la comparación, «Crocantes». La comparación con lo que ya come va en porQue.')
+    expect(otra.nombre).toBe(PAPAS_CON_QUESO.nombre)
+    const vacio = completarCreativa({ ...PAPAS_CON_QUESO, nombre: 'Como su milanesa' }, kPapas(), papasHorno)
+    expect(problemasCreativa(vacio, kPapas(), papasHorno, [])).toContainEqual(expect.stringContaining('sin la comparación, no queda nada.'))
+  })
+
+  it('una receta que ya vio con la comparación es la misma receta', () => {
+    const r = completarCreativa(PAPAS_CON_QUESO, kPapas(), papasHorno)
+    expect(problemasCreativa(r, kPapas(), papasHorno, ['Papas al horno con queso gratinado, crocantes como las suyas'])).toContain('«Papas al horno con queso gratinado» ya lo vio la familia: proponé un plato distinto.')
+  })
+
+  it('con el plato elegido, también se limpia; si no queda un nombre, el del catálogo (sin reintento)', () => {
+    const pure = catalogo.get('pure_papa_queso')!
+    const pureSimple = catalogo.get('pure_papa')!
+    const candidato = {
+      preparacionId: pure.id, nombre: pure.nombre, puntaje: 1, camino: { desde: pureSimple.nombre, aceptacion: '8/8', atributos: [] },
+      desdeId: pureSimple.id, cambio: 'ingrediente' as const, seMantiene: [], patrones: [], aportePorcion: {},
+    }
+    const elegido = { preparacion: pure, desde: pureSimple, candidato }
+    const salida = { ...PAPAS_CON_QUESO, desdeId: pureSimple.id, ingredientes: pure.ingredientes }
+    expect(completarCreativa({ ...salida, nombre: 'Puré de papa con queso, cremoso como el suyo' }, kPapas(), pureSimple, elegido).nombre).toBe('Puré de papa con queso')
+    const sinNombre = completarCreativa({ ...salida, nombre: 'Como su puré' }, kPapas(), pureSimple, elegido)
+    expect(sinNombre.nombre).toBe(pure.nombre)
+    expect(problemasCreativa(sinNombre, kPapas(), pureSimple, [], undefined, elegido).join(' ')).not.toMatch(/El nombre tiene que decir/)
+  })
+
+  it('el prompt lo pide: el sistema (con ejemplos sin comparación), el foco y el plato elegido', async () => {
+    expect(SISTEMA_RECETA_CREATIVA).toContain('no nombra su alimento seguro ni lo compara ("como su milanesa", "como la de lentejas", "como las suyas", "igual que sus papas")')
+    expect(SISTEMA_RECETA_CREATIVA).not.toMatch(/Así SÍ: [^\n]*como (su|sus|la suya)/)
+    responde(PAPAS_CON_QUESO)
+    await pedir()
+    expect(promptDe(0)).toContain('El nombre dice qué es el plato nuevo, sin nombrar ni comparar con su «Papas al horno en bastones, crocantes» (eso va en porQue).')
   })
 })

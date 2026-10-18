@@ -19,6 +19,9 @@
 // TOPE_NUEVA_LLAMADA_MS, el tercero relaja, con los problemas del segundo. Con el plato elegido, el primero y el reintento.
 // v5.10 · Lo principal de lo nuevo va en esa comida (server/ia/momentos.ts: nunca ravioles en el desayuno) y, si lo nuevo
 // es un plato principal (pastas, pizza, milanesas…), es el principal de la comida: lo que ya come no suma otro.
+// v5.10 · El nombre dice qué es el plato y nada más: limpiarNombre saca la comparación con lo que ya come (", crocante
+// como su milanesa", "como la de lentejas") sin gastar un reintento; si no queda un nombre, es un problema (con el plato
+// elegido, vale el del catálogo).
 import type { Alergeno, Candidato, Evidencia, Momento, Motor, Nutriente, Nutrientes, PreparacionCatalogo, Receta, RecetaReq, RolPlato } from '../../shared/contratos.js'
 import { alimentosProhibidos, limpiarOtras } from '../alergias.js'
 import { DIMENSIONES, cambios, principal } from '../aprendizaje/cadena.js'
@@ -145,6 +148,37 @@ export function problemasDeCalidad(receta: Receta, desde: PreparacionCatalogo, m
   return p
 }
 
+/** v5.10 · Lo que compara con lo que ya come: "como su milanesa", "como la de lentejas", "como las suyas", "igual que sus papas". */
+const COMPARA = /(?<!\p{L})(?:como|igual(?:ito|ita|itos|itas)? (?:que|a)|parecid[oa]s? a|al estilo de|inspirad[oa]s? en)\s+(?:su|sus|la|las|el|los|lo)(?!\p{L})/iu
+/** Lo que separa las partes de un nombre: coma, punto y coma, dos puntos o raya. */
+const SEPARADOR = /\s*(?:[,;:—–]|\s-\s)\s*/
+/** Una parte que dice algo del plato (con qué, de qué), no solo cómo es ("crocante", "tibia y tierna"). */
+const CON_CONTENIDO = /(?<!\p{L})(?:con|de|sin|rellen[oa]s?)(?!\p{L})/iu
+
+/**
+ * v5.10 · El nombre sin la comparación con lo que ya come: "Milanesa de arvejas al horno, crocante como la de lentejas"
+ * → "Milanesa de arvejas al horno"; "Nuggets de ricota dorados y crocantes, como sus nuggets" → "Nuggets de ricota
+ * dorados y crocantes". Después de una coma, la parte se va entera si antes de la comparación solo dice cómo es; si dice
+ * con qué o de qué, se queda eso. En la primera parte, se corta donde empieza la comparación. Lo demás, igual.
+ */
+export function limpiarNombre(nombre: string): string {
+  const sinParentesis = nombre.replace(/\s*\(([^)]*)\)/g, (todo, adentro: string) => (COMPARA.test(adentro) ? '' : todo))
+  const partes = sinParentesis.split(SEPARADOR).flatMap((parte, i) => {
+    const m = COMPARA.exec(parte)
+    if (!m) return [parte]
+    const antes = parte.slice(0, m.index).trim()
+    return i === 0 || CON_CONTENIDO.test(antes) ? [antes] : []
+  })
+  const limpio = partes.map((x) => x.trim()).filter(Boolean).join(', ')
+    .replace(/\s+/g, ' ')
+    .replace(/(?:[\s,;:—–-]|(?<!\p{L})(?:y|e|o|pero)(?!\p{L}))+$/u, '')
+    .replace(/^(?:[\s,;:—–-]|(?<!\p{L})(?:y|e|o|pero)(?!\p{L}))+/u, '')
+  return limpio.charAt(0).toUpperCase() + limpio.slice(1)
+}
+
+/** v5.10 · Un nombre que dice qué es: al menos 2 palabras y 8 letras ("Milanesa de pollo"; "Crocante" o "Puré" no). */
+export const nombreQueDiceQueEs = (nombre: string): boolean => nombre.split(/\s+/).filter((w) => /\p{L}/u.test(w)).length >= 2 && nombre.replace(/[^\p{L}]/gu, '').length >= 8
+
 /** El plato que inventó el LLM, como una preparación más (no está en el catálogo: el id empieza con "nuevo_"). */
 export function platoDe(salida: SalidaCreativa): PreparacionCatalogo {
   return {
@@ -163,10 +197,12 @@ export function nutrienteQueMasAporta(aporte: Nutrientes, meta: Nutrientes): Nut
 
 /** La receta completa: el cambio y lo que se mantiene los cuenta el código (cadena.ts), nunca el LLM. */
 export function completarCreativa(salida: SalidaCreativa, k: ConocimientoReceta, desde: PreparacionCatalogo, elegido?: Elegido): Receta {
+  // v5.10 · El nombre sin la comparación con lo que ya come; con el plato elegido, si no queda un nombre, el del catálogo
+  const nombre = limpiarNombre(salida.nombre)
   // v5.9 · Con el plato elegido, la preparación es la del catálogo (sus atributos y su id); el LLM escribe la receta
   const base: PreparacionCatalogo = elegido
-    ? { ...elegido.preparacion, nombre: salida.nombre.trim() || elegido.preparacion.nombre, ingredientes: salida.ingredientes.map(({ alimentoId, gramos }) => ({ alimentoId, gramos })) }
-    : platoDe(salida)
+    ? { ...elegido.preparacion, nombre: nombreQueDiceQueEs(nombre) ? nombre : elegido.preparacion.nombre, ingredientes: salida.ingredientes.map(({ alimentoId, gramos }) => ({ alimentoId, gramos })) }
+    : platoDe({ ...salida, nombre })
   const difs = cambiosEntre(desde, base)
   // v5.10 · Si lo nuevo es un plato principal (unos ravioles, una milanesa), es el principal de la comida, lo declare o no
   const rol: RolPlato = esPlatoPrincipal(base) ? 'principal' : salida.rol
@@ -299,8 +335,13 @@ export function problemasCreativa(
   p.push(...problemasDeCalidad(receta, desde, minimo))
   const igual = k.aceptadas.find((s) => s.id !== desde.id && cambios(s, base).length === 0)
   if (igual) p.push(`«${receta.nombre}» es lo mismo que «${igual.nombre}», que ya come: proponé un plato nuevo.`)
-  // v5.9 · Con el plato elegido no se pide que sea otro (repetir la exposición está bien): sí que sea ESE plato
-  if (!elegido && anteriores.some((a) => normal(a) === normal(receta.nombre))) p.push(`«${receta.nombre}» ya lo vio la familia: proponé un plato distinto.`)
+  // v5.9 · Con el plato elegido no se pide que sea otro (repetir la exposición está bien): sí que sea ESE plato. v5.10 ·
+  // Las que ya vio, también sin la comparación ("…, crocante como su milanesa" es la misma receta)
+  if (!elegido && anteriores.some((a) => normal(limpiarNombre(a)) === normal(receta.nombre))) p.push(`«${receta.nombre}» ya lo vio la familia: proponé un plato distinto.`)
+  // v5.10 · Sin la comparación con lo que ya come tiene que quedar un nombre (con el plato elegido, queda el del catálogo)
+  if (!elegido && !nombreQueDiceQueEs(receta.nombre)) {
+    p.push(`El nombre tiene que decir qué es el plato (por ejemplo «Milanesa de arvejas al horno» o «Bastones de boniato fritos»), sin nombrar ni comparar con lo que ya come: sin la comparación, ${receta.nombre ? `«${receta.nombre}»` : 'no queda nada'}. La comparación con lo que ya come va en porQue.`)
+  }
   if (!elegido) p.push(...problemasDelFoco(receta, k, desde, relajado), ...problemasDelMomento(receta, k)) // v5.10
   if (elegido) {
     const esperado = principal(elegido.preparacion.ingredientes)
