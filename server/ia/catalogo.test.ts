@@ -162,6 +162,21 @@ describe('data/alimentos.json', () => {
     expect(v('palta', 'energia_kcal')).toBeGreaterThan(140)
     expect(v('compota_manzana', 'vitamina_c_mg')).toBeLessThan(5) // sin el ácido ascórbico que le agrega EE. UU.
     expect(v('tomillo', 'hierro_mg')).toBeGreaterThan(60) // seco: por eso los condimentos tienen su propio tope
+    expect(v('leche_polvo', 'calcio_mg')).toBeGreaterThan(800)
+    expect(v('queso_colonia', 'calcio_mg')).toBeGreaterThan(700)
+    expect(v('salvado_avena', 'fibra_g')).toBeGreaterThan(10)
+    expect(v('arroz_integral', 'fibra_g')).toBeGreaterThan(v('arroz', 'fibra_g'))
+    expect(v('fideos_integrales', 'fibra_g')).toBeGreaterThan(v('fideos', 'fibra_g'))
+  })
+
+  it('v5.10 · sin los agregados de EE. UU. que acá no vienen', () => {
+    const v = (id: string, n: Nutriente) => alimentoPorId(id)!.por100g[n]
+    for (const id of ['yogur_natural', 'yogur_frutas', 'leche_descremada', 'leche_deslactosada', 'flan']) expect(v(id, 'vitamina_d_ug'), id).toBeLessThan(0.5)
+    expect(v('harina_maiz', 'hierro_mg')).toBeLessThan(2) // la de acá no se enriquece
+    expect(v('tortilla_trigo', 'calcio_mg')).toBeLessThan(100)
+    expect(v('pan_hamburguesa', 'calcio_mg')).toBeLessThan(100)
+    expect(v('pan_sin_gluten', 'calcio_mg')).toBeLessThan(100)
+    expect(v('leche_deslactosada', 'calcio_mg')).toBe(v('leche', 'calcio_mg'))
   })
 
   it('las versiones fortificadas aportan más que su base', () => {
@@ -180,6 +195,21 @@ describe('data/alimentos.json', () => {
     for (const id of ['leche', 'yogur', 'queso_muzzarella', 'queso_rallado', 'manteca', 'dulce_de_leche']) expect(tiene(id, 'leche'), id).toBe(true)
     for (const id of ['pan_blanco', 'pan_rallado', 'fideos', 'galletitas_agua', 'harina_trigo']) expect(tiene(id, 'gluten'), id).toBe(true)
     for (const id of ['merluza', 'atun', 'palitos_pescado']) expect(tiene(id, 'pescado'), id).toBe(true)
+    // v5.10
+    for (const id of ['fideos_integrales', 'cuscus', 'burgol', 'cebada', 'semola', 'salvado_avena', 'harina_integral', 'tortilla_trigo', 'pan_arabe', 'pan_hamburguesa', 'ravioles', 'panqueques', 'torta_frita', 'galletitas_rellenas']) {
+      expect(tiene(id, 'gluten'), id).toBe(true)
+    }
+    for (const id of ['leche_polvo', 'leche_descremada', 'leche_deslactosada', 'yogur_natural', 'yogur_griego', 'queso_colonia', 'queso_fresco', 'queso_cheddar', 'queso_cottage', 'arroz_con_leche', 'flan', 'postre_chocolate', 'pure_papa']) {
+      expect(tiene(id, 'leche'), id).toBe(true)
+    }
+    for (const id of ['ravioles', 'panqueques', 'flan']) expect(tiene(id, 'huevo'), id).toBe(true)
+    for (const id of ['pan_arabe', 'pan_hamburguesa']) expect(tiene(id, 'sesamo'), id).toBe(true)
+  })
+
+  it('v5.10 · lo sin gluten no lleva gluten (para la dieta sin gluten ni caseína)', () => {
+    for (const id of ['fideos_sin_gluten', 'pan_sin_gluten', 'arroz_integral', 'quinoa', 'harina_arroz', 'harina_maiz', 'maicena', 'mandioca', 'galletas_arroz', 'pororo']) {
+      expect(alimentoPorId(id)?.alergenos, id).not.toContain('gluten')
+    }
   })
 })
 

@@ -67,6 +67,34 @@ const MAPEO: Record<string, Mapeo> = {
   choclo: { fdc: [2709910], porcion: 60 },                    // Corn, fresh, cooked, no added fat
   prepizza: { fdc: [2707612], porcion: 80, nota: 'USDA no tiene prepizza: focaccia lisa, la masa horneada más parecida' },
   medialuna: { fdc: [2707678], porcion: 40 },                 // Croissant
+  // v5.10 · Más cereales y almidones
+  arroz_integral: { fdc: [2708414], porcion: 100 },           // Rice, brown, cooked, no added fat
+  fideos_integrales: { fdc: [2708358], porcion: 100 },        // Pasta, whole grain, cooked
+  fideos_sin_gluten: { fdc: [168900], porcion: 100 },         // Pasta, gluten-free, corn, cooked (SR)
+  pan_sin_gluten: { fdc: [167597], porcion: 30, nota: 'el de FNDDS y el Schär de SR traen calcio agregado (138 y 159 mg): uno sin agregar' }, // Rudi's, Gluten-Free, Original Sandwich Bread (SR)
+  cuscus: { fdc: [2708441], porcion: 100 },                   // Couscous, plain, cooked
+  quinoa: { fdc: [2708400], porcion: 80 },                    // Quinoa, no added fat
+  burgol: { fdc: [2708438], porcion: 80 },                    // Bulgur, no added fat
+  cebada: { fdc: [170285], porcion: 60 },                     // Barley, pearled, cooked (SR): la de la sopa
+  semola: { fdc: [168933], porcion: 30, nota: 'cruda: se usa como ingrediente' }, // Semolina, unenriched (SR): el Cream of wheat de FNDDS viene con hierro y calcio
+  harina_maiz: { fdc: [168929], porcion: 30, nota: 'cruda: se usa como ingrediente' }, // Cornmeal, degermed, unenriched, yellow (SR): acá no se enriquece
+  harina_integral: { fdc: [168893], porcion: 30, nota: 'cruda: se usa como ingrediente' }, // Wheat flour, whole-grain (SR)
+  harina_arroz: { fdc: [169714], porcion: 30, nota: 'cruda: se usa como ingrediente' }, // Rice flour, white, unenriched (SR)
+  maicena: { fdc: [169698], porcion: 10 },                    // Cornstarch (SR)
+  salvado_avena: { fdc: [168872], porcion: 15, nota: 'crudo: se usa como ingrediente' }, // Oat bran, raw (SR)
+  tortilla_trigo: { fdc: [173242], porcion: 40 },             // Tortillas, flour, without added calcium (SR): la de FNDDS trae 146 mg de calcio
+  pan_arabe: { fdc: [2707616], porcion: 50 },                 // Bread, pita
+  pan_hamburguesa: { fdc: [172810], porcion: 50, nota: 'el pan de hamburguesa de EE. UU. trae 211 mg de calcio agregado: el pancito casero con leche' }, // Rolls, dinner, plain, prepared from recipe, made with low fat (2%) milk (SR)
+  ravioles: { fdc: [2708767], porcion: 120 },                 // Ravioli, cheese-filled, no sauce
+  panqueques: { fdc: [2708342], porcion: 50 },                // Crepe, plain (supone la leche de EE. UU.: ~0,6 µg de vitamina D de más cada 100 g)
+  torta_frita: { fdc: [167655], porcion: 60, nota: 'USDA no tiene torta frita: frybread (Apache), la misma masa de harina y grasa, frita' },
+  mandioca: { fdc: [2709564], porcion: 100 },                 // Cassava, cooked
+  papas_fritas: { fdc: [2709458], porcion: 100 },             // Potato, french fries, from fresh, fried
+  pure_papa: { fdc: [2709496], porcion: 150 },                // Potato, mashed, from fresh, made with milk
+  choclo_cremoso: { fdc: [2709923], porcion: 60 },            // Corn, creamed
+  pororo: { fdc: [2708221], porcion: 20 },                    // Popcorn, popped in oil, no butter added
+  galletas_arroz: { fdc: [2708162], porcion: 15 },            // Rice cake
+  galletitas_rellenas: { fdc: [2707975], porcion: 25 },       // Cookie, vanilla sandwich (la "chocolate sandwich" trae 12 mg de hierro agregado)
   // Carnes, pescados, huevos y legumbres
   carne_vacuna: { fdc: [2705824], porcion: 80 },              // Beef, steak, NFS
   carne_picada: { fdc: [2705854], porcion: 80 },              // Beef, ground
@@ -177,6 +205,20 @@ const MAPEO: Record<string, Mapeo> = {
   ricota: { fdc: [2705750], porcion: 40 },                    // Cheese, Ricotta
   helado: { fdc: [2705630], porcion: 70 },                    // Ice cream, vanilla
   postre_lacteo: { fdc: [168785], porcion: 100 },             // Puddings, vanilla, dry mix, instant, prepared with whole milk (SR): el listo de EE. UU. tiene la mitad de calcio
+  // v5.10 · Más lácteos, sin la vitamina D que agrega EE. UU. (como la leche y el yogur de arriba)
+  leche_polvo: { fdc: [173454], porcion: 25 },                // Milk, dry, whole, without added vitamin D (SR): 25 g para un vaso
+  leche_descremada: { fdc: [173432], porcion: 200 },          // Milk, nonfat, fluid, without added vitamin A and vitamin D (SR)
+  leche_deslactosada: { fdc: [172217], porcion: 200, nota: 'la misma leche entera sin lactosa: los nutrientes no cambian (la de FNDDS viene con vitamina D)' },
+  yogur_natural: { fdc: [171284], porcion: 150 },             // Yogurt, plain, whole milk (SR): el de FNDDS trae 1,2 µg de vitamina D
+  yogur_frutas: { fdc: [170889], porcion: 150 },              // Yogurt, fruit, low fat (SR)
+  yogur_griego: { fdc: [2705422], porcion: 120 },             // Yogurt, Greek, whole milk, plain
+  queso_colonia: { fdc: [2705735], porcion: 20, nota: 'el Colonia es un queso semiduro con ojos, tipo suizo' }, // Cheese, Swiss
+  queso_fresco: { fdc: [2705745], porcion: 30 },              // Queso Fresco
+  queso_cheddar: { fdc: [2705709], porcion: 20 },             // Cheese, Cheddar
+  queso_cottage: { fdc: [2705748], porcion: 50 },             // Cheese, cottage, creamed
+  arroz_con_leche: { fdc: [2705685], porcion: 150 },          // Pudding, rice
+  flan: { fdc: [167574], porcion: 100 },                      // Desserts, flan, caramel custard, prepared-from-recipe (SR): el de FNDDS supone leche con vitamina D
+  postre_chocolate: { fdc: [2705694], porcion: 100 },         // Pudding, chocolate, ready-to-eat
   // Otros
   aceite_girasol: { fdc: [2710192, 171025], porcion: 5 },     // Sunflower oil
   aceite_canola: { fdc: [2710188, 172336], porcion: 5 },      // Canola oil
