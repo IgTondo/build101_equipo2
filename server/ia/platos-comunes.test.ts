@@ -1,9 +1,15 @@
 // v5.10 · Platos comunes (server/ia/platos-comunes.ts): los nombres raros que salieron en eval/resultados/variedad-*.md dan
 // problema, los platos de cantina, bar, restaurante o cafetería no, y el prompt de la receta creativa los pide.
-import { describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { Momento } from '../../shared/contratos.js'
 import { preparacionesCatalogo } from '../datos/catalogos.js'
+import { alimentosPrueba, catalogoPrueba, comidasSinteticas, ninoDoc, sintetico } from '../datos/prueba/catalogos.js'
+import { conocimientoDe, type Foco } from '../grafo/conocimiento.js'
+import { objetivosPara } from '../nutricion/objetivos.js'
+import { fijarAlimentos } from './catalogo.js'
 import { EJEMPLOS_DE_PLATOS, PLATOS_COMUNES, franjaDe, problemasDePlatoComun, tipoDelNombre } from './platos-comunes.js'
+import type { SalidaCreativa } from './prompts/receta-creativa.js'
+import { completarCreativa, problemasCreativa } from './receta-creativa.js'
 
 describe('tipoDelNombre', () => {
   it('la entrada de la lista con la que empieza, las de varias palabras primero', () => {
@@ -104,5 +110,53 @@ describe('problemasDePlatoComun', () => {
     for (const f of ['desayuno_merienda', 'almuerzo_cena'] as const) expect(PLATOS_COMUNES[f]).toEqual(expect.arrayContaining(['banana', 'ensalada de frutas', 'compota']))
     expect(PLATOS_COMUNES.almuerzo_cena).not.toContain('licuado')
     expect(PLATOS_COMUNES.desayuno_merienda).not.toContain('milanesa')
+  })
+})
+
+describe('en la receta creativa', () => {
+  const catalogo = catalogoPrueba()
+  const alimentos = alimentosPrueba()
+  const s = sintetico('tomas')
+  const cargado = { nino: ninoDoc(s), comidas: comidasSinteticas(s, alimentos, catalogo), catalogo, alimentos, objetivo: objetivosPara(s.datos.edad, s.datos.sexo) }
+  const papasHorno = catalogo.get('papas_horno_baston')!
+  const zanahoria = catalogo.get('bastones_zanahoria_horno')!
+  const FOCO: Foco = { desdeId: 'papas_horno_baston', modo: 'sumar_ingrediente', nutriente: 'calcio_mg', ingrediente: 'queso_muzzarella' }
+  const k = (foco: Foco = FOCO) => {
+    const c = conocimientoDe(cargado, { hoy: '2026-10-16', momento: 'cena', azar: () => 0.4 })
+    return { ...c, seguros: [...c.seguros.filter((x) => x.id !== zanahoria.id), zanahoria], foco, recientes: [] }
+  }
+  // Sus papas al horno con muzzarella gratinada, como en receta-creativa.test.ts: pasa sin problemas
+  const PAPAS_CON_QUESO: SalidaCreativa = {
+    desdeId: 'papas_horno_baston',
+    nutriente: 'calcio_mg',
+    nombre: 'Papas al horno con queso gratinado',
+    atributos: { ...papasHorno.atributos, coccion: 'horno' },
+    imagen: { uno: 'cheesy oven fry', varios: 'cheesy oven fries', aspecto: 'oven-baked potato sticks with golden melted mozzarella on top' },
+    rol: 'principal',
+    acompanamientos: [{ preparacionId: 'papas_fritas_baston', rol: 'guarnicion', gramos: 60 }, { preparacionId: 'bastones_zanahoria_horno', rol: 'verdura_fruta', gramos: 60 }],
+    ingredientes: [{ alimentoId: 'papa', gramos: 120 }, { alimentoId: 'queso_muzzarella', gramos: 35 }, { alimentoId: 'aceite_girasol', gramos: 5 }],
+    pasos: ['Cortá las papas en bastones.', 'Pincelalas con aceite.', 'Horneá 25 minutos hasta que estén crocantes.', 'Poné una feta de muzzarella arriba y gratiná 3 minutos.'],
+    porQue: 'Parte de sus papas al horno en bastones, que come siempre; cambia solo el ingrediente: se suma muzzarella, que aporta calcio.',
+    presentacion: 'Separado, dos bastones con queso al lado de sus papas fritas, sin tocarse.',
+    comoOfrecer: 'Ofrecelo sin pedirle que lo coma; que esté en el plato ya es un avance.',
+    transparencia: null,
+  }
+  const problemas = (nombre: string) => {
+    const r = completarCreativa({ ...PAPAS_CON_QUESO, nombre }, k(), papasHorno)
+    return problemasCreativa(r, k(), papasHorno, [], r.platoCompleto?.componentes.filter((c) => !c.nuevo))
+  }
+
+  beforeAll(() => fijarAlimentos([...alimentos.values()]))
+  afterAll(() => fijarAlimentos(null))
+
+  it('problemasCreativa pide reintento si el plato no es común; el mismo plato con un nombre común pasa', () => {
+    expect(problemas('Papas al horno con queso gratinado')).toEqual([])
+    expect(problemas('Papas gratinadas con muzzarella')).toEqual([])
+    expect(problemas('Hojuelas de papa con muzzarella')).toEqual([expect.stringContaining('no es un plato común para la cena')])
+    expect(problemas('Licuado de papa y queso')).toContainEqual(expect.stringContaining('es un plato de desayuno y merienda, no de la cena'))
+  })
+
+  it('si el nombre no dice qué es el plato, el problema es ese (no se suma el de plato común)', () => {
+    expect(problemas('Crocantes como las suyas').join('\n')).not.toMatch(/plato común/)
   })
 })

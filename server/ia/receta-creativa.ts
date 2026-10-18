@@ -36,6 +36,7 @@ import { alimentoPorId, alimentos } from './catalogo.js'
 import { generarJSON } from './modelo.js'
 import { esPlatoPrincipal, vaEnLaComida } from './momentos.js'
 import { ajustarPorciones, armarPlatoCompleto, completarConLoQueCome, estructuraDe, problemasDelPlato, vaEnLaFranja } from './plato-completo.js'
+import { problemasDePlatoComun } from './platos-comunes.js'
 import { esquemaSalidaCreativa, promptRecetaCreativa, SISTEMA_RECETA_CREATIVA, type SalidaCreativa } from './prompts/receta-creativa.js'
 import { CORTE_MS, TOPE_NUEVA_LLAMADA_MS, coberturaDeLoQueFalta, sinAlergenos, type IntentoReceta } from './receta.js'
 
@@ -347,6 +348,7 @@ export function problemasCreativa(
     p.push(`El nombre tiene que decir qué es el plato (por ejemplo «Milanesa de arvejas al horno» o «Bastones de boniato fritos»), sin nombrar ni comparar con lo que ya come: sin la comparación, ${receta.nombre ? `«${receta.nombre}»` : 'no queda nada'}. La comparación con lo que ya come va en porQue.`)
   }
   if (!elegido) p.push(...problemasDelFoco(receta, k, desde, relajado), ...problemasDelMomento(receta, k)) // v5.10
+  if (!elegido && nombreQueDiceQueEs(receta.nombre)) p.push(...problemasDePlatoComun(receta.nombre, k.momento)) // v5.10 · un plato común
   if (elegido) {
     const esperado = principal(elegido.preparacion.ingredientes)
     const tiene = principal(receta.ingredientes)
