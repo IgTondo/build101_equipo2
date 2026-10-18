@@ -1,6 +1,6 @@
 # Plan de implementación · build 101 · Nibble
 
-> v4 · sábado 17/10 · v2 (15:05): reenfocada en el objetivo (mejorar la alimentación del chico) e integrando el research `Selectividad alimentaria en niños autistas… .md`. Reemplaza la v1 de las 14:45. **v3: stack de costo casi cero (§4.1).** **v4 (después de la charla con el mentor): cocción como atributo, cita textual en cada respuesta, capas de datos y motores enchufables (§4.3), tres sugerencias en el tablero y dataset sintético de 2 chicos (§10.5).** **v5 (17/10, noche): alta desde cero por voz (§5.2) y se descarta el modo jurado. v5.1: el día se organiza en comidas (§9, "La pantalla principal"): cada registro sugiere la próxima comida.** Lo nuevo o cambiado en los contratos lleva `// v2`, `// v3`, `// v4` o `// v5`.
+> v4 · sábado 17/10 · v2 (15:05): reenfocada en el objetivo (mejorar la alimentación del chico) e integrando el research `Selectividad alimentaria en niños autistas… .md`. Reemplaza la v1 de las 14:45. **v3: stack de costo casi cero (§4.1).** **v4 (después de la charla con el mentor): cocción como atributo, cita textual en cada respuesta, capas de datos y motores enchufables (§4.3), tres sugerencias en el tablero y dataset sintético de 2 chicos (§10.5).** **v5.3 (18/10): planificar una comida (§5.3): el plato = lo seguro + un pasito.** **v5 (17/10, noche): alta desde cero por voz (§5.2) y se descarta el modo jurado. v5.1: el día se organiza en comidas (§9, "La pantalla principal"): cada registro sugiere la próxima comida.** Lo nuevo o cambiado en los contratos lleva `// v2`, `// v3`, `// v4` o `// v5`.
 > **Regla de oro:** antes de las 18:15 tiene que andar en el deploy, desde un celular, el ciclo **después de comer: foto + cómo le fue → análisis → grafo → tablero**. Todo lo demás viene después y, si no llega, se declara como pendiente.
 
 ---
@@ -566,6 +566,20 @@ Con ese audio, "esto entendí" tiene que mostrar: Tomás, 6 años, masculino, 21
 | A8b | A | `/api/perfil-inicial` sin `datos`: extraer `DatosExtraidos` con citas y `faltan`; comprobar las citas por código; alergias solo como sugerencia. Eval: el audio de Tomás (arriba) y 2 o 3 más grabados por el equipo, con la tabla de lo esperado |
 | B8b | B | Nada nuevo en la API: `POST /api/perfil` ya siembra el grafo inicial. Revisar que los atributos parciales de `acepta` entren al α/β inicial |
 | C6 | C | La pantalla de alta por voz (reemplaza el formulario previo): bienvenida → audio con la guía → texto editable → "esto entendí" con alergias a confirmar y lo que falta → crear → registrar |
+
+### 5.3 Planificar una comida: el plato (v5.3)
+
+**Para qué.** La decisión diaria de la familia no es registrar: es qué servir. El registro (foto + cómo le fue) alimenta el grafo; a cambio, la app propone **el plato** de una comida, armado con lo que aprendió. Sin registros el plato es pobre: el plato es lo que la app devuelve por cada foto.
+
+**Qué ve el padre.** En la pantalla principal, la tarjeta grande tiene arriba **Desayuno · Almuerzo · Merienda · Cena** (marcada la próxima comida, §9) y debajo el plato:
+- **Lo seguro** (1 a 3): lo que ya acepta según el grafo, que sirve para esa comida (`momentos` del catálogo) y respeta sus reglas. Variado (no dos del mismo grupo si se puede) y priorizando lo que más aporta al nutriente que más le falta **hoy**.
+- **Un pasito** (0 o 1): el alimento nuevo de food chaining (la sugerencia `un_paso`; si no hay, `mas_nutritiva`), en porción chica y al costado. **Nunca más de uno**: la mayor parte del plato es lo que ya come (research, §7).
+- Una línea de qué cubre ("Cubre la mitad del calcio que le falta hoy", con tope 100%) y dos acciones: **Ver la receta del pasito** (§7, con su `momento`) y **Ver cómo servirlo** (la imagen del plato completo).
+- Cierra con la invitación a registrar: "Después de la cena, sacale una foto y contanos cómo le fue". Al guardar una comida, el resultado muestra el plato de la siguiente.
+
+**Reglas (código, sin LLM).** Solo preparaciones en `acepta` para lo seguro; filtro por `momentos`; fuera lo que viola una regla `rechaza` y lo que tiene un alérgeno del chico; si no hay nada para esa comida, el plato sale vacío y la pantalla lo dice con calma (nunca se inventa). Si se repite exacto el plato de la última vez de esa comida, rota uno de los seguros (sin perder el pasito: el research pide repetir el mismo de 8 a 15 veces).
+
+**Dónde.** `Progreso.plato` en `GET /api/progreso?momento=` (B, función pura `server/aprendizaje/plato.ts`); la imagen del plato completo con `ImagenPlatoReq.plato` (A); la pantalla (C). Sin funciones nuevas: siguen siendo 12. Fuera de alcance: planes semanales.
 
 ## 6. Cronograma y checkpoints
 
