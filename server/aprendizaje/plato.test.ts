@@ -3,8 +3,12 @@ import { describe, expect, it } from 'vitest'
 import type {
   Alergeno, Alimento, Atributos, CoberturaDia, Grupo, Momento, Nutrientes, PreparacionCatalogo, Regla, Sugerencia,
 } from '../../shared/contratos.js'
+import { alimentosPrueba, catalogoPrueba, comidasSinteticas, ninoDoc, sintetico } from '../datos/prueba/catalogos.js'
+import { progresoDe } from '../datos/tablero.js'
 import { cero } from '../nutricion/calcular.js'
+import { objetivosPara } from '../nutricion/objetivos.js'
 import { type EstadoPrep, estadoDe } from './aceptacion.js'
+import { calcularEstado } from './estado.js'
 import { type EntradaPlato, armarPlato } from './plato.js'
 
 // ---------- Un mundo chico, con números redondos ----------
@@ -195,5 +199,70 @@ describe('sin nada para esa comida', () => {
     expect(p.pasito).toBeUndefined()
     expect(p.cubre).toBe(0)
     expect(p.porQue).toBe('Todavía no conocemos algo que coma para la cena. Cuando registres lo que le sirvas, armamos el plato con eso.')
+  })
+})
+
+// ---------- Los dos chicos sintéticos (§10.5) × las cuatro comidas, por el tablero real ----------
+const catalogo = catalogoPrueba()
+const alimentos = alimentosPrueba()
+const HOY = '2026-10-16'
+function cargado(id: 'tomas' | 'lucia') {
+  const s = sintetico(id)
+  return { s, c: { nino: ninoDoc(s), comidas: comidasSinteticas(s, alimentos, catalogo), catalogo, alimentos, objetivo: objetivosPara(s.datos.edad, s.datos.sexo) } }
+}
+const MOMENTOS = ['desayuno', 'almuerzo', 'merienda', 'cena'] as const
+
+describe('sintéticos × comidas (por progresoDe, ?momento=)', () => {
+  const TABLA: Record<'tomas' | 'lucia', Record<(typeof MOMENTOS)[number], string>> = {
+    tomas: {
+      desayuno: 'tostadas + leche_chocolatada | tostadas_queso',
+      almuerzo: 'papas_fritas_baston + milanesa_carne_horno | bastones_queso_horno',
+      merienda: 'galletitas_agua + leche_chocolatada | tostadas_queso', // rota las tostadas: la última merienda fue chocolatada con tostadas
+      cena: 'papas_fritas_baston + milanesa_carne_horno | bastones_queso_horno',
+    },
+    lucia: {
+      desayuno: 'yogur_vainilla + banana_pisada | frutilla_pisada',
+      almuerzo: 'fideos_manteca_queso + pollo_desmenuzado | —', // nada a un cambio para el almuerzo: sin pasito
+      merienda: 'yogur_vainilla + banana_pisada | frutilla_pisada', // rota el arroz con leche (la última merienda)
+      cena: 'fideos_manteca_queso + pollo_desmenuzado | —',
+    },
+  }
+
+  it.each(['tomas', 'lucia'] as const)('%s: el plato de cada comida', (id) => {
+    const { s, c } = cargado(id)
+    for (const momento of MOMENTOS) {
+      const p = progresoDe(c, { hasta: HOY, momento })
+      const plato = p.plato
+      expect(plato, momento).toBeDefined()
+      if (!plato) continue
+      expect(`${plato.seguros.map((x) => x.preparacionId).join(' + ')} | ${plato.pasito?.preparacionId ?? '—'}`, `${id} ${momento}`).toBe(TABLA[id][momento])
+      expect(plato.momento).toBe(momento)
+      // el pasito es la sugerencia un_paso del mismo progreso (la misma tarjeta que el tablero)
+      if (plato.pasito) expect(plato.pasito).toEqual(p.sugerencias?.find((x) => x.tipo === plato.pasito?.tipo))
+      const estados = calcularEstado(c.nino, c.comidas, catalogo, { hasta: HOY }).estados
+      for (const x of plato.seguros) {
+        const cat = catalogo.get(x.preparacionId)
+        expect(cat?.momentos, `${id} ${momento} ${x.preparacionId}`).toContain(momento)
+        expect(cat?.ingredientes.some((i) => alimentos.get(i.alimentoId)?.alergenos.some((a) => s.datos.alergias.includes(a)))).toBe(false)
+        expect(cat?.atributos.color === 'verde' && id === 'lucia').toBe(false) // "No come nada verde"
+        expect(cat?.atributos.presentacion === 'mezclado' && id === 'tomas').toBe(false) // "No come nada mezclado"
+        expect(estados.get(x.preparacionId)?.estado, `${id} ${momento} ${x.preparacionId}`).toBe('acepta')
+      }
+      expect(new Set(plato.seguros.map((x) => x.grupo)).size).toBe(plato.seguros.length)
+      expect(plato.cubre).toBeGreaterThanOrEqual(0)
+      expect(plato.cubre).toBeLessThanOrEqual(1)
+      const textos = [plato.porQue, ...plato.seguros.map((x) => x.porQue)].join(' ')
+      expect(textos).not.toMatch(/rechaz|\d,\d|\d\.\d|que termine|premio|una probadita más|escondé/i)
+    }
+  })
+
+  it('sin momento no hay plato (el tablero de la semana queda igual)', () => {
+    const { c } = cargado('tomas')
+    const sin = progresoDe(c, { hasta: HOY })
+    expect(sin.plato).toBeUndefined()
+    expect(sin.momento).toBeUndefined()
+    const con = progresoDe(c, { hasta: HOY, momento: 'cena' })
+    expect(con.plato?.momento).toBe('cena')
+    expect([con.frase, con.dias, con.semana, con.alertas]).toEqual([sin.frase, sin.dias, sin.semana, sin.alertas])
   })
 })
