@@ -5,6 +5,7 @@ import { resolverComida } from '../datos/resolver.js'
 import { estadoDe, procesarHistorial } from './aceptacion.js'
 import { type PrepConocida, cambios, esSegura, reglaQueViola } from './cadena.js'
 import { propagar } from './propagacion.js'
+import { textoBorrado } from './aprendi.js'
 import { textoPatron } from './textos.js'
 
 const catalogo = catalogoPrueba()
@@ -83,6 +84,17 @@ describe('textos de los patrones (sin LLM)', () => {
     expect(textoPatron([{ tipo: 'textura', valor: 'blando' }], 'rechaza', 6, 6)).not.toMatch(/rechaz/)
   })
 
+  it('un "todavía no lo acepta" que se borra se cuenta en positivo y sin ambigüedad', () => {
+    expect(textoBorrado([{ tipo: 'presentacion', valor: 'mezclado' }], 'Arroz con pollo', false)).toBe(
+      'Lo mezclado ya no parece costarle tanto (esta vez comió arroz con pollo).',
+    )
+    expect(textoBorrado([{ tipo: 'grupo', valor: 'verdura' }], 'Brócoli hervido', false)).toBe(
+      'Las verduras ya no parecen costarle tanto (esta vez comió brócoli hervido).',
+    )
+    expect(textoBorrado([{ tipo: 'distribucion', valor: 'tocandose' }], 'Milanesa de carne al horno (rebozada sin huevo)', true)).toBe(
+      'Lo que se sirve cuando los alimentos se tocan no parece costarle, aunque a muchos chicos les cuesta (esta vez comió milanesa de carne al horno).',
+    )
+  })
 })
 
 describe('food chaining: un solo cambio (§8, cadena.ts)', () => {
