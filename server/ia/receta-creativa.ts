@@ -22,7 +22,7 @@ import { alimentosProhibidos, limpiarOtras } from '../alergias.js'
 import { DIMENSIONES, cambios, principal } from '../aprendizaje/cadena.js'
 import { NOMBRE_GRUPO, NOMBRE_NUTRIENTE, TEXTO_CAMBIO, decimal, slug } from '../aprendizaje/textos.js'
 import { cargarNino } from '../datos/cargar.js'
-import { ACOMPANAMIENTOS, conocimientoDe, type Conocimiento, type Foco } from '../grafo/conocimiento.js'
+import { ACOMPANAMIENTOS, conocimientoDe, type Conocimiento, type Evitar, type Foco } from '../grafo/conocimiento.js'
 import { esCondimento } from './condimentos.js'
 import { ErrorNibble } from '../http.js'
 import { CON_META } from '../nutricion/objetivos.js'
@@ -50,7 +50,7 @@ export async function armarConocimientoReceta(ninoId: string, op: { nutriente?: 
  * v5.10 · Lo que el conocimiento no tiene que volver a sortear para el foco: el alimento de partida y el ingrediente del
  * intento que no pasó. Tipo local hasta que esté en conocimiento.ts (carril foco-ricos).
  */
-export interface EvitarFoco { desdeIds?: string[]; ingredientes?: string[] }
+export type EvitarFoco = Evitar // v5.10 · el de server/grafo/conocimiento.ts
 
 export interface DepsRecetaCreativa {
   conocimiento: (ninoId: string, op: { nutriente?: Nutriente; momento?: RecetaReq['momento']; anteriores?: string[]; evitar?: EvitarFoco }) => Promise<ConocimientoReceta>
